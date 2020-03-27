@@ -1,0 +1,16 @@
+# mycluster
+fs.defaultFS                                    hdfs://mycluster
+dfs.nameservices                                mycluster
+dfs.ha.namenodes.mycluster                      nn1,nn2
+dfs.namenode.rpc-address.mycluster.nn1          spark:8020
+dfs.namenode.rpc-address.mycluster.nn2          etl:8020
+dfs.client.failover.proxy.provider.mycluster    org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider
+
+
+# TD_Cluster
+fs.defaultFS                                     hdfs://szdchdp310
+dfs.nameservices                                 szdchdp310
+dfs.ha.namenodes.szdchdp310                      nn1,nn2
+dfs.namenode.rpc-address.szdchdp310.nn1          sz-pg-dc-hadooptest-001.tendcloud.com:9820
+dfs.namenode.rpc-address.szdchdp310.nn2          sz-pg-dc-hadooptest-002.tendcloud.com:9820
+dfs.client.failover.proxy.provider.szdchdp310    org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider

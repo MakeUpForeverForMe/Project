@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <parent>
+    <artifactId>Project</artifactId>
+    <groupId>project</groupId>
+    <version>1.0</version>
+  </parent>
+  <packaging>pom</packaging>
+  <modelVersion>4.0.0</modelVersion>
+  <modules>
+    <module>SparkClusterManagers</module>
+    <module>SparkCore</module>
+    <module>SparkGraphX</module>
+    <module>SparkMLib</module>
+    <module>SparkSQL</module>
+    <module>SparkStreaming</module>
+  </modules>
+
+  <artifactId>Spark</artifactId>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.spark</groupId>
+      <artifactId>spark-core_${scala.prefix}</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.spark</groupId>
+      <artifactId>spark-sql_${scala.prefix}</artifactId>
+    </dependency>
+  </dependencies>
+
+</project>
