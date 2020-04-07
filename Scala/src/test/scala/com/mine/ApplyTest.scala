@@ -15,5 +15,4 @@ object ApplyTest {
       println("测试用例")
     }
   }
-
 }

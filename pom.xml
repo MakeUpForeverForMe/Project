@@ -2,277 +2,288 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+    <modelVersion>4.0.0</modelVersion>
 
-  <groupId>project</groupId>
-  <artifactId>Project</artifactId>
-  <packaging>pom</packaging>
-  <version>1.0</version>
-  <modules>
-    <module>Scala</module>
-    <module>Spark</module>
-    <module>MapReduce</module>
-    <module>AKKA</module>
-  </modules>
+    <groupId>project</groupId>
+    <artifactId>Project</artifactId>
+    <packaging>pom</packaging>
+    <version>1.0</version>
+    <modules>
+        <module>Scala</module>
+        <module>Spark</module>
+        <module>MapReduce</module>
+        <module>AKKA</module>
+        <module>Zookeeper</module>
+    </modules>
 
-  <properties>
-    <encoding>UTF-8</encoding>                                <!-- Encoding         版本 -->
-    <java.version>1.8</java.version>                          <!-- Java             版本 -->
-    <scala.prefix>2.11</scala.prefix>                         <!-- ScalaPrefix      版本 -->
-    <scala.version>${scala.prefix}.8</scala.version>          <!-- Scala            版本 -->
-    <log4j.vsersion>1.2.17</log4j.vsersion>                   <!-- Log4j            版本 -->
-    <junit.version>4.12</junit.version>                       <!-- Junit            版本 -->
-    <aes.version>1.11</aes.version>                           <!-- Aes              版本 -->
-    <mysqlConnector.version>8.0.15</mysqlConnector.version>   <!-- MysqlConnector   版本 -->
-    <commons-io.version>2.4</commons-io.version>              <!-- commons-io       版本 -->
-    <akka.version>2.4.17</akka.version>                       <!-- AKKA             版本 -->
-    <akka.kryo.version>1.0.0</akka.kryo.version>              <!-- AKKAKryo         版本 -->
-    <hadoop.version>3.0.0</hadoop.version>                    <!-- Hadoop           版本 -->
-    <hive.version>2.3.4</hive.version>                        <!-- Hive             版本 -->
-    <spark.version>2.3.1</spark.version>                      <!-- Spark            版本 -->
-    <janino.version>3.0.8</janino.version>                    <!-- Spark         报错解决 -->
-  </properties>
+    <properties>
+        <encoding>UTF-8</encoding>                                <!-- Encoding         版本 -->
+        <java.version>1.8</java.version>                          <!-- Java             版本 -->
+        <scala.prefix>2.11</scala.prefix>                         <!-- ScalaPrefix      版本 -->
+        <scala.version>${scala.prefix}.8</scala.version>          <!-- Scala            版本 -->
+        <log4j.vsersion>1.2.17</log4j.vsersion>                   <!-- Log4j            版本 -->
+        <junit.version>4.12</junit.version>                       <!-- Junit            版本 -->
+        <aes.version>1.11</aes.version>                           <!-- Aes              版本 -->
+        <mysqlConnector.version>8.0.15</mysqlConnector.version>   <!-- MysqlConnector   版本 -->
+        <commons-io.version>2.4</commons-io.version>              <!-- commons-io       版本 -->
+        <akka.version>2.4.17</akka.version>                       <!-- AKKA             版本 -->
+        <akka.kryo.version>1.0.0</akka.kryo.version>              <!-- AKKAKryo         版本 -->
+        <!--<zookeeper.version>3.4.5-cdh6.3.1</zookeeper.version>     &lt;!&ndash; Zookeeper        版本 &ndash;&gt;-->
+        <zookeeper.version>3.4.5</zookeeper.version>              <!-- Zookeeper        版本 -->
+        <hadoop.version>3.0.0</hadoop.version>                    <!-- Hadoop           版本 -->
+        <hive.version>2.1.1</hive.version>                        <!-- Hive             版本 -->
+        <spark.version>2.3.1</spark.version>                      <!-- Spark            版本 -->
+        <janino.version>3.0.8</janino.version>                    <!-- Spark         报错解决 -->
+    </properties>
 
-  <dependencies>
-    <!-- Scala 相关依赖 -->
-    <!-- https://mvnrepository.com/artifact/org.scala-lang/scala-library -->
-    <dependency>
-      <groupId>org.scala-lang</groupId>
-      <artifactId>scala-library</artifactId>
-      <version>${scala.version}</version>
-    </dependency>
-    <!-- Log4j 相关依赖 -->
-    <!-- https://mvnrepository.com/artifact/log4j/log4j -->
-    <dependency>
-      <groupId>log4j</groupId>
-      <artifactId>log4j</artifactId>
-      <version>${log4j.vsersion}</version>
-    </dependency>
-    <!-- Junit 相关依赖 -->
-    <!-- https://mvnrepository.com/artifact/junit/junit -->
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>${junit.version}</version>
-      <!--<scope>test</scope>-->
-    </dependency>
-  </dependencies>
-
-
-
-  <dependencyManagement>
     <dependencies>
-      <!-- Aes 加密的相关依赖 -->
-      <!-- https://mvnrepository.com/artifact/commons-codec/commons-codec -->
-      <dependency>
-        <groupId>commons-codec</groupId>
-        <artifactId>commons-codec</artifactId>
-        <version>${aes.version}</version>
-      </dependency>
-      <!-- MysqlConnector 相关依赖 -->
-      <!-- https://mvnrepository.com/artifact/mysql/mysql-connector-java -->
-      <dependency>
-        <groupId>mysql</groupId>
-        <artifactId>mysql-connector-java</artifactId>
-        <version>${mysql.version}</version>
-      </dependency>
-      <!-- FileUtils 相关依赖 -->
-      <!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
-      <dependency>
-        <groupId>commons-io</groupId>
-        <artifactId>commons-io</artifactId>
-        <version>${commons-io.version}</version>
-      </dependency>
-
-      <!-- 添加akka的actor依赖 -->
-      <dependency>
-        <groupId>com.typesafe.akka</groupId>
-        <artifactId>akka-actor_${scala.prefix}</artifactId>
-        <version>${akka.version}</version>
-      </dependency>
-
-      <!-- 多进程之间的Actor通信 -->
-      <dependency>
-        <groupId>com.typesafe.akka</groupId>
-        <artifactId>akka-remote_${scala.prefix}</artifactId>
-        <version>${akka.version}</version>
-      </dependency>
-
-      <!-- 使用 AKKA-kryo 序列化 -->
-      <!-- https://mvnrepository.com/artifact/io.altoo/akka-kryo-serialization -->
-      <dependency>
-        <groupId>io.altoo</groupId>
-        <artifactId>akka-kryo-serialization_${scala.prefix}</artifactId>
-        <version>${akka.kryo.version}</version>
-      </dependency>
-
-
-      <!-- Hadoop 相关依赖 -->
-      <!-- https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-hdfs -->
-      <dependency>
-        <groupId>org.apache.hadoop</groupId>
-        <artifactId>hadoop-common</artifactId>
-        <version>${hadoop.version}</version>
-      </dependency>
-      <!-- https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-hdfs -->
-      <dependency>
-        <groupId>org.apache.hadoop</groupId>
-        <artifactId>hadoop-hdfs</artifactId>
-        <version>${hadoop.version}</version>
-      </dependency>
-      <!-- https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-client -->
-      <dependency>
-        <groupId>org.apache.hadoop</groupId>
-        <artifactId>hadoop-client</artifactId>
-        <version>${hadoop.version}</version>
-      </dependency>
-
-      <!-- Hive 相关依赖 -->
-      <!-- https://mvnrepository.com/artifact/org.apache.hive/hive-exec -->
-      <dependency>
-        <groupId>org.apache.hive</groupId>
-        <artifactId>hive-exec</artifactId>
-        <version>${hive.version}</version>
-      </dependency>
-
-      <!-- Spark相关依赖 -->
-      <!-- https://mvnrepository.com/artifact/org.apache.spark/spark-core -->
-      <dependency>
-        <groupId>org.apache.spark</groupId>
-        <artifactId>spark-core_${scala.prefix}</artifactId>
-        <version>${spark.version}</version>
-      </dependency>
-      <!-- https://mvnrepository.com/artifact/org.apache.spark/spark-sql -->
-      <dependency>
-        <groupId>org.apache.spark</groupId>
-        <artifactId>spark-sql_${scala.prefix}</artifactId>
-        <version>${spark.version}</version>
-      </dependency>
-      <!-- Spark java.lang.NoClassDefFoundError: org/codehaus/janino/InternalCompilerException -->
-      <dependency>
-        <groupId>org.codehaus.janino</groupId>
-        <artifactId>commons-compiler</artifactId>
-        <version>${janino.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.codehaus.janino</groupId>
-        <artifactId>janino</artifactId>
-        <version>${janino.version}</version>
-      </dependency>
-
+        <!-- Scala 相关依赖 -->
+        <!-- https://mvnrepository.com/artifact/org.scala-lang/scala-library -->
+        <dependency>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala-library</artifactId>
+            <version>${scala.version}</version>
+        </dependency>
+        <!-- Log4j 相关依赖 -->
+        <!-- https://mvnrepository.com/artifact/log4j/log4j -->
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>${log4j.vsersion}</version>
+        </dependency>
+        <!-- Junit 相关依赖 -->
+        <!-- https://mvnrepository.com/artifact/junit/junit -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
+            <!--<scope>test</scope>-->
+        </dependency>
     </dependencies>
-  </dependencyManagement>
 
-  <build>
-    <!--包名-->
-    <finalName>mineProject</finalName>
-    <!--<resources>-->
-    <!--<resource>-->
-    <!--<directory>src/main/java</directory>-->
-    <!--<filtering>false</filtering>-->
-    <!--<excludes>-->
-    <!--<exclude>**/*.java</exclude>-->
-    <!--</excludes>-->
-    <!--</resource>-->
-    <!--</resources>-->
-    <plugins>
-      <!-- 配置 Scala 的编译插件 -->
-      <plugin>
-        <groupId>net.alchim31.maven</groupId>
-        <artifactId>scala-maven-plugin</artifactId>
-        <version>3.2.2</version>
-        <configuration>
-          <encoding>${encoding}</encoding>
-          <source>${scala.version}</source>
-          <target>${scala.version}</target>
-        </configuration>
-        <executions>
-          <execution>
-            <goals>
-              <goal>compile</goal>
-              <goal>testCompile</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <!-- 配置 Java 的编译版本 -->
-      <plugin>
-        <!--<groupId>org.apache.maven.plugins</groupId>-->
-        <artifactId>maven-compiler-plugin</artifactId>
-        <!--<version>3.6.1</version>-->
-        <configuration>
-          <encoding>${encoding</encoding>
-          <source>${java.version}</source>
-          <target>${java.version}</target>
-        </configuration>
-      </plugin>
-      <!-- 打包插件 -->
-      <plugin>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <configuration>
-          <outputDirectory>${project.build.directory}</outputDirectory>
-          <!-- 自定义的configuration配置后，将会生成一个demo-demo.jar 文件在目录 output 下，其中前一个demo
-            来自finalName，后一个demo来自assembly descriptor中的id，其中的内容和默认的打包出来的jar类似，
-            如果只想有finalName，则增加配置：<appendAssemblyId/>-->
-          <appendAssemblyId>false</appendAssemblyId>
-          <!--描述文件位置-->
-          <descriptors>
-            <descriptor>${project.basedir}/../conf/assembly.xml</descriptor>
-          </descriptors>
-        </configuration>
-        <!-- 配置执行器 -->
-        <executions>
-          <execution>
-            <id>make-assembly</id>
-            <!-- 绑定到 package 生命周期阶段上 -->
-            <phase>package</phase>
-            <goals>
-              <!-- 只运行一次 -->
-              <goal>single</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <!-- 打包跳过测试类 -->
-      <plugin>
-        <!--<groupId>org.apache.maven.plugins</groupId>-->
-        <artifactId>maven-surefire-plugin</artifactId>
-        <configuration>
-          <testFailureIgnore>true</testFailureIgnore>
-          <skip>true</skip>
-        </configuration>
-      </plugin>
-      <!-- Copy 指定工程中的配置文件 -->
-      <!--<plugin>-->
-      <!--&lt;!&ndash;<groupId>org.apache.maven.plugins</groupId>&ndash;&gt;-->
-      <!--<artifactId>maven-resources-plugin</artifactId>-->
-      <!--&lt;!&ndash;<version>2.7</version>&ndash;&gt;-->
-      <!--<executions>-->
-      <!--<execution>-->
-      <!--<id>copy-resources</id>-->
-      <!--<phase>package</phase>-->
-      <!--<goals>-->
-      <!--<goal>copy-resources</goal>-->
-      <!--</goals>-->
-      <!--<configuration>-->
-      <!--<outputDirectory>${basedir}/conf</outputDirectory>-->
-      <!--<encoding>${encoding}</encoding>-->
-      <!--<resources>-->
-      <!--<resource>-->
-      <!--<directory>src/main/resources</directory>-->
-      <!--<filtering>true</filtering>-->
-      <!--<includes>-->
-      <!--&lt;!&ndash;<exclude>**/*.xml</exclude>&ndash;&gt;-->
-      <!--&lt;!&ndash;<exclude>**/*.conf</exclude>&ndash;&gt;-->
-      <!--<exclude>*.properties</exclude>-->
-      <!--</includes>-->
-      <!--</resource>-->
-      <!--</resources>-->
-      <!--</configuration>-->
-      <!--</execution>-->
-      <!--</executions>-->
-      <!--</plugin>-->
-    </plugins>
-  </build>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- Aes 加密的相关依赖 -->
+            <!-- https://mvnrepository.com/artifact/commons-codec/commons-codec -->
+            <dependency>
+                <groupId>commons-codec</groupId>
+                <artifactId>commons-codec</artifactId>
+                <version>${aes.version}</version>
+            </dependency>
+            <!-- MysqlConnector 相关依赖 -->
+            <!-- https://mvnrepository.com/artifact/mysql/mysql-connector-java -->
+            <dependency>
+                <groupId>mysql</groupId>
+                <artifactId>mysql-connector-java</artifactId>
+                <version>${mysql.version}</version>
+            </dependency>
+            <!-- FileUtils 相关依赖 -->
+            <!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>${commons-io.version}</version>
+            </dependency>
+
+            <!-- 添加akka的actor依赖 -->
+            <dependency>
+                <groupId>com.typesafe.akka</groupId>
+                <artifactId>akka-actor_${scala.prefix}</artifactId>
+                <version>${akka.version}</version>
+            </dependency>
+
+            <!-- 多进程之间的Actor通信 -->
+            <dependency>
+                <groupId>com.typesafe.akka</groupId>
+                <artifactId>akka-remote_${scala.prefix}</artifactId>
+                <version>${akka.version}</version>
+            </dependency>
+
+            <!-- 使用 AKKA-kryo 序列化 -->
+            <!-- https://mvnrepository.com/artifact/io.altoo/akka-kryo-serialization -->
+            <dependency>
+                <groupId>io.altoo</groupId>
+                <artifactId>akka-kryo-serialization_${scala.prefix}</artifactId>
+                <version>${akka.kryo.version}</version>
+            </dependency>
+
+
+            <!-- Zookeeper 相关依赖 -->
+            <!-- https://mvnrepository.com/artifact/org.apache.zookeeper/zookeeper -->
+            <dependency>
+                <groupId>org.apache.zookeeper</groupId>
+                <artifactId>zookeeper</artifactId>
+                <version>${zookeeper.version}</version>
+                <!--<type>pom</type>-->
+            </dependency>
+
+            <!-- Hadoop 相关依赖 -->
+            <!-- https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-hdfs -->
+            <dependency>
+                <groupId>org.apache.hadoop</groupId>
+                <artifactId>hadoop-common</artifactId>
+                <version>${hadoop.version}</version>
+            </dependency>
+            <!-- https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-hdfs -->
+            <dependency>
+                <groupId>org.apache.hadoop</groupId>
+                <artifactId>hadoop-hdfs</artifactId>
+                <version>${hadoop.version}</version>
+            </dependency>
+            <!-- https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-client -->
+            <dependency>
+                <groupId>org.apache.hadoop</groupId>
+                <artifactId>hadoop-client</artifactId>
+                <version>${hadoop.version}</version>
+            </dependency>
+
+            <!-- Hive 相关依赖 -->
+            <!-- https://mvnrepository.com/artifact/org.apache.hive/hive-exec -->
+            <dependency>
+                <groupId>org.apache.hive</groupId>
+                <artifactId>hive-exec</artifactId>
+                <version>${hive.version}</version>
+            </dependency>
+
+            <!-- Spark相关依赖 -->
+            <!-- https://mvnrepository.com/artifact/org.apache.spark/spark-core -->
+            <dependency>
+                <groupId>org.apache.spark</groupId>
+                <artifactId>spark-core_${scala.prefix}</artifactId>
+                <version>${spark.version}</version>
+            </dependency>
+            <!-- https://mvnrepository.com/artifact/org.apache.spark/spark-sql -->
+            <dependency>
+                <groupId>org.apache.spark</groupId>
+                <artifactId>spark-sql_${scala.prefix}</artifactId>
+                <version>${spark.version}</version>
+            </dependency>
+            <!-- Spark java.lang.NoClassDefFoundError: org/codehaus/janino/InternalCompilerException -->
+            <dependency>
+                <groupId>org.codehaus.janino</groupId>
+                <artifactId>commons-compiler</artifactId>
+                <version>${janino.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.codehaus.janino</groupId>
+                <artifactId>janino</artifactId>
+                <version>${janino.version}</version>
+            </dependency>
+
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <!--包名-->
+        <finalName>mineProject</finalName>
+        <!--<resources>-->
+        <!--<resource>-->
+        <!--<directory>src/main/java</directory>-->
+        <!--<filtering>false</filtering>-->
+        <!--<excludes>-->
+        <!--<exclude>**/*.java</exclude>-->
+        <!--</excludes>-->
+        <!--</resource>-->
+        <!--</resources>-->
+        <plugins>
+            <!-- 配置 Scala 的编译插件 -->
+            <plugin>
+                <groupId>net.alchim31.maven</groupId>
+                <artifactId>scala-maven-plugin</artifactId>
+                <version>3.2.2</version>
+                <configuration>
+                    <encoding>${encoding}</encoding>
+                    <source>${scala.version}</source>
+                    <target>${scala.version}</target>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>compile</goal>
+                            <goal>testCompile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- 配置 Java 的编译版本 -->
+            <plugin>
+                <!--<groupId>org.apache.maven.plugins</groupId>-->
+                <artifactId>maven-compiler-plugin</artifactId>
+                <!--<version>3.6.1</version>-->
+                <configuration>
+                    <encoding>${encoding</encoding>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                </configuration>
+            </plugin>
+            <!-- 打包插件 -->
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <outputDirectory>${project.build.directory}</outputDirectory>
+                    <!-- 自定义的configuration配置后，将会生成一个demo-demo.jar 文件在目录 output 下，其中前一个demo
+                      来自finalName，后一个demo来自assembly descriptor中的id，其中的内容和默认的打包出来的jar类似，
+                      如果只想有finalName，则增加配置：<appendAssemblyId/>-->
+                    <appendAssemblyId>false</appendAssemblyId>
+                    <!--描述文件位置-->
+                    <descriptors>
+                        <descriptor>${project.basedir}/../conf/assembly.xml</descriptor>
+                    </descriptors>
+                </configuration>
+                <!-- 配置执行器 -->
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <!-- 绑定到 package 生命周期阶段上 -->
+                        <phase>package</phase>
+                        <goals>
+                            <!-- 只运行一次 -->
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- 打包跳过测试类 -->
+            <plugin>
+                <!--<groupId>org.apache.maven.plugins</groupId>-->
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <testFailureIgnore>true</testFailureIgnore>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+            <!-- Copy 指定工程中的配置文件 -->
+            <!--<plugin>-->
+            <!--&lt;!&ndash;<groupId>org.apache.maven.plugins</groupId>&ndash;&gt;-->
+            <!--<artifactId>maven-resources-plugin</artifactId>-->
+            <!--&lt;!&ndash;<version>2.7</version>&ndash;&gt;-->
+            <!--<executions>-->
+            <!--<execution>-->
+            <!--<id>copy-resources</id>-->
+            <!--<phase>package</phase>-->
+            <!--<goals>-->
+            <!--<goal>copy-resources</goal>-->
+            <!--</goals>-->
+            <!--<configuration>-->
+            <!--<outputDirectory>${basedir}/conf</outputDirectory>-->
+            <!--<encoding>${encoding}</encoding>-->
+            <!--<resources>-->
+            <!--<resource>-->
+            <!--<directory>src/main/resources</directory>-->
+            <!--<filtering>true</filtering>-->
+            <!--<includes>-->
+            <!--&lt;!&ndash;<exclude>**/*.xml</exclude>&ndash;&gt;-->
+            <!--&lt;!&ndash;<exclude>**/*.conf</exclude>&ndash;&gt;-->
+            <!--<exclude>*.properties</exclude>-->
+            <!--</includes>-->
+            <!--</resource>-->
+            <!--</resources>-->
+            <!--</configuration>-->
+            <!--</execution>-->
+            <!--</executions>-->
+            <!--</plugin>-->
+        </plugins>
+    </build>
 
 </project>
