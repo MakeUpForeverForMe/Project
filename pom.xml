@@ -9,11 +9,14 @@
     <packaging>pom</packaging>
     <version>1.0</version>
     <modules>
+        <module>AKKA</module>
+        <module>BinLogSync</module>
+        <module>MapReduce</module>
         <module>Scala</module>
         <module>Spark</module>
-        <module>MapReduce</module>
-        <module>AKKA</module>
         <module>Zookeeper</module>
+        <module>Kafka</module>
+        <module>ProjectUtils</module>
     </modules>
 
     <properties>
@@ -21,19 +24,23 @@
         <java.version>1.8</java.version>                          <!-- Java             版本 -->
         <scala.prefix>2.11</scala.prefix>                         <!-- ScalaPrefix      版本 -->
         <scala.version>${scala.prefix}.8</scala.version>          <!-- Scala            版本 -->
-        <log4j.vsersion>1.2.17</log4j.vsersion>                   <!-- Log4j            版本 -->
+        <log4j.version>1.2.17</log4j.version>                     <!-- Log4j            版本 -->
+        <slf4j.version>1.7.25</slf4j.version>                     <!-- Slf4j            版本 -->
         <junit.version>4.12</junit.version>                       <!-- Junit            版本 -->
         <aes.version>1.11</aes.version>                           <!-- Aes              版本 -->
         <mysqlConnector.version>8.0.15</mysqlConnector.version>   <!-- MysqlConnector   版本 -->
         <commons-io.version>2.4</commons-io.version>              <!-- commons-io       版本 -->
+        <fastjson.version>1.2.62</fastjson.version>               <!-- FastJson         版本 -->
         <akka.version>2.4.17</akka.version>                       <!-- AKKA             版本 -->
         <akka.kryo.version>1.0.0</akka.kryo.version>              <!-- AKKAKryo         版本 -->
         <!--<zookeeper.version>3.4.5-cdh6.3.1</zookeeper.version>     &lt;!&ndash; Zookeeper        版本 &ndash;&gt;-->
         <zookeeper.version>3.4.5</zookeeper.version>              <!-- Zookeeper        版本 -->
+        <kafka.version>2.1.0</kafka.version>                      <!-- Kafka            版本 -->
         <hadoop.version>3.0.0</hadoop.version>                    <!-- Hadoop           版本 -->
         <hive.version>2.1.1</hive.version>                        <!-- Hive             版本 -->
         <spark.version>2.3.1</spark.version>                      <!-- Spark            版本 -->
         <janino.version>3.0.8</janino.version>                    <!-- Spark         报错解决 -->
+        <flink.vsersion>1.8.0</flink.vsersion>                    <!-- Flink            版本 -->
     </properties>
 
     <dependencies>
@@ -49,7 +56,15 @@
         <dependency>
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>
-            <version>${log4j.vsersion}</version>
+            <version>${log4j.version}</version>
+        </dependency>
+        <!-- Slf4j 相关依赖 -->
+        <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-log4j12 -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>${slf4j.version}</version>
+            <!--<scope>test</scope>-->
         </dependency>
         <!-- Junit 相关依赖 -->
         <!-- https://mvnrepository.com/artifact/junit/junit -->
@@ -64,6 +79,11 @@
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>project</groupId>
+                <artifactId>ProjectUtils</artifactId>
+                <version>${version}</version>
+            </dependency>
             <!-- Aes 加密的相关依赖 -->
             <!-- https://mvnrepository.com/artifact/commons-codec/commons-codec -->
             <dependency>
@@ -85,6 +105,14 @@
                 <artifactId>commons-io</artifactId>
                 <version>${commons-io.version}</version>
             </dependency>
+            <!-- FastJson 相关依赖 -->
+            <!-- https://mvnrepository.com/artifact/com.alibaba/fastjson -->
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>fastjson</artifactId>
+                <version>1.2.62</version>
+            </dependency>
+
 
             <!-- 添加akka的actor依赖 -->
             <dependency>
@@ -92,14 +120,12 @@
                 <artifactId>akka-actor_${scala.prefix}</artifactId>
                 <version>${akka.version}</version>
             </dependency>
-
             <!-- 多进程之间的Actor通信 -->
             <dependency>
                 <groupId>com.typesafe.akka</groupId>
                 <artifactId>akka-remote_${scala.prefix}</artifactId>
                 <version>${akka.version}</version>
             </dependency>
-
             <!-- 使用 AKKA-kryo 序列化 -->
             <!-- https://mvnrepository.com/artifact/io.altoo/akka-kryo-serialization -->
             <dependency>
@@ -116,6 +142,14 @@
                 <artifactId>zookeeper</artifactId>
                 <version>${zookeeper.version}</version>
                 <!--<type>pom</type>-->
+            </dependency>
+
+            <!-- Kafka 相关依赖 -->
+            <!-- https://mvnrepository.com/artifact/org.apache.kafka/kafka -->
+            <dependency>
+                <groupId>org.apache.kafka</groupId>
+                <artifactId>kafka_${scala.prefix}</artifactId>
+                <version>${kafka.version}</version>
             </dependency>
 
             <!-- Hadoop 相关依赖 -->
@@ -169,6 +203,27 @@
                 <groupId>org.codehaus.janino</groupId>
                 <artifactId>janino</artifactId>
                 <version>${janino.version}</version>
+            </dependency>
+
+            <!-- Flink相关依赖 -->
+            <!-- https://mvnrepository.com/artifact/org.apache.flink/flink-scala -->
+            <dependency>
+                <groupId>org.apache.flink</groupId>
+                <artifactId>flink-scala_${scala.prefix}</artifactId>
+                <version>${flink.vsersion}</version>
+            </dependency>
+            <!-- https://mvnrepository.com/artifact/org.apache.flink/flink-streaming-scala -->
+            <dependency>
+                <groupId>org.apache.flink</groupId>
+                <artifactId>flink-streaming-scala_${scala.prefix}</artifactId>
+                <version>${flink.vsersion}</version>
+                <!--<scope>provided</scope>-->
+            </dependency>
+            <!-- https://mvnrepository.com/artifact/org.apache.flink/flink-connector-kafka -->
+            <dependency>
+                <groupId>org.apache.flink</groupId>
+                <artifactId>flink-connector-kafka_${scala.prefix}</artifactId>
+                <version>${flink.vsersion}</version>
             </dependency>
 
         </dependencies>

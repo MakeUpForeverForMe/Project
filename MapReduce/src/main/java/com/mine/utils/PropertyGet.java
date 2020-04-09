@@ -5,29 +5,29 @@ import java.util.Properties;
 
 public class PropertyGet {
 
-  private Properties properties = null;
+    private Properties properties = null;
 
-  public PropertyGet() {
-  }
-
-  private void init(String name) {
-    properties = new Properties();
-    try {
-      properties.load(this.getClass().getClassLoader().getResourceAsStream(name));
-    } catch (IOException e) {
-      e.printStackTrace();
+    public PropertyGet() {
     }
-  }
 
-  PropertyGet(String name) {
-    init(name);
-  }
+    private void init(String name) {
+        properties = new Properties();
+        try {
+            properties.load(this.getClass().getClassLoader().getResourceAsStream(name));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
-  String get(String key) {
-    return properties.getProperty(key);
-  }
+    public PropertyGet(String name) {
+        init(name);
+    }
 
-  public void set(String key, String value) {
-    properties.setProperty(key, value);
-  }
+    public String get(String key) {
+        return properties.getProperty(key);
+    }
+
+    public void set(String key, String value) {
+        properties.setProperty(key, value);
+    }
 }
