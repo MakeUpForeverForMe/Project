@@ -15,7 +15,7 @@ object ConsumerSystemCluster {
     private val nodeName: String = propertyUtil.getPropertyValueByKey("whoami")
 
     // node1@127.0.0.1:9991  nhpMap --> (node, (host, port))
-    private val nodeHPMap: Map[String, String] = propertyUtil.getPropertyValueByKey("cluster.nodes").split(",").map {
+    private val nodeHPMap: ImuMap = propertyUtil.getPropertyValueByKey("cluster.nodes").split(",").map {
         nhp =>
             val nodehp = nhp.split("@")
             val node = nodehp(0)
@@ -23,7 +23,7 @@ object ConsumerSystemCluster {
             (node, hp)
     }.toMap
 
-    private val nodeHPFilterMap: Map[String, String] = nodeHPMap.filterKeys(_ != nodeName)
+    private val nodeHPFilterMap: ImuMap = nodeHPMap.filterKeys(_ != nodeName)
 
     private val hpArray: Array[String] = nodeHPMap(nodeName).split(":")
 
