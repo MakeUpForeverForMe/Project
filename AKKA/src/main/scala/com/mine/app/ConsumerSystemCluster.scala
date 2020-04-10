@@ -15,24 +15,23 @@ object ConsumerSystemCluster {
     private val nodeName: String = propertyUtil.getPropertyValueByKey("whoami")
 
     // node1@127.0.0.1:9991  nhpMap --> (node, (host, port))
-    private val nhpMap: Map[String, (String, String)] = propertyUtil.getPropertyValueByKey("cluster.nodes").split(",").map {
+    private val nodeHPMap: Map[String, String] = propertyUtil.getPropertyValueByKey("cluster.nodes").split(",").map {
         nhp =>
             val nodehp = nhp.split("@")
             val node = nodehp(0)
-            val hp = nodehp(1).split(":")
-            (node, (hp(0), hp(1)))
+            val hp = nodehp(1)
+            (node, hp)
     }.toMap
 
-//    private val nhMap: Map[String, String] = nhpMap.filter(_ != nodeName).map(nhp => (nhp._1, nhp._2._1))
-    private val nhMap: Map[String, String] = nhpMap.map(nhp => (nhp._1, nhp._2._1))
+    private val nodeHPFilterMap: Map[String, String] = nodeHPMap.filterKeys(_ != nodeName)
 
-    private val hpTuple: (String, String) = nhpMap(nodeName)
+    private val hpArray: Array[String] = nodeHPMap(nodeName).split(":")
 
     private val config: Config = ConfigFactory.parseString(
         s"""
            |akka.actor.provider = akka.remote.RemoteActorRefProvider
-           |akka.remote.netty.tcp.hostname = ${hpTuple._1}
-           |akka.remote.netty.tcp.port = ${hpTuple._2}
+           |akka.remote.netty.tcp.hostname = ${hpArray(0)}
+           |akka.remote.netty.tcp.port = ${hpArray(1)}
            |akka.log-dead-letters = 0
            |akka.log-dead-letters-during-shutdown = off
            |akka.actor.warn-about-java-serializer-usage = off
@@ -41,7 +40,7 @@ object ConsumerSystemCluster {
     def main(args: Array[String]): Unit = {
         val actorSystem = ActorSystem(clusterName, config)
 
-        val actorRef: ActorRef = actorSystem.actorOf(Props(new ConsumerActor(clusterName, nhMap)), nodeName)
+        val actorRef: ActorRef = actorSystem.actorOf(Props(new ConsumerActor(clusterName, nodeHPFilterMap)), nodeName)
 
         var loop: Boolean = true
 

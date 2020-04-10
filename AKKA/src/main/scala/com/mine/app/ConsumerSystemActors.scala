@@ -11,6 +11,7 @@ object ConsumerSystemActors {
     private val clusterName = "ConsumerActors"
     private val serverHost: String = "127.0.0.1"
     private val serverPort: String = "9999"
+    private val hp: String = serverHost + ":" + serverPort
     private val config: Config = ConfigFactory.parseString(
         s"""
            |akka.actor.provider = "akka.remote.RemoteActorRefProvider"
@@ -28,8 +29,8 @@ object ConsumerSystemActors {
 
         val actorSystem = ActorSystem(clusterName, config)
 
-        val actorRef1 = actorSystem.actorOf(Props(new ConsumerActor(clusterName, ImuMap((actorName2, serverHost)))), actorName1)
-        val actorRef2 = actorSystem.actorOf(Props(new ConsumerActor(clusterName, ImuMap((actorName1, serverHost)))), actorName2)
+        val actorRef1 = actorSystem.actorOf(Props(new ConsumerActor(clusterName, ImuMap((actorName2, hp)))), actorName1)
+        val actorRef2 = actorSystem.actorOf(Props(new ConsumerActor(clusterName, ImuMap((actorName1, hp)))), actorName2)
 
         actorRef1 ! "start"
         actorRef2 ! "start"
