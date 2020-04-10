@@ -1,6 +1,12 @@
-package com.mine.projectUtils
+package com.mine.propertyutil
 
 import java.util.Properties
+
+object PropertyUtil {
+    def apply: PropertyUtil = new PropertyUtil()
+
+    def apply(resourcesPath: String): PropertyUtil = new PropertyUtil(resourcesPath)
+}
 
 class PropertyUtil {
     private val properties = new Properties()

@@ -28,7 +28,7 @@
         <slf4j.version>1.7.25</slf4j.version>                     <!-- Slf4j            版本 -->
         <junit.version>4.12</junit.version>                       <!-- Junit            版本 -->
         <aes.version>1.11</aes.version>                           <!-- Aes              版本 -->
-        <mysqlConnector.version>8.0.15</mysqlConnector.version>   <!-- MysqlConnector   版本 -->
+        <mysqlConnector.version>5.1.47</mysqlConnector.version>   <!-- MysqlConnector   版本 -->
         <commons-io.version>2.4</commons-io.version>              <!-- commons-io       版本 -->
         <fastjson.version>1.2.62</fastjson.version>               <!-- FastJson         版本 -->
         <akka.version>2.4.17</akka.version>                       <!-- AKKA             版本 -->
@@ -96,7 +96,7 @@
             <dependency>
                 <groupId>mysql</groupId>
                 <artifactId>mysql-connector-java</artifactId>
-                <version>${mysql.version}</version>
+                <version>${mysqlConnector.version}</version>
             </dependency>
             <!-- FileUtils 相关依赖 -->
             <!-- https://mvnrepository.com/artifact/commons-io/commons-io -->

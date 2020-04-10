@@ -12,7 +12,7 @@ sealed class JDBCConnect {
   private val USER = "ABSBANK"
   private val PASSWD = "absbank"
   private val DATABASE = "orcl"
-  private val JDBC_URL = f"jdbc:oracle:thin:@$HOST:1521:$DATABASE"
+  private val JDBC_URL = s"jdbc:oracle:thin:@$HOST:1521:$DATABASE"
 
   private var connection: Connection = _
   private var statement: Statement = _
