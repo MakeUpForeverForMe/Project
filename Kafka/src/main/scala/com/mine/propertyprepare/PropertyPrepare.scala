@@ -23,6 +23,6 @@ sealed class PropertyPrepare {
     private lazy final val MYSQL_USER: String = props.getPropertyValueByKey("mysql.user")
     private lazy final val MYSQL_PASSWORD: String = props.getPropertyValueByKey("mysql.password")
     lazy final val MYSQL_DRIVER: String = props.getPropertyValueByKey("mysql.driver")
-    lazy final val MYSQL_URL: String = s"jdbc:mysql://$MYSQL_HOST:3306/$MYSQL_DATABASE?user=$MYSQL_USER&password=$MYSQL_PASSWORD&useUnicode=true&characterEncoding=utf8" // useSLL=false&serverTimezone=UTC&
+    lazy final val MYSQL_URL: String = s"jdbc:mysql://$MYSQL_HOST:3306/$MYSQL_DATABASE?user=$MYSQL_USER&password=$MYSQL_PASSWORD&useSLL=false&useUnicode=true&characterEncoding=utf8" // serverTimezone=UTC&
     lazy final val MYSQL_TABLE: String = props.getPropertyValueByKey("mysql.table")
 }
