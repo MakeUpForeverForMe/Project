@@ -18,7 +18,7 @@ sealed class MySQLConsole {
         val resultSet = ppStatement.executeQuery()
         val metaData = resultSet.getMetaData
         val columnList = (for (i <- 1 to metaData.getColumnCount) yield metaData.getColumnLabel(i)).toList
-        columnList.reduceLeft(_ + "\t" + _)
+        
         //        while (resultSet.next()) {
         //            println(resultSet.getObject(metaData.getColumnLabel(i)))
         //        }
