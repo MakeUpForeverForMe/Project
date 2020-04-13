@@ -1,4 +1,4 @@
-package com.mine.aes;
+package com.mine.aesutil;
 
 
 import org.apache.commons.codec.binary.Base64;

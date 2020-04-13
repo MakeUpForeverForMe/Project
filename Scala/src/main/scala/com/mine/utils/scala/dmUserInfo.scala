@@ -2,7 +2,7 @@ package com.mine.utils.scala
 
 import java.io.FileWriter
 
-import com.mine.aes.AesPlus
+import com.mine.aesutil.AesPlus
 import com.mine.utils.java.DateFormat
 import com.mine.utils.scala.UtilsGet._
 

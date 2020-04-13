@@ -1,8 +1,8 @@
 package com.mine.test.util
 
-import com.mine.date.DateFormat
-import com.mine.jdbc.dao.BaseDAO
-import com.mine.jdbc.utils.JDBCUtils
+import com.mine.dateutil.DateFormat
+import com.mine.jdbcutil.dao.BaseDAO
+import com.mine.jdbcutil.utils.JDBCUtils
 import com.mine.test.bean.Customer
 import org.junit.Test
 

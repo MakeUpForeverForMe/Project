@@ -1,8 +1,6 @@
-package com.mine
+package com.mine.byte2array
 
-import com.mine.code.JavaByteArray
-
-object ConfigTest {
+object Byte2Array {
     implicit def int2Long(int: Int): Long = int.toLong
 
     def main(args: Array[String]): Unit = {

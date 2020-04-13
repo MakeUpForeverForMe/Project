@@ -1,4 +1,4 @@
-package com.mine.date;
+package com.mine.dateutil;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;

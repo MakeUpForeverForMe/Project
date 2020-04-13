@@ -1,9 +1,9 @@
-package com.mine.jdbc.dao
+package com.mine.jdbcutil.dao
 
 import java.lang.reflect.{Field, ParameterizedType}
 import java.sql._
 
-import com.mine.jdbc.utils.JDBCUtils
+import com.mine.jdbcutil.utils.JDBCUtils
 
 import scala.collection.mutable
 

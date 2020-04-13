@@ -1,4 +1,4 @@
-package com.mine.property
+package com.mine.propertyutil
 
 import java.util.Properties
 
@@ -8,15 +8,15 @@ import java.util.Properties
 object PropertyUtil {
     def apply: PropertyUtil = new PropertyUtil()
 
-    def apply(resourcesPath: String): PropertyUtil = new PropertyUtil(resourcesPath)
+    def apply(fileName: String): PropertyUtil = new PropertyUtil(fileName)
 }
 
 class PropertyUtil {
-    private val properties = new Properties()
+    private lazy val properties = new Properties()
 
-    def this(resourcesPath: String) {
+    def this(fileName: String) {
         this
-        properties.load(getClass.getClassLoader.getResourceAsStream(resourcesPath))
+        properties.load(getClass.getClassLoader.getResourceAsStream(fileName))
     }
 
     def getPropertyValueByKey(key: String): String = properties.getProperty(key)

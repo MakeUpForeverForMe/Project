@@ -1,13 +1,13 @@
-package com.mine.jdbc.utils
+package com.mine.jdbcutil.utils
 
 import java.sql._
 
-import com.mine.property.GetValueByKeyFromProperty
+import com.mine.propertyutil.GetValueByKeyFromProperty
 
 object JDBCUtils {
 
     def getConnectionByFile(fileName: String): Connection = {
-        val props = GetValueByKeyFromProperty(fileName)
+        val props = new GetValueByKeyFromProperty(fileName)
         try {
             Class.forName(props.MYSQL_DRIVER)
             return DriverManager.getConnection(props.MYSQL_URL)
