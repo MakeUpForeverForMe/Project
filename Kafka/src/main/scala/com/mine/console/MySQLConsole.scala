@@ -8,7 +8,7 @@ import com.mine.propertyprepare.PropertyPrepare
 object MySQLConsole extends MySQLConsole
 
 sealed class MySQLConsole {
-    def connection(driver: String, urlWithNameAndPassword: String): Connection = {
+    def getConnection(driver: String, urlWithNameAndPassword: String): Connection = {
         Class.forName(driver)
         DriverManager.getConnection(urlWithNameAndPassword)
     }
@@ -18,7 +18,7 @@ sealed class MySQLConsole {
         val resultSet = ppStatement.executeQuery()
         val metaData = resultSet.getMetaData
         val columnList = (for (i <- 1 to metaData.getColumnCount) yield metaData.getColumnLabel(i)).toList
-        
+
         //        while (resultSet.next()) {
         //            println(resultSet.getObject(metaData.getColumnLabel(i)))
         //        }
@@ -37,7 +37,7 @@ sealed class MySQLConsole {
 object ConsoleTest {
     def main(args: Array[String]): Unit = {
         // val connection = MySQLConsole.connection(PropertyPrepare.MYSQL_DRIVER, PropertyPrepare.MYSQL_URL)
-        val connection = MySQLConsole.connection(PropertyPrepare.MYSQL_DRIVER, "jdbc:mysql://localhost:3306/dm_cf?user=root&password=password&characterEncoding=utf8&useSSL=false")
+        val connection = MySQLConsole.getConnection(PropertyPrepare.MYSQL_DRIVER, "jdbc:mysql://localhost:3306/dm_cf?user=root&password=password&characterEncoding=utf8&useSSL=false")
         MySQLConsole.executeSelect(connection, "select cTime,sex,city from client_info")
     }
 }
