@@ -7,7 +7,7 @@ object JDBCUtils {
     def getConnection(driver: String, urlWithNameAndPassword: String): Connection = {
         try {
             Class.forName(driver)
-            DriverManager.getConnection(urlWithNameAndPassword)
+            return DriverManager.getConnection(urlWithNameAndPassword)
         } catch {
             case e: ClassNotFoundException => e.printStackTrace()
             case e: SQLException => e.printStackTrace()
