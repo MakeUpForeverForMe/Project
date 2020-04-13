@@ -16,7 +16,7 @@ abstract class BaseDAO[T >: Null] {
       * @param connection 传入连接
       * @param sql        传入要执行的 sql
       * @param args       传入要执行的 sql 中的占位符对应的参数
-      * @return 返回执行结果是否成功
+      * @return 返回执行结果（true：成功，false：失败）
       */
     def update(connection: Connection, sql: String, args: String*): Boolean = {
         var i: Int = 0
@@ -42,7 +42,7 @@ abstract class BaseDAO[T >: Null] {
       * @param args       传入要执行的 sql 中的占位符对应的参数
       * @return 返回执行结果
       */
-    def getDataOne(connection: Connection, sql: String, args: String*): T = {
+    def getDataOne(connection: Connection, sql: String, args: Any*): T = {
         var preparedStatement: PreparedStatement = null
         var resultSet: ResultSet = null
         try {
@@ -86,7 +86,7 @@ abstract class BaseDAO[T >: Null] {
       * @param args       传入要执行的 sql 中的占位符对应的参数
       * @return 返回执行结果
       */
-    def getDataList(connection: Connection, sql: String, args: String*): List[T] = {
+    def getDataList(connection: Connection, sql: String, args: Any*): List[T] = {
         var preparedStatement: PreparedStatement = null
         var resultSet: ResultSet = null
         try {
@@ -118,6 +118,31 @@ abstract class BaseDAO[T >: Null] {
                 list += t
             }
             return list.toList
+        } catch {
+            case e: SQLException => e.printStackTrace()
+        } finally JDBCUtils.close(null, preparedStatement, resultSet)
+        null
+    }
+
+    /**
+      * 特殊查询，只返回一行一列（考虑了事务）
+      *
+      * @param connection 传入连接
+      * @param sql        传入要执行的 sql
+      * @param args       传入要执行的 sql 中的占位符对应的参数
+      * @return 返回特殊查询的值
+      */
+    def getValue(connection: Connection, sql: String, args: Any*): T = {
+        var preparedStatement: PreparedStatement = null
+        var resultSet: ResultSet = null
+        try {
+            // 通过连接获取 PreparedStatement
+            preparedStatement = connection.prepareStatement(sql)
+            // 对 sql 中的占位符进行填充
+            for (i <- 0 until args.length) preparedStatement.setObject(i + 1, args(i))
+            // 执行语句
+            resultSet = preparedStatement.executeQuery()
+            if (resultSet.next()) return resultSet.getObject(1).asInstanceOf[T]
         } catch {
             case e: SQLException => e.printStackTrace()
         } finally JDBCUtils.close(null, preparedStatement, resultSet)
