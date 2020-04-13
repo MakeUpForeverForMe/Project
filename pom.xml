@@ -34,7 +34,7 @@
         <akka.version>2.4.17</akka.version>                       <!-- AKKA             版本 -->
         <akka.kryo.version>1.0.0</akka.kryo.version>              <!-- AKKAKryo         版本 -->
         <!--<zookeeper.version>3.4.5-cdh6.3.1</zookeeper.version>     &lt;!&ndash; Zookeeper        版本 &ndash;&gt;-->
-        <zookeeper.version>3.4.5</zookeeper.version>              <!-- Zookeeper        版本 -->
+        <zookeeper.version>3.4.14</zookeeper.version>              <!-- Zookeeper        版本 -->
         <kafka.version>2.1.0</kafka.version>                      <!-- Kafka            版本 -->
         <hadoop.version>3.0.0</hadoop.version>                    <!-- Hadoop           版本 -->
         <hive.version>2.1.1</hive.version>                        <!-- Hive             版本 -->
