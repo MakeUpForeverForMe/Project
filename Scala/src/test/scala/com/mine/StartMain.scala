@@ -2,10 +2,10 @@ package com.mine
 
 import java.util.regex.Pattern
 
-import com.mine.utils.scala.LoggerUtil.{rootLogger, logLevel, logger}
-import com.mine.utils.scala.UtilsGet.{logGet, powGet, dataGet, mobileGet}
-import com.mine.utils.java.{AesPlus, DateFormat}
-
+import com.mine.aes.AesPlus
+import com.mine.utils.scala.LoggerUtil.{logLevel, logger, rootLogger}
+import com.mine.utils.scala.UtilsGet.{dataGet, logGet, mobileGet, powGet}
+import com.mine.utils.java.DateFormat
 import org.junit.Test
 
 import scala.math.random
@@ -48,11 +48,14 @@ class StartMain {
     @Test // 20190822103300
     def ft_2_dt(): Unit = logger("ft_2_dt : " + new DateFormat().ft_2_dt("2019-08-22 10:33:00"))
 
-    @Test // WPMGECuw1atPn/FItiuoig== : 18812345678
-    def encryptTest(): Unit = for (sourceCode <- dataGet("data/source_code.txt")) logger(new AesPlus().encrypt(sourceCode) + " : " + sourceCode)
+    @Test // 秘钥：weshare666  AdDesv4O8b9QR5jIZ6hwgw== : 18812345678
+    def encryptTest1(): Unit = for (sourceCode <- dataGet("data/source_code.txt")) logger(AesPlus.encrypt(sourceCode, AesPlus.PASSWORD_WESHARE) + " : " + sourceCode)
+
+    @Test // 秘钥：tencentabs123456  WPMGECuw1atPn/FItiuoig== : 18812345678
+    def encryptTest2(): Unit = for (sourceCode <- dataGet("data/source_code.txt")) logger(AesPlus.encrypt(sourceCode, AesPlus.PASSWORD_TENCENT) + " : " + sourceCode)
 
     @Test // WPMGECuw1atPn/FItiuoig== : 18812345678
-    def decryptTest(): Unit = for (secretCode <- dataGet("data/secret_code.txt")) logger(secretCode + " : " + new AesPlus().decrypt(secretCode))
+    def decryptTest(): Unit = for (secretCode <- dataGet("data/secret_code.txt")) logger(secretCode + " : " + AesPlus.decrypt(secretCode, AesPlus.PASSWORD_TENCENT))
 
 
     @Test
