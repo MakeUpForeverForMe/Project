@@ -1,9 +1,9 @@
-package com.mine.dao.dao
+package com.mine.jdbc.dao
 
 import java.lang.reflect.{Field, ParameterizedType}
 import java.sql._
 
-import com.mine.dao.jdbc.JDBCUtils
+import com.mine.jdbc.utils.JDBCUtils
 
 import scala.collection.mutable
 
@@ -26,7 +26,7 @@ abstract class BaseDAO[T >: Null] {
       * @param args       传入要执行的 sql 中的占位符对应的参数
       * @return 返回执行结果（true：成功，false：失败）
       */
-    def update(connection: Connection, sql: String, args: String*): Boolean = {
+    def daoUpdate(connection: Connection, sql: String, args: String*): Boolean = {
         var i: Int = 0
         var preparedStatement: PreparedStatement = null
         try {
@@ -50,7 +50,7 @@ abstract class BaseDAO[T >: Null] {
       * @param args       传入要执行的 sql 中的占位符对应的参数
       * @return 返回特殊查询的值
       */
-    def getValue(connection: Connection, sql: String, args: Any*): T = {
+    def daoGetValue(connection: Connection, sql: String, args: Any*): T = {
         var preparedStatement: PreparedStatement = null
         var resultSet: ResultSet = null
         try {
@@ -75,7 +75,7 @@ abstract class BaseDAO[T >: Null] {
       * @param args       传入要执行的 sql 中的占位符对应的参数
       * @return 返回执行结果
       */
-    def getDataOne(connection: Connection, sql: String, args: Any*): T = {
+    def daoGetDataOne(connection: Connection, sql: String, args: Any*): T = {
         var preparedStatement: PreparedStatement = null
         var resultSet: ResultSet = null
         try {
@@ -119,7 +119,7 @@ abstract class BaseDAO[T >: Null] {
       * @param args       传入要执行的 sql 中的占位符对应的参数
       * @return 返回执行结果
       */
-    def getDataList(connection: Connection, sql: String, args: Any*): List[T] = {
+    def daoGetDataList(connection: Connection, sql: String, args: Any*): List[T] = {
         var preparedStatement: PreparedStatement = null
         var resultSet: ResultSet = null
         try {

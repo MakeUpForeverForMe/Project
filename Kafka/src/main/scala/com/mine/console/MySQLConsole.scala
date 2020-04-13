@@ -14,9 +14,10 @@ sealed class MySQLConsole {
     }
 
     def executeSelect(connection: Connection, sql: String, args: String*) = {
-        val ppStatement = if (args.isEmpty) connection.prepareStatement(sql) else connection.prepareStatement(sql, args.toArray)
-        val resultSet = ppStatement.executeQuery()
+        val prepareStatement = if (args.isEmpty) connection.prepareStatement(sql) else connection.prepareStatement(sql, args.toArray)
+        val resultSet = prepareStatement.executeQuery()
         val metaData = resultSet.getMetaData
+        for (i <- 0 until args.length) prepareStatement.setObject(i + 1, args(i))
         val columnList = (for (i <- 1 to metaData.getColumnCount) yield metaData.getColumnLabel(i)).toList
 
         //        while (resultSet.next()) {

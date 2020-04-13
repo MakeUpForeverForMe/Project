@@ -3,7 +3,7 @@ package com.mine.app
 import akka.actor.{ActorRef, ActorSystem, Props}
 import com.mine.ImuMap
 import com.mine.actor.ConsumerActor
-import com.mine.propertyutil.PropertyUtil
+import com.mine.property.PropertyUtil
 import com.typesafe.config.{Config, ConfigFactory}
 
 import scala.io.StdIn

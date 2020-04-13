@@ -1,7 +1,6 @@
-package com.mine.dao.bean
+package com.mine.test.bean
 
 import scala.beans.BeanProperty
-
 
 class Customer {
     @BeanProperty var id: String = _

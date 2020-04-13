@@ -79,6 +79,7 @@
 
     <dependencyManagement>
         <dependencies>
+            <!-- 自定义工具类的相关依赖 -->
             <dependency>
                 <groupId>project</groupId>
                 <artifactId>ProjectUtils</artifactId>

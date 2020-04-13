@@ -11,4 +11,16 @@
 
     <artifactId>ProjectUtils</artifactId>
 
+    <dependencies>
+        <!-- Aes 加密的相关依赖 -->
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+        </dependency>
+        <!-- MysqlConnector 相关依赖 -->
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+        </dependency>
+    </dependencies>
 </project>

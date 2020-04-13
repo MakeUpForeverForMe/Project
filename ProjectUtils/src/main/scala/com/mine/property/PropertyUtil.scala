@@ -1,7 +1,10 @@
-package com.mine.propertyutil
+package com.mine.property
 
 import java.util.Properties
 
+/**
+  * 只能这样写，要不然写不了
+  */
 object PropertyUtil {
     def apply: PropertyUtil = new PropertyUtil()
 

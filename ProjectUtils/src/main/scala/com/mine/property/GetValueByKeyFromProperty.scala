@@ -1,12 +1,21 @@
-package com.mine.propertyprepare
+package com.mine.property
 
-import com.mine.property.PropertyUtil
+object GetValueByKeyFromProperty {
+    def apply: GetValueByKeyFromProperty = new GetValueByKeyFromProperty()
 
-object PropertyPrepare extends PropertyPrepare
+    def apply(fileName: String): GetValueByKeyFromProperty = new GetValueByKeyFromProperty(fileName)
+}
 
-sealed class PropertyPrepare {
+class GetValueByKeyFromProperty {
+    private final var fileName: String = _
+
+    def this(fileName: String) = {
+        this
+        this.fileName = fileName
+    }
+
     // 获取配置文件
-    lazy final val props = new PropertyUtil("config.properties")
+    lazy final val props = new PropertyUtil(fileName)
 
     // Kafka 配置
     lazy final val KAFKA_SERVERS: String = props.getPropertyValueByKey("kafka.bootstrap.servers")
@@ -18,10 +27,10 @@ sealed class PropertyPrepare {
     lazy final val KAFKA_VALUE_DESERIAL: String = props.getPropertyValueByKey("kafka.value.deserializer")
 
     // MYSQL 配置
-    private lazy final val MYSQL_HOST: String = props.getPropertyValueByKey("mysql.host")
-    private lazy final val MYSQL_DATABASE: String = props.getPropertyValueByKey("mysql.database")
-    private lazy final val MYSQL_USER: String = props.getPropertyValueByKey("mysql.user")
-    private lazy final val MYSQL_PASSWORD: String = props.getPropertyValueByKey("mysql.password")
     lazy final val MYSQL_DRIVER: String = props.getPropertyValueByKey("mysql.driver")
+    lazy final val MYSQL_HOST: String = props.getPropertyValueByKey("mysql.host")
+    lazy final val MYSQL_DATABASE: String = props.getPropertyValueByKey("mysql.database")
+    lazy final val MYSQL_USER: String = props.getPropertyValueByKey("mysql.user")
+    lazy final val MYSQL_PASSWORD: String = props.getPropertyValueByKey("mysql.password")
     lazy final val MYSQL_URL: String = s"jdbc:mysql://$MYSQL_HOST:3306/$MYSQL_DATABASE?user=$MYSQL_USER&password=$MYSQL_PASSWORD&useSSL=false&useUnicode=true&characterEncoding=utf8" // serverTimezone=UTC&
 }
