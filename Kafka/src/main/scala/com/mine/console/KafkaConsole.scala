@@ -14,6 +14,8 @@ import scala.collection.JavaConverters._
 
 object KafkaConsole {
     def apply: KafkaConsole = new KafkaConsole()
+
+    def apply(fileName: String): KafkaConsole = new KafkaConsole(fileName)
 }
 
 class KafkaConsole {

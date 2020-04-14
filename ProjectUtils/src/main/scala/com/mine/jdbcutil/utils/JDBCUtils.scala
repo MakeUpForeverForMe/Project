@@ -6,8 +6,7 @@ import com.mine.propertyutil.GetValueByKeyFromProperty
 
 object JDBCUtils {
 
-    def getConnectionByFile(fileName: String): Connection = {
-        val props = new GetValueByKeyFromProperty(fileName)
+    def getConnection(props: GetValueByKeyFromProperty): Connection = {
         try {
             Class.forName(props.MYSQL_DRIVER)
             return DriverManager.getConnection(props.MYSQL_URL)

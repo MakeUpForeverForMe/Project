@@ -1,21 +1,19 @@
 package com.mine.propertyutil
 
 object GetValueByKeyFromProperty {
-    def apply: GetValueByKeyFromProperty = new GetValueByKeyFromProperty()
+    def apply(): GetValueByKeyFromProperty = new GetValueByKeyFromProperty()
 
     def apply(fileName: String): GetValueByKeyFromProperty = new GetValueByKeyFromProperty(fileName)
 }
 
 class GetValueByKeyFromProperty {
-    private final var fileName: String = _
+    // 获取配置文件
+    private var props: PropertyUtil = _
 
     def this(fileName: String) = {
         this
-        this.fileName = fileName
+        this.props = new PropertyUtil(fileName)
     }
-
-    // 获取配置文件
-    private lazy val props = new PropertyUtil(fileName)
 
     // Kafka 配置
     final lazy val KAFKA_SERVERS: String = props.getPropertyValueByKey("kafka.bootstrap.servers")

@@ -12,7 +12,7 @@ object PropertyUtil {
 }
 
 class PropertyUtil {
-    private lazy val properties = new Properties()
+    private val properties = new Properties()
 
     def this(fileName: String) {
         this
