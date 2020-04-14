@@ -2,11 +2,11 @@ package com.mine.jdbcutil.utils
 
 import java.sql._
 
-import com.mine.propertyutil.GetValueByKeyFromProperty
+import com.mine.propertyutil.PropertyUtil
 
 object JDBCUtils {
 
-    def getConnection(props: GetValueByKeyFromProperty): Connection = {
+    def getConnection(props: PropertyUtil): Connection = {
         try {
             Class.forName(props.MYSQL_DRIVER)
             return DriverManager.getConnection(props.MYSQL_URL)

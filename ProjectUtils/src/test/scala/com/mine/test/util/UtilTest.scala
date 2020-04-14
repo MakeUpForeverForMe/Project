@@ -3,28 +3,22 @@ package com.mine.test.util
 import com.mine.dateutil.DateFormat
 import com.mine.jdbcutil.dao.BaseDAO
 import com.mine.jdbcutil.utils.JDBCUtils
-import com.mine.propertyutil.{GetValueByKeyFromProperty, PropertyUtil}
+import com.mine.propertyutil.PropertyUtil
 import com.mine.test.bean.Customer
 import org.junit.Test
 
 class UtilTest extends BaseDAO[Customer] {
 
-    private val props = GetValueByKeyFromProperty("config.properties")
+    private val props = PropertyUtil("config.properties")
+
 
     @Test
     def test1(): Unit = {
-        val props = PropertyUtil("config.properties")
         println(props.getPropertyValueByKey("mysql.driver"))
     }
 
     @Test
     def test2(): Unit = {
-        val props = new PropertyUtil("config.properties")
-        println(props.getPropertyValueByKey("mysql.driver"))
-    }
-
-    @Test
-    def test3(): Unit = {
         println(props.MYSQL_DRIVER)
     }
 
@@ -36,7 +30,7 @@ class UtilTest extends BaseDAO[Customer] {
 
     @Test
     def testUpdate(): Unit = {
-        // println(if (daoUpdate(JDBCUtils.getConnectionByFile("config.properties"), "alter table client_info change column `_id` `id` varchar(255);")) "修改列名成功" else "修改列名失败")
+        println(if (daoUpdate(JDBCUtils.getConnection(props), "alter table client_info change column `_id` `id` varchar(255);")) "修改列名成功" else "修改列名失败")
         println(if (daoUpdate(JDBCUtils.getConnection(props), "alter table client_info change column `id` `_id` varchar(255);")) "修改列名成功" else "修改列名失败")
     }
 

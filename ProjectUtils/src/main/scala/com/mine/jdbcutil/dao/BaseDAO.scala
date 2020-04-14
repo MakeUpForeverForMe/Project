@@ -27,7 +27,7 @@ abstract class BaseDAO[T >: Null] {
       * @return 返回执行结果（true：成功，false：失败）
       */
     def daoUpdate(connection: Connection, sql: String, args: String*): Boolean = {
-        var i: Int = 0
+        var i: Int = -1
         var preparedStatement: PreparedStatement = null
         try {
             // 通过连接获取 PreparedStatement
