@@ -82,7 +82,10 @@ abstract class BaseDAO[T >: Null] {
             // 通过连接获取 PreparedStatement
             preparedStatement = connection.prepareStatement(sql)
             // 对 sql 中的占位符进行填充
-            for (i <- 0 until args.length) preparedStatement.setObject(i + 1, args(i))
+            for (i <- 0 until args.length)
+                // 判断是否有占位符，有则添加，无则跳过
+                if (0 != preparedStatement.getParameterMetaData.getParameterCount)
+                    preparedStatement.setObject(i + 1, args(i))
             // 获取执行结果（一条结果）
             resultSet = preparedStatement.executeQuery()
             // 获取元数据
@@ -126,8 +129,11 @@ abstract class BaseDAO[T >: Null] {
             // 通过连接获取 PreparedStatement
             preparedStatement = connection.prepareStatement(sql)
             // 对 sql 中的占位符进行填充
-            for (i <- 0 until args.length) preparedStatement.setObject(i + 1, args(i))
-            // 获取执行结果（一条结果）
+            for (i <- 0 until args.length)
+                // 判断是否有占位符，有则添加，无则跳过
+                if (0 != preparedStatement.getParameterMetaData.getParameterCount)
+                    preparedStatement.setObject(i + 1, args(i))
+            // 获取执行结果（多条结果）
             resultSet = preparedStatement.executeQuery()
             // 获取元数据
             val metaData: ResultSetMetaData = preparedStatement.getMetaData
@@ -137,11 +143,11 @@ abstract class BaseDAO[T >: Null] {
                 // 获取实体类
                 val t: T = clazz.newInstance()
                 // 根据每个字段分别进行设置
-                for (i <- 0 until metaData.getColumnCount) {
+                for (i <- 0 until metaData.getColumnCount; j = i + 1) {
                     // 按列获取各个字段值
-                    val columnValue: AnyRef = resultSet.getObject(i + 1)
+                    val columnValue: AnyRef = resultSet.getObject(j)
                     // 获取各个字段的名称（别名）
-                    val columnLabel: String = metaData.getColumnLabel(i + 1)
+                    val columnLabel: String = metaData.getColumnLabel(j)
                     // 获取实体类中的声明字段
                     val label: Field = clazz.getDeclaredField(columnLabel)
                     label.setAccessible(true)

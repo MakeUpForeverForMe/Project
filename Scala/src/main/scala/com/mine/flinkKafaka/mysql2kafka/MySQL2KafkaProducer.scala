@@ -12,15 +12,18 @@ object MySQL2KafkaProducer extends BaseDAO[Customer] {
     def main(args: Array[String]): Unit = {
         // 获取 MySQL 数据
         val connection = JDBCUtils.getConnection(props)
+        // val customer = daoGetDataList(connection,
         val customer = daoGetDataOne(connection,
             """
               |select
               |  keywords
               |from drip_loan_binlog_filter
-              |order by createTime desc
               |limit 1;
             """.stripMargin)
+        //        println(customer)
+        println(customer.keywords)
+        // customer.foreach(item => println(item.keywords))
         // 发送到 Kafka
-        KafkaUtil(props).producerSendMsg[String, String](customer.keywords)
+        //        KafkaUtil(props).producerSendMsg[String, String](customer.keywords)
     }
 }

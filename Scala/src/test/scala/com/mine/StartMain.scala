@@ -17,6 +17,12 @@ class StartMain {
     rootLogger("info")
     logLevel("info", this.getClass)
 
+    @Test
+    def test1(): Unit = {
+        for (i <- 0 until 1) println(i)
+        println("--------")
+        for (i <- 0 to 1) println(i)
+    }
 
     @Test
     def test(): Unit = {
