@@ -14,7 +14,7 @@ class TestJDBCDemo {
     }
 
     @Test
-    // 占位符只能在“值”的位置使用
+    // 占位符只能在“值”的位置使用 字段位置使用占位符后，只能打印出输入的占位符的值，而不是表中字段的结果
     def main(): Unit = {
         val conn = getConnection
         val sql = "select keywords from drip_loan_binlog_filter where createTime = ?"
