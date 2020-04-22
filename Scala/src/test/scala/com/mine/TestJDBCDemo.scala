@@ -4,6 +4,7 @@ import java.sql.{Connection, DriverManager}
 
 import org.junit.Test
 
+
 class TestJDBCDemo {
     def getConnection: Connection = {
         Class.forName("com.mysql.jdbc.Driver")
