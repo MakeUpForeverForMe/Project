@@ -4,7 +4,11 @@ import java.sql.{Connection, DriverManager}
 
 import org.junit.Test
 
-
+/**
+  * 测试类
+  *
+  * @author ximing.wei
+  */
 class TestJDBCDemo {
     def getConnection: Connection = {
         Class.forName("com.mysql.jdbc.Driver")

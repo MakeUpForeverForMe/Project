@@ -6,6 +6,7 @@ import com.mine.jdbcutil.utils.JDBCUtils
 import com.mine.kafkautil.KafkaUtil
 import com.mine.propertyutil.PropertyUtil
 
+
 object MySQL2KafkaProducer extends BaseDAO[Customer] {
     private lazy val props = PropertyUtil("conf.properties")
 
