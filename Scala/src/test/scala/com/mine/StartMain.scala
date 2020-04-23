@@ -3,9 +3,9 @@ package com.mine
 import java.util.regex.Pattern
 
 import com.mine.aesutil.AesPlus
+import com.mine.dateutil.DateFormat
 import com.mine.utils.scala.LoggerUtil.{logLevel, logger, rootLogger}
 import com.mine.utils.scala.UtilsGet.{dataGet, logGet, mobileGet, powGet}
-import com.mine.utils.java.DateFormat
 import org.junit.Test
 
 import scala.math.random
@@ -49,10 +49,10 @@ class StartMain {
     def powTest(): Unit = logger(powGet(1, 2.2121876044039577))
 
     @Test // 2019-08-22 10:33:00
-    def dt_2_ft(): Unit = logger("dt_2_ft : " + new DateFormat().dt_2_ft("20190822103300"))
+    def dt_2_ft(): Unit = logger("dt_2_ft : " + DateFormat.dt_2_ft("20190822103300"))
 
     @Test // 20190822103300
-    def ft_2_dt(): Unit = logger("ft_2_dt : " + new DateFormat().ft_2_dt("2019-08-22 10:33:00"))
+    def ft_2_dt(): Unit = logger("ft_2_dt : " + DateFormat.ft_2_dt("2019-08-22 10:33:00"))
 
     @Test // 秘钥：weshare666  AdDesv4O8b9QR5jIZ6hwgw== : 18812345678
     def encryptTest1(): Unit = for (sourceCode <- dataGet("data/source_code.txt")) logger(AesPlus.encrypt(sourceCode, AesPlus.PASSWORD_WESHARE) + " : " + sourceCode)

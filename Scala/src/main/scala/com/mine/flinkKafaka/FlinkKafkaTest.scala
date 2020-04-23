@@ -13,7 +13,7 @@ import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer
 
 import scala.collection.JavaConverters.seqAsJavaListConverter
 
-object KafkaTest {
+object FlinkKafkaTest {
 
     def main(args: Array[String]): Unit = {
         // 获取 Kafka 运行环境

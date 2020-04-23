@@ -11,11 +11,11 @@ import scala.io.StdIn
 object ConsumerSystemCluster {
     private val propertyUtil: PropertyUtil = PropertyUtil("consumer.properties")
 
-    private val clusterName: String = propertyUtil.getPropertyValueByKey("cluster.name")
-    private val nodeName: String = propertyUtil.getPropertyValueByKey("whoami")
+    private val clusterName: String = propertyUtil.getProps("cluster.name")
+    private val nodeName: String = propertyUtil.getProps("whoami")
 
     // node1@127.0.0.1:9991  nhpMap --> (node, (host, port))
-    private val nodeHPMap: ImuMap = propertyUtil.getPropertyValueByKey("cluster.nodes").split(",").map {
+    private val nodeHPMap: ImuMap = propertyUtil.getProps("cluster.nodes").split(",").map {
         nhp =>
             val nodehp = nhp.split("@")
             val node = nodehp(0)

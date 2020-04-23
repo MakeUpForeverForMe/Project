@@ -40,7 +40,7 @@
         <hive.version>2.1.1</hive.version>                        <!-- Hive             版本 -->
         <spark.version>2.3.1</spark.version>                      <!-- Spark            版本 -->
         <janino.version>3.0.8</janino.version>                    <!-- Spark         报错解决 -->
-        <flink.vsersion>1.8.0</flink.vsersion>                    <!-- Flink            版本 -->
+        <flink.vsersion>1.10.0</flink.vsersion>                   <!-- Flink            版本 -->
     </properties>
 
     <dependencies>

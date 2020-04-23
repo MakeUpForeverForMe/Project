@@ -14,12 +14,17 @@ class UtilTest extends BaseDAO[Customer] {
 
     @Test
     def test1(): Unit = {
-        println(props.getPropertyValueByKey("mysql.driver"))
+        println(props.getProps("mysql.driver"))
     }
 
     @Test
     def test2(): Unit = {
         println(props.MYSQL_DRIVER)
+    }
+
+    @Test
+    def test3(): Unit = {
+        println(props.MYSQL_URL)
     }
 
     @Test

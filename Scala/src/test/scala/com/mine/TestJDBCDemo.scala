@@ -2,6 +2,7 @@ package com.mine
 
 import java.sql.{Connection, DriverManager}
 
+import com.mine.propertyutil.PropertyUtil
 import org.junit.Test
 
 /**
@@ -12,10 +13,18 @@ import org.junit.Test
 class TestJDBCDemo {
     def getConnection: Connection = {
         Class.forName("com.mysql.jdbc.Driver")
-        val url = "jdbc:mysql://10.83.96.10:3306/flink_properties?characterEncoding=utf8&useSSL=false"
-        val user = "flink"
-        val pass = "weshare2019"
+        val url = "jdbc:mysql://10.83.16.32:3306/flink_config?characterEncoding=utf8&useSSL=false"
+        val user = "bgp_admin"
+        val pass = "3Mt%JjE#WJIt"
+        val urls = s"jdbc:mysql://10.83.16.32:3306/flink_config?characterEncoding=utf8&useSSL=false"
         DriverManager.getConnection(url, user, pass)
+    }
+
+    @Test
+    def test1(): Unit = {
+        val props = PropertyUtil("conf.properties")
+        println(props.MYSQL_PASSWORD)
+        println(getConnection.prepareStatement("select * from black_binlog_config").executeQuery().next())
     }
 
     @Test
