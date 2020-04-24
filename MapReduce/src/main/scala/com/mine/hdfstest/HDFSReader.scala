@@ -2,7 +2,7 @@ package com.mine.hdfstest
 
 import java.net.URI
 
-import com.mine.utils.ConfProperty
+import com.mine.hdfs.ConfProperty
 import org.apache.hadoop.fs.{FileSystem, Path}
 
 import scala.collection.mutable
@@ -15,7 +15,7 @@ object HDFSReader {
 
         val file = "/tmp/tmp/tdid_name/part-r-00000"
 
-        Source.fromInputStream(FileSystem.get(new ConfProperty("conf.properties").conf())
+        Source.fromInputStream(FileSystem.get(ConfProperty("conf.properties").conf)
                 .open(new Path(URI.create(file))))
                 .getLines
                 .foreach(item => hashMap.put(item.split("\t")(0), hashMap.getOrElseUpdate(item.split("\t")(0), 0) + 1))

@@ -3,13 +3,13 @@ package com.mine.test.util
 import com.mine.dateutil.DateFormat
 import com.mine.jdbcutil.dao.BaseDAO
 import com.mine.jdbcutil.utils.JDBCUtils
-import com.mine.propertyutil.PropertyUtil
+import com.mine.propertyutil.ConfigUtil
 import com.mine.test.bean.Customer
 import org.junit.Test
 
 class UtilTest extends BaseDAO[Customer] {
 
-    private val props = PropertyUtil("config.properties")
+    private val props = ConfigUtil("config.properties")
 
 
     @Test

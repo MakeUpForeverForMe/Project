@@ -3,13 +3,13 @@ package com.mine.app
 import akka.actor.{ActorRef, ActorSystem, Props}
 import com.mine.ImuMap
 import com.mine.actor.ConsumerActor
-import com.mine.propertyutil.PropertyUtil
+import com.mine.propertyutil.ConfigUtil
 import com.typesafe.config.{Config, ConfigFactory}
 
 import scala.io.StdIn
 
 object ConsumerSystemCluster {
-    private val propertyUtil: PropertyUtil = PropertyUtil("consumer.properties")
+    private val propertyUtil: ConfigUtil = ConfigUtil("consumer.properties")
 
     private val clusterName: String = propertyUtil.getProps("cluster.name")
     private val nodeName: String = propertyUtil.getProps("whoami")

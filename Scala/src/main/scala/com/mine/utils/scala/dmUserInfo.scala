@@ -3,7 +3,7 @@ package com.mine.utils.scala
 import java.io.FileWriter
 
 import com.mine.aesutil.AesPlus
-import com.mine.utils.java.DateFormat
+import com.mine.dateutil.DateFormat
 import com.mine.utils.scala.UtilsGet._
 
 import scala.collection.mutable
@@ -53,7 +53,7 @@ object dmUserInfo {
             val idcard_aes = AesPlus.encrypt(f"$idcard%18s", AesPlus.PASSWORD_TENCENT)
             val moblie_aes = AesPlus.encrypt(f"$mobile%11s", AesPlus.PASSWORD_TENCENT)
             val name_aes = AesPlus.encrypt(f"$mobile%11s", AesPlus.PASSWORD_TENCENT)
-            val birth = new DateFormat().dt_2_ft(births)
+            val birth = DateFormat.dt_2_ft(births)
             val date = births.slice(0, 8)
             val sex = sexs(random.nextInt(sexs.length))
             val city = citys(random.nextInt(citys.length))

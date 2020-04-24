@@ -2,7 +2,7 @@ package com.mine
 
 import java.sql.{Connection, DriverManager}
 
-import com.mine.propertyutil.PropertyUtil
+import com.mine.propertyutil.ConfigUtil
 import org.junit.Test
 
 /**
@@ -22,7 +22,7 @@ class TestJDBCDemo {
 
     @Test
     def test1(): Unit = {
-        val props = PropertyUtil("conf.properties")
+        val props = ConfigUtil("conf.properties")
         println(props.MYSQL_PASSWORD)
         println(getConnection.prepareStatement("select * from black_binlog_config").executeQuery().next())
     }

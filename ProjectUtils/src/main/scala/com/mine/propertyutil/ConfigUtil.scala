@@ -1,15 +1,14 @@
 package com.mine.propertyutil
 
-import java.net.URLEncoder
 import java.util.Properties
 
-object PropertyUtil {
-    def apply(): PropertyUtil = new PropertyUtil()
+object ConfigUtil {
+    def apply(): ConfigUtil = new ConfigUtil()
 
-    def apply(fileName: String): PropertyUtil = new PropertyUtil(fileName)
+    def apply(fileName: String): ConfigUtil = new ConfigUtil(fileName)
 }
 
-class PropertyUtil {
+class ConfigUtil {
 
     private val properties = new Properties()
 
@@ -20,6 +19,8 @@ class PropertyUtil {
 
     def getProps(key: String): String = properties.getProperty(key)
 
+    def setProps(key: String, value: String): AnyRef = properties.setProperty(key, value)
+
     // MYSQL 配置
     final lazy val MYSQL_DRIVER: String         =   getProps("mysql.driver")
     final lazy val MYSQL_HOST: String           =   getProps("mysql.host")
@@ -28,11 +29,6 @@ class PropertyUtil {
     final lazy val MYSQL_PASSWORD: String       =   getProps("mysql.password")
     final lazy val MYSQL_URL: String            =   s"jdbc:mysql://$MYSQL_HOST:3306/$MYSQL_DATABASE?useSSL=false&useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai"
 
-    // Hadoop 配置
-    // Hive 配置
-    // Flink 配置
-    // HBase 配置
-    // Spark 配置
     // Kafka 配置
     final lazy val KAFKA_SERVERS: String        =   getProps("kafka.bootstrap.servers")
     final lazy val KAFKA_TOPIC: String          =   getProps("kafka.topic")
@@ -41,4 +37,10 @@ class PropertyUtil {
     final lazy val KAFKA_VALUE_SERIAL: String   =   getProps("kafka.value.serializer")
     final lazy val KAFKA_KEY_DESERIAL: String   =   getProps("kafka.key.deserializer")
     final lazy val KAFKA_VALUE_DESERIAL: String =   getProps("kafka.value.deserializer")
+
+    // Hadoop 配置
+    // Hive 配置
+    // Flink 配置
+    // HBase 配置
+    // Spark 配置
 }

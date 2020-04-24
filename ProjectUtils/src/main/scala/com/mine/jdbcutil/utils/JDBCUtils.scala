@@ -2,11 +2,11 @@ package com.mine.jdbcutil.utils
 
 import java.sql._
 
-import com.mine.propertyutil.PropertyUtil
+import com.mine.propertyutil.ConfigUtil
 
 object JDBCUtils {
 
-    def getConnection(props: PropertyUtil): Connection = {
+    def getConnection(props: ConfigUtil): Connection = {
         try {
             Class.forName(props.MYSQL_DRIVER)
             return DriverManager.getConnection(props.MYSQL_URL, props.MYSQL_USER, props.MYSQL_PASSWORD)

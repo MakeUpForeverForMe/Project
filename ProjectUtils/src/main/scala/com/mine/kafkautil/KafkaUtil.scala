@@ -4,7 +4,7 @@ import java.time.Duration
 import java.util.Properties
 import java.util.stream.Collectors
 
-import com.mine.propertyutil.PropertyUtil
+import com.mine.propertyutil.ConfigUtil
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.admin.AdminClient
 import org.apache.kafka.clients.consumer.{ConsumerConfig, KafkaConsumer}
@@ -17,19 +17,19 @@ object KafkaUtil {
 
     def apply(fileName: String): KafkaUtil = new KafkaUtil(fileName)
 
-    def apply(props: PropertyUtil): KafkaUtil = new KafkaUtil(props)
+    def apply(props: ConfigUtil): KafkaUtil = new KafkaUtil(props)
 }
 
 class KafkaUtil {
 
-    private var props: PropertyUtil = _
+    private var props: ConfigUtil = _
 
     def this(fileName: String) = {
         this
-        this.props = PropertyUtil(fileName)
+        this.props = ConfigUtil(fileName)
     }
 
-    def this(props: PropertyUtil) = {
+    def this(props: ConfigUtil) = {
         this
         this.props = props
     }

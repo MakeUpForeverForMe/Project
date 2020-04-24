@@ -4,7 +4,7 @@ import com.mine.flinkKafaka.mysql2kafka.bean.Customer
 import com.mine.jdbcutil.dao.BaseDAO
 import com.mine.jdbcutil.utils.JDBCUtils
 import com.mine.kafkautil.KafkaUtil
-import com.mine.propertyutil.PropertyUtil
+import com.mine.propertyutil.ConfigUtil
 import org.junit.Test
 
 /**
@@ -12,7 +12,7 @@ import org.junit.Test
   * @author ximing.wei
   */
 class MySQL2KafkaProducer extends BaseDAO[Customer] {
-    private lazy val props = PropertyUtil("conf.properties")
+    private lazy val props = ConfigUtil("conf.properties")
 
     // 测试环境 旧
     @Test
