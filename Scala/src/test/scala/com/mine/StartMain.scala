@@ -15,7 +15,7 @@ import scala.util.Random
 class StartMain {
 
     rootLogger("info")
-    logLevel("info", this.getClass)
+    logLevel("fatal", this.getClass)
 
     @Test
     def test1(): Unit = {
@@ -37,7 +37,7 @@ class StartMain {
     }
 
     @Test
-    def perTest(): Unit = (1 to 10).par.foreach(num => print(num + " "))
+    def perTest(): Unit = (0 to 9).par.foreach(num => print(num + " "))
 
     @Test
     def randomTest(): Unit = for (i <- 1 to 100; ran = (random * 41 + 20).toInt; if ran == 20) logger(ran)
@@ -99,7 +99,7 @@ class StartMain {
 
     private def getDateFormat(str: String): String = {
         var year = false
-        val pattern = Pattern.compile("^[-\\+]?[\\d]*$")
+        val pattern = Pattern.compile("^[-+]?[\\d]*$")
         if (pattern.matcher(str.substring(0, 4)).matches()) year = true
 
         var sb = new StringBuilder()
