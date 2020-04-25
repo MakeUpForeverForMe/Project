@@ -11,7 +11,7 @@ import org.junit.Test
   *
   * @author ximing.wei
   */
-class MySQL2KafkaProducer extends BaseDAO[Customer] {
+class KafkaGetMySQL extends BaseDAO[Customer] {
     private lazy val props = ConfigUtil("conf.properties")
 
     // 测试环境 旧
