@@ -22,7 +22,7 @@ object JDBCUtils {
             case e: SQLException => e.printStackTrace()
         }
         if (s != null) try s.close() catch {
-            case e: SQLException => e printStackTrace()
+            case e: SQLException => e.printStackTrace()
         }
         if (c != null) try c.close() catch {
             case e: SQLException => e.printStackTrace()
