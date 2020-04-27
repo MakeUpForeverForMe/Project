@@ -17,6 +17,7 @@
         <module>Zookeeper</module>
         <module>Kafka</module>
         <module>ProjectUtils</module>
+        <module>Travel</module>
     </modules>
 
     <properties>
