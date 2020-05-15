@@ -22,6 +22,7 @@ class StartMain {
         for (i <- 0 until 1) println(i)
         println("--------")
         for (i <- 0 to 1) println(i)
+        None
     }
 
     @Test

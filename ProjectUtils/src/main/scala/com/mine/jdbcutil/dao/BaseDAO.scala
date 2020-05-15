@@ -75,7 +75,7 @@ abstract class BaseDAO[T >: Null] {
       * @param args       传入要执行的 sql 中的占位符对应的参数
       * @return 返回执行结果
       */
-    def daoGetDataOne(connection: Connection, sql: String, args: Any*): T = {
+    def daoGetDataOne(connection: Connection, sql: String, args: Any*): Option[T] = {
         var preparedStatement: PreparedStatement = null
         var resultSet: ResultSet = null
         try {
@@ -83,7 +83,7 @@ abstract class BaseDAO[T >: Null] {
             preparedStatement = connection.prepareStatement(sql)
             // 对 sql 中的占位符进行填充
             for (i <- 0 until args.length)
-                // 判断是否有占位符，有则添加，无则跳过
+            // 判断是否有占位符，有则添加，无则跳过
                 if (0 != preparedStatement.getParameterMetaData.getParameterCount)
                     preparedStatement.setObject(i + 1, args(i))
             // 获取执行结果（一条结果）
@@ -106,12 +106,12 @@ abstract class BaseDAO[T >: Null] {
                     // 将字段值设置到实体类中
                     label.set(t, columnValue)
                 }
-                return t
+                return Option(t)
             }
         } catch {
             case e: Exception => e.printStackTrace()
         } finally JDBCUtils.close(null, preparedStatement, resultSet)
-        null
+        None
     }
 
     /**
@@ -130,7 +130,7 @@ abstract class BaseDAO[T >: Null] {
             preparedStatement = connection.prepareStatement(sql)
             // 对 sql 中的占位符进行填充
             for (i <- 0 until args.length)
-                // 判断是否有占位符，有则添加，无则跳过
+            // 判断是否有占位符，有则添加，无则跳过
                 if (0 != preparedStatement.getParameterMetaData.getParameterCount)
                     preparedStatement.setObject(i + 1, args(i))
             // 获取执行结果（多条结果）
