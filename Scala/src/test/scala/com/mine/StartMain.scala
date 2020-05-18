@@ -38,6 +38,13 @@ class StartMain {
     }
 
     @Test
+    def test2(): Unit = {
+        val list = List(1, 2, 3, 4, 5)
+        val str = list.map(_.toString).reduce[String](_ + ":" + _)
+        println(str)
+    }
+
+    @Test
     def perTest(): Unit = (0 to 9).par.foreach(num => print(num + " "))
 
     @Test
