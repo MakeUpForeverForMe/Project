@@ -75,7 +75,7 @@ abstract class BaseDAO[T >: Null] {
       * @param args       传入要执行的 sql 中的占位符对应的参数
       * @return 返回执行结果
       */
-    def daoGetDataOne(connection: Connection, sql: String, args: Any*): Option[T] = {
+    def daoGetDataOne(connection: Connection, sql: String, args: Any*): T = {
         var preparedStatement: PreparedStatement = null
         var resultSet: ResultSet = null
         try {
@@ -106,12 +106,12 @@ abstract class BaseDAO[T >: Null] {
                     // 将字段值设置到实体类中
                     label.set(t, columnValue)
                 }
-                return Option(t)
+                return t
             }
         } catch {
             case e: Exception => e.printStackTrace()
         } finally JDBCUtils.close(null, preparedStatement, resultSet)
-        None
+        null
     }
 
     /**

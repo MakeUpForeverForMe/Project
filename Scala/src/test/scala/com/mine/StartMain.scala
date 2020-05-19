@@ -18,6 +18,12 @@ class StartMain {
     logLevel("fatal", this.getClass)
 
     @Test
+    def test3(): Unit = {
+        val a = 'a'
+        println('a'.toInt.toChar)
+    }
+
+    @Test
     def test1(): Unit = {
         for (i <- 0 until 1) println(i)
         println("--------")
