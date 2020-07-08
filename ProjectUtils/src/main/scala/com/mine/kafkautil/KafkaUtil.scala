@@ -69,8 +69,8 @@ class KafkaUtil {
         val kafkaConsumerProps = new Properties()
         kafkaConsumerProps.putAll(getKafkaServersProps)
         kafkaConsumerProps.setProperty(ConsumerConfig.GROUP_ID_CONFIG, props.KAFKA_GROUP) // 指定消费者所在的消费者组
-        kafkaConsumerProps.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, props.KAFKA_KEY_DESERIAL)
-        kafkaConsumerProps.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, props.KAFKA_VALUE_DESERIAL)
+        kafkaConsumerProps.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, props.KAFKA_KEY_DESERIALIZER)
+        kafkaConsumerProps.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, props.KAFKA_VALUE_DESERIALIZER)
         kafkaConsumerProps
     }
 
