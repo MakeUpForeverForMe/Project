@@ -33,6 +33,8 @@ object TDSpark {
 
     val sc = spark.sparkContext
 
+    spark.read.csv("").select("").groupBy("")
+
     // 第一张表      com.android.settings     1     6289460893461614016     2
     sc.textFile("hdfs://szdchdp310/user/winco_weshareholdings/app_info/dataByVersion_format.txt").toDF("value").createOrReplaceTempView("metaid_hash_tmp")
     spark.sql("select " +
