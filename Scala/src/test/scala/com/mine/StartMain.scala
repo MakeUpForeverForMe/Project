@@ -20,7 +20,7 @@ class StartMain {
   @Test
   def test3(): Unit = {
     val a = 'a'
-    println('a'.toInt.toChar)
+    println('a'.toInt.toChar, a.toInt.toChar)
   }
 
   @Test
