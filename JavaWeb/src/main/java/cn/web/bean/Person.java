@@ -1,7 +1,7 @@
 package cn.web.bean;
 
 /**
- * @author ximing.wei 2021-01-25 11:48:16
+ * @author 魏喜明 2021-01-25 23:00:01
  */
 public class Person {
     public String getInfo() {

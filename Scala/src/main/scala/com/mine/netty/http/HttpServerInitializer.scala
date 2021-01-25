@@ -1,4 +1,4 @@
-package com.mine.netty
+package com.mine.netty.http
 
 import io.netty.channel.ChannelInitializer
 import io.netty.channel.socket.SocketChannel

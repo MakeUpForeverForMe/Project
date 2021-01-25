@@ -1,8 +1,8 @@
-package com.mine.netty
+package com.mine.netty.http
 
 import io.netty.buffer.Unpooled
 import io.netty.channel.{ChannelHandlerContext, SimpleChannelInboundHandler}
-import io.netty.handler.codec.http.{DefaultFullHttpResponse, HttpHeaderNames, HttpObject, HttpRequest, HttpResponseStatus, HttpVersion}
+import io.netty.handler.codec.http._
 import io.netty.util.CharsetUtil
 
 /**

@@ -18,6 +18,7 @@
         <module>Kafka</module>
         <module>ProjectUtils</module>
         <module>Travel</module>
+        <module>Java</module>
         <module>JavaWeb</module>
     </modules>
 
@@ -33,6 +34,7 @@
         <mysqlConnector.version>5.1.47</mysqlConnector.version>   <!-- MysqlConnector   版本 -->
         <commons-io.version>2.4</commons-io.version>              <!-- commons-io       版本 -->
         <fastjson.version>1.2.62</fastjson.version>               <!-- FastJson         版本 -->
+        <fasterxml.version>2.11.3</fasterxml.version>             <!-- fasterxml        版本 -->
         <netty.version>4.1.51.Final</netty.version>               <!-- Netty            版本 -->
         <akka.version>2.4.17</akka.version>                       <!-- AKKA             版本 -->
         <akka.kryo.version>1.0.0</akka.kryo.version>              <!-- AKKAKryo         版本 -->
@@ -115,6 +117,13 @@
                 <groupId>com.alibaba</groupId>
                 <artifactId>fastjson</artifactId>
                 <version>${fastjson.version}</version>
+            </dependency>
+            <!-- fasterxml 相关依赖 -->
+            <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind -->
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${fasterxml.version}</version>
             </dependency>
             <!-- Netty 相关依赖 -->
             <!-- https://mvnrepository.com/artifact/io.netty/netty-all -->
