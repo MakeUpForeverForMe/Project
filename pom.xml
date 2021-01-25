@@ -18,6 +18,7 @@
         <module>Kafka</module>
         <module>ProjectUtils</module>
         <module>Travel</module>
+        <module>JavaWeb</module>
     </modules>
 
     <properties>
