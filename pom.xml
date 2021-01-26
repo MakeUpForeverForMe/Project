@@ -4,6 +4,8 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+    <name>project</name>
+
     <groupId>project</groupId>
     <artifactId>Project</artifactId>
     <packaging>pom</packaging>
@@ -23,6 +25,7 @@
     </modules>
 
     <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <encoding>UTF-8</encoding>                                <!-- Encoding         版本 -->
         <java.version>1.8</java.version>                          <!-- Java             版本 -->
         <scala.prefix>2.11</scala.prefix>                         <!-- ScalaPrefix      版本 -->
@@ -405,8 +408,8 @@
         </repository>
 
         <!--<repository>-->
-            <!--<id>cloudera</id>-->
-            <!--<url>https://repository.cloudera.com/artifactory/cloudera-repos</url>-->
+        <!--<id>cloudera</id>-->
+        <!--<url>https://repository.cloudera.com/artifactory/cloudera-repos</url>-->
         <!--</repository>-->
 
         <repository>
@@ -431,27 +434,27 @@
         </repository>
 
         <!--<repository>-->
-            <!--<id>hortonworks.extrepo</id>-->
-            <!--<name>Hortonworks HDP</name>-->
-            <!--<url>http://repo.hortonworks.com/content/repositories/releases</url>-->
-            <!--<releases>-->
-                <!--<enabled>true</enabled>-->
-            <!--</releases>-->
-            <!--<snapshots>-->
-                <!--<enabled>true</enabled>-->
-            <!--</snapshots>-->
+        <!--<id>hortonworks.extrepo</id>-->
+        <!--<name>Hortonworks HDP</name>-->
+        <!--<url>http://repo.hortonworks.com/content/repositories/releases</url>-->
+        <!--<releases>-->
+        <!--<enabled>true</enabled>-->
+        <!--</releases>-->
+        <!--<snapshots>-->
+        <!--<enabled>true</enabled>-->
+        <!--</snapshots>-->
         <!--</repository>-->
 
         <!--<repository>-->
-            <!--<id>hortonworks.other</id>-->
-            <!--<name>Hortonworks Other Dependencies</name>-->
-            <!--<url>http://repo.hortonworks.com/content/groups/public</url>-->
-            <!--<releases>-->
-                <!--<enabled>true</enabled>-->
-            <!--</releases>-->
-            <!--<snapshots>-->
-                <!--<enabled>true</enabled>-->
-            <!--</snapshots>-->
+        <!--<id>hortonworks.other</id>-->
+        <!--<name>Hortonworks Other Dependencies</name>-->
+        <!--<url>http://repo.hortonworks.com/content/groups/public</url>-->
+        <!--<releases>-->
+        <!--<enabled>true</enabled>-->
+        <!--</releases>-->
+        <!--<snapshots>-->
+        <!--<enabled>true</enabled>-->
+        <!--</snapshots>-->
         <!--</repository>-->
 
         <repository>

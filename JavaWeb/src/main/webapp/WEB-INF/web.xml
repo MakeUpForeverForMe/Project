@@ -4,19 +4,17 @@
 
 <web-app>
     <display-name>Archetype Created Web Application</display-name>
-
-    <!--    <servlet>-->
-    <!--        <servlet-name>helloServlet</servlet-name>-->
-    <!--        <servlet-class>cn.web.servlet.HelloServlet</servlet-class>-->
-    <!--    </servlet>-->
-    <!--    <servlet-mapping>-->
-    <!--        <servlet-name>helloServlet</servlet-name>-->
-    <!--        <url-pattern>/hello</url-pattern>-->
-    <!--    </servlet-mapping>-->
-
     <servlet>
         <servlet-name>loginServlet</servlet-name>
-        <servlet-class>cn.web.servlet.LoginServlet</servlet-class>
+        <servlet-class>cn.javaweb.servlet.LoginServlet2</servlet-class>
+        <init-param>
+            <param-name>user</param-name>
+            <param-value>cn</param-value>
+        </init-param>
+        <init-param>
+            <param-name>pass</param-name>
+            <param-value>123</param-value>
+        </init-param>
     </servlet>
     <servlet-mapping>
         <servlet-name>loginServlet</servlet-name>
