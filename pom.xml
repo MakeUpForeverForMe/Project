@@ -21,7 +21,7 @@
         <module>ProjectUtils</module>
         <module>Travel</module>
         <module>Java</module>
-        <module>JavaWeb</module>
+        <module>JavaWebTest</module>
     </modules>
 
     <properties>
@@ -39,6 +39,7 @@
         <fastjson.version>1.2.62</fastjson.version>               <!-- FastJson         版本 -->
         <fasterxml.version>2.11.3</fasterxml.version>             <!-- fasterxml        版本 -->
         <netty.version>4.1.51.Final</netty.version>               <!-- Netty            版本 -->
+        <tomcat.version>9.0.31</tomcat.version>                   <!-- Tomcat           版本 -->
         <akka.version>2.4.17</akka.version>                       <!-- AKKA             版本 -->
         <akka.kryo.version>1.0.0</akka.kryo.version>              <!-- AKKAKryo         版本 -->
         <!--<zookeeper.version>3.4.5-cdh6.3.1</zookeeper.version>     &lt;!&ndash; Zookeeper        版本 &ndash;&gt;-->
@@ -100,7 +101,7 @@
                 <artifactId>commons-codec</artifactId>
                 <version>${aes.version}</version>
             </dependency>
-            <!-- MysqlConnector 相关依赖 -->
+            <!-- MySQLConnector 相关依赖 -->
             <!-- https://mvnrepository.com/artifact/mysql/mysql-connector-java -->
             <dependency>
                 <groupId>mysql</groupId>
@@ -134,6 +135,20 @@
                 <groupId>io.netty</groupId>
                 <artifactId>netty-all</artifactId>
                 <version>${netty.version}</version>
+            </dependency>
+            <!-- Tomcat Embed Core 相关依赖 -->
+            <!-- https://mvnrepository.com/artifact/org.apache.tomcat.embed/tomcat-embed-core -->
+            <dependency>
+                <groupId>org.apache.tomcat.embed</groupId>
+                <artifactId>tomcat-embed-core</artifactId>
+                <version>${tomcat.version}</version>
+            </dependency>
+            <!-- Tomcat Servlet api 相关依赖 -->
+            <!-- https://mvnrepository.com/artifact/org.apache.tomcat/tomcat-servlet-api -->
+            <dependency>
+                <groupId>org.apache.tomcat</groupId>
+                <artifactId>tomcat-servlet-api</artifactId>
+                <version>${tomcat.version}</version>
             </dependency>
 
 
@@ -315,7 +330,7 @@
             </plugin>
             <!-- 配置 Java 的编译版本 -->
             <plugin>
-                <!--<groupId>org.apache.maven.plugins</groupId>-->
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <!--<version>3.6.1</version>-->
                 <configuration>
