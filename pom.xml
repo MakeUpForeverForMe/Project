@@ -35,6 +35,8 @@
         <junit.version>4.12</junit.version>                       <!-- Junit            版本 -->
         <aes.version>1.11</aes.version>                           <!-- Aes              版本 -->
         <mysqlConnector.version>5.1.47</mysqlConnector.version>   <!-- MysqlConnector   版本 -->
+        <c3p0.version>0.9.5.2</c3p0.version>                      <!-- C3P0             版本 -->
+        <dbutils.version>1.7</dbutils.version>                    <!-- DBUtils          版本 -->
         <commons-io.version>2.4</commons-io.version>              <!-- commons-io       版本 -->
         <fastjson.version>1.2.62</fastjson.version>               <!-- FastJson         版本 -->
         <fasterxml.version>2.11.3</fasterxml.version>             <!-- fasterxml        版本 -->
@@ -107,6 +109,20 @@
                 <groupId>mysql</groupId>
                 <artifactId>mysql-connector-java</artifactId>
                 <version>${mysqlConnector.version}</version>
+            </dependency>
+            <!-- JdbcUtils 需要用到的 C3P0 依赖 -->
+            <!-- https://mvnrepository.com/artifact/com.mchange/c3p0 -->
+            <dependency>
+                <groupId>com.mchange</groupId>
+                <artifactId>c3p0</artifactId>
+                <version>${c3p0.version}</version>
+            </dependency>
+            <!-- DBUtils 相关依赖 -->
+            <!-- https://mvnrepository.com/artifact/commons-dbutils/commons-dbutils -->
+            <dependency>
+                <groupId>commons-dbutils</groupId>
+                <artifactId>commons-dbutils</artifactId>
+                <version>${dbutils.version}</version>
             </dependency>
             <!-- FileUtils 相关依赖 -->
             <!-- https://mvnrepository.com/artifact/commons-io/commons-io -->

@@ -6,6 +6,6 @@ package cn.javaweb.bean;
  */
 public class Person {
     public String getInfo() {
-        return "Hello World!";
+        return "Person\tHello World!";
     }
 }

@@ -53,10 +53,29 @@
 
     <servlet>
         <servlet-name>listAllStudent</servlet-name>
-        <servlet-class>cn.javaweb.mvc.ListAllStudent</servlet-class>
+        <servlet-class>cn.javaweb.servlet.ListAllStudent</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>listAllStudent</servlet-name>
         <url-pattern>/listAllStudent</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>deleteStudent</servlet-name>
+        <servlet-class>cn.javaweb.servlet.DeleteStudent</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>deleteStudent</servlet-name>
+        <url-pattern>/deleteStudent</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>customerServlet</servlet-name>
+        <servlet-class>cn.javaweb.servlet.CustomerServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>customerServlet</servlet-name>
+        <!-- <url-pattern>/customerServlet</url-pattern> -->
+        <url-pattern>*.do</url-pattern>
     </servlet-mapping>
 </web-app>
