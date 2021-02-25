@@ -10,6 +10,7 @@ import java.util.List;
  * @author 魏喜明 2021-02-03 23:26:39
  */
 public class CustomerDAOJdbcImpl extends DAO<Customer> implements CustomerDAO {
+
     @Override
     public List<Customer> getAllWithCriteriaCustomer(Customer customer) {
         String sql = "select id,name,address,phone from customers where " +
@@ -39,6 +40,12 @@ public class CustomerDAOJdbcImpl extends DAO<Customer> implements CustomerDAO {
     public void save(Customer customer) {
         String sql = "insert into customers(name,address,phone) values(?,?,?)";
         update(sql, customer.getName(), customer.getAddress(), customer.getPhone());
+    }
+
+    @Override
+    public void update(Customer customer) {
+        String sql = "update customers set name = ?,address = ?,phone = ? where id = ?";
+        update(sql, customer.getName(), customer.getAddress(), customer.getPhone(), customer.getId());
     }
 
     @Override

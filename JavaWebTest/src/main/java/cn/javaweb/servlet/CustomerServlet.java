@@ -2,7 +2,7 @@ package cn.javaweb.servlet;
 
 import cn.javaweb.bean.Customer;
 import cn.javaweb.dao.CustomerDAO;
-import cn.javaweb.dao.impl.CustomerDAOJdbcImpl;
+import cn.javaweb.dao.CustomerDAOFactory;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -19,11 +19,12 @@ import java.util.List;
  * @author 魏喜明 2021-02-04 23:38:01
  */
 public class CustomerServlet extends HttpServlet {
-    private final CustomerDAO customerDAO = new CustomerDAOJdbcImpl();
+    private final CustomerDAO customerDAO = CustomerDAOFactory.getInstance().getCustomerDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws UnsupportedEncodingException {
-        System.out.println("CustomerServlet\tdoGet\t");
+        System.out.println("CustomerServlet\tdoGet");
+        System.out.println("CustomerServlet\tdoGet\t参数为：" + request.getServletPath());
         doPost(request, response);
     }
 
@@ -57,16 +58,54 @@ public class CustomerServlet extends HttpServlet {
         }
     }
 
-    private void edit(HttpServletRequest request, HttpServletResponse response) {
-        System.out.println("edit");
+    private void edit(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        System.out.println("CustomerServlet\tedit");
+        String forwardPath = "";
+        int flowId;
+        Customer customer = null;
+        try {
+            flowId = Integer.parseInt(request.getParameter("flowId"));
+            customer = customerDAO.get(flowId);
+            if (customer != null) {
+                forwardPath = "/update.jsp";
+                request.setAttribute("customer", customer);
+            }
+        } catch (NumberFormatException e) {
+            System.out.println("请求的页面不存在！");
+        }
+        request.getRequestDispatcher(forwardPath).forward(request, response);
+        System.out.println("CustomerServlet\tedit\t" + customer);
     }
 
     private void update(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         System.out.println("CustomerServlet\tupdate");
-        int flowId = Integer.parseInt(request.getParameter("flowId"));
-        Customer customer = customerDAO.get(flowId);
-        request.setAttribute("customer", customer);
-        request.getRequestDispatcher("/update.jsp").forward(request, response);
+        String flowId = request.getParameter("flowId");
+        String name = request.getParameter("name");
+        String phone = request.getParameter("phone");
+        String address = request.getParameter("address");
+        String oldName = request.getParameter("oldName");
+
+        int id = 0;
+        try {
+            id = Integer.parseInt(flowId);
+        } catch (NumberFormatException e) {
+            e.printStackTrace();
+        }
+        Customer customer;
+        long countWithName = customerDAO.getCountWithName(name);
+        if ((!name.equalsIgnoreCase(oldName)) && countWithName > 0) {
+            String duplicate = "用户：'" + name + "' 已存在，请重新输入！";
+            customer = new Customer(id, oldName, address, phone);
+            request.setAttribute("customer", customer);
+            request.setAttribute("duplicate", duplicate);
+            request.getRequestDispatcher("/update.jsp").forward(request, response);
+            System.out.println(duplicate + "\t" + customer);
+        } else {
+            customer = new Customer(id, name, address, phone);
+            customerDAO.update(customer);
+            response.sendRedirect("query.do");
+            System.out.println("CustomerServlet\tupdate\t" + customer);
+        }
     }
 
     private void add(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {

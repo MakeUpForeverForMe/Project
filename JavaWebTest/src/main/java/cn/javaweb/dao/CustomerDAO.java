@@ -41,6 +41,13 @@ public interface CustomerDAO {
     void save(Customer customer);
 
     /**
+     * 更新数据
+     *
+     * @param customer 传入 Customer 对象
+     */
+    void update(Customer customer);
+
+    /**
      * 根据传入的 ID 删除对应记录
      *
      * @param id 传入 ID

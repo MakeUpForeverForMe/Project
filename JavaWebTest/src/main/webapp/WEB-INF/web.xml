@@ -7,6 +7,18 @@
          xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd"
          version="4.0" metadata-complete="true">
     <display-name>Archetype Created Web Application</display-name>
+
+    <servlet>
+        <display-name>initServlet</display-name>
+        <servlet-name>initServlet</servlet-name>
+        <servlet-class>cn.javaweb.servlet.InitServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>initServlet</servlet-name>
+        <url-pattern>/initServlet</url-pattern>
+    </servlet-mapping>
+
     <servlet>
         <servlet-name>loginServlet</servlet-name>
         <servlet-class>cn.javaweb.servlet.LoginServlet2</servlet-class>
@@ -78,4 +90,5 @@
         <!-- <url-pattern>/customerServlet</url-pattern> -->
         <url-pattern>*.do</url-pattern>
     </servlet-mapping>
+
 </web-app>

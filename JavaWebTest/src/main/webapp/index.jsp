@@ -22,7 +22,7 @@
     Person person = new Person();
     System.out.println(person.getInfo() + "哈哈！控制台输出。");
     request.setAttribute("requestAttr", "requestValue");
-    session.setAttribute("sessionAttr", "sessionValue");
+//    session.setAttribute("sessionAttr", "sessionValue");
     application.setAttribute("applicationAttr", "applicationValue");
 %>
 <%= person.getInfo() + " 哈哈！页面输出。"%>
@@ -78,12 +78,16 @@
         for (Customer customer : customers) {
     %>
     <tr>
-        <td><%= customer.getId() %></td>
-        <td><%= customer.getName() %></td>
-        <td><%= customer.getAddress() %></td>
-        <td><%= customer.getPhone() %></td>
+        <td><%= customer.getId() %>
+        </td>
+        <td><%= customer.getName() %>
+        </td>
+        <td><%= customer.getAddress() %>
+        </td>
+        <td><%= customer.getPhone() %>
+        </td>
         <td>
-            <a href="update.do?flowId=<%= customer.getId() %>">UPDATE</a>
+            <a href="edit.do?flowId=<%= customer.getId() %>">UPDATE</a>
             <a href="delete.do?flowId=<%= customer.getId() %>" class="delete">DELETE</a>
         </td>
     </tr>

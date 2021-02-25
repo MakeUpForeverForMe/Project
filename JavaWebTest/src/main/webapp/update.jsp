@@ -8,23 +8,35 @@
     <title>Update</title>
 </head>
 <body>
-<%= "正在修改 " + request.getAttribute("customer") %>
-<form action="query.do" method="post">
+<%
+    Customer customer = (Customer) request.getAttribute("customer");
+    String duplicate = (String) request.getAttribute("duplicate");
+    if (duplicate != null) {
+%>
+<%= duplicate %>
+<%
+    }
+%>
+<br>
+<%= "正在修改 " + customer %>
+<form action="update.do" method="post">
+    <input type="hidden" name="flowId" value="<%= customer.getId() %>">
+    <input type="hidden" name="oldName" value="<%= customer.getName() %>">
     <table>
         <tr>
             <td>CustomerName:</td>
-            <td><label><input name="name" type="text"></label></td>
+            <td><label><input name="name" type="text" value="<%= customer.getName() %>"></label></td>
         </tr>
         <tr>
             <td>CustomerPhone:</td>
-            <td><label><input name="phone" type="text"></label></td>
+            <td><label><input name="phone" type="text" value="<%= customer.getPhone() %>"></label></td>
         </tr>
         <tr>
             <td>CustomerAddress:</td>
-            <td><label><input name="address" type="text"></label></td>
+            <td><label><input name="address" type="text" value="<%= customer.getAddress() %>"></label></td>
         </tr>
         <tr>
-            <td><input name="submit" type="submit" value="Query"></td>
+            <td><input name="submit" type="submit" value="Submit"></td>
         </tr>
     </table>
 </form>

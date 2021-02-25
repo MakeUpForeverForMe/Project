@@ -35,9 +35,10 @@ CREATE TABLE IF NOT EXISTS `customers`
   DEFAULT CHARSET = utf8 COMMENT ='客户信息表';
 
 insert into customers (name, address, phone)
-values ('Mike', 'BeiJing', '18012341234'),
-       ('Jerry', 'ShangHai', '18112341234'),
-       ('Att', '盛京', '18813801380'),
-       ('mmd', 'çäº¬', ''),
-       ('pcc', '盛京', '')
+values ('Mike','北京','18012341234'),
+       ('Jerry','上海','18112341234'),
+       ('Att','盛京','18813801380'),
+       ('MMd','徽京','18800000000'),
+       ('pcc','HrBin','12312341234'),
+       ('Mik','深圳','13311223344')
 ;
