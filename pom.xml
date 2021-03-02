@@ -21,7 +21,6 @@
         <module>ProjectUtils</module>
         <module>Travel</module>
         <module>Java</module>
-        <module>JavaWebTest</module>
     </modules>
 
     <properties>
