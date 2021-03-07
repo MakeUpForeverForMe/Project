@@ -8,8 +8,9 @@ import requests
 
 robot_help = """参数应为 json 数据
 {
+    "type": "info",                                // 发送数据的类型（info：绿色，不通知；warn：橙红色，通知；可选）
     "key": "b1499656-602e-45c9-8722-2032e85aa8d0", // 机器人 Hook 的 Key（必有）
-    "at": ["18812345678"],                         // 要提醒人的手机号（(逗号),分隔，可选）
+    "at": ["18812345678"],                         // 要提醒人的手机号（(逗号),分隔；可选）
     "msg": {                                       // 要发送消息（必有）
         "title": "这是测试数据",                     // 要发送消息的头部信息（必有）
         "k1": "v1",                                // 要发送消息的信息内容1（可选）
@@ -80,28 +81,31 @@ class WWXRobot(object):
         )
 
 
-def send_robot(json: str):
-    json = ast.literal_eval(json.strip())
+def send_robot(dictionary: str):
+    dictionary: dict = ast.literal_eval(dictionary.strip())
 
-    robot = WWXRobot(json['key'])
+    robot = WWXRobot(dictionary['key'])
 
-    msg = dict(json['msg'])
-    data = f'{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}\n' \
-           f'<font color="warning">{msg.pop("title")}</font>'
+    info, warn, comm = 'info', 'warning', 'comment'
+
+    msg_type = dictionary.get('type', info)
+    msg_type = info if msg_type == info else warn
+
+    msg = dict(dictionary['msg'])
+    data = f'{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}' \
+           f'\n<font color="{msg_type}">{msg_type}: {msg.pop("title")}</font>'
 
     for key, val in msg.items():
-        data += f'\n>{key}: <font color="comment">{val}</font>'
+        data += f'\n>{key}: <font color="{comm}">{val}</font>'
 
     # print(str(data))
 
     robot.send_markdown(data)
 
-    at_someone = list(json.get('at', None))
-    if at_someone and len(at_someone) != 0:
+    at_someone = list(dictionary.get('at', None))
+    if at_someone and len(at_someone) != 0 and msg_type != info:
         for i, someone in enumerate(at_someone):
-            if isinstance(someone, int):
-                someone = str(someone)
-            at_someone[i] = someone
+            at_someone[i] = str(someone) if isinstance(someone, int) else someone
 
         robot.send_at(at_someone)
 
