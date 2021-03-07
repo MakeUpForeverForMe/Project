@@ -5,9 +5,17 @@
 @file:   web_test.py
 @time:   2021-03-05 17:58:50
 """
+import socket
 from http.server import HTTPServer, BaseHTTPRequestHandler
 
-import py_utils
+
+def get_ip():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        s.connect(('8.8.8.8', 80))
+        return s.getsockname()[0]
+    finally:
+        s.close()
 
 
 class Invoke(object):
@@ -75,7 +83,7 @@ class RequestHandler(BaseHTTPRequestHandler):
 
 
 if __name__ == '__main__':
-    serverAddress = (py_utils.get_ip(), 60000)
+    serverAddress = (get_ip(), 60000)
     print(serverAddress)
     service = HTTPServer(serverAddress, RequestHandler)
     print('程序已启动...')
