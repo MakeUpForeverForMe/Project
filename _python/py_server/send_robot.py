@@ -12,13 +12,33 @@ robot_help = """参数应为 json 数据
     "key": "b1499656-602e-45c9-8722-2032e85aa8d0", // 机器人 Hook 的 Key（必有）
     "at": ["18812345678"],                         // 要提醒人的手机号（(逗号),分隔；可选）
     "msg": {                                       // 要发送消息（必有）
-        "title": "这是测试数据",                     // 要发送消息的头部信息（必有）
+        "title": "这是测试数据",                    // 要发送消息的头部信息（必有）
         "k1": "v1",                                // 要发送消息的信息内容1（可选）
         "k2": "v2",                                // 要发送消息的信息内容2（可选）
         "k3": "v3"                                 // 要发送消息的信息内容3（可选）
     }
 }
 """
+
+
+class Error(Exception):
+    def __init__(self, msg):
+        self.msg = msg
+
+    def __str__(self) -> str:
+        return self.msg
+
+
+class NoKeyError(Error):
+    pass
+
+
+class NotDictError(Error):
+    pass
+
+
+class NotListError(Error):
+    pass
 
 
 class WWXRobot(object):
@@ -84,28 +104,46 @@ class WWXRobot(object):
 def send_robot(dictionary: str):
     dictionary: dict = ast.literal_eval(dictionary.strip())
 
-    robot = WWXRobot(dictionary['key'])
+    key = dictionary.get('key', None)
+
+    if not key:
+        raise NoKeyError('Robot 需要 key 参数才能识别是哪个机器人！')
+
+    robot = WWXRobot(key)
 
     info, warn, comm = 'info', 'warning', 'comment'
 
     msg_type = dictionary.get('type', info)
     msg_type = info if msg_type == info else warn
 
-    msg = dict(dictionary['msg'])
+    msg = dictionary.get('msg', None)
+
+    if not msg:
+        raise NoKeyError("""Robot 需要 msg 参数才能知道要发送什么信息啊！小提示："msg":{"title":"这是测试数据","k1":"v1","k2":"v2","k3":"v3"}""")
+
+    try:
+        msg = dict(msg)
+    except ValueError:
+        raise NotDictError('Robot 需要 msg 参数是一个 Json 型的数据哦！')
+
     data = f'{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}' \
            f'\n<font color="{msg_type}">{msg_type}: {msg.pop("title")}</font>'
 
     for key, val in msg.items():
         data += f'\n>{key}: <font color="{comm}">{val}</font>'
 
-    # print(str(data))
-
     robot.send_markdown(data)
 
-    at_someone = list(dictionary.get('at', None))
-    if at_someone and len(at_someone) != 0 and msg_type != info:
-        for i, someone in enumerate(at_someone):
-            at_someone[i] = str(someone) if isinstance(someone, int) else someone
+    if msg_type != info:
+        at_someone = dictionary.get('at', None)
+
+        if not at_someone:
+            raise NotListError("""Robot 在 type 为 warn 的情况下，需要 at 参数是个 List 才可以哦！小提示："at": ["18812345678"]""")
+
+        at_someone = list(at_someone)
+        if at_someone and len(at_someone) != 0:
+            for i, someone in enumerate(at_someone):
+                at_someone[i] = str(someone) if isinstance(someone, int) else someone
 
         robot.send_at(at_someone)
 

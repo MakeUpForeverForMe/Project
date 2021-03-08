@@ -613,6 +613,42 @@ done
 find . -name 'data_log.log.2020-09-2*' -type f -mtime +1 | xargs rm
 ```
 
+### 2.1.17 Shell 中 curl 命令
+```bash
+curl -v -X POST http://10.10.18.48:60000/robot -H 'Content-Type:text/json; charset=utf-8' --data-urlencode '
+{
+  "type": "info",
+  "key": "b1499656-602e-45c9-8722-2032e85aa8d0",
+  "at": [
+    17645774457,
+    18812345678
+  ],
+  "msg": {
+    "title": "这是测试数据",
+    "k1": "v1",
+    "k2": "v2",
+    "k3": "v3"
+  }
+}
+'
+
+curl -v -G      http://10.10.18.48:60000/robot -H 'Content-Type:text/json; charset=utf-8' --data-urlencode 'msg={
+  "type": "warn",
+  "key": "b1499656-602e-45c9-8722-2032e85aa8d0",
+  "at": [
+    17645774457,
+    18812345678
+  ],
+  "msg": {
+    "title": "这是测试数据",
+    "k1": "v1",
+    "k2": "v2",
+    "k3": "v3"
+  }
+}
+'
+```
+
 
 
 ## 2.2 Kafka 命令
