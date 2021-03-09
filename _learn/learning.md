@@ -2,10 +2,11 @@
 # 1、公司级信息
 ## 1.1 服务器
 ### 1.1.1 生产
-|                                                                                                                                         Hive 交互式命令                                                                                                                                         |
-|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| beeline -n hadoop -u "jdbc:hive2://10.80.0.46:2181,10.80.0.255:2181,10.80.1.113:2181/;serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=hiveserver2" --color=true --hiveconf hive.resultset.use.unique.column.names=false --hiveconf spark.app.name=HiveSpark --hiveconf mapred.job.name=HiveMR |
-| hive --hiveconf hive.cli.print.current.db=true --hiveconf hive.cli.print.header=true --hiveconf hive.resultset.use.unique.column.names=false                                                                                                                                                    |
+|                                                                                                      Hive 交互式命令                                                                                                      |                                可选参数                               |
+|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------|
+| beeline -n hadoop -u "jdbc:hive2://10.80.0.46:2181,10.80.0.255:2181,10.80.1.113:2181/;serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=hiveserver2" --color=true --hiveconf hive.resultset.use.unique.column.names=false | --hiveconf spark.app.name=HiveSpark --hiveconf mapred.job.name=HiveMR |
+| beeline -n hadoop -u "jdbc:hive2://10.83.1.9:7001" --color=true --hiveconf hive.resultset.use.unique.column.names=false                                                                                                   | --hiveconf spark.app.name=HiveSpark --hiveconf mapred.job.name=HiveMR |
+| hive --hiveconf hive.cli.print.current.db=true --hiveconf hive.cli.print.header=true --hiveconf hive.resultset.use.unique.column.names=false                                                                              | --hiveconf spark.app.name=HiveSpark --hiveconf mapred.job.name=HiveMR |
 
 
 |   系统  |  服务 |                    ip或网址                    |  用户 |      密码      | 备注 |
