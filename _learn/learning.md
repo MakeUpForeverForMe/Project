@@ -1277,8 +1277,14 @@ select
   coalesce('coalesce_3_a','coalesce_3_b','coalesce_3_c') as coalesce_3
 ;
 
--- 月初或年初日期  两个参数：第一个参数是 date 类型：yyyy-MM-dd HH:mm:ss 或 yyyy-MM-dd；第二个参数是字符串类型：MONTH MON MM 或 YEAR YYYY YY
-select trunc('2020-12-31','MM'); -- 2020-12-01
+-- 月初或年初日期  两个参数：第一个参数是 date 类型：yyyy-MM-dd HH:mm:ss 或 yyyy-MM-dd；第二个参数是字符串类型：月初(MONTH MON MM) 或 年初(YEAR YYYY YY)
+select trunc('2020-12-31','MM'); -- 2020-12-01 月初
+select trunc('2020-12-31','YY'); -- 2020-01-01 年初
+
+-- 创建5行空行
+select pos + 1 as pos,concat('--|',val,'|--') as val
+from (select 0) as src
+lateral view posexplode(split(space(4),' ')) tf as pos,val;
 ```
 
 ### 4.1.2 MySQL 函数及通用语句
@@ -1832,8 +1838,6 @@ select
   rank()         over(partition by user_type order by sales) as gr,   -- 分组 rank 值
   percent_rank() over(partition by user_type order by sales) as gprg  -- 分组 percent_rank 值
 from base order by user_type,sales;
-
-
 ```
 
 #### 4.2.1.2 面试案例
@@ -1958,7 +1962,6 @@ CREATE TEMPORARY EXTERNAL TABLE hive_meta(
   `integer_idx` decimal(11,0)
 )
 -- STORED BY 'org.apache.hive.storage.jdbc.JdbcStorageHandler'
--- STORED BY 'org.apache.hadoop.hive.jdbc.storagehandler.JDBCStorageHandler'
 STORED BY 'org.apache.hadoop.hive.jdbc.storagehandler.JdbcStorageHandler'
 TBLPROPERTIES (
   "hive.sql.database.type"  = "MYSQL",
@@ -2028,7 +2031,7 @@ SHOW FUNCTIONS LIKE 'default*';
 DESC FUNCTION EXTENDED is_empty;
 
 SHOW FUNCTIONS LIKE '*type*';
-DESC FUNCTION EXTENDED map;
+DESC FUNCTION EXTENDED json_array_to_array;
 ```
 
 
