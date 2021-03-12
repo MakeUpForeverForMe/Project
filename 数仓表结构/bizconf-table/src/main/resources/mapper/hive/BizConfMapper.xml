@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.weshare.bizconftable.mapper.hive.BizConfMapper">
+    <sql id="Base_Column_List">
+        col1_name,col1_comment,col1_val,col2_name,col2_comment,col2_val,col_id
+    </sql>
+    <select id="getAllConf" resultType="com.weshare.bizconftable.bean.SitBizConf">
+        select
+        <include refid="Base_Column_List"/>
+        from dim_new.sit_biz_conf_test where col1_name='product_id' order by col1_name,col1_val
+    </select>
+
+    <select id="getConfByCol1AndCol2" resultType="com.weshare.bizconftable.bean.SitBizConf">
+        select
+        <include refid="Base_Column_List"/>
+        from dim_new.sit_biz_conf_test
+        <where>
+            <if test="col1Val != null">
+                col1_val = #{col1Val, jdbcType=VARCHAR}
+            </if>
+            <if test="col2Val != null">
+                and col2_val = #{col2Val, jdbcType=VARCHAR}
+            </if>
+        </where>
+    </select>
+
+    <insert id="insertConfRows" parameterType="java.util.List">
+        insert into table dim_new.sit_biz_conf_test
+        values
+        <foreach collection="sitBizConfList" separator="," item="item">
+            (
+            #{item.col1Name},
+            #{item.col1Comment},
+            #{item.col1Val},
+            #{item.col2Name},
+            #{item.col2Comment},
+            #{item.col2Val},
+            #{item.colId}
+            )
+        </foreach>
+    </insert>
+
+
+    <insert id="deleteOneConfRow">
+        insert overwrite table dim_new.sit_biz_conf_test
+        select
+        <include refid="Base_Column_List"/>
+        from sit_biz_conf_test
+        <where>
+            <if test="col1Name != null">
+                col1_name != #{col1Name, jdbcType=VARCHAR}
+            </if>
+            <if test="col1Val != null">
+                or col1_val != #{col1Val, jdbcType=VARCHAR}
+            </if>
+        </where>
+    </insert>
+</mapper>

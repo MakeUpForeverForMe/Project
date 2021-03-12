@@ -1,0 +1,5 @@
+mysql_host='10.83.16.15'
+mysql_port='3306'
+mysql_user='root'
+mysql_pass='Ws2018!07@'
+mysql_db='uabs-core'

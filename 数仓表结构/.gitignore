@@ -1,0 +1,12 @@
+/.idea/*
+/hs_err_pid497124.log
+/asset_package/*.iml
+/asset_package/target/*
+/bizconf-table/*.iml
+/bizconf-table/target/*
+/common/*.iml
+/common/target/*
+/HiveUDF/*.iml
+/HiveUDF/target/*
+/monitor/*.iml
+/monitor/target/*

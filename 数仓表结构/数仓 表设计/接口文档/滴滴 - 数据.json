@@ -1,0 +1,140 @@
+// LOAN_APPLY
+{
+  "bankCardNo": "6228480338503912473",
+  "creditId": "DD000030362020042913062814c6df",
+  "idNo": "330381199010061213",
+  "loanAmount": 400000,
+  "loanExtends": "lD1XT7ORxUtbPNue02cp13aLxC0MOQUNa5CS8%2FlFba4GqtrLggiEgfAZoJrjvqrZVSc2TM5P5Xqwv%2BiOTZ6xlpduVYZf1NKXMJHZom3YBVF861HAFbrf71XpuVffOG6Uy%2B1fbhBQii%2FOMhSSO9aCWW6oRKUSBqr3UVAv89Bzo1V29gWvDgvNilgXV9rtQrYBuoBoaASvioKylvyRQkoMDlaGm4Ab%2BfC3Be5AgsNDkavhEGe9TEg1L4zNIndmUchG2A4Ku4qA76pn%2BypCm933JnGBJri68gUxQd2G3A8FlErDZX%2BiyoX%2F3HgBQjHhyHOFEKs6pWpZ%2F7P08uyfV%2BSlLw%3D%3D",
+  "loanOrderId": "DD000230362020042913200010376d",
+  "loanRating": 888,
+  "loanUsage": 1,
+  "mobile": "17505777644",
+  "name": "张天伟",
+  "notifyUrl": "https://dsd.credit.xiaojukeji.com/manhattan/loan/gateway/flow/callback/loanResult",
+  "penaltyInterestRate": 1000,
+  "repayPlanList": [
+    {
+      "interest": 9235,
+      "loanNumber": 1,
+      "penalty": 0,
+      "principal": 33333,
+      "repayPlanBeginDate": "2020-04-29",
+      "repayPlanEndDate": "2020-05-25",
+      "residualPrincipal": 400000
+    },
+    {
+      "interest": 10094,
+      "loanNumber": 2,
+      "penalty": 0,
+      "principal": 33333,
+      "repayPlanBeginDate": "2020-05-25",
+      "repayPlanEndDate": "2020-06-25",
+      "residualPrincipal": 366667
+    },
+    {
+      "interest": 8880,
+      "loanNumber": 3,
+      "penalty": 0,
+      "principal": 33333,
+      "repayPlanBeginDate": "2020-06-25",
+      "repayPlanEndDate": "2020-07-25",
+      "residualPrincipal": 333334
+    },
+    {
+      "interest": 8258,
+      "loanNumber": 4,
+      "penalty": 0,
+      "principal": 33333,
+      "repayPlanBeginDate": "2020-07-25",
+      "repayPlanEndDate": "2020-08-25",
+      "residualPrincipal": 300001
+    },
+    {
+      "interest": 7341,
+      "loanNumber": 5,
+      "penalty": 0,
+      "principal": 33333,
+      "repayPlanBeginDate": "2020-08-25",
+      "repayPlanEndDate": "2020-09-25",
+      "residualPrincipal": 266668
+    },
+    {
+      "interest": 6216,
+      "loanNumber": 6,
+      "penalty": 0,
+      "principal": 33333,
+      "repayPlanBeginDate": "2020-09-25",
+      "repayPlanEndDate": "2020-10-25",
+      "residualPrincipal": 233335
+    },
+    {
+      "interest": 5506,
+      "loanNumber": 7,
+      "penalty": 0,
+      "principal": 33333,
+      "repayPlanBeginDate": "2020-10-25",
+      "repayPlanEndDate": "2020-11-25",
+      "residualPrincipal": 200002
+    },
+    {
+      "interest": 4440,
+      "loanNumber": 8,
+      "penalty": 0,
+      "principal": 33333,
+      "repayPlanBeginDate": "2020-11-25",
+      "repayPlanEndDate": "2020-12-25",
+      "residualPrincipal": 166669
+    },
+    {
+      "interest": 3670,
+      "loanNumber": 9,
+      "penalty": 0,
+      "principal": 33333,
+      "repayPlanBeginDate": "2020-12-25",
+      "repayPlanEndDate": "2021-01-25",
+      "residualPrincipal": 133336
+    },
+    {
+      "interest": 2753,
+      "loanNumber": 10,
+      "penalty": 0,
+      "principal": 33333,
+      "repayPlanBeginDate": "2021-01-25",
+      "repayPlanEndDate": "2021-02-25",
+      "residualPrincipal": 100003
+    },
+    {
+      "interest": 1658,
+      "loanNumber": 11,
+      "penalty": 0,
+      "principal": 33333,
+      "repayPlanBeginDate": "2021-02-25",
+      "repayPlanEndDate": "2021-03-25",
+      "residualPrincipal": 66670
+    },
+    {
+      "interest": 918,
+      "loanNumber": 12,
+      "penalty": 0,
+      "principal": 33337,
+      "repayPlanBeginDate": "2021-03-25",
+      "repayPlanEndDate": "2021-04-25",
+      "residualPrincipal": 33337
+    }
+  ],
+  "repayType": 1,
+  "sftpDir": "/data/2001/3036/return/20200429/",
+  "totalInstallment": 12,
+  "withdrawContactInfo": {
+    "address": "龙瑞大道1187号",
+    "city": "浙江省温州市龙湾区",
+    "emergencyContactMobile": "15067813700",
+    "emergencyContactName": "吴漫漫",
+    "jobType": "0",
+    "maritalStatus": 0,
+    "relationship": 2,
+    "userCity": "温州市",
+    "userCounty": "龙湾区",
+    "userProvince": "浙江省"
+  }
+}

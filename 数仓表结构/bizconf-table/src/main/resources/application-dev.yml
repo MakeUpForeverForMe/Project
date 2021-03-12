@@ -1,0 +1,15 @@
+server:
+    port: 8080
+spring:
+    datasource:
+      db1:
+        driver-class-name: org.apache.hive.jdbc.HiveDriver
+        url: jdbc:hive2://node123:10000/dim_new
+        username: hive
+        password: 123456
+      db2:
+          driver-class-name: com.mysql.jdbc.Driver # mysql的驱动你可以配置别的关系型数据库
+          url: jdbc:mysql://10.83.16.32:3306?characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai #数据源地址
+          username: bgp_admin # 用户名
+          password: 3Mt%JjE#WJIt # 密码
+
