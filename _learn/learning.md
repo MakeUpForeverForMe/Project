@@ -1982,9 +1982,9 @@ TBLPROPERTIES (
 -- Hive 函数操作
 hdfs dfs -put ./HiveUDF-1.0.jar /user/hive/auxlib
 
-set hivevar:hdfs_path=cosn://bigdata-center-prod-1253824322/user/auxlib/HiveUDF-1.0-shaded.jar;
-
 set hivevar:hdfs_path=hdfs:///user/hive/auxlib/HiveUDF-1.0-shaded.jar;
+
+set hivevar:hdfs_path=cosn://bigdata-center-prod-1253824322/user/auxlib/HiveUDF-1.0-shaded.jar;
 
 ADD JAR ${hdfs_path};
 
@@ -2017,8 +2017,8 @@ CREATE FUNCTION datefmt             AS 'com.weshare.udf.DateFormat'             
 CREATE FUNCTION age_birth           AS 'com.weshare.udf.GetAgeOnBirthday'               USING JAR '${hdfs_path}';
 CREATE FUNCTION age_idno            AS 'com.weshare.udf.GetAgeOnIdNo'                   USING JAR '${hdfs_path}';
 CREATE FUNCTION sex_idno            AS 'com.weshare.udf.GetSexOnIdNo'                   USING JAR '${hdfs_path}';
-CREATE FUNCTION is_empty            AS 'com.weshare.udf.IsEmpty'                        USING JAR '${hdfs_path}';
--- CREATE FUNCTION is_empty            AS 'com.weshare.udf.IsEmptyGenericUDF'              USING JAR '${hdfs_path}';
+-- CREATE FUNCTION is_empty            AS 'com.weshare.udf.IsEmpty'                        USING JAR '${hdfs_path}';
+CREATE FUNCTION is_empty            AS 'com.weshare.udf.IsEmptyGenericUDF'              USING JAR '${hdfs_path}';
 CREATE FUNCTION sha256              AS 'com.weshare.udf.Sha256Salt'                     USING JAR '${hdfs_path}';
 CREATE FUNCTION date_max            AS 'com.weshare.udf.GetDateMax'                     USING JAR '${hdfs_path}';
 CREATE FUNCTION date_min            AS 'com.weshare.udf.GetDateMin'                     USING JAR '${hdfs_path}';
@@ -2030,8 +2030,8 @@ reload function; -- 多个 HiveServer 之间，需要同步元数据信息
 SHOW FUNCTIONS LIKE 'default*';
 DESC FUNCTION EXTENDED is_empty;
 
-SHOW FUNCTIONS LIKE '*type*';
-DESC FUNCTION EXTENDED json_array_to_array;
+SHOW FUNCTIONS LIKE '*key*';
+DESC FUNCTION EXTENDED nvl;
 ```
 
 

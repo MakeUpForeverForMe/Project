@@ -17,7 +17,7 @@ set hive.vectorized.execution.reduce.groupby.enabled=false;
 
 
 
--- insert overwrite table ods${db_suffix}.loan_info partition(biz_date,product_id)
+insert overwrite table ods${db_suffix}.loan_info_inter partition(biz_date,product_id)
 select
   today.due_bill_no                                   as due_bill_no,
   today.apply_no                                      as apply_no,
@@ -62,8 +62,12 @@ select
   today.overdue_days                                  as overdue_days,
   date_add(today.overdue_date,today.overdue_days - 1) as overdue_date,
   today.collect_out_date                              as collect_out_date,
+  0                                                   as dpd_days_max,
   today.overdue_term                                  as overdue_term,
+  0                                                   as overdue_terms_count,
   today.overdue_terms_max                             as overdue_terms_max,
+  0                                                   as overdue_principal_accumulate,
+  0                                                   as overdue_principal_max,
   today.create_time                                   as create_time,
   today.update_time                                   as update_time,
   today.d_date                                        as biz_date,
@@ -455,11 +459,11 @@ left join (
     ecas_loan.apply_no,
     ecas_loan.loan_active_date,
     ecas_loan.loan_init_term,
-    case
-    when ecas_loan.paid_out_date = ecas_loan.loan_active_date then 1
-    when ecas_loan.paid_out_date is null                      then repay_schedule.loan_term2
-    when '${ST9}' <= ecas_loan.paid_out_date                  then repay_schedule.loan_term2
-    else null end as loan_term,
+    case  when ecas_loan.paid_out_date = ecas_loan.loan_active_date then 1
+          when ecas_loan.paid_out_date is null                      then repay_schedule.loan_term2
+          when '${ST9}' <= ecas_loan.paid_out_date                  then repay_schedule.loan_term2
+          else null
+    end as loan_term,
     if(
       (ecas_loan.paid_out_date = ecas_loan.loan_active_date and ecas_loan.loan_term = 1) or ecas_loan.paid_out_date is null or '${ST9}' <= ecas_loan.paid_out_date,
       repay_schedule.should_repay_date,
@@ -715,222 +719,5 @@ and is_empty(today.overdue_mult_amt       ,'a') = is_empty(yesterday.overdue_mul
 and is_empty(today.overdue_date           ,'a') = is_empty(yesterday.overdue_date           ,'a')
 and is_empty(today.overdue_days           ,'a') = is_empty(yesterday.overdue_days           ,'a')
 where yesterday.due_bill_no is null
-limit 10
+-- limit 10
 ;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
--- insert overwrite table ods_new_s${db_suffix}.loan_info_tmp partition(is_settled = 'no',product_id)
--- select
---   `(is_settled)?+.+`
--- from ods_new_s${db_suffix}.loan_info
--- where 1 > 0
---   and is_settled = 'no'
---   and product_id in (${product_id})
---   and s_d_date < '${ST9}'
---   -- and to_date(effective_time) <= date_add('${ST9}',1)
--- -- distribute by product_id,loan_active_date
--- ;
-
-
--- set hive.auto.convert.join=false;
-
--- with ods_new_s_loan as (
-
--- )
--- insert overwrite table ods_new_s${db_suffix}.loan_info partition(is_settled = 'no',product_id)
--- select
---   due_bill_no,
---   apply_no,
---   loan_active_date,
---   loan_init_principal,
---   loan_init_term,
---   max(loan_term)         over(partition by due_bill_no order by s_d_date) as loan_term,
---   max(should_repay_date) over(partition by due_bill_no order by s_d_date) as should_repay_date,
---   loan_term_repaid,
---   loan_term_remain,
---   loan_init_interest,
---   loan_init_term_fee,
---   loan_init_svc_fee,
---   loan_status,
---   loan_status_cn,
---   loan_out_reason,
---   paid_out_type,
---   paid_out_type_cn,
---   paid_out_date,
---   terminal_date,
---   paid_amount,
---   paid_principal,
---   paid_interest,
---   paid_penalty,
---   paid_svc_fee,
---   paid_term_fee,
---   paid_mult,
---   remain_amount,
---   remain_principal,
---   remain_interest,
---   remain_svc_fee,
---   remain_term_fee,
---   overdue_principal,
---   overdue_interest,
---   overdue_svc_fee,
---   overdue_term_fee,
---   overdue_penalty,
---   overdue_mult_amt,
---   min(overdue_date_start) over(partition by due_bill_no order by s_d_date) as overdue_date_first,
---   overdue_date_start,
---   overdue_days,
---   overdue_date,
---   overdue_date_start as dpd_begin_date,
---   overdue_days as dpd_days,
---   0 as dpd_days_count,
---   max(overdue_days) over(partition by due_bill_no order by s_d_date) as dpd_days_max,
---   collect_out_date as collect_out_date,
---   overdue_term,
---   count(distinct if(overdue_days > 0,overdue_term,null)) over(partition by due_bill_no order by s_d_date)    as overdue_terms_count,
---   max(overdue_terms_max)                                 over(partition by due_bill_no order by s_d_date)    as overdue_terms_max,
---   nvl(sum(distinct overdue_principal)                    over(partition by due_bill_no order by s_d_date),0) as overdue_principal_accumulate,
---   nvl(max(overdue_principal)                             over(partition by due_bill_no order by s_d_date),0) as overdue_principal_max,
---   s_d_date,
---   e_d_date,
---   effective_time,
---   expire_time,
---   product_id
--- from (
---   select
---     loan_info.due_bill_no,
---     loan_info.apply_no,
---     loan_info.loan_active_date,
---     loan_info.loan_init_principal,
---     loan_info.loan_init_term,
---     loan_info.loan_term,
---     loan_info.should_repay_date,
---     loan_info.loan_term_repaid,
---     loan_info.loan_term_remain,
---     loan_info.loan_status,
---     loan_info.loan_status_cn,
---     loan_info.loan_out_reason,
---     loan_info.paid_out_type,
---     loan_info.paid_out_type_cn,
---     loan_info.paid_out_date,
---     loan_info.terminal_date,
---     loan_info.loan_init_interest,
---     loan_info.loan_init_term_fee,
---     loan_info.loan_init_svc_fee,
---     loan_info.paid_amount,
---     loan_info.paid_principal,
---     loan_info.paid_interest,
---     loan_info.paid_penalty,
---     loan_info.paid_svc_fee,
---     loan_info.paid_term_fee,
---     loan_info.paid_mult,
---     loan_info.remain_amount,
---     loan_info.remain_principal,
---     loan_info.remain_interest,
---     loan_info.remain_svc_fee,
---     loan_info.remain_term_fee,
---     loan_info.overdue_principal,
---     loan_info.overdue_interest,
---     loan_info.overdue_svc_fee,
---     loan_info.overdue_term_fee,
---     loan_info.overdue_penalty,
---     loan_info.overdue_mult_amt,
---     loan_info.overdue_date_start,
---     loan_info.overdue_days,
---     loan_info.overdue_date,
---     loan_info.collect_out_date,
---     loan_info.overdue_term,
---     loan_info.overdue_terms_max,
---     loan_info.s_d_date,
---     if(loan_info.e_d_date > '${ST9}' and ods_new_s_loan.due_bill_no is not null,ods_new_s_loan.d_date,if(loan_info.e_d_date = '${ST9}' and ods_new_s_loan.due_bill_no is null,'3000-12-31',loan_info.e_d_date)) as e_d_date,
---     loan_info.effective_time,
---     if(to_date(loan_info.expire_time) > '${ST9}' and ods_new_s_loan.due_bill_no is not null,ods_new_s_loan.update_time,loan_info.expire_time) as expire_time,
---     loan_info.product_id
---   from (select * from ods_new_s${db_suffix}.loan_info_tmp where 1 > 0 and product_id in (${product_id})) as loan_info
---   left join ods_new_s_loan
---   on loan_info.due_bill_no = ods_new_s_loan.due_bill_no
---   union all
---   select
---     ods_new_s_loan.due_bill_no,
---     ods_new_s_loan.apply_no,
---     ods_new_s_loan.loan_active_date,
---     ods_new_s_loan.loan_init_principal,
---     ods_new_s_loan.loan_init_term,
---     ods_new_s_loan.loan_term,
---     ods_new_s_loan.should_repay_date,
---     ods_new_s_loan.loan_term_repaid,
---     ods_new_s_loan.loan_term_remain,
---     ods_new_s_loan.loan_status,
---     ods_new_s_loan.loan_status_cn,
---     ods_new_s_loan.loan_out_reason,
---     ods_new_s_loan.paid_out_type,
---     ods_new_s_loan.paid_out_type_cn,
---     ods_new_s_loan.paid_out_date,
---     ods_new_s_loan.terminal_date,
---     ods_new_s_loan.loan_init_interest,
---     ods_new_s_loan.loan_init_term_fee,
---     ods_new_s_loan.loan_init_svc_fee,
---     ods_new_s_loan.paid_amount,
---     ods_new_s_loan.paid_principal,
---     ods_new_s_loan.paid_interest,
---     ods_new_s_loan.paid_penalty,
---     ods_new_s_loan.paid_svc_fee,
---     ods_new_s_loan.paid_term_fee,
---     ods_new_s_loan.paid_mult,
---     ods_new_s_loan.remain_amount,
---     ods_new_s_loan.remain_principal,
---     ods_new_s_loan.remain_interest,
---     ods_new_s_loan.remain_svc_fee,
---     ods_new_s_loan.remain_term_fee,
---     ods_new_s_loan.overdue_principal,
---     ods_new_s_loan.overdue_interest,
---     ods_new_s_loan.overdue_svc_fee,
---     ods_new_s_loan.overdue_term_fee,
---     ods_new_s_loan.overdue_penalty,
---     ods_new_s_loan.overdue_mult_amt,
---     ods_new_s_loan.overdue_date_start,
---     ods_new_s_loan.overdue_days,
---     ods_new_s_loan.overdue_date,
---     ods_new_s_loan.collect_out_date,
---     ods_new_s_loan.overdue_term,
---     ods_new_s_loan.overdue_terms_max,
---     ods_new_s_loan.d_date as s_d_date,
---     ods_new_s_loan.e_d_date,
---     ods_new_s_loan.update_time as effective_time,
---     ods_new_s_loan.expire_time,
---     ods_new_s_loan.product_id
---   from ods_new_s_loan
--- ) as tmp
--- -- where 1 > 0
--- --   and due_bill_no = '1120061421344483293354'
--- -- limit 1
--- ;

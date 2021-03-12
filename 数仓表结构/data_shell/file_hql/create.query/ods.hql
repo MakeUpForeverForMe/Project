@@ -542,7 +542,9 @@ CREATE TABLE IF NOT EXISTS `ods${db_suffix}.repay_schedule_inter`(
   `reduce_svc_fee`                                    decimal(20,5)  COMMENT '减免服务费',
   `reduce_penalty`                                    decimal(20,5)  COMMENT '减免罚息',
   `reduce_mult_amt`                                   decimal(20,5)  COMMENT '减免滞纳金',
-  `effective_date`                                    string         COMMENT '生效日期'
+  `effective_date`                                    string         COMMENT '生效日期',
+  `create_time`                                       string         COMMENT '创建时间',
+  `update_time`                                       string         COMMENT '更新时间'
 ) COMMENT '还款计划增量表'
 PARTITIONED BY (`biz_date` string COMMENT '增量日期',`product_id` string COMMENT '产品编号')
 STORED AS PARQUET;

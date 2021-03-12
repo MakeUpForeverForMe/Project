@@ -13,7 +13,7 @@ set hive.vectorized.execution.reduce.groupby.enabled=false;
 
 
 
--- insert overwrite table ods.loan_info_inter partition(biz_date,product_id)
+insert overwrite table ods.loan_info_inter partition(biz_date,product_id)
 select
   today.due_bill_no                                   as due_bill_no,
   today.apply_no                                      as apply_no,
@@ -76,7 +76,7 @@ from (
     if(asset.curr_period is null,1,asset.curr_period)                                             as account_age,
     asset.loan_total_amount                                                                       as loan_init_principal,
     asset.periods                                                                                 as loan_init_term,
-  	if(asset.assets_status = '已结清',asset.periods,asset.curr_period)                            as loan_term,
+    if(asset.assets_status = '已结清',asset.periods,asset.curr_period)                            as loan_term,
     asset.next_pay_date                                                                           as should_repay_date,
     asset.repayedPeriod                                                                           as loan_term_repaid,
     asset.remain_period                                                                           as loan_term_remain,
@@ -192,7 +192,7 @@ left join (
     if(asset.curr_period is null,1,asset.curr_period)                                                     as account_age,
     asset.loan_total_amount                                                                               as loan_init_principal,
     asset.periods                                                                                         as loan_init_term,
-  	if(asset.assets_status = '已结清',asset.periods,asset.curr_period)                                    as loan_term,
+    if(asset.assets_status = '已结清',asset.periods,asset.curr_period)                                    as loan_term,
     asset.next_pay_date                                                                                   as should_repay_date,
     asset.repayedPeriod                                                                                   as loan_term_repaid,
     asset.remain_period                                                                                   as loan_term_remain,
@@ -328,5 +328,5 @@ and is_empty(today.overdue_principal_accumulate,'a') = is_empty(yesterday.overdu
 and is_empty(today.overdue_principal_max       ,'a') = is_empty(yesterday.overdue_principal_max       ,'a')
 and is_empty(today.dpd_days_max                ,'a') = is_empty(yesterday.dpd_days_max                ,'a')
 where yesterday.due_bill_no is null
-limit 10
+-- limit 10
 ;
