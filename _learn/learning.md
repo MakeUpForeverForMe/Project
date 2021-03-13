@@ -2037,11 +2037,7 @@ DESC FUNCTION EXTENDED nvl;
 
 
 ## 4.3 Impala
-### 4.3.1 Impala 学习
-```sql
-```
-
-### 4.3.2 Impala SQL 语句
+### 4.3.1 Impala SQL 语句
 ```sql
 -- 时间设置
 set use_local_tz_for_unix_timestamp_conversions=true;
