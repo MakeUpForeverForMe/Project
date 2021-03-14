@@ -75,7 +75,6 @@ ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
 
-
 -- DROP DATABASE IF EXISTS dim;
 CREATE DATABASE IF NOT EXISTS dim COMMENT '维度数据层' location 'cosn://bigdata-center-prod-1253824322/user/hadoop/warehouse/dim.db';
 

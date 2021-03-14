@@ -18,7 +18,7 @@ set hive.vectorized.execution.reduce.groupby.enabled=false;
 
 
 
--- insert overwrite table ods_new_s${db_suffix}.repay_schedule partition(is_settled = 'no',product_id)
+insert overwrite table ods${db_suffix}.repay_schedule_inter partition(biz_date,product_id)
 select
   repay_schedule.due_bill_no,
   ecas_loan.loan_active_date,
@@ -40,6 +40,7 @@ select
   repay_schedule.should_repay_penalty_acru,
   repay_schedule.schedule_status,
   repay_schedule.schedule_status_cn,
+  null as repay_status,
   repay_schedule.paid_out_date,
   repay_schedule.paid_out_type,
   repay_schedule.paid_out_type_cn,
@@ -57,9 +58,9 @@ select
   repay_schedule.reduce_svc_fee,
   repay_schedule.reduce_penalty,
   repay_schedule.reduce_mult_amt,
+  repay_schedule.d_date as effective_date,
   repay_schedule.create_time,
   repay_schedule.update_time,
-  repay_schedule.d_date as effective_date,
   repay_schedule.d_date,
   repay_schedule.product_id
 from (
@@ -476,5 +477,5 @@ left join (
 on  repay_schedule.product_id  = ecas_loan.product_id
 and repay_schedule.due_bill_no = ecas_loan.ecas_loan_due_bill_no
 where repay_schedule_tmp.due_bill_no is null
-limit 10
+-- limit 10
 ;

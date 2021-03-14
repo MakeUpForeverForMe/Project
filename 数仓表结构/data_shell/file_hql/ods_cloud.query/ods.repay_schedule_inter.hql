@@ -13,7 +13,7 @@ set hive.vectorized.execution.reduce.groupby.enabled=false;
 
 
 
-------------------------------------------------------- 执行一次的 Hql 截止 11 月 30 号 -------------------------------------------------------
+-- ------------------------------------------------------- 执行一次的 Hql 截止 11 月 30 号 -------------------------------------------------------
 -- insert overwrite table ods.repay_schedule_inter partition(biz_date,product_id)
 -- select
 --   abs_05.due_bill_no            as due_bill_no,
@@ -55,6 +55,8 @@ set hive.vectorized.execution.reduce.groupby.enabled=false;
 --   0                             as reduce_penalty,
 --   0                             as reduce_mult_amt,
 --   abs_05.effective_date         as effective_date,
+--   abs_05.create_time            as create_time,
+--   abs_05.update_time            as update_time,
 --   abs_05.effective_date         as biz_date,
 --   abs_05.project_id             as product_id
 -- from (
@@ -67,6 +69,8 @@ set hive.vectorized.execution.reduce.groupby.enabled=false;
 --     should_repay_interest  as should_repay_interest,
 --     should_repay_cost      as should_repay_term_fee,
 --     effective_date         as effective_date,
+--     create_time            as create_time,
+--     update_time            as update_time,
 --     project_id             as project_id
 --   from stage.abs_05_t_repaymentplan_history
 --   where 1 > 0
@@ -97,7 +101,7 @@ set hive.vectorized.execution.reduce.groupby.enabled=false;
 
 
 
-------------------------------------------------------- 执行一次的 Hql 执行 12 月 01 号 -------------------------------------------------------
+-- ------------------------------------------------------- 执行一次的 Hql 执行 12 月 01 号 -------------------------------------------------------
 -- insert overwrite table ods.repay_schedule_inter partition(biz_date,product_id)
 -- select
 --   asset_05.due_bill_no            as due_bill_no,
@@ -139,6 +143,8 @@ set hive.vectorized.execution.reduce.groupby.enabled=false;
 --   0                               as reduce_penalty,
 --   0                               as reduce_mult_amt,
 --   asset_05.effective_date         as effective_date,
+--   asset_05.create_time            as create_time,
+--   asset_05.update_time            as update_time,
 --   '${ST9}'                        as biz_date,
 --   asset_05.project_id             as product_id
 -- from (
@@ -151,7 +157,9 @@ set hive.vectorized.execution.reduce.groupby.enabled=false;
 --     is_empty(map_from_str(extra_info)['应还利息(元)'],repay_interest)  as should_repay_interest,
 --     is_empty(map_from_str(extra_info)['应还费用(元)'],repay_fee)       as should_repay_term_fee,
 --     is_empty(map_from_str(extra_info)['应还罚息(元)'],repay_penalty)   as should_repay_penalty,
---     is_empty(map_from_str(extra_info)['生效日期'],execute_date)        as effective_date
+--     is_empty(map_from_str(extra_info)['生效日期'],execute_date)        as effective_date,
+--     create_time                                                        as create_time,
+--     update_time                                                        as update_time
 --   from stage.asset_05_t_repayment_schedule
 --   where 1 > 0
 --     and '${ST9}' = '2020-12-01'
@@ -265,6 +273,8 @@ select
   0                                     as reduce_penalty,
   0                                     as reduce_mult_amt,
   asset_05_today.effective_date         as effective_date,
+  asset_05_today.create_time            as create_time,
+  asset_05_today.update_time            as update_time,
   '${ST9}'                              as biz_date,
   asset_05_today.project_id             as product_id
 from (
@@ -277,7 +287,9 @@ from (
     is_empty(map_from_str(extra_info)['应还利息(元)'],repay_interest)  as should_repay_interest,
     is_empty(map_from_str(extra_info)['应还费用(元)'],repay_fee)       as should_repay_term_fee,
     is_empty(map_from_str(extra_info)['应还罚息(元)'],repay_penalty)   as should_repay_penalty,
-    is_empty(map_from_str(extra_info)['生效日期'],execute_date)        as effective_date
+    is_empty(map_from_str(extra_info)['生效日期'],execute_date)        as effective_date,
+    create_time                                                        as create_time,
+    update_time                                                        as update_time
   from stage.asset_05_t_repayment_schedule
   where 1 > 0
     and '${ST9}' >= '2020-12-02'

@@ -20,31 +20,39 @@ set hive.vectorized.execution.reduce.groupby.enabled=false;
 
 
 -- 滴滴
-insert into table ods.customer_info partition(product_id = 'DIDI201908161538')
--- insert overwrite table ods.customer_info partition(product_id = 'DIDI201908161538')
+insert overwrite table ods.customer_info partition(product_id)
 select distinct
+  nvl(loan_result.loan_order_id,get_json_object(msg_log.original_msg,'$.applicationId')) as due_bill_no, -- 有放款为借据号，无则为授信申请号
   concat_ws('_',biz_conf.channel_id,sha256(get_json_object(msg_log.original_msg,'$.userInfo.ocrInfo.idNo'),'idNumber',1),sha256(get_json_object(msg_log.original_msg,'$.userInfo.ocrInfo.name'),'userName',1)) as cust_id,
   sha256(get_json_object(msg_log.original_msg,'$.userInfo.ocrInfo.idNo'),'idNumber',1)   as user_hash_no,
   null                                                                                   as outer_cust_id,
   '身份证'                                                                               as idcard_type,
   sha256(get_json_object(msg_log.original_msg,'$.userInfo.ocrInfo.idNo'),'idNumber',1)   as idcard_no,
   sha256(get_json_object(msg_log.original_msg,'$.userInfo.ocrInfo.name'),'userName',1)   as name,
-  sha256(get_json_object(msg_log.original_msg,'$.userInfo.telephone'),'phone',1)         as telephone,
-  sha256(get_json_object(msg_log.original_msg,'$.userInfo.phone'),'phone',1)             as phone,
- -- is_empty(
-  --  get_json_object(msg_log.original_msg,'$.userInfo.ocrInfo.gender'),
-  --  sex_idno(get_json_object(msg_log.original_msg,'$.userInfo.ocrInfo.idNo'))
-  --)                                                                                      as sex,
-  sex_idno(get_json_object(msg_log.original_msg,'$.userInfo.ocrInfo.idNo')) as sex,
-  --is_empty(
-   -- get_json_object(msg_log.original_msg,'$.userInfo.ocrInfo.birthday'),
-   -- datefmt(substring(get_json_object(msg_log.original_msg,'$.userInfo.ocrInfo.idNo'),7,8),'yyyyMMdd','yyyy-MM-dd')
-  --)                                                                                      as birthday,
-  datefmt(substring(get_json_object(msg_log.original_msg,'$.userInfo.ocrInfo.idNo'),7,8),'yyyyMMdd','yyyy-MM-dd') as birthday,
+  sha256(get_json_object(msg_log.original_msg,'$.userInfo.telephone'),'phone',1)         as mobie,
+  sha256(get_json_object(msg_log.original_msg,'$.userInfo.phone'),'phone',1)             as card_phone,
+  is_empty(
+    sex_idno(get_json_object(msg_log.original_msg,'$.userInfo.ocrInfo.idNo')),
+    get_json_object(msg_log.original_msg,'$.userInfo.ocrInfo.gender')
+  )                                                                                      as sex,
+  is_empty(
+    datefmt(substring(get_json_object(msg_log.original_msg,'$.userInfo.ocrInfo.idNo'),7,8),'yyyyMMdd','yyyy-MM-dd'),
+    get_json_object(msg_log.original_msg,'$.userInfo.ocrInfo.birthday')
+  )                                                                                      as birthday,
+  age_birth(
+    is_empty(
+      datefmt(substring(get_json_object(msg_log.original_msg,'$.userInfo.ocrInfo.idNo'),7,8),'yyyyMMdd','yyyy-MM-dd'), -- 取生日
+      get_json_object(msg_log.original_msg,'$.userInfo.ocrInfo.birthday') -- 取生日
+    ), -- 取生日
+    is_empty(
+      to_date(loan_result.issuetime), -- 取放款日
+      to_date(get_json_object(msg_log.original_msg,'$.creditInfo.startDate')) -- 取授信申请日
+    )
+  )                                                                                      as age,
   null                                                                                   as marriage_status,
   null                                                                                   as education,
   null                                                                                   as education_ws,
-  get_json_object(msg_log.original_msg,'$.userInfo.ocrInfo.address')                     as idcard_address,
+  concat(dim_idno.idno_province_cn,dim_idno.idno_city_cn,dim_idno.idno_county_cn)        as idcard_address,
   dim_idno.idno_area_cn                                                                  as idcard_area,
   dim_idno.idno_province_cn                                                              as idcard_province,
   dim_idno.idno_city_cn                                                                  as idcard_city,
@@ -60,21 +68,41 @@ select distinct
   null                                                                                   as job_year,
   null                                                                                   as income_month,
   null                                                                                   as income_year,
-  '个人'                                                                                 as cutomer_type
+  '个人'                                                                                 as cutomer_type,
+  null                                                                                   as cust_rating,
+  msg_log.product_code                                                                   as product_id
 from (
   select
     'DIDI201908161538' as product_code,
     regexp_replace(regexp_replace(regexp_replace(original_msg,'\\\"\\\{','\\\{'),'\\\}\\\"','\\\}'),'\\\\\"','\\\"') as original_msg
-  from ods.ecas_msg_log
+  from stage.ecas_msg_log
   where msg_type = 'CREDIT_APPLY'
     and original_msg is not null
     and datefmt(update_time,'ms','yyyy-MM-dd') = '${ST9}'
 ) as msg_log
 left join (
   select
+    get_json_object(original_msg,'$.creditId')    as creditId,
+    get_json_object(original_msg,'$.loanOrderId') as loan_order_id,
+    get_json_object(original_msg,'$.issueTime')   as issuetime
+  from stage.ecas_msg_log
+  where 1 > 0
+    and msg_type = 'LOAN_RESULT'
+    and original_msg is not null
+) as loan_result
+on get_json_object(msg_log.original_msg,'$.applicationId') = loan_result.creditId
+left join (
+  select distinct
     product_id as dim_product_id,
     channel_id
-  from dim_new.biz_conf
+  from (
+    select
+      max(if(col_name = 'product_id',  col_val,null)) as product_id,
+      max(if(col_name = 'channel_id',  col_val,null)) as channel_id
+    from dim.data_conf
+    where col_type = 'ac'
+    group by col_id
+  ) as tmp
 ) as biz_conf
 on msg_log.product_code = biz_conf.dim_product_id
 left join (
@@ -84,9 +112,11 @@ left join (
     idno_province_cn,
     idno_city_cn,
     idno_county_cn
-  from dim_new.dim_idno
+  from dim.dim_idno
 ) as dim_idno
 on substring(get_json_object(msg_log.original_msg,'$.userInfo.ocrInfo.idNo'),1,6) = dim_idno.idno_addr
+union all
+select * from ods.customer_info where product_id = 'DIDI201908161538'
 -- limit 1
 ;
 
@@ -97,95 +127,139 @@ on substring(get_json_object(msg_log.original_msg,'$.userInfo.ocrInfo.idNo'),1,6
 
 
 
-set hive.exec.dynamic.partition=true;
-set hive.exec.dynamic.partition.mode=nonstrict;
-
 -- 汇通
-insert into table ods.customer_info partition(product_id)
--- insert overwrite table ods.customer_info partition(product_id)
-select
---distinct
-  concat_ws('_',biz_conf.channel_id,sha256(get_json_object(resp_log.standard_req_msg,'$.borrower.id_no'),'idNumber',1),sha256(get_json_object(resp_log.standard_req_msg,'$.borrower.name'),'userName',1)) as cust_id,
-  sha256(get_json_object(resp_log.standard_req_msg,'$.borrower.id_no'),'idNumber',1)                  as user_hash_no,
-  get_json_object(resp_log.standard_req_msg,'$.borrower.open_id')                                     as outer_cust_id,
-  case get_json_object(resp_log.standard_req_msg,'$.borrower.id_type')
-  when 'I' then '身份证'
-  when 'T' then '台胞证'
-  when 'S' then '军官证/士兵证'
-  when 'P' then '护照'
-  when 'L' then '营业执照'
-  when 'O' then '其他有效证件'
-  when 'R' then '户口簿'
-  when 'H' then '港澳居民来往内地通行证'
-  when 'W' then '台湾同胞来往内地通行证'
-  when 'F' then '外国人居留证'
-  when 'C' then '警官证'
-  when 'B' then '外国护照'
-  else get_json_object(resp_log.standard_req_msg,'$.borrower.id_type')
-  end                                                                                                 as idcard_type,
-  sha256(get_json_object(resp_log.standard_req_msg,'$.borrower.id_no'),'idNumber',1)                  as idcard_no,
-  sha256(get_json_object(resp_log.standard_req_msg,'$.borrower.name'),'userName',1)                   as name,
-  sha256(get_json_object(resp_log.standard_req_msg,'$.borrower.mobile_phone'),'phone',1)              as mobie,
-  sha256(get_json_object(resp_log.standard_req_msg,'$.loan_account.mobile_phone'),'phone',1)          as card_phone,
-  sex_idno(get_json_object(resp_log.standard_req_msg,'$.borrower.id_no'))                             as sex,
-  datefmt(substring(get_json_object(resp_log.standard_req_msg,'$.borrower.id_no'),7,8),'yyyyMMdd','yyyy-MM-dd') as birthday,
-  case get_json_object(resp_log.standard_req_msg,'$.borrower.marital_status')
-  when 'C' then '已婚'
-  when 'S' then '未婚'
-  when 'O' then '其他'
-  when 'D' then '离异'
-  when 'P' then '丧偶'
-  else get_json_object(resp_log.standard_req_msg,'$.borrower.marital_status')
-  end                                                                                                 as marital_status,
-  case get_json_object(resp_log.standard_req_msg,'$.borrower.education')
-  when 'A' then '博士及以上'
-  when 'B' then '硕士'
-  when 'C' then '大学本科'
-  when 'D' then '大学专科/专科学校'
-  when 'E' then '高中/中专/技校'
-  when 'F' then '初中'
-  when 'G' then '初中以下'
-  else get_json_object(resp_log.standard_req_msg,'$.borrower.education')
-  end                                                                                                 as education,
+insert overwrite table ods.customer_info partition(product_id)
+select distinct
+  resp_log.due_bill_no                                                            as apply_no,
+  concat_ws('_',biz_conf.channel_id,resp_log.id_no,resp_log.name)                 as cust_id,
+  resp_log.id_no                                                                  as user_hash_no,
+  resp_log.outer_cust_id                                                          as outer_cust_id,
+  case resp_log.id_type
+    when 'I' then '身份证'
+    when 'T' then '台胞证'
+    when 'S' then '军官证/士兵证'
+    when 'P' then '护照'
+    when 'L' then '营业执照'
+    when 'O' then '其他有效证件'
+    when 'R' then '户口簿'
+    when 'H' then '港澳居民来往内地通行证'
+    when 'W' then '台湾同胞来往内地通行证'
+    when 'F' then '外国人居留证'
+    when 'C' then '警官证'
+    when 'B' then '外国护照'
+    else resp_log.id_type
+  end                                                                             as idcard_type,
+  resp_log.id_no                                                                  as idcard_no,
+  resp_log.name                                                                   as name,
+  resp_log.mobie                                                                  as mobie,
+  resp_log.card_phone                                                             as card_phone,
+  resp_log.sex                                                                    as sex,
+  resp_log.birthday                                                               as birthday,
+  age_birth(
+    resp_log.birthday, -- 取生日
+    is_empty(
+      to_date(nms_loan.loan_date), -- 取放款时间
+      nms_loan.deal_date, -- 取放款的执行时间
+      resp_log.deal_date  -- 取进件的执行时间
+    )
+  )                                                                               as age,
+  case resp_log.marital_status
+    when 'C' then '已婚'
+    when 'S' then '未婚'
+    when 'O' then '其他'
+    when 'D' then '离异'
+    when 'P' then '丧偶'
+    else resp_log.marital_status
+  end                                                                             as marital_status,
+  case resp_log.education
+    when 'A' then '博士及以上'
+    when 'B' then '硕士'
+    when 'C' then '大学本科'
+    when 'D' then '大学专科/专科学校'
+    when 'E' then '高中/中专/技校'
+    when 'F' then '初中'
+    when 'G' then '初中以下'
+    else resp_log.education
+  end                                                                             as education,
   case
-  when get_json_object(resp_log.standard_req_msg,'$.borrower.education') in ('A','B') then '硕士及以上'
-  when get_json_object(resp_log.standard_req_msg,'$.borrower.education') = 'C' then '大学本科'
-  when get_json_object(resp_log.standard_req_msg,'$.borrower.education') in ('D','E','F','G') then '大专及以下'
-  else '未知'
-  end                                                                                                 as education_ws,
-  concat(dim_idno.idno_province_cn,dim_idno.idno_city_cn,dim_idno.idno_county_cn)                     as idcard_address,
-  dim_idno.idno_area_cn                                                                               as idcard_area,
-  dim_idno.idno_province_cn                                                                           as idcard_province,
-  dim_idno.idno_city_cn                                                                               as idcard_city,
-  dim_idno.idno_county_cn                                                                             as idcard_county,
-  null                                                                                                as idcard_township,
-  sha256(get_json_object(resp_log.standard_req_msg,'$.borrower.address'),'address',1)                 as resident_address,
-  dim_idno_province.idno_area_cn                                                                      as resident_area,
-  get_json_object(resp_log.standard_req_msg,'$.borrower.province')                                    as resident_province,
-  get_json_object(resp_log.standard_req_msg,'$.borrower.city')                                        as resident_city,
-  get_json_object(resp_log.standard_req_msg,'$.borrower.area')                                        as resident_county,
-  null                                                                                                as resident_township,
-  null                                                                                                as job_type,
-  null                                                                                                as job_year,
-  null                                                                                                as income_month,
-  null                                                                                                as income_year,
-  '个人'                                                                                              as cutomer_type,
-  get_json_object(resp_log.standard_req_msg,'$.product.product_no')                                   as product_id
+    when resp_log.education in ('A','B') then '硕士及以上'
+    when resp_log.education = 'C' then '大学本科'
+    when resp_log.education in ('D','E','F','G') then '大专及以下'
+    else '未知'
+  end                                                                             as education_ws,
+  concat(dim_idno.idno_province_cn,dim_idno.idno_city_cn,dim_idno.idno_county_cn) as idcard_address,
+  dim_idno.idno_area_cn                                                           as idcard_area,
+  dim_idno.idno_province_cn                                                       as idcard_province,
+  dim_idno.idno_city_cn                                                           as idcard_city,
+  dim_idno.idno_county_cn                                                         as idcard_county,
+  null                                                                            as idcard_township,
+  resp_log.resident_address                                                       as resident_address,
+  dim_idno_province.idno_area_cn                                                  as resident_area,
+  resp_log.resident_province                                                      as resident_province,
+  resp_log.resident_city                                                          as resident_city,
+  resp_log.resident_county                                                        as resident_county,
+  null                                                                            as resident_township,
+  null                                                                            as job_type,
+  null                                                                            as job_year,
+  null                                                                            as income_month,
+  null                                                                            as income_year,
+  '个人'                                                                          as cutomer_type,
+  null                                                                            as cust_rating,
+  resp_log.product_id                                                             as product_id
 from (
   select
-    standard_req_msg
-  from ods.nms_interface_resp_log
+    deal_date                                                                                            as deal_date,
+    get_json_object(standard_req_msg,'$.apply_no')                                                       as due_bill_no,
+    get_json_object(standard_req_msg,'$.borrower.id_type')                                               as id_type,
+    sha256(get_json_object(standard_req_msg,'$.borrower.id_no'),'idNumber',1)                            as id_no,
+    sha256(get_json_object(standard_req_msg,'$.borrower.name'),'userName',1)                             as name,
+    get_json_object(standard_req_msg,'$.borrower.open_id')                                               as outer_cust_id,
+    sha256(get_json_object(standard_req_msg,'$.borrower.mobile_phone'),'phone',1)                        as mobie,
+    sha256(get_json_object(standard_req_msg,'$.loan_account.mobile_phone'),'phone',1)                    as card_phone,
+    sex_idno(get_json_object(standard_req_msg,'$.borrower.id_no'))                                       as sex,
+    datefmt(substring(get_json_object(standard_req_msg,'$.borrower.id_no'),7,8),'yyyyMMdd','yyyy-MM-dd') as birthday,
+    get_json_object(standard_req_msg,'$.borrower.marital_status')                                        as marital_status,
+    get_json_object(standard_req_msg,'$.borrower.education')                                             as education,
+    sha256(get_json_object(standard_req_msg,'$.borrower.address'),'address',1)                           as resident_address,
+    get_json_object(standard_req_msg,'$.borrower.province')                                              as resident_province,
+    get_json_object(standard_req_msg,'$.borrower.city')                                                  as resident_city,
+    get_json_object(standard_req_msg,'$.borrower.area')                                                  as resident_county,
+    substring(get_json_object(standard_req_msg,'$.borrower.id_no'),1,6)                                  as idcard_area,
+    get_json_object(standard_req_msg,'$.product.product_no')                                             as product_id
+  from stage.nms_interface_resp_log
   where sta_service_method_name = 'setupCustCredit'
     and standard_req_msg is not null
     and datefmt(update_time,'ms','yyyy-MM-dd') = '${ST9}'
 ) as resp_log
 left join (
   select
+    deal_date                                                                           as deal_date,
+    nvl(due_bills['APPLY_NO'],  due_bills['apply_no'])                                  as apply_no,
+    datefmt(nvl(due_bills['LOAN_DATE'],due_bills['loan_date']),'yyyyMMdd','yyyy-MM-dd') as loan_date,
+    nvl(due_bills['product_no'],due_bills['PRODUCT_NO'])                                as product_id
+  from stage.nms_interface_resp_log
+  lateral view explode(json_array_to_array(nvl(get_json_object(standard_req_msg,'$.DUE_BILLS'),get_json_object(standard_req_msg,'$.due_bills')))) bills as due_bills
+  where 1> 0
+    and sta_service_method_name = 'loanApply'
+    and standard_req_msg is not null
+    and nvl(due_bills['APPLY_NO'],due_bills['apply_no']) != '7634562346454355'
+) as nms_loan
+on  resp_log.product_id  = nms_loan.product_id
+and resp_log.due_bill_no = nms_loan.apply_no
+left join (
+  select distinct
     product_id as dim_product_id,
     channel_id
-  from dim_new.biz_conf
+  from (
+    select
+      max(if(col_name = 'product_id',  col_val,null)) as product_id,
+      max(if(col_name = 'channel_id',  col_val,null)) as channel_id
+    from dim.data_conf
+    where col_type = 'ac'
+    group by col_id
+  ) as tmp
 ) as biz_conf
-on get_json_object(resp_log.standard_req_msg,'$.product.product_no') = biz_conf.dim_product_id
+on resp_log.product_id = biz_conf.dim_product_id
 left join (
   select distinct
     idno_addr,
@@ -193,16 +267,25 @@ left join (
     idno_province_cn,
     idno_city_cn,
     idno_county_cn
-  from dim_new.dim_idno
+  from dim.dim_idno
 ) as dim_idno
-on substring(get_json_object(resp_log.standard_req_msg,'$.borrower.id_no'),1,6) = dim_idno.idno_addr
+on resp_log.idcard_area = dim_idno.idno_addr
 left join (
   select distinct
     idno_area_cn,
     idno_province_cn
-  from dim_new.dim_idno
+  from dim.dim_idno
 ) as dim_idno_province
-on get_json_object(resp_log.standard_req_msg,'$.borrower.province') = dim_idno_province.idno_province_cn
+on resp_log.resident_province = dim_idno_province.idno_province_cn
+union all
+select customer_info.* from ods.customer_info
+join (
+  select distinct get_json_object(standard_req_msg,'$.product.product_no') as product_id
+  from stage.nms_interface_resp_log
+  where sta_service_method_name = 'setupCustCredit'
+    and standard_req_msg is not null
+) as product_id_tbl
+on customer_info.product_id = product_id_tbl.product_id
 -- limit 1
 ;
 
@@ -334,7 +417,7 @@ select
 from (
   select
     regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(original_msg,'\\\\\"\\\{','\\\{'),'\\\}\\\\\"','\\\}'),'\\\"\\\{','\\\{'),'\\\}\\\"','\\\}'),'\\\\','') as original_msg
-  from ods.ecas_msg_log
+  from stage.ecas_msg_log
   where msg_type = 'WIND_CONTROL_CREDIT'
     and original_msg is not null
     and deal_date = '${ST9}'
@@ -353,7 +436,7 @@ left join (
     idno_province_cn,
     idno_city_cn,
     idno_county_cn
-  from dim_new.dim_idno
+  from dim.dim_idno
 ) as dim_idno
 on substring(get_json_object(msg_log.original_msg,'$.reqContent.jsonReq.content.reqData.idNo'),1,6) = dim_idno.idno_addr
 -- limit 1
@@ -417,95 +500,4 @@ select distinct
   null                                                                                                              as idcard_township,
   sha256(get_json_object(msg_log.original_msg,'$.data.borrower.homeAddress'),'address',1)                           as resident_address,
   dim_idno_province.idno_area_cn                                                                                    as resident_area,
-  get_json_object(msg_log.original_msg,'$.data.borrower.homeProvince')                                              as resident_province,
-  get_json_object(msg_log.original_msg,'$.data.borrower.homeCity')                                                  as resident_city,
-  get_json_object(msg_log.original_msg,'$.data.borrower.homeArea')                                                  as resident_county,
-  null                                                                                                              as resident_township,
-  case get_json_object(msg_log.original_msg,'$.data.borrower.industry')
-  when 'A' then '农、林、牧、渔业'
-  when 'B' then '采掘业'
-  when 'C' then '制造业'
-  when 'D' then '电力、燃气及水的生产和供应业'
-  when 'E' then '建筑业'
-  when 'F' then '交通运输、仓储和邮政业'
-  when 'G' then '信息传输、计算机服务和软件业'
-  when 'H' then '批发和零售业'
-  when 'I' then '住宿和餐饮业'
-  when 'J' then '金融业'
-  when 'K' then '房地产业'
-  when 'L' then '租赁和商务服务业'
-  when 'M' then '科学研究、技术服务业和地质勘察业'
-  when 'N' then '水利、环境和公共设施管理业'
-  when 'O' then '居民服务和其他服务业'
-  when 'P' then '教育'
-  when 'Q' then '卫生、社会保障和社会福利业'
-  when 'R' then '文化、体育和娱乐业'
-  when 'S' then '公共管理和社会组织'
-  when 'T' then '国际组织'
-  when 'Z' then '未知'
-  else is_empty(get_json_object(msg_log.original_msg,'$.data.borrower.industry'))
-  end                                                                                                               as job_type,
-  0                                                                                                                 as job_year,
-  0                                                                                                                 as income_month,
-  (is_empty(get_json_object(msg_log.original_msg,'$.data.borrower.annualIncomeMin'),0) +
-    is_empty(get_json_object(msg_log.original_msg,'$.data.borrower.annualIncomeMax'),0)) / 2                        as income_year,
-  '个人'                                                                                                            as cutomer_type,
-  get_json_object(msg_log.original_msg,'$.data.product.productNo')                                                  as product_id
-from (
-  select
-    -- regexp_replace(regexp_replace(regexp_replace(original_msg,'\"\{','\{'),'\}\"','\}'),'\\\\\"','\"') as original_msg
-    regexp_replace(regexp_replace(regexp_replace(original_msg,'\\\"\\\{','\\\{'),'\\\}\\\"','\\\}'),'\\\\\"','\\\"') as original_msg
-  from ods.ecas_msg_log
-  where 1 > 0
-    and msg_type = 'GZ_CREDIT_APPLY'
-    and original_msg is not null
-    and datefmt(update_time,'ms','yyyy-MM-dd') = '${ST9}'
-) as msg_log
-left join (
-  select distinct
-    product_id as dim_product_id,channel_id
-  from dim_new.biz_conf
-) as biz_conf
-on get_json_object(msg_log.original_msg,'$.data.product.productNo') = biz_conf.dim_product_id
-left join (
-  select distinct
-    idno_addr,
-    idno_area_cn,
-    idno_province_cn,
-    idno_city_cn,
-    idno_county_cn
-  from dim_new.dim_idno
-) as dim_idno
-on substring(get_json_object(msg_log.original_msg,'$.data.borrower.idNo'),1,6) = dim_idno.idno_addr
-left join (
-  select distinct
-    idno_area_cn,
-    idno_province_cn
-  from dim_new.dim_idno
-) as dim_idno_province
-on get_json_object(msg_log.original_msg,'$.data.borrower.homeProvince') = case substring(dim_idno_province.idno_province_cn,1,2) when '黑龙' then '东北地区' when '内蒙' then '华北地区' else substring(dim_idno_province.idno_province_cn,1,2) end
--- limit 1
-;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-DROP TABLE IF EXISTS `ods.customer_info_tmp`;
-CREATE TABLE IF NOT EXISTS `ods.customer_info_tmp` like ods.customer_info;
-
-
-insert overwrite table ods.customer_info_tmp partition(product_id)
-select distinct * from ods.customer_info where idcard_province is not null;
-
-insert overwrite table ods.customer_info partition(product_id)
-select * from ods.customer_info_tmp;
+  get_json_o

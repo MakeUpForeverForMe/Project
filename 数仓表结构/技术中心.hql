@@ -13860,23 +13860,71 @@ limit 10
 
 
 
+select
+  count(msg_log_id) as cnt,
+  msg_type
+from stage.his_ecas_msg_log
+where msg_type = 'WIND_CONTROL_CREDIT'
+group by msg_type;
+
+
+set hivevar:deal_date=if(deal_date > '2020-09-15',1,0);
+select
+  count(msg_log_id) as cnt,
+  ${deal_date} as deal_date
+from stage.his_ecas_msg_log
+where msg_type = 'WIND_CONTROL_CREDIT'
+group by ${deal_date};
 
 
 
+insert overwrite table stage.ecas_msg_log partition(is_his,msg_type)
+select
+  msg_log_id,
+  foreign_id,
+  original_msg,
+  target_msg,
+  deal_date,
+  org,
+  create_time,
+  update_time,
+  jpa_version,
+  'Y' as is_his,
+  msg_type
+from stage.his_ecas_msg_log
+where 1 > 0
+  and msg_type not in ('WIND_CONTROL_CREDIT','WIND_CONTROL_CREDIT_ASSET')
+  -- and deal_date > '2020-09-15'
+;
+
+insert overwrite table stage.ecas_msg_log partition(is_his,msg_type)
+select
+  msg_log_id,
+  foreign_id,
+  original_msg,
+  target_msg,
+  deal_date,
+  org,
+  create_time,
+  update_time,
+  jpa_version,
+  'Y' as is_his,
+  msg_type
+from stage.his_ecas_msg_log
+where 1 > 0
+  and msg_type = 'WIND_CONTROL_CREDIT'
+  and deal_date > '2020-09-15'
+;
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+insert into table stage.ecas_msg_log partition(is_his,msg_type)
+select
+  msg_log_id,
+  foreign_id,
+  original_msg,
+  target_msg,
+  deal_date,
+  org,
+  create_time,
+  update_time,
+  jpa_versio

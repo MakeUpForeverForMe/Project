@@ -1,10 +1,23 @@
-set spark.executor.memory=4g;
-set spark.executor.memoryOverhead=4g;
-set spark.maxRemoteBlockSizeFetchToMem=4G;
+-- 设置 Container 大小
+set hive.tez.container.size=4096;
+set tez.am.resource.memory.mb=4096;
+-- 合并小文件
+set hive.merge.tezfiles=true;
+set hive.merge.size.per.task=128000000; -- 128M
+set hive.merge.smallfiles.avgsize=128000000; -- 128M
+-- 设置动态分区
 set hive.exec.dynamic.partition=true;
 set hive.exec.dynamic.partition.mode=nonstrict;
-set hive.exec.max.dynamic.partitions.pernode=1000;
-set hive.exec.max.dynamic.partitions=3000;
+set hive.exec.max.dynamic.partitions=200000;
+set hive.exec.max.dynamic.partitions.pernode=50000;
+-- 禁用 Hive 矢量执行
+set hive.vectorized.execution.enabled=false;
+set hive.vectorized.execution.reduce.enabled=false;
+set hive.vectorized.execution.reduce.groupby.enabled=false;
+
+
+
+
 
 -- truncate table ods_new_s.loan_apply_tmp;
 -- 执行速度更快
@@ -16,12 +29,10 @@ CREATE TABLE IF NOT EXISTS `ods_new_s.loan_apply_tmp` like `ods_new_s.loan_apply
 -- 滴滴
 set hivevar:biz_date_dd=(
   select distinct
---    least(nvl(create_date,'9999-99-99'),nvl(issue_date,'9999-99-99')) as biz_date
-    least(deal_date,nvl(issue_date,'9999-99-99'))                       as biz_date
+    least(deal_date,nvl(issue_date,'9999-99-99')) as biz_date
   from (
     select
       get_json_object(original_msg,'$.loanOrderId') as loan_order_id,
-      datefmt(create_time,'ms','yyyy-MM-dd')        as create_date,
       deal_date                                     as deal_date
     from ods.ecas_msg_log
     where msg_type = 'LOAN_APPLY'
@@ -98,22 +109,21 @@ from (
     loan_apply.product_id                            as product_id
   from (
     select
-      'DIDI201908161538'                                                                               as product_id,
-      deal_date                                                                                        as deal_date,
-      datefmt(create_time,'ms','yyyy-MM-dd HH:mm:ss')                                                  as create_time,
-      datefmt(update_time,'ms','yyyy-MM-dd HH:mm:ss')                                                  as update_time,
-      sha256(get_json_object(original_msg,'$.idNo'),'idNumber',1)                                      as id_no,
-      sha256(get_json_object(original_msg,'$.name'),'userName',1)                                      as name,
-      get_json_object(original_msg,'$.creditId')                                                       as credit_id,
-      get_json_object(original_msg,'$.loanOrderId')                                                    as loan_order_id,
-      cast(get_json_object(original_msg,'$.loanAmount') / 100 as decimal(10,4))                        as loan_amount,
-      is_empty(get_json_object(original_msg,'$.totalInstallment'),0)                                   as loan_terms,
-      get_json_object(original_msg,'$.loanUsage')                                                      as loan_usage,
-      get_json_object(original_msg,'$.repayType')                                                      as repay_type,
-      cast(is_empty(get_json_object(original_msg,'$.loanRating'),0)/1000000*365 as decimal(10,8))  as loan_rating,
-      cast(is_empty(get_json_object(original_msg,'$.penaltyInterestRate'),0)/1000000*365 as decimal(10,8)) as penalty_interest_rate,
+      'DIDI201908161538'                                                                                               as product_id,
+      deal_date                                                                                                        as deal_date,
+      datefmt(create_time,'ms','yyyy-MM-dd HH:mm:ss')                                                                  as create_time,
+      datefmt(update_time,'ms','yyyy-MM-dd HH:mm:ss')                                                                  as update_time,
+      sha256(get_json_object(original_msg,'$.idNo'),'idNumber',1)                                                      as id_no,
+      sha256(get_json_object(original_msg,'$.name'),'userName',1)                                                      as name,
+      get_json_object(original_msg,'$.creditId')                                                                       as credit_id,
+      get_json_object(original_msg,'$.loanOrderId')                                                                    as loan_order_id,
+      cast(get_json_object(original_msg,'$.loanAmount') / 100 as decimal(10,4))                                        as loan_amount,
+      is_empty(get_json_object(original_msg,'$.totalInstallment'),0)                                                   as loan_terms,
+      get_json_object(original_msg,'$.loanUsage')                                                                      as loan_usage,
+      get_json_object(original_msg,'$.repayType')                                                                      as repay_type,
+      cast(is_empty(get_json_object(original_msg,'$.loanRating'),0) / 1000000 * 365 as decimal(10,8))                  as loan_rating,
+      cast(is_empty(get_json_object(original_msg,'$.penaltyInterestRate'),0) / 1000000 * 365 as decimal(10,8))         as penalty_interest_rate,
       regexp_replace(regexp_replace(regexp_replace(original_msg,'\\\"\\\{','\\\{'),'\\\}\\\"','\\\}'),'\\\\\"','\\\"') as original_msg
-      -- regexp_replace(regexp_replace(regexp_replace(original_msg,'\"\{','\{'),'\}\"','\}'),'\\\\\"','\"') as original_msg
     from ods.ecas_msg_log
     where 1 > 0
       and msg_type = 'LOAN_APPLY'
@@ -143,14 +153,17 @@ from (
   ) as biz_conf
   on loan_apply.product_id = biz_conf.dim_product_id
   left join (
-    select distinct
-      birthday,
-      user_hash_no,
-      product_id
-    from ods_new_s.customer_info
+    select
+      get_json_object(regexp_replace(regexp_replace(regexp_replace(original_msg,'\\\"\\\{','\\\{'),'\\\}\\\"','\\\}'),'\\\\\"','\\\"'),'$.loanOrderId') as loan_order_id,
+      is_empty(
+        datefmt(substring(get_json_object(regexp_replace(regexp_replace(regexp_replace(original_msg,'\\\"\\\{','\\\{'),'\\\}\\\"','\\\}'),'\\\\\"','\\\"'),'$.userInfo.ocrInfo.idNo'),7,8),'yyyyMMdd','yyyy-MM-dd'),
+        get_json_object(regexp_replace(regexp_replace(regexp_replace(original_msg,'\\\"\\\{','\\\{'),'\\\}\\\"','\\\}'),'\\\\\"','\\\"'),'$.userInfo.ocrInfo.birthday')
+      ) as birthday
+    from stage.ecas_msg_log
+    where msg_type = 'CREDIT_APPLY'
+      and original_msg is not null
   ) as customer_info
-  on  loan_apply.product_id = customer_info.product_id
-  and loan_apply.id_no      = customer_info.user_hash_no
+  on loan_apply.loan_order_id = customer_info.loan_order_id
   union all
   select *
   from ods_new_s.loan_apply_tmp
@@ -634,21 +647,4 @@ from (
       -- regexp_replace(regexp_replace(regexp_replace(original_msg,'\"\{','\{'),'\}\"','\}'),'\\\\\"','\"') as original_msg
     from ods.ecas_msg_log
     where 1 > 0
-      and msg_type = 'GZ_CREDIT_APPLY'
-      and original_msg is not null
-  ) as credit_apply
-  on get_json_object(loan_apply.original_msg,'$.data.applyNo') = get_json_object(credit_apply.original_msg,'$.data.applyNo')
-  left join (
-    select
-      product_id as dim_product_id,
-      channel_id
-    from dim_new.biz_conf
-  ) as biz_conf
-  on get_json_object(credit_apply.original_msg,'$.data.product.productNo') = biz_conf.dim_product_id
-  union all
-  select *
-  from ods_new_s.loan_apply_tmp
-  distribute by biz_date,product_id
-) as tmp
--- limit 1
-;
+      and msg_

@@ -1425,6 +1425,10 @@ set hivevar:product_id='001601';
 set hivevar:ST9=2021-03-09;
 
 
+set hivevar:ST9=2020-11-30;
+set hivevar:ST9=2020-12-01;
+
+
 
 -- 关闭yarn虚拟内存检查
 set yarn.nodemanager.vmem-check-enabled=false;
@@ -1489,6 +1493,18 @@ set hive.vectorized.execution.reduce.groupby.enabled=false;
     join
     on linkman.product_id = biz_conf.product_id
 
+
+  select distinct
+    product_id as dim_product_id,
+    channel_id
+  from (
+    select
+      max(if(col_name = 'product_id',  col_val,null)) as product_id,
+      max(if(col_name = 'channel_id',  col_val,null)) as channel_id
+    from dim.data_conf
+    where col_type = 'ac'
+    group by col_id
+  ) as tmp
 
 
       select distinct
