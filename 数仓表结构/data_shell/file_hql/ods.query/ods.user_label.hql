@@ -10,6 +10,7 @@ set hive.vectorized.execution.enabled=false;
 set hive.vectorized.execution.reduce.enabled=false;
 set hive.vectorized.execution.reduce.groupby.enabled=false;
 
+
 insert overwrite table ods.user_label
 select
   b.user_hash_no                                      as user_hash_no,
@@ -115,4 +116,5 @@ left join (
 ) as b
 on  a.pro_code = b.product_id
 and a.order_id = b.due_bill_no
+-- limit 10
 ;

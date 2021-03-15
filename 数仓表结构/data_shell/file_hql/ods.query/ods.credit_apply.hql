@@ -188,3 +188,4 @@ join (
 on  credit_apply.biz_date   = msg_log.biz_date
 and credit_apply.product_id = msg_log.product_id
 -- limit 10
+;

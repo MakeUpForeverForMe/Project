@@ -13927,4 +13927,133 @@ select
   org,
   create_time,
   update_time,
-  jpa_versio
+  jpa_version,
+  'Y' as is_his,
+  msg_type
+from stage.his_ecas_msg_log
+where 1 > 0
+  and msg_type = 'WIND_CONTROL_CREDIT'
+  and deal_date <= '2020-09-15'
+;
+
+
+
+
+
+
+
+
+
+
+select distinct
+  -- nvl(due_bills['APPLY_NO'],  due_bills['apply_no'])   as apply_no,
+  nvl(due_bills['product_no'],due_bills['PRODUCT_NO']) as product_no
+from stage.nms_interface_resp_log
+lateral view explode(json_array_to_array(nvl(get_json_object(standard_req_msg,'$.DUE_BILLS'),get_json_object(standard_req_msg,'$.due_bills')))) bills as due_bills
+where 1> 0
+  and sta_service_method_name = 'loanApply'
+  and standard_req_msg is not null
+  -- and nvl(due_bills['APPLY_NO'],due_bills['apply_no']) = '7634562346454355'
+;
+
+
+
+select distinct keys
+from stage.nms_interface_resp_log
+lateral view explode(map_keys(map_from_str(standard_req_msg))) key as keys
+where 1> 0
+  and sta_service_method_name = 'loanApply'
+;
+
+
+
+select distinct keys
+from stage.nms_interface_resp_log
+lateral view explode(map_keys(map_from_str(standard_req_msg))) key as keys
+where 1> 0
+  and sta_service_method_name = 'setupCustCredit'
+;
+
+
+
+select due_bill_no,age,idcard_province,user_hash_no from ods.customer_info
+where idcard_province is null
+  and product_id in (
+    'DIDI201908161538',
+    '001601',
+    '001602',
+    '001603',
+    '002201',
+    '002202',
+    '002203',
+    ''
+  )
+limit 10;
+
+
+
+
+select * from dim.dim_encrypt_info
+where dim_encrypt in (
+  'a_0704db12cee28340afcfee23c23224739f7ecdb0b22b60f6838a81b63a0e2016',
+  'a_5a67a0e268cbb8e8a55c8f1aef0235f5e690f9fa91f6ee160e6849e525be8cd9',
+  ''
+);
+
+
+
+
+
+
+select * from dim.dim_encrypt_info
+where dim_type = 'unknow';
+
+
+
+
+
+
+select *
+from dim.dim_idno
+where idno_addr = '342402'
+-- idno_addr in (
+--   '620300',
+--   '441400',
+--   '320400',
+--   ''
+-- )
+;
+
+
+
+
+
+select distinct
+  get_json_object(get_json_object(get_json_object(get_json_object(original_msg,'$.reqContent'),'$.jsonReq'),'$.content'),'$.reqData.proCode') as product_id
+from stage.ecas_msg_log
+where msg_type = 'WIND_CONTROL_CREDIT'
+  and original_msg is not null
+-- limit 1
+;
+
+
+
+
+
+
+
+
+
+select max(d_date)
+from stage.ecas_loan
+where 1 > 0
+  and d_date between date_sub(current_date(),2) and current_date()
+  -- and d_date = (select max(d_date) from stage.ecas_loan where d_date <= current_date())
+;
+
+
+
+
+select distinct
+  get_json_object(get_json_object(get_json_object(get_json_object(original_msg,'$.reqContent'),'$.jsonReq'),'$.content'),'$.reqData.proCode') as product_id
+  -- get_json_object(original_msg,'$.reqCo
