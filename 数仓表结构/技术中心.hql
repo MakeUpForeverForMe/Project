@@ -14056,4 +14056,211 @@ where 1 > 0
 
 select distinct
   get_json_object(get_json_object(get_json_object(get_json_object(original_msg,'$.reqContent'),'$.jsonReq'),'$.content'),'$.reqData.proCode') as product_id
-  -- get_json_object(original_msg,'$.reqCo
+  -- get_json_object(original_msg,'$.reqContent.jsonReq.content.reqData.proCode') as product_id
+from stage.ecas_msg_log
+where msg_type = 'WIND_CONTROL_CREDIT'
+  and original_msg is not null
+limit 20
+;
+
+
+
+
+select
+  get_json_object(msg_log.original_msg,'$.data.applyNo') as a_product_id,
+  loan_result.apply_no    as b_product_id,
+  loan_result.due_bill_no as c_product_id
+from (
+  select
+    regexp_replace(regexp_replace(regexp_replace(original_msg,'\\\"\\\{','\\\{'),'\\\}\\\"','\\\}'),'\\\\\"','\\\"') as original_msg
+  from stage.ecas_msg_log
+  where 1 > 0
+    and msg_type = 'GZ_CREDIT_APPLY'
+    and original_msg is not null
+) as msg_log
+-- left
+join (
+  select
+    get_json_object(original_msg,'$.applyNo') as apply_no,
+    get_json_object(original_msg,'$.loanNo')  as due_bill_no
+  from stage.ecas_msg_log
+  where 1 > 0
+    and msg_type = 'GZ_LOAN_RESULT'
+    and original_msg is not null
+) as loan_result
+on get_json_object(msg_log.original_msg,'$.data.applyNo') = loan_result.apply_no
+where 1 > 0
+  -- and loan_result.apply_no is null
+  and get_json_object(msg_log.original_msg,'$.data.applyNo') != loan_result.due_bill_no
+limit 10
+;
+
+
+
+
+
+select
+  get_json_object(original_msg,'$.applyNo') as apply_no,
+  get_json_object(original_msg,'$.loanNo')  as due_bill_no
+from stage.ecas_msg_log
+where 1 > 0
+  and msg_type = 'GZ_LOAN_RESULT'
+  and original_msg is not null
+  and get_json_object(original_msg,'$.applyNo') != get_json_object(original_msg,'$.loanNo')
+limit 10
+;
+
+
+select
+  get_json_object(original_msg,'$.applyNo')  as apply_no,
+  get_json_object(original_msg,'$.planDate') as issue_time,
+  get_json_object(original_msg,'$.loanNo')   as due_bill_no
+from stage.ecas_msg_log
+where 1 > 0
+  and msg_type = 'GZ_LOAN_RESULT'
+  and original_msg is not null
+limit 10;
+
+
+select distinct sex
+from ods.customer_info;
+
+
+select distinct
+  -- get_json_object(original_msg,'$.data.product.productNo') as product_id
+  get_json_object(original_msg,'$.data.product.productNo') as product_id
+from stage.ecas_msg_log
+where msg_type = 'GZ_CREDIT_APPLY'
+  and original_msg is not null
+limit 10
+;
+
+
+    select
+      get_json_object(regexp_replace(regexp_replace(regexp_replace(original_msg,'\\\"\\\{','\\\{'),'\\\}\\\"','\\\}'),'\\\\\"','\\\"'),'$.applicationId') as loan_order_id,
+      is_empty(
+        datefmt(substring(get_json_object(regexp_replace(regexp_replace(regexp_replace(original_msg,'\\\"\\\{','\\\{'),'\\\}\\\"','\\\}'),'\\\\\"','\\\"'),'$.userInfo.ocrInfo.idNo'),7,8),'yyyyMMdd','yyyy-MM-dd'),
+        get_json_object(regexp_replace(regexp_replace(regexp_replace(original_msg,'\\\"\\\{','\\\{'),'\\\}\\\"','\\\}'),'\\\\\"','\\\"'),'$.userInfo.ocrInfo.birthday')
+      ) as birthday
+    from stage.ecas_msg_log
+    where msg_type = 'CREDIT_APPLY'
+      and original_msg is not null
+limit 10
+;
+
+
+select
+  *
+from (
+  select
+    deal_date                                                                 as deal_date,
+    datefmt(create_time,'ms','yyyy-MM-dd HH:mm:ss')                           as create_time,
+    datefmt(update_time,'ms','yyyy-MM-dd HH:mm:ss')                           as update_time,
+    sha256(get_json_object(standard_req_msg,'$.borrower.id_no'),'idNumber',1) as id_no,
+    sha256(get_json_object(standard_req_msg,'$.borrower.name'),'userName',1)  as name,
+    get_json_object(standard_req_msg,'$.pre_apply_no')                        as pre_apply_no,
+    get_json_object(standard_req_msg,'$.apply_no')                            as apply_no,
+    get_json_object(standard_req_msg,'$.product.product_no')                  as product_no,
+    get_json_object(standard_req_msg,'$.product.currency_amt')                as apply_amount,
+    get_json_object(standard_req_msg,'$.product.loan_terms')                  as loan_terms,
+    get_json_object(standard_req_msg,'$.product.loan_apply_use')              as loan_apply_use,
+    get_json_object(standard_req_msg,'$.product.repay_type')                  as repay_type,
+    get_json_object(standard_req_msg,'$.product.loan_rate')                   as loan_rate,
+    get_json_object(standard_req_msg,'$.product.loan_penalty_rate')           as loan_penalty_rate,
+    datefmt(substring(get_json_object(standard_req_msg,'$.borrower.id_no'),7,8),'yyyyMMdd','yyyy-MM-dd') as birthday,
+    standard_req_msg                                                          as standard_req_msg
+  from stage.nms_interface_resp_log
+  where 1 > 0
+    and sta_service_method_name = 'setupCustCredit'
+    and standard_req_msg is not null
+    -- and get_json_object(standard_req_msg,'$.apply_no') = '7634562346454355'
+) as nms_apply
+where deal_date is null or product_no is null
+limit 10
+;
+
+
+
+select distinct
+  get_json_object(get_json_object(get_json_object(original_msg,'$.reqContent.jsonReq'),'$.content'),'$.reqData.loanDate') as biz_date,
+  get_json_object(get_json_object(get_json_object(original_msg,'$.reqContent.jsonReq'),'$.content'),'$.reqData.proCode') as product_id
+from stage.ecas_msg_log
+where 1 > 0
+  and msg_type = 'WIND_CONTROL_CREDIT'
+  and original_msg is not null
+limit 10
+;
+
+
+
+
+select
+  get_json_object(original_msg,'$.data.product.productNo') as product_id
+from stage.ecas_msg_log
+where 1 > 0
+  and msg_type = 'GZ_LOAN_APPLY'
+  and original_msg is not null
+limit 1
+;
+
+
+select
+  get_json_object(original_msg,'$.data.product.productNo') as product_id
+from stage.ecas_msg_log
+where 1 > 0
+  and msg_type = 'GZ_CREDIT_APPLY'
+  and original_msg is not null
+limit 1
+;
+
+
+
+select
+  min(account_date) as biz_date -- 2017-06-05
+from stage.asset_10_t_asset_check;
+
+
+
+
+
+select distinct
+  nvl(dim_decrypt,user_hash_no) as dim_decrypt
+from (
+  select
+    user_hash_no
+  from ods.customer_info
+  where 1 > 0
+    and product_id in (
+      '001801','001802','001803','001804',
+
+      '001901','001902','001903','001904','001905','001906','001907',
+
+      '002001','002002','002003','002004','002005','002006','002007',
+
+      '002401','002402',
+
+      ''
+    )
+    and due_bill_no in (
+      '1120111014490918532060',
+      '1120111017224627942060',
+      '1121011812401925142060',
+      '1121011812411470972060',
+      '1121012719011399022923',
+      '1121020303312594242923',
+      '1121012513413463184847',
+      '1121013012135118034847',
+      '1120071905181288583738',
+      '1120080318440499273738',
+      '1121010511543801303738',
+      ''
+    )
+) as customer_info
+left join (
+  select dim_encrypt,dim_decrypt
+  from dim.dim_encrypt_info
+) as dim_encrypt
+on customer_info.user_hash_no = dim_encrypt.dim_encrypt
+;
+
+

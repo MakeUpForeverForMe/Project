@@ -1,14 +1,17 @@
-for year in {2015..2030}; do
+#!/usr/bin/env bash
+
+import_file_dir=/data/data_shell/file_import
+hdfs_file_dir=cosn://bigdata-center-prod-1253824322/user/hadoop/warehouse/dim.db
+
+for year in {2001..2050}; do
   s_date=$(date -d "${year}-01-01" +%F)
   {
     while [[ "$(date -d "$s_date" +%s)" -le "$(date -d "${year}-12-31" +%s)" ]]; do
-      for product in 'DIDI201908161538' 'pl00282'; do
-        echo "${s_date},${product}" >> /root/data_shell/data_file/dim_new.dim_date.csv.${year}
-      done
+      echo "${s_date}" >> ${import_file_dir}/dim.dim_date.csv.${year}
       s_date=$(date -d "$s_date +1 day" +%F)
     done
   } &
-  sleep 1
+  sleep 0.1
 done
 
 for pid in $(jobs -p); do
@@ -16,13 +19,9 @@ for pid in $(jobs -p); do
 done
 
 
-cat /root/data_shell/data_file/dim_new.dim_date.csv.20* > /root/data_shell/data_file/dim_new.dim_date.csv
+cat ${import_file_dir}/dim.dim_date.csv.20* > ${import_file_dir}/dim.dim_date.csv
 
-rm -f /root/data_shell/data_file/dim_new.dim_date.csv.20*
-
-sudo -u hive hdfs dfs -put -f /root/data_shell/data_file/dim_new.dim_date.csv /user/hive/warehouse/dim_new.db/dim_date
+rm -f ${import_file_dir}/dim.dim_date.csv.20*
 
 
-select * from dim_new.dim_date limit 10;
-
-select count(1) as cnt from dim_new.dim_date;
+sudo -u hadoop hdfs dfs -put -f ${import_file_dir}/dim.dim_date.csv ${hdfs_file_dir}/dim_date

@@ -63,6 +63,7 @@ create table if not exists `dw.dw_loan_approval_stat_day`(
   `loan_terms`                            decimal(3,0)   COMMENT '贷款期数',
 
   `loan_approval_date`                    string         COMMENT '用信通过日期',
+
   `loan_approval_num`                     decimal(20,0)  COMMENT '用信通过笔数',
   `loan_approval_num_count`               decimal(20,0)  COMMENT '累计用信通过笔数',
 

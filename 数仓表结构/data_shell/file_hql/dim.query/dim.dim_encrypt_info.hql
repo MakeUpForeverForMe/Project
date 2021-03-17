@@ -1,9 +1,11 @@
--- 设置动态分区
-set hive.exec.dynamic.partition=true;
-set hive.exec.dynamic.partition.mode=nonstrict;
-set hive.exec.max.dynamic.partitions=200000;
-set hive.exec.max.dynamic.partitions.pernode=50000;
--- 执行sql前，加上如下参数，禁用hive矢量执行：
+-- 设置 Container 大小
+set hive.tez.container.size=4096;
+set tez.am.resource.memory.mb=4096;
+-- 合并小文件
+set hive.merge.tezfiles=true;
+set hive.merge.size.per.task=128000000; -- 128M
+set hive.merge.smallfiles.avgsize=128000000; -- 128M
+-- 禁用 Hive 矢量执行
 set hive.vectorized.execution.enabled=false;
 set hive.vectorized.execution.reduce.enabled=false;
 set hive.vectorized.execution.reduce.groupby.enabled=false;
@@ -31,6 +33,7 @@ set hivevar:case_encrypt=case substring(dim_encrypt,1,1)
 ;
 
 
+-- into
 -- overwrite
 -- 滴滴
 insert into table dim.dim_encrypt_info
@@ -406,7 +409,6 @@ from (
   from stage.asset_12_t_enterprise_info
   where 1 > 0
     and to_date(create_time) = '${ST9}'
-    -- and asset_id = '1000002809'
 ) as log
 lateral view explode (map(
   encrypt_business_number,    decrypt_business_number,

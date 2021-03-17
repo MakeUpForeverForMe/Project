@@ -661,4 +661,49 @@ from (
       and msg_type = 'GZ_CREDIT_APPLY'
       and original_msg is not null
   ) as credit_apply
-  on get_jso
+  on get_json_object(loan_apply.original_msg,'$.data.applyNo') = get_json_object(credit_apply.original_msg,'$.data.applyNo')
+  left join (
+    select distinct
+      product_id as dim_product_id,
+      channel_id
+    from (
+      select
+        max(if(col_name = 'product_id',  col_val,null)) as product_id,
+        max(if(col_name = 'channel_id',  col_val,null)) as channel_id
+      from dim.data_conf
+      where col_type = 'ac'
+      group by col_id
+    ) as tmp
+  ) as biz_conf
+  on get_json_object(credit_apply.original_msg,'$.data.product.productNo') = biz_conf.dim_product_id
+  union all
+  select loan_apply.*
+  from ods.loan_apply
+  join (
+    select distinct
+      biz_date,product_id
+    from (
+      select
+        least(
+          datefmt(create_time,'ms','yyyy-MM-dd'),
+          datefmt(get_json_object(original_msg,'$.timeStamp'),'ms','yyyy-MM-dd')
+        ) as biz_date
+      from stage.ecas_msg_log
+      where 1 > 0
+        and msg_type = 'GZ_LOAN_APPLY'
+        and original_msg is not null
+        ${where_date}
+    ) as loan_apply
+    join (
+      select distinct get_json_object(original_msg,'$.data.product.productNo') as product_id
+      from stage.ecas_msg_log
+      where 1 > 0
+        and msg_type = 'GZ_CREDIT_APPLY'
+        and original_msg is not null
+    ) as credit_apply
+  ) as msg_log
+  on  loan_apply.biz_date   = msg_log.biz_date
+  and loan_apply.product_id = msg_log.product_id
+) as tmp
+-- limit 1
+;

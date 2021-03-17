@@ -102,9 +102,10 @@ where 1 > 0
 
 
 
+set hivevar:where_date=and deal_date >= date_sub('${ST9}',15);
+-- set hivevar:where_date=;
 
-
---瓜子的授信
+-- 瓜子的授信
 insert overwrite table ods.credit_apply partition(biz_date,product_id)
 select
   concat_ws('_',channel_id,idNo,name)                               as cust_id,
@@ -147,7 +148,7 @@ from (
     get_json_object(get_json_object(original_msg,'$.data'),'$.product.productNo')                  as product_id
   from stage.ecas_msg_log
   where msg_type = 'GZ_CREDIT_APPLY'
-    and deal_date >= date_sub('${ST9}',15)
+    ${where_date}
 ) as credit_apply
 left join (
   select
@@ -156,7 +157,7 @@ left join (
     original_msg                                                                                                                   as ori_response
   from stage.ecas_msg_log
   where msg_type = 'GZ_CREDIT_RESULT'
-    and deal_date >= date_sub('${ST9}',15)
+    ${where_date}
 ) as credit_result
 on credit_apply.apply_id = credit_result.apply_id_credit_result
 left join (
@@ -183,7 +184,7 @@ join (
     get_json_object(get_json_object(original_msg,'$.data'),'$.product.productNo')  as product_id
   from stage.ecas_msg_log
   where msg_type = 'GZ_CREDIT_APPLY'
-    and deal_date >= date_sub('${ST9}',15)
+    ${where_date}
 ) as msg_log
 on  credit_apply.biz_date   = msg_log.biz_date
 and credit_apply.product_id = msg_log.product_id

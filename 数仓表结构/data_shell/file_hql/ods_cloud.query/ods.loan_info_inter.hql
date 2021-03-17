@@ -1,6 +1,10 @@
 -- 设置 Container 大小
 set hive.tez.container.size=4096;
 set tez.am.resource.memory.mb=4096;
+-- 合并小文件
+set hive.merge.tezfiles=true;
+set hive.merge.size.per.task=128000000; -- 128M
+set hive.merge.smallfiles.avgsize=128000000; -- 128M
 -- 设置动态分区
 set hive.exec.dynamic.partition=true;
 set hive.exec.dynamic.partition.mode=nonstrict;
@@ -169,6 +173,14 @@ from (
       project_id
     from stage.asset_10_t_asset_check
     where account_date = '${ST9}'
+      and project_id not in (
+        '001601',           -- 汇通
+        'DIDI201908161538', -- 滴滴
+        'WS0005200001',     -- 瓜子
+        'CL202012280092',   -- 汇通国银
+        'CL202102010097',   -- 汇通国银
+        ''
+      )
   ) as asset
   left join (
     select distinct
@@ -183,7 +195,7 @@ from (
     from stage.asset_01_t_loan_contract_info
   ) as loan
   on asset.asset_id = loan.asset_id
-) today
+) as today
 left join (
   select
     asset.asset_id                                                                                        as due_bill_no,
@@ -283,6 +295,14 @@ left join (
       project_id
     from stage.asset_10_t_asset_check
     where account_date = date_sub('${ST9}',1)
+      and project_id not in (
+        '001601',           -- 汇通
+        'DIDI201908161538', -- 滴滴
+        'WS0005200001',     -- 瓜子
+        'CL202012280092',   -- 汇通国银
+        'CL202102010097',   -- 汇通国银
+        ''
+      )
   ) as asset
   left join (
     select distinct
@@ -297,7 +317,7 @@ left join (
     from stage.asset_01_t_loan_contract_info
   ) as loan
   on asset.asset_id = loan.asset_id
-) yesterday
+) as yesterday
 on  is_empty(today.product_id                  ,'a') = is_empty(yesterday.product_id                  ,'a')
 and is_empty(today.due_bill_no                 ,'a') = is_empty(yesterday.due_bill_no                 ,'a')
 and is_empty(today.apply_no                    ,'a') = is_empty(yesterday.apply_no                    ,'a')
@@ -328,5 +348,5 @@ and is_empty(today.overdue_principal_accumulate,'a') = is_empty(yesterday.overdu
 and is_empty(today.overdue_principal_max       ,'a') = is_empty(yesterday.overdue_principal_max       ,'a')
 and is_empty(today.dpd_days_max                ,'a') = is_empty(yesterday.dpd_days_max                ,'a')
 where yesterday.due_bill_no is null
--- limit 10
+-- limit 1
 ;

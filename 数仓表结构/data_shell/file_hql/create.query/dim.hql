@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS `t_investor_info`(
   `coupon_formula_effective_date` varchar(255)   NOT NULL COMMENT '收益公式生效日期',
   `coupon_formula_expire_date`    varchar(255)   NOT NULL COMMENT '收益公式失效日期',
   `int_calc_rules`                varchar(255)   NOT NULL COMMENT '计息规则',
-  `create_time`                   timestamp      NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `CREATE_time`                   timestamp      NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `update_time`                   timestamp      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间'
 ) COMMENT '投资人信息表'
 ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
@@ -66,8 +66,6 @@ CREATE TABLE IF NOT EXISTS `task_info`(
   PRIMARY KEY (`id`)
 ) COMMENT '任务信息'
 ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
-
-
 
 
 
@@ -125,9 +123,9 @@ CREATE TABLE IF NOT EXISTS `dim.data_conf`(
   `col_id`                        string         COMMENT '关联编号',
   `col_name`                      string         COMMENT '字段名称',
   `col_val`                       string         COMMENT '字段内容',
-  `col_comment`                   string         COMMENT '字段注释',
-  `create_user`                   string         COMMENT '创建用户',
-  `create_time`                   timestamp      COMMENT '创建时间',
+  `col_COMMENT`                   string         COMMENT '字段注释',
+  `CREATE_user`                   string         COMMENT '创建用户',
+  `CREATE_time`                   timestamp      COMMENT '创建时间',
   `update_user`                   string         COMMENT '更新用户',
   `update_time`                   timestamp      COMMENT '更新时间'
 ) COMMENT '配置信息'
@@ -169,14 +167,10 @@ location 'cosn://bigdata-center-prod-1253824322/user/hadoop/warehouse/dim.db/dim
 
 -- 日期维度表
 -- DROP TABLE IF EXISTS `dim.dim_date`;
-CREATE EXTERNAL TABLE IF NOT EXISTS `dim.dim_date`(
-  `biz_date`                      string         COMMENT '日期',
-  `product_id`                    string         COMMENT '产品编号'
+CREATE TABLE IF NOT EXISTS `dim.dim_date`(
+  `biz_date`                      string         COMMENT '日期'
 ) COMMENT '日期维度表'
-ROW FORMAT DELIMITED FIELDS TERMINATED BY ','
-STORED AS TEXTFILE
-location 'cosn://bigdata-center-prod-1253824322/user/hadoop/warehouse/dim.db/dim_date'
-;
+STORED AS TEXTFILE;
 
 
 -- 投资人信息表
@@ -227,8 +221,8 @@ location 'cosn://bigdata-center-prod-1253824322/user/hadoop/warehouse/dim.db/dim
 
 
 -- 静态逾期表
--- drop table if exists `dim.dim_static_overdue_bill`;
-create external table if not exists `dim.dim_static_overdue_bill`(
+-- DROP TABLE IF EXISTS `dim.dim_static_overdue_bill`;
+CREATE EXTERNAL TABLE IF NOT EXISTS `dim.dim_static_overdue_bill`(
   `product_id`                    string         COMMENT '产品编号',
   `due_bill_no`                   string         COMMENT '借据编号',
   `loan_term`                     decimal(3,0)   COMMENT '当前期数',
@@ -252,8 +246,8 @@ location 'cosn://bigdata-center-prod-1253824322/user/hadoop/warehouse/dim.db/dim
 
 
 ---汇通服务报告资产包
--- drop table if exists `dim.dim_ht_bag_asset`;
-create external table if not exists `dim.dim_ht_bag_asset`(
+-- DROP TABLE IF EXISTS `dim.dim_ht_bag_asset`;
+CREATE EXTERNAL TABLE IF NOT EXISTS `dim.dim_ht_bag_asset`(
   `project_id`                    string         COMMENT '项目ID',
   `due_bill_no`                   string         COMMENT '借据号',
   `asset_date`                    string         COMMENT '借据入包日期',
@@ -261,7 +255,7 @@ create external table if not exists `dim.dim_ht_bag_asset`(
   `total_bag_remain_principal`    decimal(15,4)  COMMENT '借据入包时剩余本金',
   `total_bag_remain_interest`     decimal(15,4)  COMMENT '借据入包时剩余利息'
 ) COMMENT 'dim 汇通资产包信息'
-PARTITIONED BY (`biz_date` string comment '封包日期')
+PARTITIONED BY (`biz_date` string COMMENT '封包日期')
 STORED AS PARQUET
 location 'cosn://bigdata-center-prod-1253824322/user/hadoop/warehouse/dim.db/dim_ht_bag_asset'
 ;
@@ -295,8 +289,8 @@ CREATE TABLE IF NOT EXISTS `dim.project_info`(
   `asset_pool_type`               string         COMMENT '资产池类型',
   `public_offer`                  string         COMMENT '公募名称',
   `data_source`                   string         COMMENT '数据来源',
-  `create_user`                   string         COMMENT '创建人',
-  `create_time`                   string         COMMENT '创建时间',
+  `CREATE_user`                   string         COMMENT '创建人',
+  `CREATE_time`                   string         COMMENT '创建时间',
   `update_time`                   string         COMMENT '更新时间'
 ) COMMENT '项目属性'
 PARTITIONED BY (`project_id` string COMMENT '项目编号')
@@ -337,9 +331,6 @@ STORED AS TEXTFILE
 -- DROP TABLE IF EXISTS `dim.bag_due_bill_no`;
 CREATE TABLE IF NOT EXISTS `dim.bag_due_bill_no`(
   `due_bill_no`                   string         COMMENT '借据编号',
-  `related_project_id`            string         COMMENT '债转前项目编号',
-  `related_date`                  string         COMMENT '债转发生日期',
-  `partition_id`                  string         COMMENT '数据分区编号',
   `package_remain_principal`      decimal(15,4)  COMMENT '封包时本金余额',
   `package_remain_periods`        int            COMMENT '封包时剩余期数'
 ) COMMENT '包借据映射'
@@ -347,3 +338,148 @@ PARTITIONED BY (`bag_id` string COMMENT '包编号')
 ROW FORMAT DELIMITED FIELDS TERMINATED BY ','
 STORED AS TEXTFILE
 ;
+
+
+
+
+
+
+
+
+
+
+
+-- DROP DATABASE IF EXISTS `hivemetastore`;
+CREATE DATABASE IF NOT EXISTS `hivemetastore` COMMENT 'Hive 元数据库';
+
+
+-- DROP TABLE IF EXISTS `hivemetastore.dbs`;
+CREATE EXTERNAL TABLE IF NOT EXISTS `hivemetastore.dbs`(
+  `db_id`                     bigint COMMENT '数据库ID',
+  `desc`                      string COMMENT '数据库注释',
+  `db_location_uri`           string COMMENT '数据库地址',
+  `name`                      string COMMENT '数据库名称',
+  `owner_name`                string COMMENT '创建者',
+  `owner_type`                string COMMENT '创建者类型',
+  `ctlg_name`                 string COMMENT ''
+) COMMENT 'Hive库的元数据'
+STORED BY 'org.apache.hive.storage.jdbc.JdbcStorageHandler'
+TBLPROPERTIES (
+  "hive.sql.database.type"  = "MYSQL",
+  "hive.sql.jdbc.driver"    = "com.mysql.jdbc.Driver",
+  "hive.sql.jdbc.url"       = "jdbc:mysql://10.80.1.104/hivemetastore",
+  "hive.sql.dbcp.username"  = "root",
+  "hive.sql.dbcp.password"  = "Ws@ProEmr1QSC@",
+  "hive.sql.table"          = "DBS",
+  "hive.sql.dbcp.maxActive" = "1"
+);
+
+
+-- DROP TABLE IF EXISTS `hivemetastore.tbls`;
+CREATE EXTERNAL TABLE IF NOT EXISTS `hivemetastore.tbls`(
+  `tbl_id`                    bigint COMMENT '表ID',
+  `create_time`               int    COMMENT '创建时间',
+  `db_id`                     bigint COMMENT '数据库ID',
+  `last_access_time`          int    COMMENT '最后修改时间',
+  `owner`                     string COMMENT '创建者',
+  `owner_type`                string COMMENT '创建者类型',
+  `retention`                 int    COMMENT '保留字段',
+  `sd_id`                     bigint COMMENT '字段关联ID',
+  `tbl_name`                  string COMMENT '表名',
+  `tbl_type`                  string COMMENT '表类型',
+  `view_expanded_text`        string COMMENT '',
+  `view_original_text`        string COMMENT '',
+  `is_rewrite_enabled`        int    COMMENT ''
+) COMMENT 'Hive表名称的元数据'
+STORED BY 'org.apache.hive.storage.jdbc.JdbcStorageHandler'
+TBLPROPERTIES (
+  "hive.sql.database.type"  = "MYSQL",
+  "hive.sql.jdbc.driver"    = "com.mysql.jdbc.Driver",
+  "hive.sql.jdbc.url"       = "jdbc:mysql://10.80.1.104/hivemetastore",
+  "hive.sql.dbcp.username"  = "root",
+  "hive.sql.dbcp.password"  = "Ws@ProEmr1QSC@",
+  "hive.sql.table"          = "TBLS",
+  "hive.sql.dbcp.maxActive" = "1"
+);
+
+
+-- DROP TABLE IF EXISTS `hivemetastore.table_params`;
+CREATE EXTERNAL TABLE IF NOT EXISTS `hivemetastore.table_params`(
+  `tbl_id`                    bigint COMMENT '表ID',
+  `param_key`                 string COMMENT '表属性名',
+  `param_value`               string COMMENT '表属性值'
+) COMMENT 'Hive表属性的元数据'
+STORED BY 'org.apache.hive.storage.jdbc.JdbcStorageHandler'
+TBLPROPERTIES (
+  "hive.sql.database.type"  = "MYSQL",
+  "hive.sql.jdbc.driver"    = "com.mysql.jdbc.Driver",
+  "hive.sql.jdbc.url"       = "jdbc:mysql://10.80.1.104/hivemetastore",
+  "hive.sql.dbcp.username"  = "root",
+  "hive.sql.dbcp.password"  = "Ws@ProEmr1QSC@",
+  "hive.sql.table"          = "TABLE_PARAMS",
+  "hive.sql.dbcp.maxActive" = "1"
+);
+
+
+-- DROP TABLE IF EXISTS `hivemetastore.sds`;
+CREATE EXTERNAL TABLE IF NOT EXISTS `hivemetastore.sds`(
+  `sd_id`                     bigint COMMENT '字段关联ID',
+  `cd_id`                     bigint COMMENT '字段ID',
+  `input_format`              string COMMENT '输入类型',
+  `is_compressed`             int    COMMENT '',
+  `is_storedassubdirectories` int    COMMENT '',
+  `location`                  string COMMENT '表地址',
+  `num_buckets`               int    COMMENT '分桶',
+  `output_format`             string COMMENT '输出类型',
+  `serde_id`                  bigint COMMENT '排序'
+) COMMENT 'Hive字段的元数据'
+STORED BY 'org.apache.hive.storage.jdbc.JdbcStorageHandler'
+TBLPROPERTIES (
+  "hive.sql.database.type"  = "MYSQL",
+  "hive.sql.jdbc.driver"    = "com.mysql.jdbc.Driver",
+  "hive.sql.jdbc.url"       = "jdbc:mysql://10.80.1.104/hivemetastore",
+  "hive.sql.dbcp.username"  = "root",
+  "hive.sql.dbcp.password"  = "Ws@ProEmr1QSC@",
+  "hive.sql.table"          = "SDS",
+  "hive.sql.dbcp.maxActive" = "1"
+);
+
+
+-- DROP TABLE IF EXISTS `hivemetastore.columns_v2`;
+CREATE EXTERNAL TABLE IF NOT EXISTS `hivemetastore.columns_v2`(
+  `cd_id`                     bigint COMMENT '字段ID',
+  `comment`                   string COMMENT '字段注释',
+  `column_name`               string COMMENT '字段名称',
+  `type_name`                 string COMMENT '字段类型',
+  `integer_idx`               int    COMMENT '字段排序'
+) COMMENT 'Hive字段的元数据'
+STORED BY 'org.apache.hive.storage.jdbc.JdbcStorageHandler'
+TBLPROPERTIES (
+  "hive.sql.database.type"  = "MYSQL",
+  "hive.sql.jdbc.driver"    = "com.mysql.jdbc.Driver",
+  "hive.sql.jdbc.url"       = "jdbc:mysql://10.80.1.104/hivemetastore",
+  "hive.sql.dbcp.username"  = "root",
+  "hive.sql.dbcp.password"  = "Ws@ProEmr1QSC@",
+  "hive.sql.table"          = "COLUMNS_V2",
+  "hive.sql.dbcp.maxActive" = "1"
+);
+
+
+-- DROP TABLE IF EXISTS `hivemetastore.partition_keys`;
+CREATE EXTERNAL TABLE IF NOT EXISTS `hivemetastore.partition_keys`(
+  `tbl_id`                    bigint COMMENT '表ID',
+  `pkey_comment`              string COMMENT '分区字段注释',
+  `pkey_name`                 string COMMENT '分区字段名称',
+  `pkey_type`                 string COMMENT '分区字段类型',
+  `integer_idx`               int    COMMENT '分区字段排序'
+) COMMENT 'Hive分区的元数据'
+STORED BY 'org.apache.hive.storage.jdbc.JdbcStorageHandler'
+TBLPROPERTIES (
+  "hive.sql.database.type"  = "MYSQL",
+  "hive.sql.jdbc.driver"    = "com.mysql.jdbc.Driver",
+  "hive.sql.jdbc.url"       = "jdbc:mysql://10.80.1.104/hivemetastore",
+  "hive.sql.dbcp.username"  = "root",
+  "hive.sql.dbcp.password"  = "Ws@ProEmr1QSC@",
+  "hive.sql.table"          = "PARTITION_KEYS",
+  "hive.sql.dbcp.maxActive" = "1"
+);

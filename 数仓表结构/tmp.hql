@@ -1406,6 +1406,13 @@ from dim.data_conf;
 
 
 
+set hive.execution.engine=mr;
+set mapreduce.map.memory.mb=4096;
+set mapreduce.reduce.memory.mb=4096;
+set mapreduce.map.java.opts=-Xmx4096m;
+set mapreduce.reduce.java.opts=-Xmx4096m;
+set yarn.app.mapreduce.am.resource.mb=5192;
+set yarn.app.mapreduce.am.command-opts=-Xmx4096m;
 
 
 
@@ -1422,7 +1429,10 @@ set hivevar:db_suffix=;set hivevar:tb_suffix=;
 set hivevar:product_id='001801','001802','001803','001804','001901','001902','001903','001904','001905','001906','001907','002001','002002','002003','002004','002005','002006','002007';
 
 set hivevar:product_id='001601';
-set hivevar:ST9=2021-03-09;
+
+
+set hivevar:ST9=2019-10-23;
+set hivevar:ST9=2019-10-25;
 
 
 set hivevar:ST9=2020-11-30;
@@ -1430,8 +1440,14 @@ set hivevar:ST9=2020-12-01;
 
 
 
+set hivevar:ST9=2020-10-15;
+set hivevar:hive_param_str=;
+
+
 -- 关闭yarn虚拟内存检查
 set yarn.nodemanager.vmem-check-enabled=false;
+-- 使 Hive 写入时的线程数为 1
+set hive.load.dynamic.partitions.thread=1;
 
 
 
@@ -1451,6 +1467,13 @@ set hive.exec.max.dynamic.partitions.pernode=50000;
 set hive.vectorized.execution.enabled=false;
 set hive.vectorized.execution.reduce.enabled=false;
 set hive.vectorized.execution.reduce.groupby.enabled=false;
+
+
+
+set tez.task.resource.cpu.vcores=1;
+set tez.runtime.pipelined-shuffle.enabled=true;
+set tez.runtime.io.sort.mb=1536;
+set tez.runtime.unordered.output.buffer.size-mb=1024;
 
 
 
@@ -1548,10 +1571,6 @@ set hive.vectorized.execution.reduce.groupby.enabled=false;
 
 
 
-
-
-
-
 select
   ods.project_id    as project_id_ods,   stage.project_id    as project_id_stage,   if(nvl(ods.project_id,   'a') != nvl(stage.project_id,   'a'),1,0) as product_id,
   ods.serial_number as serial_number_ods,stage.serial_number as serial_number_stage,if(nvl(ods.serial_number,'a') != nvl(stage.serial_number,'a'),1,0) as serial_number,
@@ -1624,3 +1643,247 @@ select distinct keys
 from stage.asset_01_t_loan_contract_info
 lateral view explode(map_keys(map_from_str(extra_info))) key as keys
 order by keys;
+
+
+
+
+
+insert overwrite table stage.ecas_msg_log partition(is_his,msg_type)
+select
+  msg_log_id,
+  foreign_id,
+  original_msg,
+  target_msg,
+  deal_date,
+  org,
+  create_time,
+  update_time,
+  jpa_version,
+  is_his,
+  msg_type
+from stage.ecas_msg_log
+where 1 > 0
+  and is_his = 'Y'
+order by deal_date,update_time
+;
+
+
+
+select due_bill_no,age,idcard_province,user_hash_no from ods.customer_info
+where idcard_province is null
+  and product_id in (
+    'DIDI201908161538',
+
+    '001601',
+    '001602',
+    '001603',
+    '002201',
+    '002202',
+    '002203',
+
+    '001801',
+    '001802',
+    '001901',
+    '001902',
+    '001906',
+    '002001',
+    '002002',
+    '002006',
+    '002401',
+    '002402',
+
+    '001701',
+    '001702',
+    ''
+  )
+limit 10;
+
+
+
+select due_bill_no,age,idcard_province,user_hash_no from ods.customer_info
+where age = -1
+  and product_id in (
+    'DIDI201908161538',
+
+    '001601',
+    '001602',
+    '001603',
+    '002201',
+    '002202',
+    '002203',
+
+    -- '001801',
+    '001802',
+    -- '001901',
+    '001902',
+    '001906',
+    -- '002001',
+    '002002',
+    '002006',
+    '002401',
+    '002402',
+
+    '001701',
+    '001702',
+    ''
+  )
+limit 10;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+select
+  db_name,
+  db_desc,
+  tb_type,
+  tb_name,
+  tb_comm,
+  col_name,
+  col_type,
+  col_comm,
+  col_index,
+  col
+from (
+  select
+    db.name           as db_name,
+    db.desc           as db_desc,
+    tb.tbl_type       as tb_type,
+    tb.tbl_name       as tb_name,
+    tbl_param.comment as tb_comm,
+    col.column_name   as col_name,
+    col.type_name     as col_type,
+    col.comment       as col_comm,
+    col.integer_idx   as col_index,
+    '0'               as col
+  from (
+    select
+      db_id,
+      name,
+      desc
+    from hivemetastore.dbs
+    where name in (
+      'dim',
+      'stage',
+      'ods',     'ods_cps',
+      'dw',      'dw_cps',
+      'dm_eagle','dm_eagle_cps',
+      ''
+    )
+  ) as db
+  join (
+    select
+      db_id,
+      tbl_id,
+      sd_id,
+      tbl_name,
+      tbl_type
+    from hivemetastore.tbls
+  ) as tb
+  on db.db_id = tb.db_id
+  left join (
+    select
+      tbl_id,
+      max(if(param_key = 'comment',param_value,null)) as comment
+    from hivemetastore.table_params
+    group by tbl_id
+  ) as tbl_param
+  on tb.tbl_id = tbl_param.tbl_id
+  left join (
+    select
+      sd_id,
+      cd_id
+    from hivemetastore.sds
+  ) as sds
+  on tb.sd_id = sds.sd_id
+  left join (
+    select
+      cd_id,
+      column_name,
+      type_name,
+      comment,
+      integer_idx
+    from hivemetastore.columns_v2
+  ) as col
+  on sds.cd_id = col.cd_id
+  union all
+  select
+    db.name           as db_name,
+    db.desc           as db_desc,
+    tb.tbl_type       as tb_type,
+    tb.tbl_name       as tb_name,
+    tbl_param.comment as tb_comm,
+    part.pkey_name    as col_name,
+    part.pkey_type    as col_type,
+    part.pkey_comment as col_comm,
+    part.integer_idx  as col_index,
+    '1'               as col
+  from (
+    select
+      db_id,
+      name,
+      desc
+    from hivemetastore.dbs
+    where name in (
+      'dim',
+      'stage',
+      'ods',     'ods_cps',
+      'dw',      'dw_cps',
+      'dm_eagle','dm_eagle_cps',
+      ''
+    )
+  ) as db
+  join (
+    select
+      db_id,
+      tbl_id,
+      sd_id,
+      tbl_name,
+      tbl_type
+    from hivemetastore.tbls
+  ) as tb
+  on db.db_id = tb.db_id
+  left join (
+    select
+      tbl_id,
+      max(if(param_key = 'comment',param_value,null)) as comment
+    from hivemetastore.table_params
+    group by tbl_id
+  ) as tbl_param
+  on tb.tbl_id = tbl_param.tbl_id
+  join (
+    select
+      tbl_id,
+      pkey_name,
+      pkey_type,
+      pkey_comment,
+      integer_idx
+    from hivemetastore.partition_keys
+  ) as part
+  on tb.tbl_id = part.tbl_id
+) as tmp
+where 1 > 0
+  -- and db_name = 'ods' and tb_name = 'repay_detail'
+  and db_name = 'dim' and tb_name = 'dim_encrypt_info'
+order by db_name,tb_name,col,col_index
+;

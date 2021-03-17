@@ -564,4 +564,108 @@ from (
     null                                                                                                              as idcard_township,
     sha256(get_json_object(msg_log.original_msg,'$.data.borrower.homeAddress'),'address',1)                           as resident_address,
     dim_idno_province.idno_area_cn                                                                                    as resident_area,
-    get_json_object(msg_log.original_msg,'$.data.borro
+    get_json_object(msg_log.original_msg,'$.data.borrower.homeProvince')                                              as resident_province,
+    get_json_object(msg_log.original_msg,'$.data.borrower.homeCity')                                                  as resident_city,
+    get_json_object(msg_log.original_msg,'$.data.borrower.homeArea')                                                  as resident_county,
+    null                                                                                                              as resident_township,
+    case get_json_object(msg_log.original_msg,'$.data.borrower.industry')
+      when 'A' then '农、林、牧、渔业'
+      when 'B' then '采掘业'
+      when 'C' then '制造业'
+      when 'D' then '电力、燃气及水的生产和供应业'
+      when 'E' then '建筑业'
+      when 'F' then '交通运输、仓储和邮政业'
+      when 'G' then '信息传输、计算机服务和软件业'
+      when 'H' then '批发和零售业'
+      when 'I' then '住宿和餐饮业'
+      when 'J' then '金融业'
+      when 'K' then '房地产业'
+      when 'L' then '租赁和商务服务业'
+      when 'M' then '科学研究、技术服务业和地质勘察业'
+      when 'N' then '水利、环境和公共设施管理业'
+      when 'O' then '居民服务和其他服务业'
+      when 'P' then '教育'
+      when 'Q' then '卫生、社会保障和社会福利业'
+      when 'R' then '文化、体育和娱乐业'
+      when 'S' then '公共管理和社会组织'
+      when 'T' then '国际组织'
+      when 'Z' then '未知'
+      else is_empty(get_json_object(msg_log.original_msg,'$.data.borrower.industry'))
+    end                                                                                                               as job_type,
+    0                                                                                                                 as job_year,
+    (
+      is_empty(get_json_object(msg_log.original_msg,'$.data.borrower.annualIncomeMin'),0) +
+      is_empty(get_json_object(msg_log.original_msg,'$.data.borrower.annualIncomeMax'),0)
+    ) / 2 / 12                                                                                                        as income_month,
+    (
+      is_empty(get_json_object(msg_log.original_msg,'$.data.borrower.annualIncomeMin'),0) +
+      is_empty(get_json_object(msg_log.original_msg,'$.data.borrower.annualIncomeMax'),0)
+    ) / 2                                                                                                             as income_year,
+    '个人'                                                                                                            as cutomer_type,
+    null                                                                                                              as cust_rating,
+    get_json_object(msg_log.original_msg,'$.data.product.productNo')                                                  as product_id
+  from (
+    select
+      deal_date                                                                                                        as deal_date,
+      regexp_replace(regexp_replace(regexp_replace(original_msg,'\\\"\\\{','\\\{'),'\\\}\\\"','\\\}'),'\\\\\"','\\\"') as original_msg
+    from stage.ecas_msg_log
+    where 1 > 0
+      and msg_type = 'GZ_CREDIT_APPLY'
+      and original_msg is not null
+      and datefmt(update_time,'ms','yyyy-MM-dd') = '${ST9}'
+  ) as msg_log
+  left join (
+    select
+      get_json_object(original_msg,'$.applyNo')  as apply_no,
+      get_json_object(original_msg,'$.planDate') as issue_time,
+      deal_date                                  as deal_date,
+      get_json_object(original_msg,'$.loanNo')   as due_bill_no
+    from stage.ecas_msg_log
+    where 1 > 0
+      and msg_type = 'GZ_LOAN_RESULT'
+      and original_msg is not null
+  ) as loan_result
+  on get_json_object(msg_log.original_msg,'$.data.applyNo') = loan_result.apply_no
+  left join (
+    select distinct
+      product_id as dim_product_id,
+      channel_id
+    from (
+      select
+        max(if(col_name = 'product_id',  col_val,null)) as product_id,
+        max(if(col_name = 'channel_id',  col_val,null)) as channel_id
+      from dim.data_conf
+      where col_type = 'ac'
+      group by col_id
+    ) as tmp
+  ) as biz_conf
+  on get_json_object(msg_log.original_msg,'$.data.product.productNo') = biz_conf.dim_product_id
+  left join (
+    select distinct
+      idno_addr,
+      idno_area_cn,
+      idno_province_cn,
+      idno_city_cn,
+      idno_county_cn
+    from dim.dim_idno
+  ) as dim_idno
+  on substring(get_json_object(msg_log.original_msg,'$.data.borrower.idNo'),1,6) = dim_idno.idno_addr
+  left join (
+    select distinct
+      idno_area_cn,
+      idno_province_cn
+    from dim.dim_idno
+  ) as dim_idno_province
+  on get_json_object(msg_log.original_msg,'$.data.borrower.homeProvince') = case substring(dim_idno_province.idno_province_cn,1,2) when '黑龙' then '东北地区' when '内蒙' then '华北地区' else substring(dim_idno_province.idno_province_cn,1,2) end
+  union all
+  select customer_info.* from ods.customer_info
+  join (
+    select distinct regexp_replace(regexp_replace(regexp_replace(original_msg,'\\\"\\\{','\\\{'),'\\\}\\\"','\\\}'),'\\\\\"','\\\"') as original_msg
+    from stage.ecas_msg_log
+    where msg_type = 'GZ_CREDIT_APPLY'
+      and original_msg is not null
+  ) as product_id_tbl
+  on customer_info.product_id = get_json_object(product_id_tbl.original_msg,'$.data.product.productNo')
+) as tmp
+-- limit 1
+;
