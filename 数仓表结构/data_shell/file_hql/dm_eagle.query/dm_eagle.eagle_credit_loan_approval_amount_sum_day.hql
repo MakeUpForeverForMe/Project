@@ -1,12 +1,21 @@
-set spark.executor.memory=4g;
-set spark.executor.memoryOverhead=4g;
-set spark.shuffle.memoryFraction=0.6;        -- shuffle操作的内存占比
-set spark.maxRemoteBlockSizeFetchToMem=4G;
-set hive.auto.convert.join=false;            -- 关闭自动 MapJoin
+-- 设置 Container 大小
+set hive.tez.container.size=4096;
+set tez.am.resource.memory.mb=4096;
+-- 合并小文件
+set hive.merge.tezfiles=true;
+set hive.merge.size.per.task=128000000; -- 128M
+set hive.merge.smallfiles.avgsize=128000000; -- 128M
+-- 设置动态分区
 set hive.exec.dynamic.partition=true;
 set hive.exec.dynamic.partition.mode=nonstrict;
 set hive.exec.max.dynamic.partitions=200000;
 set hive.exec.max.dynamic.partitions.pernode=50000;
+-- 禁用 Hive 矢量执行
+set hive.vectorized.execution.enabled=false;
+set hive.vectorized.execution.reduce.enabled=false;
+set hive.vectorized.execution.reduce.groupby.enabled=false;
+
+
 
 
 insert overwrite table dm_eagle.eagle_credit_loan_approval_amount_sum_day partition (biz_date,product_id)
@@ -71,13 +80,28 @@ from (
       max(credit_approval_num_person)                               as credit_approval_num_person,
       max(credit_approval_num_person_count)                         as credit_approval_num_person_count,
       max(credit_approval_amount) / max(credit_approval_num_person) as credit_approval_num_person_num_avg
-    from dw_new.dw_credit_approval_stat_day as t
-    join dim_new.biz_conf
-    on  t.product_id = biz_conf.product_id
-    and t.biz_date = '${ST9}'
-    -- and t.biz_date like '2019%'
-    -- and t.biz_date between '2020-01-01' and '2020-08-31'
-    -- and t.biz_date between '2020-12-18' and '2021-01-02'
+    from (
+      select
+        *
+      from dw.dw_credit_approval_stat_day
+      where 1 > 0
+        -- and biz_date = '${ST9}'
+        ${hive_param_str}
+    ) as credit_approval
+    join (
+      select distinct
+        product_id_vt,
+        product_id
+      from (
+        select
+          max(if(col_name = 'product_id_vt',col_val,null)) as product_id_vt,
+          max(if(col_name = 'product_id',   col_val,null)) as product_id
+        from dim.data_conf
+        where col_type = 'ac'
+        group by col_id
+      ) as tmp
+    ) as biz_conf
+    on  credit_approval.product_id = biz_conf.product_id
     and biz_conf.product_id${vt} is not null
     group by biz_date,biz_conf.product_id${vt}
   ) as today
@@ -90,9 +114,28 @@ from (
       max(credit_approval_amount) / max(credit_approval_num)        as credit_approval_num_num_avg_yestday,
       max(credit_approval_num_person)                               as credit_approval_num_person_yestday,
       max(credit_approval_amount) / max(credit_approval_num_person) as credit_approval_num_person_num_avg_yestday
-    from dw_new.dw_credit_approval_stat_day as t
-    join dim_new.biz_conf
-    on  t.product_id = biz_conf.product_id
+    from (
+      select
+        *
+      from dw.dw_credit_approval_stat_day
+      where 1 > 0
+        -- and biz_date = date_sub('${ST9}',1)
+        ${hive_param_str}
+    ) as credit_approval
+    join (
+      select distinct
+        product_id_vt,
+        product_id
+      from (
+        select
+          max(if(col_name = 'product_id_vt',col_val,null)) as product_id_vt,
+          max(if(col_name = 'product_id',   col_val,null)) as product_id
+        from dim.data_conf
+        where col_type = 'ac'
+        group by col_id
+      ) as tmp
+    ) as biz_conf
+    on  credit_approval.product_id = biz_conf.product_id
     and biz_conf.product_id${vt} is not null
     group by biz_date,biz_conf.product_id${vt}
   ) as yestday
@@ -119,24 +162,39 @@ full join (
     nvl(loan_approval_num_person_num_avg,0)                                                                          as loan_approval_num_person_num_avg
   from (
     select
-      biz_date                                                    as biz_date,
-      biz_conf.product_id${vt}                                    as product_id,
-      loan_terms                                                  as loan_terms,
-      sum(loan_approval_amount)                                   as loan_approval_amount,
-      sum(loan_approval_amount_count)                             as loan_approval_amount_count,
-      sum(loan_approval_num)                                      as loan_approval_num,
-      sum(loan_approval_num_count)                                as loan_approval_num_count,
-      sum(loan_approval_amount) / sum(loan_approval_num)          as loan_approval_num_num_avg,
-      sum(loan_approval_num_person)                               as loan_approval_num_person,
-      sum(loan_approval_num_person_count)                         as loan_approval_num_person_count,
-      sum(loan_approval_amount) / sum(loan_approval_num_person)   as loan_approval_num_person_num_avg
-    from dw_new.dw_loan_approval_stat_day
-    join dim_new.biz_conf
+      biz_date                                                  as biz_date,
+      biz_conf.product_id${vt}                                  as product_id,
+      loan_terms                                                as loan_terms,
+      sum(loan_approval_amount)                                 as loan_approval_amount,
+      sum(loan_approval_amount_count)                           as loan_approval_amount_count,
+      sum(loan_approval_num)                                    as loan_approval_num,
+      sum(loan_approval_num_count)                              as loan_approval_num_count,
+      sum(loan_approval_amount) / sum(loan_approval_num)        as loan_approval_num_num_avg,
+      sum(loan_approval_num_person)                             as loan_approval_num_person,
+      sum(loan_approval_num_person_count)                       as loan_approval_num_person_count,
+      sum(loan_approval_amount) / sum(loan_approval_num_person) as loan_approval_num_person_num_avg
+    from (
+      select
+        *
+      from dw.dw_loan_approval_stat_day
+      where 1 > 0
+        -- and biz_date = '${ST9}'
+        ${hive_param_str}
+    ) as dw_loan_approval_stat_day
+    join (
+      select distinct
+        product_id_vt,
+        product_id
+      from (
+        select
+          max(if(col_name = 'product_id_vt',col_val,null)) as product_id_vt,
+          max(if(col_name = 'product_id',   col_val,null)) as product_id
+        from dim.data_conf
+        where col_type = 'ac'
+        group by col_id
+      ) as tmp
+    ) as biz_conf
     on  dw_loan_approval_stat_day.product_id = biz_conf.product_id
-    and dw_loan_approval_stat_day.biz_date = '${ST9}'
-    -- and dw_loan_approval_stat_day.biz_date like '2019%'
-    -- and dw_loan_approval_stat_day.biz_date between '2020-01-01' and '2020-08-31'
-    -- and dw_loan_approval_stat_day.biz_date between '2020-12-18' and '2021-01-02'
     and biz_conf.product_id${vt} is not null
     group by biz_date,biz_conf.product_id${vt},loan_terms
   ) as today
@@ -150,8 +208,27 @@ full join (
       sum(loan_approval_amount) / sum(loan_approval_num)         as loan_approval_num_num_avg_yestday,
       sum(loan_approval_num_person)                              as loan_approval_num_person_yestday,
       sum(loan_approval_amount) / sum(loan_approval_num_person)  as loan_approval_num_person_num_avg_yestday
-    from dw_new.dw_loan_approval_stat_day
-    join dim_new.biz_conf
+    from (
+      select
+        *
+      from dw.dw_loan_approval_stat_day
+      where 1 > 0
+        -- and biz_date = date_sub('${ST9}',1)
+        ${hive_param_str}
+    ) as dw_loan_approval_stat_day
+    join (
+      select distinct
+        product_id_vt,
+        product_id
+      from (
+        select
+          max(if(col_name = 'product_id_vt',col_val,null)) as product_id_vt,
+          max(if(col_name = 'product_id',   col_val,null)) as product_id
+        from dim.data_conf
+        where col_type = 'ac'
+        group by col_id
+      ) as tmp
+    ) as biz_conf
     on  dw_loan_approval_stat_day.product_id = biz_conf.product_id
     and biz_conf.product_id${vt} is not null
     group by biz_date,biz_conf.product_id${vt},loan_terms
@@ -166,8 +243,24 @@ join (
   select distinct
     capital_id,channel_id,project_id,
     product_id${vt} as dim_product_id
-  from dim_new.biz_conf
-  where (case when product_id = 'pl00282' and '${ST9}' > '2019-02-22' then 0 else 1 end) = 1
+  from (
+    select
+      max(if(col_name = 'capital_id',   col_val,null)) as capital_id,
+      max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
+      max(if(col_name = 'project_id',   col_val,null)) as project_id,
+      max(if(col_name = 'product_id_vt',col_val,null)) as product_id_vt,
+      max(if(col_name = 'product_id',   col_val,null)) as product_id
+    from dim.data_conf
+    where col_type = 'ac'
+    group by col_id
+  ) as tmp
+  where 1 > 0
+    and (
+      case
+        when product_id = 'pl00282' and '${ST9}' > '2019-02-22' then false
+        else true
+      end
+    )
     and product_id${vt} is not null
 ) as biz_conf
 on nvl(credit_product_id,loan_product_id) = dim_product_id

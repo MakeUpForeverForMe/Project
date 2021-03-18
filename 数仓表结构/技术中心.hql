@@ -14264,3 +14264,58 @@ on customer_info.user_hash_no = dim_encrypt.dim_encrypt
 ;
 
 
+
+
+select distinct
+  capital_id,
+  channel_id,
+  project_id,
+  product_id_vt,
+  product_id
+from (
+  select
+    max(if(col_name = 'capital_id',   col_val,null)) as capital_id,
+    max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
+    max(if(col_name = 'project_id',   col_val,null)) as project_id,
+    max(if(col_name = 'product_id_vt',col_val,null)) as product_id_vt,
+    max(if(col_name = 'product_id',   col_val,null)) as product_id
+  from dim.data_conf
+  where col_type = 'ac'
+  group by col_id
+) as tmp
+where product_id_vt is null
+limit 1
+;
+
+
+
+
+select distinct
+  biz_date,
+  product_id
+from dw.dw_credit_approval_stat_day
+where 1 > 0
+  -- and biz_date = '${ST9}'
+  and (
+    case
+      when product_id = 'pl00282' and biz_date > '2019-02-22' then false
+      else true
+    end
+  )
+order by biz_date,product_id
+;
+
+
+
+select distinct
+  biz_date,
+  lead(biz_date) over(partition by product_id,due_bill_no,loan_term order by biz_date) as e_d_date
+from ods.repay_schedule_inter
+;
+
+
+
+select * from stage.asset_t_ods_credit limit 10;
+
+
+select * from stage.asset_t_credit_loan limit 10;

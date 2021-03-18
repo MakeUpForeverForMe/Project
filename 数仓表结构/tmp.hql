@@ -1406,6 +1406,16 @@ from dim.data_conf;
 
 
 
+
+show partitions dw.dw_credit_apply_stat_day partition(product_id = 'pl00282');
+-- alter table dw.dw_credit_apply_stat_day drop if exists partition (product_id = 'pl00282');
+
+
+show partitions dw.dw_loan_apply_stat_day partition(product_id = 'pl00282');
+-- alter table dw.dw_loan_apply_stat_day drop if exists partition (product_id = 'pl00282');
+
+
+
 set hive.execution.engine=mr;
 set mapreduce.map.memory.mb=4096;
 set mapreduce.reduce.memory.mb=4096;
@@ -1423,7 +1433,9 @@ set hivevar:db_suffix=;set hivevar:tb_suffix=_asset;
 -- 乐信代称后
 set hivevar:db_suffix=_cps;set hivevar:tb_suffix=;
 -- 其他数据
-set hivevar:db_suffix=;set hivevar:tb_suffix=;
+set hivevar:db_suffix=;set hivevar:tb_suffix=;set hivevar:vt=_vt;
+
+set hivevar:hive_param_str=;
 
 
 set hivevar:product_id='001801','001802','001803','001804','001901','001902','001903','001904','001905','001906','001907','002001','002002','002003','002004','002005','002006','002007';
@@ -1441,13 +1453,21 @@ set hivevar:ST9=2020-12-01;
 
 
 set hivevar:ST9=2020-10-15;
-set hivevar:hive_param_str=;
+
+
+
+set tez.task.resource.cpu.vcores=1;
+set tez.runtime.pipelined-shuffle.enabled=true;
+set tez.runtime.io.sort.mb=1536;
+set tez.runtime.unordered.output.buffer.size-mb=1024;
 
 
 -- 关闭yarn虚拟内存检查
 set yarn.nodemanager.vmem-check-enabled=false;
 -- 使 Hive 写入时的线程数为 1
 set hive.load.dynamic.partitions.thread=1;
+-- 设置可以使用正则匹配 `(a|b)?+.+`
+set hive.support.quoted.identifiers=None;
 
 
 
@@ -1470,10 +1490,32 @@ set hive.vectorized.execution.reduce.groupby.enabled=false;
 
 
 
-set tez.task.resource.cpu.vcores=1;
-set tez.runtime.pipelined-shuffle.enabled=true;
-set tez.runtime.io.sort.mb=1536;
-set tez.runtime.unordered.output.buffer.size-mb=1024;
+
+
+
+
+
+(
+  select distinct
+    capital_id,
+    channel_id,
+    project_id,
+    product_id_vt,
+    product_id
+  from (
+    select
+      max(if(col_name = 'capital_id',   col_val,null)) as capital_id,
+      max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
+      max(if(col_name = 'project_id',   col_val,null)) as project_id,
+      max(if(col_name = 'product_id_vt',col_val,null)) as product_id_vt,
+      max(if(col_name = 'product_id',   col_val,null)) as product_id
+    from dim.data_conf
+    where col_type = 'ac'
+    group by col_id
+  ) as tmp
+) as biz_conf
+
+
 
 
 
@@ -1871,19 +1913,4 @@ from (
     group by tbl_id
   ) as tbl_param
   on tb.tbl_id = tbl_param.tbl_id
-  join (
-    select
-      tbl_id,
-      pkey_name,
-      pkey_type,
-      pkey_comment,
-      integer_idx
-    from hivemetastore.partition_keys
-  ) as part
-  on tb.tbl_id = part.tbl_id
-) as tmp
-where 1 > 0
-  -- and db_name = 'ods' and tb_name = 'repay_detail'
-  and db_name = 'dim' and tb_name = 'dim_encrypt_info'
-order by db_name,tb_name,col,col_index
-;
+  join 

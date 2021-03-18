@@ -1555,7 +1555,7 @@ LOAD DATA [LOCAL] INPATH 'filepath' [OVERWRITE] INTO TABLE tablename [PARTITION 
 
 
 set hive.support.quoted.identifiers=None;                                          -- 设置后可以在自动中使用正则表达式，选定字段（字段反选）。默认为 column
-select `(id)?+.+` from test_map;                                                   -- 过滤掉 id 字段的其他所有字段
+select `(a|b)?+.+` from test_map;                                                  -- 过滤掉 id 字段的其他所有字段
 
 set hive.groupby.orderby.position.alias=true;                                      -- 设置 Hive 可以使用 group by 1,2,3
 set hive.resultset.use.unique.column.names=false;                                  -- 设置 Hive 查询结果不显示库名
@@ -2026,6 +2026,9 @@ CREATE FUNCTION ptrim               AS 'com.weshare.udf.TrimPlus'               
 CREATE FUNCTION random              AS 'com.weshare.udf.RandomPlus'                     USING JAR '${hdfs_path}';
 
 reload function; -- 多个 HiveServer 之间，需要同步元数据信息
+
+-- 修复分区
+MSCK REPAIR TABLE table_name;
 
 SHOW FUNCTIONS LIKE 'default*';
 DESC FUNCTION EXTENDED is_empty;

@@ -81,7 +81,8 @@ STORED AS PARQUET;
 -- 数据库主键 cust_id
 -- DROP TABLE IF EXISTS `ods.customer_info`;
 CREATE TABLE IF NOT EXISTS `ods.customer_info`(
-  `due_bill_no`                                       string         COMMENT '借据号',
+  `apply_id`                                          string         COMMENT '申请编号',
+  `due_bill_no`                                       string         COMMENT '借据编号',
   `cust_id`                                           string         COMMENT '客户编号',
   `user_hash_no`                                      string         COMMENT '用户编号',
   `outer_cust_id`                                     string         COMMENT '外部客户号',
@@ -376,8 +377,8 @@ PARTITIONED BY (`product_id` string COMMENT '产品编号')
 STORED AS PARQUET;
 
 
--- DROP TABLE IF EXISTS `ods${db_suffix}.loan_info_inter`;
-CREATE TABLE IF NOT EXISTS `ods${db_suffix}.loan_info_inter`(
+-- DROP TABLE IF EXISTS `ods${db_suffix}.loan_info_inter_hdfs`;
+CREATE TABLE IF NOT EXISTS `ods${db_suffix}.loan_info_inter_hdfs`(
   `due_bill_no`                                       string         COMMENT '借据编号',
   `apply_no`                                          string         COMMENT '进件编号',
   `loan_active_date`                                  string         COMMENT '放款日期',
@@ -431,7 +432,11 @@ CREATE TABLE IF NOT EXISTS `ods${db_suffix}.loan_info_inter`(
   `update_time`                                       string         COMMENT '更新时间'
 ) COMMENT '借据信息增量表'
 PARTITIONED BY (`biz_date` string COMMENT '增量日期',`product_id` string COMMENT '产品编号')
-STORED AS PARQUET;
+STORED AS PARQUET
+location '/user/hadoop/warehouse/ods${db_suffix}.db/loan_info_inter'
+TBLPROPERTIES(
+  'dfs.replication' = 2
+);
 
 
 -- 借据表现表（做拉链表）
@@ -502,8 +507,8 @@ STORED AS PARQUET;
 
 
 -- 还款计划增量表
--- DROP TABLE IF EXISTS `ods${db_suffix}.repay_schedule_inter`;
-CREATE TABLE IF NOT EXISTS `ods${db_suffix}.repay_schedule_inter`(
+-- DROP TABLE IF EXISTS `ods${db_suffix}.repay_schedule_inter_hdfs`;
+CREATE TABLE IF NOT EXISTS `ods${db_suffix}.repay_schedule_inter_hdfs`(
   `due_bill_no`                                       string         COMMENT '借据编号',
   `loan_active_date`                                  string         COMMENT '放款日期',
   `loan_init_principal`                               decimal(20,5)  COMMENT '贷款本金',
@@ -547,7 +552,8 @@ CREATE TABLE IF NOT EXISTS `ods${db_suffix}.repay_schedule_inter`(
   `update_time`                                       string         COMMENT '更新时间'
 ) COMMENT '还款计划增量表'
 PARTITIONED BY (`biz_date` string COMMENT '增量日期',`product_id` string COMMENT '产品编号')
-STORED AS PARQUET;
+STORED AS PARQUET
+location '/user/hadoop/warehouse/ods${db_suffix}.db/repay_schedule_inter';
 
 
 -- 还款计划表
@@ -593,7 +599,9 @@ CREATE TABLE IF NOT EXISTS `ods${db_suffix}.repay_schedule`(
   `reduce_mult_amt`                                   decimal(20,5)  COMMENT '减免滞纳金',
   `effective_date`                                    string         COMMENT '生效日期',
   `s_d_date`                                          string         COMMENT '数据生效日期',
-  `e_d_date`                                          string         COMMENT '数据失效日期'
+  `e_d_date`                                          string         COMMENT '数据失效日期',
+  `create_time`                                       string         COMMENT '创建时间',
+  `update_time`                                       string         COMMENT '更新时间'
 ) COMMENT '还款计划表'
 PARTITIONED BY (`is_settled` string COMMENT '是否已结清',`product_id` string COMMENT '产品编号')
 STORED AS PARQUET;
@@ -1933,8 +1941,4 @@ left join (
     package_remain_principal            as package_remain_principal,
     package_remain_periods              as package_remain_periods
   from dim_new.bag_due_bill_no bag_due
-  inner join dim_new.bag_info bag_info
-  on bag_due.bag_id = bag_info.bag_id
-  where bag_info.bag_date between s_d_date and date_sub(e_d_date,1)
-) bag_snapshot
-on cur.serial_number = bag_snapshot.due_bill_no;
+  inn

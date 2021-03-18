@@ -1,12 +1,21 @@
-set spark.executor.memory=4g;
-set spark.executor.memoryOverhead=4g;
-set spark.maxRemoteBlockSizeFetchToMem=4G;
-set hive.auto.convert.join=false;
+-- 设置 Container 大小
+set hive.tez.container.size=4096;
+set tez.am.resource.memory.mb=4096;
+-- 合并小文件
+set hive.merge.tezfiles=true;
+set hive.merge.size.per.task=128000000; -- 128M
+set hive.merge.smallfiles.avgsize=128000000; -- 128M
+-- 设置动态分区
 set hive.exec.dynamic.partition=true;
 set hive.exec.dynamic.partition.mode=nonstrict;
-set hive.exec.max.dynamic.partitions=30000;
-set hive.exec.max.dynamic.partitions.pernode=10000;
- 
+set hive.exec.max.dynamic.partitions=200000;
+set hive.exec.max.dynamic.partitions.pernode=50000;
+-- 禁用 Hive 矢量执行
+set hive.vectorized.execution.enabled=false;
+set hive.vectorized.execution.reduce.enabled=false;
+set hive.vectorized.execution.reduce.groupby.enabled=false;
+
+
 
 insert overwrite table dw.dw_loan_approval_stat_day partition(biz_date,product_id)
 select
@@ -38,6 +47,12 @@ from (
     where 1 > 0
       and apply_status in (1,4)
       and to_date(issue_time) = '${ST9}'
+      and (
+        case
+          when product_id = 'pl00282' and to_date(issue_time) > '2019-02-22' then false
+          else true
+        end
+      )
       ${hive_param_str}
   ) as tmp
   group by product_id,loan_terms
@@ -60,11 +75,4 @@ full join (
     where 1 > 0
       and apply_status in (1,4)
       and to_date(issue_time) <= '${ST9}'
-      ${hive_param_str}
-  ) as tmp
-  group by product_id,loan_terms
-) as ods_count
-on  product_id = product_id_count
-and loan_terms = loan_terms_count
--- limit 10
-;
+      and (

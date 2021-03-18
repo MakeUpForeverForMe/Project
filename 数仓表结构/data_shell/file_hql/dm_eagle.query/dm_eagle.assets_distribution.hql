@@ -1,10 +1,21 @@
+set yarn.app.mapreduce.am.resource.mb=8192;
+set yarn.app.mapreduce.am.command-opts=-Xmx4096m;
+
 set hive.execution.engine=mr;
 set mapreduce.map.memory.mb=8192;
 set mapreduce.reduce.memory.mb=8192;
+set mapreduce.map.java.opts=-Xmx4096m;
+set mapreduce.reduce.java.opts=-Xmx4096m;
+
+-- 设置动态分区
 set hive.exec.dynamici.partition=true;
 set hive.exec.dynamic.partition.mode=nonstrict;
 set hive.exec.max.dynamic.partitions=30000;
 set hive.exec.max.dynamic.partitions.pernode=10000;
+
+
+
+
 
 insert overwrite table dm_eagle.assets_distribution partition(product_id)
 select
@@ -13,7 +24,7 @@ select
   cast(d.project_id as string )                                                  as project_id,
   cast(a.order_id as String)                                                     as bill_no,
   cast(a.order_id as String )                                                    as apply_no,
-  ''                                                                             as credit_id,
+  null                                                                           as credit_id,
   a.order_id                                                                     as use_credit_id,
   cast(c.age as string)                                                          as age,
   case b.sex
@@ -108,7 +119,7 @@ select
 from (
   select
     *
-  from ods_new_s.user_label
+  from ods.user_label
 ) as a
 left join (
   select
@@ -116,7 +127,7 @@ left join (
   from (
     select
       *,row_number() over(partition by user_hash_no,product_id order by user_hash_no desc) as rn
-    from ods_new_s.customer_info
+    from ods.customer_info
     where product_id in ('001801','001802','001901','001902','001903','001904','001905','001906','001907','002001','002002','002003','002004','002005','002006','002007','002401','002402')
   ) as a
   where a.rn = 1
@@ -133,7 +144,7 @@ left join(
     loan_amount_apply,
     loan_terms,
     interest_rate
-  from ods_new_s.loan_apply
+  from ods.loan_apply
   where product_id in ('001801','001802','001901','001902','001903','001904','001905','001906','001907','002001','002002','002003','002004','002005','002006','002007','002401','002402')
 ) as c
 on  a.pro_code = c.product_id

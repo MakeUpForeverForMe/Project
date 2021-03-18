@@ -1,31 +1,44 @@
-set spark.executor.memory=2g;
-set spark.executor.memoryOverhead=512M;
-set hive.auto.convert.join=false;            -- 关闭自动 MapJoin
+-- 设置 Container 大小
+set hive.tez.container.size=4096;
+set tez.am.resource.memory.mb=4096;
+-- 合并小文件
+set hive.merge.tezfiles=true;
+set hive.merge.size.per.task=128000000; -- 128M
+set hive.merge.smallfiles.avgsize=128000000; -- 128M
+-- 设置动态分区
 set hive.exec.dynamic.partition=true;
 set hive.exec.dynamic.partition.mode=nonstrict;
-set hive.exec.max.dynamic.partitions=1000;
-set hive.exec.max.dynamic.partitions.pernode=1000;
- 
-insert overwrite table dw.dw_asset_info_day partition (biz_date='${ST9}',project_id)
+set hive.exec.max.dynamic.partitions=200000;
+set hive.exec.max.dynamic.partitions.pernode=50000;
+-- 禁用 Hive 矢量执行
+set hive.vectorized.execution.enabled=false;
+set hive.vectorized.execution.reduce.enabled=false;
+set hive.vectorized.execution.reduce.groupby.enabled=false;
+
+
+
+
+insert overwrite table dw.dw_asset_info_day partition (biz_date=,project_id)
 select
-    loan.remain_principal                                                    as remain_principal,
-    loan.loan_principal                                                      as loan_sum_daily,
-    totalRp.repay_sum_daily                                                  as repay_sum_daily,
-    totalRp.repay_principal                                                  as repay_principal,
-    totalRp.repay_interest                                                   as repay_interest,
-    totalRp.repay_penalty                                                    as repay_penalty,
-    totalRp.repay_fee                                                        as repay_fee,
-    cust.cust_repay_sum                                                      as cust_repay_sum,
-    cust.cust_repay_principal                                                as cust_repay_principal,
-    cust.cust_repay_interest                                                 as cust_repay_interest,
-    cust.cust_repay_penalty                                                  as cust_repay_penalty,
-    cust.cust_repay_fee                                                      as cust_repay_fee,
-    other.back_repay_sum                                                     as back_repay_sum,
-    other.back_repay_principal                                               as back_repay_principal,
-    other.back_repay_interest                                                as back_repay_interest,
-    other.back_repay_penalty                                                 as back_repay_penalty,
-    other.back_repay_fee                                                     as back_repay_fee,
-    loan.project_id                                                          as project_id
+  loan.remain_principal      as remain_principal,
+  loan.loan_principal        as loan_sum_daily,
+  totalRp.repay_sum_daily    as repay_sum_daily,
+  totalRp.repay_principal    as repay_principal,
+  totalRp.repay_interest     as repay_interest,
+  totalRp.repay_penalty      as repay_penalty,
+  totalRp.repay_fee          as repay_fee,
+  cust.cust_repay_sum        as cust_repay_sum,
+  cust.cust_repay_principal  as cust_repay_principal,
+  cust.cust_repay_interest   as cust_repay_interest,
+  cust.cust_repay_penalty    as cust_repay_penalty,
+  cust.cust_repay_fee        as cust_repay_fee,
+  other.back_repay_sum       as back_repay_sum,
+  other.back_repay_principal as back_repay_principal,
+  other.back_repay_interest  as back_repay_interest,
+  other.back_repay_penalty   as back_repay_penalty,
+  other.back_repay_fee       as back_repay_fee,
+  '${ST9}'                   as biz_date,
+  loan.project_id            as project_id
 from
 (
     select
