@@ -113,4 +113,17 @@ left join ( -- 授信当天，用信 t+0，t+1，t+2，t+3 天的统计
       and to_date(issue_time) between '${ST9}' and date_add('${ST9}',${days})
       and (
         case
-          when product_id = 'pl00282' and to_dat
+          when product_id = 'pl00282' and to_date(issue_time) > '2019-02-22' then false
+          else true
+        end
+      )
+      ${hive_param_str}
+  ) as loan_apply
+  on  credit_apply.product_id = loan_apply.product_id
+  and credit_apply.apply_id   = loan_apply.apply_id
+  group by credit_apply.product_id,credit_apply.credit_approval_date,loan_apply.loan_approval_date
+) as credit_loan
+on  credit_count.product_id = credit_loan.credit_product_id
+and dim_date.biz_date       = credit_loan.loan_approval_date
+-- limit 10
+;

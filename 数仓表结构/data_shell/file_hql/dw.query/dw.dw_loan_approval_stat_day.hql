@@ -76,3 +76,16 @@ full join (
       and apply_status in (1,4)
       and to_date(issue_time) <= '${ST9}'
       and (
+        case
+          when product_id = 'pl00282' and to_date(issue_time) > '2019-02-22' then false
+          else true
+        end
+      )
+      ${hive_param_str}
+  ) as tmp
+  group by product_id,loan_terms
+) as ods_count
+on  product_id = product_id_count
+and loan_terms = loan_terms_count
+-- limit 1
+;

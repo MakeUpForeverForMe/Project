@@ -1443,6 +1443,12 @@ set hivevar:product_id='001801','001802','001803','001804','001901','001902','00
 set hivevar:product_id='001601';
 
 
+set hivevar:ST9=2019-11-27;
+set hivevar:ST9=2019-11-28;
+set hivevar:ST9=2019-11-29;
+set hivevar:ST9=2019-11-30;
+
+
 set hivevar:ST9=2019-10-23;
 set hivevar:ST9=2019-10-25;
 
@@ -1492,7 +1498,16 @@ set hive.vectorized.execution.reduce.groupby.enabled=false;
 
 
 
-
+select distinct product_id
+from (
+  select
+    max(if(col_name = 'channel_id',col_val,null)) as channel_id,
+    max(if(col_name = 'product_id',col_val,null)) as product_id
+  from dim.data_conf
+  where col_type = 'ac'
+  group by col_id
+) as tmp
+where channel_id = '0006'
 
 
 (
@@ -1913,4 +1928,16 @@ from (
     group by tbl_id
   ) as tbl_param
   on tb.tbl_id = tbl_param.tbl_id
-  join 
+  join (
+    select
+      tbl_id,
+      pkey_name,
+      pkey_type,
+      pkey_comment,
+      integer_idx
+    from hivemetastore.partition_keys
+  ) as part
+  on tb.tbl_id = part.tbl_id
+) as tmp
+where 1 > 0
+  -- and db_name = 'ods' and tb_name = 'repay_detail

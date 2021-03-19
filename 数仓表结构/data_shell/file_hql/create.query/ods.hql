@@ -377,8 +377,8 @@ PARTITIONED BY (`product_id` string COMMENT '产品编号')
 STORED AS PARQUET;
 
 
--- DROP TABLE IF EXISTS `ods${db_suffix}.loan_info_inter_hdfs`;
-CREATE TABLE IF NOT EXISTS `ods${db_suffix}.loan_info_inter_hdfs`(
+-- DROP TABLE IF EXISTS `ods${db_suffix}.loan_info_inter`;
+CREATE TABLE IF NOT EXISTS `ods${db_suffix}.loan_info_inter`(
   `due_bill_no`                                       string         COMMENT '借据编号',
   `apply_no`                                          string         COMMENT '进件编号',
   `loan_active_date`                                  string         COMMENT '放款日期',
@@ -433,10 +433,7 @@ CREATE TABLE IF NOT EXISTS `ods${db_suffix}.loan_info_inter_hdfs`(
 ) COMMENT '借据信息增量表'
 PARTITIONED BY (`biz_date` string COMMENT '增量日期',`product_id` string COMMENT '产品编号')
 STORED AS PARQUET
-location '/user/hadoop/warehouse/ods${db_suffix}.db/loan_info_inter'
-TBLPROPERTIES(
-  'dfs.replication' = 2
-);
+location '/user/hadoop/warehouse/ods${db_suffix}.db/loan_info_inter';
 
 
 -- 借据表现表（做拉链表）
@@ -447,16 +444,16 @@ CREATE TABLE IF NOT EXISTS `ods${db_suffix}.loan_info`(
   `due_bill_no`                                       string         COMMENT '借据编号',
   `apply_no`                                          string         COMMENT '进件编号',
   `loan_active_date`                                  string         COMMENT '放款日期',
-  `loan_init_principal`                               decimal(20,5)  COMMENT '贷款本金',
-  `account_age`                                       decimal(3,0)   COMMENT '账龄',
   `loan_init_term`                                    decimal(3,0)   COMMENT '贷款期数（3、6、9等）',
-  `loan_term`                                         decimal(3,0)   COMMENT '当前期数（按应还日算）',
-  `should_repay_date`                                 string         COMMENT '应还日期',
-  `loan_term_repaid`                                  decimal(3,0)   COMMENT '已还期数',
-  `loan_term_remain`                                  decimal(3,0)   COMMENT '剩余期数',
+  `loan_init_principal`                               decimal(20,5)  COMMENT '贷款本金',
   `loan_init_interest`                                decimal(20,5)  COMMENT '贷款利息',
   `loan_init_term_fee`                                decimal(20,5)  COMMENT '贷款手续费',
   `loan_init_svc_fee`                                 decimal(20,5)  COMMENT '贷款服务费',
+  `loan_term`                                         decimal(3,0)   COMMENT '当前期数（按应还日算）',
+  `account_age`                                       decimal(3,0)   COMMENT '账龄',
+  `should_repay_date`                                 string         COMMENT '应还日期',
+  `loan_term_repaid`                                  decimal(3,0)   COMMENT '已还期数',
+  `loan_term_remain`                                  decimal(3,0)   COMMENT '剩余期数',
   `loan_status`                                       string         COMMENT '借据状态（英文原值）（N：正常，O：逾期，F：已还清）',
   `loan_status_cn`                                    string         COMMENT '借据状态（汉语解释）',
   `loan_out_reason`                                   string         COMMENT '借据终止原因（P：提前还款，M：银行业务人员手工终止（manual），D：逾期自动终止（delinquency），R：锁定码终止（Refund），V：持卡人手动终止，C：理赔终止，T：退货终止，U：重组结清终止，F：强制结清终止，B：免息转分期）',
@@ -499,16 +496,16 @@ CREATE TABLE IF NOT EXISTS `ods${db_suffix}.loan_info`(
   `overdue_principal_max`                             decimal(20,5)  COMMENT '历史最大逾期本金',
   `s_d_date`                                          string         COMMENT 'ods层起始日期',
   `e_d_date`                                          string         COMMENT 'ods层结束日期',
-  `effective_time`                                    timestamp      COMMENT '生效日期',
-  `expire_time`                                       timestamp      COMMENT '失效日期'
+  `create_time`                                       string         COMMENT '创建时间',
+  `update_time`                                       string         COMMENT '更新时间'
 ) COMMENT '借据信息表'
 PARTITIONED BY (`is_settled` string COMMENT '是否已结清',`product_id` string COMMENT '产品编号')
 STORED AS PARQUET;
 
 
 -- 还款计划增量表
--- DROP TABLE IF EXISTS `ods${db_suffix}.repay_schedule_inter_hdfs`;
-CREATE TABLE IF NOT EXISTS `ods${db_suffix}.repay_schedule_inter_hdfs`(
+-- DROP TABLE IF EXISTS `ods${db_suffix}.repay_schedule_inter`;
+CREATE TABLE IF NOT EXISTS `ods${db_suffix}.repay_schedule_inter`(
   `due_bill_no`                                       string         COMMENT '借据编号',
   `loan_active_date`                                  string         COMMENT '放款日期',
   `loan_init_principal`                               decimal(20,5)  COMMENT '贷款本金',
@@ -1941,4 +1938,9 @@ left join (
     package_remain_principal            as package_remain_principal,
     package_remain_periods              as package_remain_periods
   from dim_new.bag_due_bill_no bag_due
-  inn
+  inner join dim_new.bag_info bag_info
+  on bag_due.bag_id = bag_info.bag_id
+  where bag_info.bag_date between s_d_date and date_sub(e_d_date,1)
+) bag_snapshot
+on cur.serial_number = bag_snapshot.due_bill_no;
+                                                                                      

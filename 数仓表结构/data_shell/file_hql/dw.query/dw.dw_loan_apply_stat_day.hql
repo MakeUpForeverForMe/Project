@@ -53,3 +53,11 @@ from (
     )
     ${hive_param_str}
 ) as loan_apply
+group by
+  loan_terms,
+  loan_apply_date,
+  loan_approval_date,
+  product_id
+-- order by product_id,loan_apply_date
+-- limit 5
+;

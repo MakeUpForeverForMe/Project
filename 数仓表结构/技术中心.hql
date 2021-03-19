@@ -14319,3 +14319,205 @@ select * from stage.asset_t_ods_credit limit 10;
 
 
 select * from stage.asset_t_credit_loan limit 10;
+
+
+
+
+
+MSCK REPAIR TABLE ods.loan_info_inter_hdfs;
+MSCK REPAIR TABLE ods.repay_schedule_inter_hdfs;
+
+
+
+ALTER TABLE ods.loan_info_inter_hdfs SET TBLPROPERTIES('dfs.replication' = '2');
+ALTER TABLE ods.repay_schedule_inter_hdfs SET TBLPROPERTIES('dfs.replication' = '2');
+
+
+
+
+ALTER TABLE ods${db_suffix}.loan_info_inter SET TBLPROPERTIES('EXTERNAL'='true');
+
+
+
+
+insert overwrite table ods.loan_info_inter_hdfs partition(biz_date,product_id)
+select * from ods.loan_info_inter_hdfs;
+
+
+insert overwrite table ods.repay_schedule_inter_hdfs partition(biz_date,product_id)
+select * from ods.repay_schedule_inter_hdfs;
+
+
+
+select
+  `(biz_date|product_id)?+.+`,
+  biz_date as s_d_date,
+  lead(biz_date) over(partition by product_id,due_bill_no,loan_term order by biz_date) as e_d_date,
+  product_id
+from ods.repay_schedule_inter
+where 1 > 0
+  and due_bill_no = '1120060215213608230275'
+  and product_id in (
+    -- 'DIDI201908161538',
+
+    -- '001601',
+    -- '001602',
+    -- '001603',
+    -- '002201',
+    -- '002202',
+    -- '002203',
+
+    -- '001801',
+    '001802',
+    -- '001901',
+    '001902',
+    '001906',
+    -- '002001',
+    '002002',
+    '002006',
+    '002401',
+    '002402',
+
+    -- '001701',
+    -- '001702',
+    ''
+  )
+order by loan_term,s_d_date
+-- limit 10
+;
+
+
+
+select
+  due_bill_no,
+  apply_no,
+  loan_active_date,
+  loan_init_term,
+  loan_init_principal,
+  loan_init_interest,
+  loan_init_term_fee,
+  loan_init_svc_fee,
+  max(loan_term)         over(partition by due_bill_no order by biz_date) as loan_term,
+  account_age                                                             as account_age,
+  max(should_repay_date) over(partition by due_bill_no order by biz_date) as should_repay_date,
+  loan_term_repaid,
+  loan_term_remain,
+  loan_status,
+  loan_status_cn,
+  loan_out_reason,
+  paid_out_type,
+  paid_out_type_cn,
+  paid_out_date,
+  terminal_date,
+  paid_amount,
+  paid_principal,
+  paid_interest,
+  paid_penalty,
+  paid_svc_fee,
+  paid_term_fee,
+  paid_mult,
+  remain_amount,
+  remain_principal,
+  remain_interest,
+  remain_svc_fee,
+  remain_term_fee,
+  remain_othAmounts,
+  overdue_principal,
+  overdue_interest,
+  overdue_svc_fee,
+  overdue_term_fee,
+  overdue_penalty,
+  overdue_mult_amt,
+  min(overdue_date_start) over(partition by due_bill_no order by biz_date) as overdue_date_first,
+  overdue_date_start,
+  overdue_days,
+  overdue_date,
+  overdue_date_start as dpd_begin_date,
+  overdue_days as dpd_days,
+  0 as dpd_days_count,
+  max(overdue_days) over(partition by due_bill_no order by biz_date) as dpd_days_max,
+  collect_out_date as collect_out_date,
+  overdue_term,
+  count(distinct if(overdue_days > 0,overdue_term,null)) over(partition by due_bill_no order by biz_date)    as overdue_terms_count,
+  max(overdue_terms_max)                                 over(partition by due_bill_no order by biz_date)    as overdue_terms_max,
+  nvl(sum(distinct overdue_principal)                    over(partition by due_bill_no order by biz_date),0) as overdue_principal_accumulate,
+  nvl(max(overdue_principal)                             over(partition by due_bill_no order by biz_date),0) as overdue_principal_max,
+  biz_date as s_d_date,
+  nvl(lead(biz_date) over(partition by product_id,due_bill_no,loan_term order by biz_date),'3000-12-31') as e_d_date,
+  create_time,
+  update_time,
+  product_id
+from ods.loan_info_inter
+where 1 > 0
+  and product_id in (
+    'DIDI201908161538',
+
+    '001601',
+    '001602',
+    '001603',
+    '002201',
+    '002202',
+    '002203',
+
+    -- '001801',
+    '001802',
+    -- '001901',
+    '001902',
+    '001906',
+    -- '002001',
+    '002002',
+    '002006',
+    '002401',
+    '002402',
+
+    '001701',
+    '001702',
+    ''
+  )
+limit 10
+;
+
+
+
+  select
+    due_bill_no,
+    overdue_date_start,
+    cast(max(overdue_days) as string)  as dpd_days_count
+  from ods.loan_info_inter
+  where 1 > 0
+    and biz_date <= '2021-03-17'
+    -- and s_d_date <= '2020-07-13'
+    -- and due_bill_no = '1000000465'
+    -- and overdue_date_start is not null
+    and due_bill_no = '1120062009364346847397'
+  group by due_bill_no,overdue_date_start
+;
+
+
+
+
+select
+  due_bill_no,
+  sum(dpd_days_count) over(partition by due_bill_no) as dpd_days_count
+from (
+  select
+    due_bill_no,
+    overdue_date_start,
+    biz_date,
+    max(overdue_days) over(partition by due_bill_no,overdue_date_start order by biz_date) as dpd_days_count
+  from ods.loan_info_inter
+  where 1 > 0
+    and product_id = '001802'
+    and due_bill_no = '1120062009364346847397'
+  -- order by biz_date
+) as tmp
+;
+
+
+
+select
+  due_bill_no,
+  product_id
+from ods.loan_info_inter
+where 1 > 0
+  and product_id = '0018

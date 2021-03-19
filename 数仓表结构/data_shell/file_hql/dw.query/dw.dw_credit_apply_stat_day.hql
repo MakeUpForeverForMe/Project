@@ -45,4 +45,14 @@ from (
     and (
       case
         when product_id = 'pl00282' and biz_date > '2019-02-22' then false
-        else tru
+        else true
+      end
+    )
+    ${hive_param_str}
+) as credit_apply
+group by
+  credit_approval_date,
+  biz_date,
+  product_id
+-- limit 10
+;
