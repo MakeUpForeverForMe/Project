@@ -23,10 +23,10 @@ select
   today.apply_no                                      as apply_no,
   today.loan_active_date                              as loan_active_date,
   today.loan_init_term                                as loan_init_term,
-  today.loan_init_principal                           as loan_init_principal,
-  today.loan_init_interest                            as loan_init_interest,
-  today.loan_init_term_fee                            as loan_init_term_fee,
-  today.loan_init_svc_fee                             as loan_init_svc_fee,
+  nvl(today.loan_init_principal,0)                    as loan_init_principal,
+  nvl(today.loan_init_interest,0)                     as loan_init_interest,
+  nvl(today.loan_init_term_fee,0)                     as loan_init_term_fee,
+  nvl(today.loan_init_svc_fee,0)                      as loan_init_svc_fee,
   today.loan_term                                     as loan_term,
   today.loan_term                                     as account_age,
   today.should_repay_date                             as should_repay_date,
@@ -39,25 +39,25 @@ select
   today.paid_out_type_cn                              as paid_out_type_cn,
   today.paid_out_date                                 as paid_out_date,
   today.terminal_date                                 as terminal_date,
-  today.paid_amount                                   as paid_amount,
-  today.paid_principal                                as paid_principal,
-  today.paid_interest                                 as paid_interest,
-  today.paid_penalty                                  as paid_penalty,
-  today.paid_svc_fee                                  as paid_svc_fee,
-  today.paid_term_fee                                 as paid_term_fee,
-  today.paid_mult                                     as paid_mult,
-  today.remain_amount                                 as remain_amount,
-  today.remain_principal                              as remain_principal,
-  today.remain_interest                               as remain_interest,
-  today.remain_svc_fee                                as remain_svc_fee,
-  today.remain_term_fee                               as remain_term_fee,
+  nvl(today.paid_amount,0)                            as paid_amount,
+  nvl(today.paid_principal,0)                         as paid_principal,
+  nvl(today.paid_interest,0)                          as paid_interest,
+  nvl(today.paid_penalty,0)                           as paid_penalty,
+  nvl(today.paid_svc_fee,0)                           as paid_svc_fee,
+  nvl(today.paid_term_fee,0)                          as paid_term_fee,
+  nvl(today.paid_mult,0)                              as paid_mult,
+  nvl(today.remain_amount,0)                          as remain_amount,
+  nvl(today.remain_principal,0)                       as remain_principal,
+  nvl(today.remain_interest,0)                        as remain_interest,
+  nvl(today.remain_svc_fee,0)                         as remain_svc_fee,
+  nvl(today.remain_term_fee,0)                        as remain_term_fee,
   0                                                   as remain_othAmounts,
-  today.overdue_principal                             as overdue_principal,
-  today.overdue_interest                              as overdue_interest,
-  today.overdue_svc_fee                               as overdue_svc_fee,
-  today.overdue_term_fee                              as overdue_term_fee,
-  today.overdue_penalty                               as overdue_penalty,
-  today.overdue_mult_amt                              as overdue_mult_amt,
+  nvl(today.overdue_principal,0)                      as overdue_principal,
+  nvl(today.overdue_interest,0)                       as overdue_interest,
+  nvl(today.overdue_svc_fee,0)                        as overdue_svc_fee,
+  nvl(today.overdue_term_fee,0)                       as overdue_term_fee,
+  nvl(today.overdue_penalty,0)                        as overdue_penalty,
+  nvl(today.overdue_mult_amt,0)                       as overdue_mult_amt,
   today.overdue_date                                  as overdue_date_start,
   today.overdue_days                                  as overdue_days,
   date_add(today.overdue_date,today.overdue_days - 1) as overdue_date,
@@ -79,10 +79,11 @@ from (
     ecas_loan.apply_no,
     ecas_loan.loan_active_date,
     ecas_loan.loan_init_term,
-    case  when ecas_loan.paid_out_date = ecas_loan.loan_active_date then 1
-          when ecas_loan.paid_out_date is null                      then repay_schedule.loan_term2
-          when '${ST9}' <= ecas_loan.paid_out_date                  then repay_schedule.loan_term2
-          else null
+    case
+      when ecas_loan.paid_out_date = ecas_loan.loan_active_date then 1
+      when ecas_loan.paid_out_date is null                      then repay_schedule.loan_term2
+      when '${ST9}' <= ecas_loan.paid_out_date                  then repay_schedule.loan_term2
+      else null
     end as loan_term,
     if(
       (ecas_loan.paid_out_date = ecas_loan.loan_active_date and ecas_loan.loan_term = 1) or ecas_loan.paid_out_date is null or '${ST9}' <= ecas_loan.paid_out_date,
@@ -459,10 +460,11 @@ left join (
     ecas_loan.apply_no,
     ecas_loan.loan_active_date,
     ecas_loan.loan_init_term,
-    case  when ecas_loan.paid_out_date = ecas_loan.loan_active_date then 1
-          when ecas_loan.paid_out_date is null                      then repay_schedule.loan_term2
-          when '${ST9}' <= ecas_loan.paid_out_date                  then repay_schedule.loan_term2
-          else null
+    case
+      when ecas_loan.paid_out_date = ecas_loan.loan_active_date then 1
+      when ecas_loan.paid_out_date is null                      then repay_schedule.loan_term2
+      when '${ST9}' <= ecas_loan.paid_out_date                  then repay_schedule.loan_term2
+      else null
     end as loan_term,
     if(
       (ecas_loan.paid_out_date = ecas_loan.loan_active_date and ecas_loan.loan_term = 1) or ecas_loan.paid_out_date is null or '${ST9}' <= ecas_loan.paid_out_date,
@@ -701,21 +703,21 @@ and is_empty(today.loan_out_reason        ,'a') = is_empty(yesterday.loan_out_re
 and is_empty(today.paid_out_type          ,'a') = is_empty(yesterday.paid_out_type          ,'a')
 and is_empty(today.paid_out_date          ,'a') = is_empty(yesterday.paid_out_date          ,'a')
 and is_empty(today.terminal_date          ,'a') = is_empty(yesterday.terminal_date          ,'a')
-and is_empty(today.loan_init_principal    ,'a') = is_empty(yesterday.loan_init_principal    ,'a')
-and is_empty(today.loan_init_interest_rate,'a') = is_empty(yesterday.loan_init_interest_rate,'a')
-and is_empty(today.loan_init_interest     ,'a') = is_empty(yesterday.loan_init_interest     ,'a')
-and is_empty(today.loan_init_term_fee_rate,'a') = is_empty(yesterday.loan_init_term_fee_rate,'a')
-and is_empty(today.loan_init_term_fee     ,'a') = is_empty(yesterday.loan_init_term_fee     ,'a')
-and is_empty(today.loan_init_svc_fee_rate ,'a') = is_empty(yesterday.loan_init_svc_fee_rate ,'a')
-and is_empty(today.loan_init_svc_fee      ,'a') = is_empty(yesterday.loan_init_svc_fee      ,'a')
-and is_empty(today.loan_init_penalty_rate ,'a') = is_empty(yesterday.loan_init_penalty_rate ,'a')
-and is_empty(today.paid_principal         ,'a') = is_empty(yesterday.paid_principal         ,'a')
-and is_empty(today.overdue_principal      ,'a') = is_empty(yesterday.overdue_principal      ,'a')
-and is_empty(today.overdue_interest       ,'a') = is_empty(yesterday.overdue_interest       ,'a')
-and is_empty(today.overdue_svc_fee        ,'a') = is_empty(yesterday.overdue_svc_fee        ,'a')
-and is_empty(today.overdue_term_fee       ,'a') = is_empty(yesterday.overdue_term_fee       ,'a')
-and is_empty(today.overdue_penalty        ,'a') = is_empty(yesterday.overdue_penalty        ,'a')
-and is_empty(today.overdue_mult_amt       ,'a') = is_empty(yesterday.overdue_mult_amt       ,'a')
+and is_empty(today.loan_init_principal    ,  0) = is_empty(yesterday.loan_init_principal    ,  0)
+and is_empty(today.loan_init_interest_rate,  0) = is_empty(yesterday.loan_init_interest_rate,  0)
+and is_empty(today.loan_init_interest     ,  0) = is_empty(yesterday.loan_init_interest     ,  0)
+and is_empty(today.loan_init_term_fee_rate,  0) = is_empty(yesterday.loan_init_term_fee_rate,  0)
+and is_empty(today.loan_init_term_fee     ,  0) = is_empty(yesterday.loan_init_term_fee     ,  0)
+and is_empty(today.loan_init_svc_fee_rate ,  0) = is_empty(yesterday.loan_init_svc_fee_rate ,  0)
+and is_empty(today.loan_init_svc_fee      ,  0) = is_empty(yesterday.loan_init_svc_fee      ,  0)
+and is_empty(today.loan_init_penalty_rate ,  0) = is_empty(yesterday.loan_init_penalty_rate ,  0)
+and is_empty(today.paid_principal         ,  0) = is_empty(yesterday.paid_principal         ,  0)
+and is_empty(today.overdue_principal      ,  0) = is_empty(yesterday.overdue_principal      ,  0)
+and is_empty(today.overdue_interest       ,  0) = is_empty(yesterday.overdue_interest       ,  0)
+and is_empty(today.overdue_svc_fee        ,  0) = is_empty(yesterday.overdue_svc_fee        ,  0)
+and is_empty(today.overdue_term_fee       ,  0) = is_empty(yesterday.overdue_term_fee       ,  0)
+and is_empty(today.overdue_penalty        ,  0) = is_empty(yesterday.overdue_penalty        ,  0)
+and is_empty(today.overdue_mult_amt       ,  0) = is_empty(yesterday.overdue_mult_amt       ,  0)
 and is_empty(today.overdue_date           ,'a') = is_empty(yesterday.overdue_date           ,'a')
 and is_empty(today.overdue_days           ,'a') = is_empty(yesterday.overdue_days           ,'a')
 where yesterday.due_bill_no is null

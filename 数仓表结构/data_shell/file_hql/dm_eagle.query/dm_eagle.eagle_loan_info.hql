@@ -99,13 +99,15 @@ from (
   select `(s_d_date|e_d_date|effective_time|expire_time|is_settled)?+.+`
   from ods_new_s${db_suffix}.loan_info
   where 1 > 0
-    and '${ST9}' between s_d_date and date_sub(e_d_date,1)  ${hive_param_str}
+    and '${ST9}' between s_d_date and date_sub(e_d_date,1)
+    ${hive_param_str}
 ) as loan_info
 left join (
   select *
   from ods_new_s${db_suffix}.loan_lending
   where 1 > 0
-    and biz_date <= date_add('${ST9}',3)   ${hive_param_str}
+    and biz_date <= date_add('${ST9}',3)
+    ${hive_param_str}
 ) as loan_lending
 on loan_info.due_bill_no = loan_lending.due_bill_no
 left join (
@@ -117,7 +119,8 @@ left join (
     product_id
   from ods_new_s.loan_apply
   where 1 > 0
-    and biz_date <= date_add('${ST9}',5)   ${hive_param_str}
+    and biz_date <= date_add('${ST9}',5)
+    ${hive_param_str}
 ) as loan_apply
 on  loan_info.product_id  = loan_apply.product_id
 and loan_info.due_bill_no = loan_apply.due_bill_no
@@ -131,7 +134,8 @@ left join (
       cast(max(overdue_days) as string) as dpd_days_count
     from ods_new_s${db_suffix}.loan_info
     where 1 > 0
-      and s_d_date <= '${ST9}'  ${hive_param_str}
+      and s_d_date <= '${ST9}'
+      ${hive_param_str}
       -- and s_d_date <= '2020-07-13'
       -- and due_bill_no = '1000000465'
       -- and due_bill_no = '1120062009364346847397'
@@ -148,7 +152,8 @@ left join (
     sum(if(schedule_status = 'O',1,0))           as over_count
   from ods_new_s${db_suffix}.repay_schedule
   where 1 > 0
-    and s_d_date <= '${ST9}' and '${ST9}' < e_d_date  ${hive_param_str}
+    and s_d_date <= '${ST9}' and '${ST9}' < e_d_date
+    ${hive_param_str}
   group by due_bill_no
 ) as repay_schedule
 on loan_info.due_bill_no = repay_schedule.due_bill_no

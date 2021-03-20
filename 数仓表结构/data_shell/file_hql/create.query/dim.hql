@@ -153,8 +153,7 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `dim.dim_idno`(
   `idno_county_cn`                string         COMMENT '身份证县级（解释）（区县）'
 ) COMMENT '身份证地区'
 STORED AS PARQUET
-location 'cosn://bigdata-center-prod-1253824322/user/hadoop/warehouse/dim.db/dim_idno'
-;
+location 'cosn://bigdata-center-prod-1253824322/user/hadoop/warehouse/dim.db/dim_idno';
 
 
 -- 加密信息表
@@ -165,8 +164,7 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `dim.dim_encrypt_info`(
   `dim_decrypt`                   string         COMMENT '明文字段'
 ) COMMENT '加密信息表'
 STORED AS PARQUET
-location 'cosn://bigdata-center-prod-1253824322/user/hadoop/warehouse/dim.db/dim_encrypt_info'
-;
+location 'cosn://bigdata-center-prod-1253824322/user/hadoop/warehouse/dim.db/dim_encrypt_info';
 
 
 -- 日期维度表
@@ -176,44 +174,6 @@ CREATE TABLE IF NOT EXISTS `dim.dim_date`(
 ) COMMENT '日期维度表'
 STORED AS TEXTFILE;
 
-
--- 投资人信息表
--- DROP TABLE IF EXISTS `dim.dim_investor_info`;
-CREATE EXTERNAL TABLE IF NOT EXISTS `dim.dim_investor_info`(
-  `capital_id`                    string         COMMENT '资金方编号',
-  `capital_name`                  string         COMMENT '资金方名称',
-  `project_id`                    string         COMMENT '项目编号',
-  `project_name`                  string         COMMENT '项目名称',
-  `investor_id`                   string         COMMENT '投资人编号',
-  `investor_name`                 string         COMMENT '投资人名称',
-  `investment_funds`              decimal(20,5)  COMMENT '投资资金（元）',
-  `investment_start_date`         string         COMMENT '投资起始日期',
-  `investment_maturity_date`      string         COMMENT '投资到期日期',
-  `annualized_days`               string         COMMENT '年化天数（天）',
-  `coupon_rate`                   decimal(25,10) COMMENT '收益率（%）',
-  `Share_type`                    string         COMMENT '份额类型',
-  `Share_proportion`              decimal(25,10) COMMENT '份额占比（%）',
-  `coupon_formula`                decimal(3,0)   COMMENT '收益公式',
-  `coupon_formula_effective_date` string         COMMENT '收益公式生效日期',
-  `coupon_formula_expire_date`    string         COMMENT '收益公式失效日期',
-  `int_calc_rules`                string         COMMENT '计息规则'
-) COMMENT '投资人信息表'
-ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
-STORED AS TEXTFILE
-location 'cosn://bigdata-center-prod-1253824322/user/hadoop/warehouse/dim.db/dim_investor_info'
-;
-
-
--- 车辆品牌
--- DROP TABLE IF EXISTS `dim.dim_car_brand`;
-CREATE EXTERNAL TABLE IF NOT EXISTS `dim.dim_car_brand`(
-  `car_brand`                     string         COMMENT '车辆品牌（英语）',
-  `car_brand_cn`                  string         COMMENT '车辆品牌（汉语）'
-) COMMENT '车辆品牌'
-ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.JsonSerDe'
-STORED AS TEXTFILE
-location 'cosn://bigdata-center-prod-1253824322/user/hadoop/warehouse/dim.db/dim_car_brand'
-;
 
 
 
@@ -293,8 +253,8 @@ CREATE TABLE IF NOT EXISTS `dim.project_info`(
   `asset_pool_type`               string         COMMENT '资产池类型',
   `public_offer`                  string         COMMENT '公募名称',
   `data_source`                   string         COMMENT '数据来源',
-  `CREATE_user`                   string         COMMENT '创建人',
-  `CREATE_time`                   string         COMMENT '创建时间',
+  `create_user`                   string         COMMENT '创建人',
+  `create_time`                   string         COMMENT '创建时间',
   `update_time`                   string         COMMENT '更新时间'
 ) COMMENT '项目属性'
 PARTITIONED BY (`project_id` string COMMENT '项目编号')
@@ -308,7 +268,8 @@ CREATE TABLE IF NOT EXISTS `dim.project_due_bill_no`(
   `due_bill_no`                   string         COMMENT '借据编号',
   `related_project_id`            string         COMMENT '债转前项目编号',
   `related_date`                  string         COMMENT '债转发生日期',
-  `partition_id`                  string         COMMENT '数据分区编号'
+  `partition_id`                  string         COMMENT '数据分区编号',
+  `import_id`                     string         COMMENT '导入Id'
 ) COMMENT '项目借据映射'
 PARTITIONED BY (`project_id` string COMMENT '项目编号')
 ROW FORMAT DELIMITED FIELDS TERMINATED BY ','
@@ -327,8 +288,7 @@ CREATE TABLE IF NOT EXISTS `dim.bag_info`(
 ) COMMENT '包属性'
 PARTITIONED BY (`bag_id` string COMMENT '包编号')
 ROW FORMAT DELIMITED FIELDS TERMINATED BY ','
-STORED AS TEXTFILE
-;
+STORED AS TEXTFILE;
 
 
 -- 包借据映射
@@ -340,8 +300,7 @@ CREATE TABLE IF NOT EXISTS `dim.bag_due_bill_no`(
 ) COMMENT '包借据映射'
 PARTITIONED BY (`bag_id` string COMMENT '包编号')
 ROW FORMAT DELIMITED FIELDS TERMINATED BY ','
-STORED AS TEXTFILE
-;
+STORED AS TEXTFILE;
 
 
 
@@ -487,3 +446,141 @@ TBLPROPERTIES (
   "hive.sql.table"          = "PARTITION_KEYS",
   "hive.sql.dbcp.maxActive" = "1"
 );
+
+
+
+
+
+select
+  db_name,
+  db_desc,
+  tb_type,
+  tb_name,
+  tb_comm,
+  col_name,
+  col_type,
+  col_comm,
+  col_index,
+  col
+from (
+  select
+    db.name           as db_name,
+    db.desc           as db_desc,
+    tb.tbl_type       as tb_type,
+    tb.tbl_name       as tb_name,
+    tbl_param.comment as tb_comm,
+    col.column_name   as col_name,
+    col.type_name     as col_type,
+    col.comment       as col_comm,
+    col.integer_idx   as col_index,
+    '0'               as col
+  from (
+    select
+      db_id,
+      name,
+      desc
+    from hivemetastore.dbs
+    where name in (
+      'dim',
+      'stage',
+      'ods',     'ods_cps',
+      'dw',      'dw_cps',
+      'dm_eagle','dm_eagle_cps',
+      ''
+    )
+  ) as db
+  join (
+    select
+      db_id,
+      tbl_id,
+      sd_id,
+      tbl_name,
+      tbl_type
+    from hivemetastore.tbls
+  ) as tb
+  on db.db_id = tb.db_id
+  left join (
+    select
+      tbl_id,
+      max(if(param_key = 'comment',param_value,null)) as comment
+    from hivemetastore.table_params
+    group by tbl_id
+  ) as tbl_param
+  on tb.tbl_id = tbl_param.tbl_id
+  left join (
+    select
+      sd_id,
+      cd_id
+    from hivemetastore.sds
+  ) as sds
+  on tb.sd_id = sds.sd_id
+  left join (
+    select
+      cd_id,
+      column_name,
+      type_name,
+      comment,
+      integer_idx
+    from hivemetastore.columns_v2
+  ) as col
+  on sds.cd_id = col.cd_id
+  union all
+  select
+    db.name           as db_name,
+    db.desc           as db_desc,
+    tb.tbl_type       as tb_type,
+    tb.tbl_name       as tb_name,
+    tbl_param.comment as tb_comm,
+    part.pkey_name    as col_name,
+    part.pkey_type    as col_type,
+    part.pkey_comment as col_comm,
+    part.integer_idx  as col_index,
+    '1'               as col
+  from (
+    select
+      db_id,
+      name,
+      desc
+    from hivemetastore.dbs
+    where name in (
+      'dim',
+      'stage',
+      'ods',     'ods_cps',
+      'dw',      'dw_cps',
+      'dm_eagle','dm_eagle_cps',
+      ''
+    )
+  ) as db
+  join (
+    select
+      db_id,
+      tbl_id,
+      sd_id,
+      tbl_name,
+      tbl_type
+    from hivemetastore.tbls
+  ) as tb
+  on db.db_id = tb.db_id
+  left join (
+    select
+      tbl_id,
+      max(if(param_key = 'comment',param_value,null)) as comment
+    from hivemetastore.table_params
+    group by tbl_id
+  ) as tbl_param
+  on tb.tbl_id = tbl_param.tbl_id
+  join (
+    select
+      tbl_id,
+      pkey_name,
+      pkey_type,
+      pkey_comment,
+      integer_idx
+    from hivemetastore.partition_keys
+  ) as part
+  on tb.tbl_id = part.tbl_id
+) as tmp
+where 1 > 0
+  -- and db_name = 'ods' and tb_name = 'repay_detail'
+  and db_name = 'dim' and tb_name = 'dim_encrypt_info'
+order by db_name,tb_name,col,col_index;

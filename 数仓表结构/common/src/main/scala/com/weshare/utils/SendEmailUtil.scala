@@ -18,8 +18,9 @@ object SendEmailUtil {
   var pro:Properties= new  Properties();
   var transport:Transport=_;
 
-  def initEmailSession(spark:SparkSession, configPath:String) ={
-    val inputSteam = FileSystem.get(spark.sparkContext.hadoopConfiguration).open(new Path(configPath))
+  def initEmailSession(configPath:String,hdfs_master:String,isHa:Int) ={
+    val conf = HdfsUtils.initConfiguration(hdfs_master,isHa)
+    val inputSteam = FileSystem.get(conf).open(new Path(configPath))
     pro.load(inputSteam)
     inputSteam.close()
     session = Session.getInstance(pro)

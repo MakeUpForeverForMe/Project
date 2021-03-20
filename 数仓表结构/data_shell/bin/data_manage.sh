@@ -40,7 +40,7 @@ execute_hql(){
         \n    内容为：
               \n$(cat ${manage_param:-/dev/null})
         \n报错内容为：
-              \n$(grep -niwPo '.*[10.]*> \K[^No][\w/].*|.*err.*|.*erro.*|.*error.*|.*Caused by.*|.*No such file or directory.*' $manage_log | grep -Eiw 'err|erro|error|.*/.*|.*No such file or directory.*' | tail -n 10)
+              \n$(tail -n 10000 | grep -niwPo '.*[10.]*> \K[^No][\w/].*|.*err.*|.*erro.*|.*error.*|.*Caused by.*|.*No such file or directory.*' $manage_log | grep -Eiw 'err|erro|error|.*/.*|.*No such file or directory.*' | tail -n 10)
       " | sed '/^\s*$/d')"
     }
     ((++n))

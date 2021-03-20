@@ -16,4 +16,24 @@ def propertiesLoad(spark:SparkSession,config_path:String): Properties ={
   inputSteam.close()
   pro
 }
+
+  /**
+   * 在项目环境下加载配置文件
+   * @param `type`
+   * @return
+   */
+  def propertiesLoad(`type`:String): Properties ={
+    val pro =new Properties()
+    `type` match {
+      case "PRO" =>
+        pro.load(this.getClass.getClassLoader.getResourceAsStream("pro_properties.properties"))
+      case "EMR"=>
+        pro.load(this.getClass.getClassLoader.getResourceAsStream("emr_properties.properties"))
+      case "TEST"=>
+        pro.load(this.getClass.getClassLoader.getResourceAsStream("test_properties.properties"))
+    }
+    pro
+  }
+
+
 }

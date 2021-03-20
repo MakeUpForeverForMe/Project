@@ -21,4 +21,8 @@ public class DateFormat extends UDF {
     public String evaluate(String string, String fromFmt, String toFmt) throws ParseException {
         return DateUtil.getDate(string, fromFmt, toFmt);
     }
+
+//    public String evaluate(String string, String toFmt) throws ParseException {
+//        return DateUtil.getDate(string, toFmt);
+//    }
 }

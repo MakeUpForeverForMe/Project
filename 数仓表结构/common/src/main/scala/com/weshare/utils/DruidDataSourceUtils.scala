@@ -11,7 +11,7 @@ import org.apache.hadoop.fs.{FileSystem, Path}
 
 object DruidDataSourceUtils {
   var test_dataSource:DruidDataSource = null // cm的 数据库 存储的是 跑批任务信息
-
+  var hive_dataSource:DruidDataSource = null
   var pro_dataSource :DruidDataSource= null
   var imapla_dataSource :DruidDataSource= null
 
@@ -29,6 +29,8 @@ object DruidDataSourceUtils {
         if (null == pro_dataSource) pro_dataSource = DruidDataSourceFactory.createDataSource(properties).asInstanceOf[DruidDataSource]
       case "impala" =>
         if (null == imapla_dataSource) imapla_dataSource = DruidDataSourceFactory.createDataSource(properties).asInstanceOf[DruidDataSource]
+      case "hive"=>
+        if (null == hive_dataSource) hive_dataSource = DruidDataSourceFactory.createDataSource(properties).asInstanceOf[DruidDataSource]
     }
     in.close()
   }
@@ -42,6 +44,8 @@ object DruidDataSourceUtils {
         connection = pro_dataSource.getConnection
       case "impala" =>
         connection = imapla_dataSource.getConnection
+      case "hive"=>
+        connection =hive_dataSource.getConnection
     }
     connection
   }
@@ -50,6 +54,7 @@ object DruidDataSourceUtils {
     if (pro_dataSource != null && pro_dataSource.isKeepAlive) pro_dataSource.close()
     if (test_dataSource != null && test_dataSource.isKeepAlive) test_dataSource.close()
     if (imapla_dataSource != null && imapla_dataSource.isKeepAlive) imapla_dataSource.close()
+    if (hive_dataSource != null && hive_dataSource.isKeepAlive) hive_dataSource.close()
   }
 
 }

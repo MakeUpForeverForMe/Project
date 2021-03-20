@@ -12,21 +12,15 @@ import java.util.Arrays;
  */
 @Description(
         name = "is_empty",
-        value = "_FUNC_(Object string [, Object... defaultValue])\n{'',null,'null','nil','na','n/a','\\n'}",
+        value = "_FUNC_(Object... objects)\n{'',null,'null','nil','na','n/a','\\n'}",
         extended = "" +
                 "Example:\n" +
                 "  SELECT _FUNC_('null', '', 'a') as t;\n" +
                 "    a"
 )
 public class IsEmpty extends UDF {
-    public String evaluate(Object object, Object... defaultValue) {
-        if (EmptyUtil.isEmpty(object)) {
-            if (defaultValue.length == 0) {
-                return null;
-            } else {
-                return evaluate(defaultValue[0], Arrays.copyOfRange(defaultValue, 1, defaultValue.length));
-            }
-        }
-        return object.toString();
+    public String evaluate(Object... objects) {
+        for (Object object : objects) if (!EmptyUtil.isEmpty(object)) return object.toString();
+        return null;
     }
 }

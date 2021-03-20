@@ -83,6 +83,7 @@ public class DateUtil {
         return new SimpleDateFormat(toFmt).format(date);
     }
 
+    /* LocalDateTime 学习 */
     public static void main(String[] args) {
         // java.time 包下 LocalDate  LocalTime  LocalDateTime  Instant  Duration  Period  ChronoLocalDate(日历)
         System.out.println(LocalDate.now()); // 2021-01-22

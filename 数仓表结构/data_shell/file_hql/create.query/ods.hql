@@ -595,10 +595,10 @@ CREATE TABLE IF NOT EXISTS `ods${db_suffix}.repay_schedule`(
   `reduce_penalty`                                    decimal(20,5)  COMMENT '减免罚息',
   `reduce_mult_amt`                                   decimal(20,5)  COMMENT '减免滞纳金',
   `effective_date`                                    string         COMMENT '生效日期',
-  `s_d_date`                                          string         COMMENT '数据生效日期',
-  `e_d_date`                                          string         COMMENT '数据失效日期',
   `create_time`                                       string         COMMENT '创建时间',
-  `update_time`                                       string         COMMENT '更新时间'
+  `update_time`                                       string         COMMENT '更新时间',
+  `s_d_date`                                          string         COMMENT '数据生效日期',
+  `e_d_date`                                          string         COMMENT '数据失效日期'
 ) COMMENT '还款计划表'
 PARTITIONED BY (`is_settled` string COMMENT '是否已结清',`product_id` string COMMENT '产品编号')
 STORED AS PARQUET;
@@ -702,43 +702,107 @@ CREATE VIEW IF NOT EXISTS `ods.customer_info_abs`(
   `cust_rating`                        COMMENT '内部信用等级',
   `project_id`                         COMMENT '项目编号'
 ) COMMENT '客户信息表' AS select
-  due_bill_no,
-  cust_id,
-  user_hash_no,
-  outer_cust_id,
-  idcard_type,
-  idcard_no,
-  name,
-  mobie,
-  card_phone,
-  sex,
-  birthday,
-  age,
-  marriage_status,
-  education,
-  education_ws,
-  idcard_address,
-  idcard_area,
-  idcard_province,
-  idcard_city,
-  idcard_county,
-  idcard_township,
-  resident_address,
-  resident_area,
-  resident_province,
-  resident_city,
-  resident_county,
-  resident_township,
-  job_type,
-  job_year,
-  income_month,
-  income_year,
-  cutomer_type,
-  cust_rating,
-  abs_project_id as project_id
+  t1.due_bill_no       as due_bill_no,
+  t1.cust_id           as cust_id,
+  t1.user_hash_no      as user_hash_no,
+  t1.outer_cust_id     as outer_cust_id,
+  t1.idcard_type       as idcard_type,
+  t1.idcard_no         as idcard_no,
+  t1.name              as name,
+  t1.mobie             as mobie,
+  t1.card_phone        as card_phone,
+  t1.sex               as sex,
+  t1.birthday          as birthday,
+  t1.age               as age,
+  t1.marriage_status   as marriage_status,
+  t1.education         as education,
+  t1.education_ws      as education_ws,
+  t1.idcard_address    as idcard_address,
+  t1.idcard_area       as idcard_area,
+  t1.idcard_province   as idcard_province,
+  t1.idcard_city       as idcard_city,
+  t1.idcard_county     as idcard_county,
+  t1.idcard_township   as idcard_township,
+  t1.resident_address  as resident_address,
+  t1.resident_area     as resident_area,
+  t1.resident_province as resident_province,
+  t1.resident_city     as resident_city,
+  t1.resident_county   as resident_county,
+  t1.resident_township as resident_township,
+  t1.job_type          as job_type,
+  t1.job_year          as job_year,
+  t1.income_month      as income_month,
+  t1.income_year       as income_year,
+  t1.cutomer_type      as cutomer_type,
+  t1.cust_rating       as cust_rating,
+  t2.project_id        as project_id
 from ods.customer_info as t1
-join dim_new.biz_conf as t2
-on t1.product_id = t2.product_id;
+join dim.project_due_bill_no as t2
+on  t1.product_id  = t2.partition_id
+and t1.due_bill_no = t2.due_bill_no;
+
+
+-- DROP VIEW IF EXISTS `ods.linkman_info_abs`;
+CREATE VIEW IF NOT EXISTS `ods.linkman_info_abs`(
+  `cust_id`                            COMMENT '客户编号',
+  `user_hash_no`                       COMMENT '用户编号',
+  `due_bill_no`                        COMMENT '借据编号',
+  `linkman_id`                         COMMENT '联系人编号',
+  `relational_type`                    COMMENT '关联人类型（英文原值）',
+  `relational_type_cn`                 COMMENT '关联人类型（汉语解释）',
+  `relationship`                       COMMENT '联系人关系（英文原值）（如：1：父母、2：配偶、3：子女、4：兄弟姐妹、5：亲属、6：同事、7：朋友、8：其他）',
+  `relationship_cn`                    COMMENT '联系人关系（汉语解释）',
+  `relation_idcard_type`               COMMENT '联系人证件类型',
+  `relation_idcard_no`                 COMMENT '联系人证件号码',
+  `relation_birthday`                  COMMENT '联系人出生日期',
+  `relation_name`                      COMMENT '联系人姓名',
+  `relation_sex`                       COMMENT '联系人性别',
+  `relation_mobile`                    COMMENT '联系人电话',
+  `relation_address`                   COMMENT '联系人地址',
+  `relation_province`                  COMMENT '联系人省份',
+  `relation_city`                      COMMENT '联系人城市',
+  `relation_county`                    COMMENT '联系人区县',
+  `corp_type`                          COMMENT '工作类型',
+  `corp_name`                          COMMENT '公司名称',
+  `corp_teleph_nbr`                    COMMENT '公司电话',
+  `corp_fax`                           COMMENT '公司传真',
+  `corp_position`                      COMMENT '公司职务',
+  `deal_date`                          COMMENT '业务时间',
+  `create_time`                        COMMENT '创建时间',
+  `update_time`                        COMMENT '更新时间',
+  `project_id`                         COMMENT '项目编号'
+) COMMENT '联系人信息表' AS select
+  t1.cust_id              as cust_id,
+  t1.user_hash_no         as user_hash_no,
+  t1.due_bill_no          as due_bill_no,
+  t1.linkman_id           as linkman_id,
+  t1.relational_type      as relational_type,
+  t1.relational_type_cn   as relational_type_cn,
+  t1.relationship         as relationship,
+  t1.relationship_cn      as relationship_cn,
+  t1.relation_idcard_type as relation_idcard_type,
+  t1.relation_idcard_no   as relation_idcard_no,
+  t1.relation_birthday    as relation_birthday,
+  t1.relation_name        as relation_name,
+  t1.relation_sex         as relation_sex,
+  t1.relation_mobile      as relation_mobile,
+  t1.relation_address     as relation_address,
+  t1.relation_province    as relation_province,
+  t1.relation_city        as relation_city,
+  t1.relation_county      as relation_county,
+  t1.corp_type            as corp_type,
+  t1.corp_name            as corp_name,
+  t1.corp_teleph_nbr      as corp_teleph_nbr,
+  t1.corp_fax             as corp_fax,
+  t1.corp_position        as corp_position,
+  t1.deal_date            as deal_date,
+  t1.create_time          as create_time,
+  t1.update_time          as update_time,
+  t2.project_id           as project_id
+from ods.linkman_info as t1
+join dim.project_due_bill_no as t2
+on  t1.product_id  = t2.partition_id
+and t1.due_bill_no = t2.due_bill_no;
 
 
 -- DROP VIEW IF EXISTS `ods.guaranty_info_abs`;
@@ -782,50 +846,51 @@ CREATE VIEW IF NOT EXISTS `ods.guaranty_info_abs`(
   `update_time`                        COMMENT '更新时间',
   `project_id`                         COMMENT '项目编号'
 ) COMMENT '抵押物（车）信息表' AS select
-  due_bill_no,
-  guaranty_code,
-  guaranty_handling_status,
-  guaranty_alignment,
-  car_property,
-  financing_type,
-  guarantee_type,
-  pawn_value,
-  car_sales_price,
-  car_new_price,
-  total_investment,
-  purchase_tax_amouts,
-  insurance_type,
-  car_insurance_premium,
-  total_poundage,
-  cumulative_car_transfer_number,
-  one_year_car_transfer_number,
-  liability_insurance_cost1,
-  liability_insurance_cost2,
-  car_type,
-  frame_num,
-  engine_num,
-  gps_code,
-  gps_cost,
-  license_num,
-  car_brand,
-  car_system,
-  car_model,
-  car_age,
-  car_energy_type,
-  production_date,
-  mileage,
-  register_date,
-  buy_car_address,
-  car_colour,
-  create_time,
-  update_time,
-  abs_project_id as project_id
+  t1.due_bill_no                    as due_bill_no,
+  t1.guaranty_code                  as guaranty_code,
+  t1.guaranty_handling_status       as guaranty_handling_status,
+  t1.guaranty_alignment             as guaranty_alignment,
+  t1.car_property                   as car_property,
+  t1.financing_type                 as financing_type,
+  t1.guarantee_type                 as guarantee_type,
+  t1.pawn_value                     as pawn_value,
+  t1.car_sales_price                as car_sales_price,
+  t1.car_new_price                  as car_new_price,
+  t1.total_investment               as total_investment,
+  t1.purchase_tax_amouts            as purchase_tax_amouts,
+  t1.insurance_type                 as insurance_type,
+  t1.car_insurance_premium          as car_insurance_premium,
+  t1.total_poundage                 as total_poundage,
+  t1.cumulative_car_transfer_number as cumulative_car_transfer_number,
+  t1.one_year_car_transfer_number   as one_year_car_transfer_number,
+  t1.liability_insurance_cost1      as liability_insurance_cost1,
+  t1.liability_insurance_cost2      as liability_insurance_cost2,
+  t1.car_type                       as car_type,
+  t1.frame_num                      as frame_num,
+  t1.engine_num                     as engine_num,
+  t1.gps_code                       as gps_code,
+  t1.gps_cost                       as gps_cost,
+  t1.license_num                    as license_num,
+  t1.car_brand                      as car_brand,
+  t1.car_system                     as car_system,
+  t1.car_model                      as car_model,
+  t1.car_age                        as car_age,
+  t1.car_energy_type                as car_energy_type,
+  t1.production_date                as production_date,
+  t1.mileage                        as mileage,
+  t1.register_date                  as register_date,
+  t1.buy_car_address                as buy_car_address,
+  t1.car_colour                     as car_colour,
+  t1.create_time                    as create_time,
+  t1.update_time                    as update_time,
+  t2.project_id                     as project_id
 from ods.guaranty_info as t1
-join dim_new.biz_conf as t2
-on t1.product_id = t2.product_id;
+join dim.project_due_bill_no as t2
+on  t1.product_id  = t2.partition_id
+and t1.due_bill_no = t2.due_bill_no;
 
 
--- DROP VIEW IF EXISTS `ods.t_enterprise_info_abs`;
+-- DROP VIEW IF EXISTS `ods.enterprise_info_abs`;
 CREATE VIEW IF NOT EXISTS `ods.enterprise_info_abs` (
   `due_bill_no`                        COMMENT '资产借据号',
   `contract_role`                      COMMENT '合同角色（0：主借款企业，1：共同借款企业，2：担保企业，3：无）',
@@ -849,101 +914,40 @@ CREATE VIEW IF NOT EXISTS `ods.enterprise_info_abs` (
   `update_time`                        COMMENT '更新时间',
   `project_id`                         COMMENT '项目编号'
 ) COMMENT '企业信息表' AS select
-  due_bill_no,
-  contract_role,
-  enterprise_name,
-  business_number,
-  organizate_code,
-  taxpayer_number,
-  unified_credit_code,
-  registered_address,
-  loan_type,
-  industry,
-  legal_person_name,
-  id_type,
-  id_no,
-  legal_person_phone,
-  phone,
-  operate_years,
-  is_linked,
-  province,
-  create_time,
-  update_time,
-  abs_project_id as project_id
+  t1.due_bill_no         as due_bill_no,
+  t1.contract_role       as contract_role,
+  t1.enterprise_name     as enterprise_name,
+  t1.business_number     as business_number,
+  t1.organizate_code     as organizate_code,
+  t1.taxpayer_number     as taxpayer_number,
+  t1.unified_credit_code as unified_credit_code,
+  t1.registered_address  as registered_address,
+  t1.loan_type           as loan_type,
+  t1.industry            as industry,
+  t1.legal_person_name   as legal_person_name,
+  t1.id_type             as id_type,
+  t1.id_no               as id_no,
+  t1.legal_person_phone  as legal_person_phone,
+  t1.phone               as phone,
+  t1.operate_years       as operate_years,
+  t1.is_linked           as is_linked,
+  t1.province            as province,
+  t1.create_time         as create_time,
+  t1.update_time         as update_time,
+  t2.project_id          as project_id
 from ods.enterprise_info as t1
-join dim_new.biz_conf as t2
-on t1.product_id = t2.product_id;
-
-
--- DROP VIEW IF EXISTS `ods.linkman_info_abs`;
-CREATE VIEW IF NOT EXISTS `ods.linkman_info_abs`(
-  `cust_id`                            COMMENT '客户编号',
-  `user_hash_no`                       COMMENT '用户编号',
-  `due_bill_no`                        COMMENT '借据编号',
-  `linkman_id`                         COMMENT '联系人编号',
-  `relational_type`                    COMMENT '关联人类型（英文原值）',
-  `relational_type_cn`                 COMMENT '关联人类型（汉语解释）',
-  `relationship`                       COMMENT '联系人关系（英文原值）（如：1：父母、2：配偶、3：子女、4：兄弟姐妹、5：亲属、6：同事、7：朋友、8：其他）',
-  `relationship_cn`                    COMMENT '联系人关系（汉语解释）',
-  `relation_idcard_type`               COMMENT '联系人证件类型',
-  `relation_idcard_no`                 COMMENT '联系人证件号码',
-  `relation_birthday`                  COMMENT '联系人出生日期',
-  `relation_name`                      COMMENT '联系人姓名',
-  `relation_sex`                       COMMENT '联系人性别',
-  `relation_mobile`                    COMMENT '联系人电话',
-  `relation_address`                   COMMENT '联系人地址',
-  `relation_province`                  COMMENT '联系人省份',
-  `relation_city`                      COMMENT '联系人城市',
-  `relation_county`                    COMMENT '联系人区县',
-  `corp_type`                          COMMENT '工作类型',
-  `corp_name`                          COMMENT '公司名称',
-  `corp_teleph_nbr`                    COMMENT '公司电话',
-  `corp_fax`                           COMMENT '公司传真',
-  `corp_position`                      COMMENT '公司职务',
-  `deal_date`                          COMMENT '业务时间',
-  `effective_time`                     COMMENT '生效时间',
-  `expire_time`                        COMMENT '失效时间',
-  `project_id`                         COMMENT '项目编号'
-) COMMENT '联系人信息表' AS select
-  cust_id,
-  user_hash_no,
-  due_bill_no,
-  linkman_id,
-  relational_type,
-  relational_type_cn,
-  relationship,
-  relationship_cn,
-  relation_idcard_type,
-  relation_idcard_no,
-  relation_birthday,
-  relation_name,
-  relation_sex,
-  relation_mobile,
-  relation_address,
-  relation_province,
-  relation_city,
-  relation_county,
-  corp_type,
-  corp_name,
-  corp_teleph_nbr,
-  corp_fax,
-  corp_position,
-  deal_date,
-  effective_time,
-  expire_time,
-  abs_project_id as project_id
-from ods.linkman_info as t1
-join dim_new.biz_conf as t2
-on t1.product_id = t2.product_id;
+join dim.project_due_bill_no as t2
+on  t1.product_id  = t2.partition_id
+and t1.due_bill_no = t2.due_bill_no;
 
 
 -- DROP VIEW IF EXISTS `ods.loan_lending_abs`;
 CREATE VIEW IF NOT EXISTS `ods.loan_lending_abs`(
   `apply_no`                           COMMENT '进件编号',
   `contract_no`                        COMMENT '合同编号',
-  `contract_term`                      COMMENT '合同期限',
+  `contract_term`                      COMMENT '合同期限（按照月份计算）',
   `due_bill_no`                        COMMENT '借据编号',
-  `guarantee_type`                     COMMENT '担保方式',
+  `guarantee_type`                     COMMENT '担保方式（信用担保，抵押担保）',
   `loan_usage`                         COMMENT '贷款用途',
   `loan_issue_date`                    COMMENT '合同开始日期',
   `loan_expiry_date`                   COMMENT '合同结束日期',
@@ -953,42 +957,49 @@ CREATE VIEW IF NOT EXISTS `ods.loan_lending_abs`(
   `loan_type`                          COMMENT '分期类型（英文原值）（MCEP：等额本金，MCEI：等额本息，R：消费转分期，C：现金分期，B：账单分期，P：POS分期，M：大额分期（专项分期），MCAT：随借随还，STAIR：阶梯还款）',
   `loan_type_cn`                       COMMENT '分期类型（汉语解释）',
   `contract_daily_interest_rate_basis` COMMENT '日利率计算基础',
-  `loan_init_term`                     COMMENT '贷款期数（3、6、9等）',
-  `loan_init_principal`                COMMENT '贷款本金',
   `interest_rate_type`                 COMMENT '利率类型',
   `loan_init_interest_rate`            COMMENT '利息利率',
   `loan_init_term_fee_rate`            COMMENT '手续费费率',
   `loan_init_svc_fee_rate`             COMMENT '服务费费率',
   `loan_init_penalty_rate`             COMMENT '罚息利率',
+  `tail_amount`                        COMMENT '尾款金额',
+  `tail_amount_rate`                   COMMENT '尾付比例',
+  `bus_product_id`                     COMMENT '产品方案编号',
+  `bus_product_name`                   COMMENT '产品方案名称',
+  `mortgage_rate`                      COMMENT '抵押率',
   `biz_date`                           COMMENT '放款日期',
   `project_id`                         COMMENT '项目编号'
 ) COMMENT '放款表' AS select
-  apply_no,
-  contract_no,
-  contract_term,
-  due_bill_no,
-  guarantee_type,
-  loan_usage,
-  loan_issue_date,
-  loan_expiry_date,
-  loan_active_date,
-  loan_expire_date,
-  cycle_day,
-  loan_type,
-  loan_type_cn,
-  contract_daily_interest_rate_basis,
-  loan_init_term,
-  loan_init_principal,
-  interest_rate_type,
-  loan_init_interest_rate,
-  loan_init_term_fee_rate,
-  loan_init_svc_fee_rate,
-  loan_init_penalty_rate,
-  biz_date,
-  abs_project_id as project_id
+  t1.apply_no                           as apply_no,
+  t1.contract_no                        as contract_no,
+  t1.contract_term                      as contract_term,
+  t1.due_bill_no                        as due_bill_no,
+  t1.guarantee_type                     as guarantee_type,
+  t1.loan_usage                         as loan_usage,
+  t1.loan_issue_date                    as loan_issue_date,
+  t1.loan_expiry_date                   as loan_expiry_date,
+  t1.loan_active_date                   as loan_active_date,
+  t1.loan_expire_date                   as loan_expire_date,
+  t1.cycle_day                          as cycle_day,
+  t1.loan_type                          as loan_type,
+  t1.loan_type_cn                       as loan_type_cn,
+  t1.contract_daily_interest_rate_basis as contract_daily_interest_rate_basis,
+  t1.interest_rate_type                 as interest_rate_type,
+  t1.loan_init_interest_rate            as loan_init_interest_rate,
+  t1.loan_init_term_fee_rate            as loan_init_term_fee_rate,
+  t1.loan_init_svc_fee_rate             as loan_init_svc_fee_rate,
+  t1.loan_init_penalty_rate             as loan_init_penalty_rate,
+  t1.tail_amount                        as tail_amount,
+  t1.tail_amount_rate                   as tail_amount_rate,
+  t1.bus_product_id                     as bus_product_id,
+  t1.bus_product_name                   as bus_product_name,
+  t1.mortgage_rate                      as mortgage_rate,
+  t1.biz_date                           as biz_date,
+  t2.project_id                         as project_id
 from ods.loan_lending as t1
-join dim_new.biz_conf as t2
-on t1.product_id = t2.product_id;
+join dim.project_due_bill_no as t2
+on  t1.product_id  = t2.partition_id
+and t1.due_bill_no = t2.due_bill_no;
 
 
 -- DROP VIEW IF EXISTS `ods.loan_info_abs`;
@@ -996,16 +1007,16 @@ CREATE VIEW IF NOT EXISTS `ods.loan_info_abs`(
   `due_bill_no`                        COMMENT '借据编号',
   `apply_no`                           COMMENT '进件编号',
   `loan_active_date`                   COMMENT '放款日期',
-  `loan_init_principal`                COMMENT '贷款本金',
-  `account_age`                        COMMENT '账龄',
   `loan_init_term`                     COMMENT '贷款期数（3、6、9等）',
-  `loan_term`                          COMMENT '当前期数（按应还日算）',
-  `should_repay_date`                  COMMENT '应还日期',
-  `loan_term_repaid`                   COMMENT '已还期数',
-  `loan_term_remain`                   COMMENT '剩余期数',
+  `loan_init_principal`                COMMENT '贷款本金',
   `loan_init_interest`                 COMMENT '贷款利息',
   `loan_init_term_fee`                 COMMENT '贷款手续费',
   `loan_init_svc_fee`                  COMMENT '贷款服务费',
+  `loan_term`                          COMMENT '当前期数（按应还日算）',
+  `account_age`                        COMMENT '账龄',
+  `should_repay_date`                  COMMENT '应还日期',
+  `loan_term_repaid`                   COMMENT '已还期数',
+  `loan_term_remain`                   COMMENT '剩余期数',
   `loan_status`                        COMMENT '借据状态（英文原值）（N：正常，O：逾期，F：已还清）',
   `loan_status_cn`                     COMMENT '借据状态（汉语解释）',
   `loan_out_reason`                    COMMENT '借据终止原因（P：提前还款，M：银行业务人员手工终止（manual），D：逾期自动终止（delinquency），R：锁定码终止（Refund），V：持卡人手动终止，C：理赔终止，T：退货终止，U：重组结清终止，F：强制结清终止，B：免息转分期）',
@@ -1044,83 +1055,81 @@ CREATE VIEW IF NOT EXISTS `ods.loan_info_abs`(
   `overdue_term`                       COMMENT '当前逾期期数',
   `overdue_terms_count`                COMMENT '累计逾期期数',
   `overdue_terms_max`                  COMMENT '历史单次最长逾期期数',
-  `overdue_principal_accumul`          COMMENT '累计逾期本金',
+  `overdue_principal_accumulate`       COMMENT '累计逾期本金',
   `overdue_principal_max`              COMMENT '历史最大逾期本金',
   `s_d_date`                           COMMENT 'ods层起始日期',
   `e_d_date`                           COMMENT 'ods层结束日期',
-  `effective_time`                     COMMENT '生效日期',
-  `expire_time`                        COMMENT '失效日期',
+  `create_time`                        COMMENT '创建时间',
+  `update_time`                        COMMENT '更新时间',
   `is_settled`                         COMMENT '是否已结清',
   `project_id`                         COMMENT '项目编号'
 ) COMMENT '借据信息表' AS select
-  due_bill_no,
-  apply_no,
-  loan_active_date,
-  loan_init_principal,
-  account_age,
-  loan_init_term,
-  loan_term,
-  should_repay_date,
-  loan_term_repaid,
-  loan_term_remain,
-  loan_init_interest,
-  loan_init_term_fee,
-  loan_init_svc_fee,
-  loan_status,
-  loan_status_cn,
-  loan_out_reason,
-  paid_out_type,
-  paid_out_type_cn,
-  paid_out_date,
-  terminal_date,
-  paid_amount,
-  paid_principal,
-  paid_interest,
-  paid_penalty,
-  paid_svc_fee,
-  paid_term_fee,
-  paid_mult,
-  remain_amount,
-  remain_principal,
-  remain_interest,
-  remain_svc_fee,
-  remain_term_fee,
-  remain_othAmounts,
-  overdue_principal,
-  overdue_interest,
-  overdue_svc_fee,
-  overdue_term_fee,
-  overdue_penalty,
-  overdue_mult_amt,
-  overdue_date_first,
-  overdue_date_start,
-  overdue_days,
-  overdue_date,
-  dpd_begin_date,
-  dpd_days,
-  dpd_days_count,
-  dpd_days_max,
-  collect_out_date,
-  overdue_term,
-  overdue_terms_count,
-  overdue_terms_max,
-  overdue_principal_accumulate,
-  overdue_principal_max,
-  s_d_date,
-  if(paid_out_date is null,if(e_d_date = '3000-12-31',to_date(date_sub(current_timestamp(),1)),e_d_date),paid_out_date) as e_d_date,
-  effective_time,
-  expire_time,
-  is_settled,
-  abs_project_id as project_id
+  t1.due_bill_no                  as due_bill_no,
+  t1.apply_no                     as apply_no,
+  t1.loan_active_date             as loan_active_date,
+  t1.loan_init_term               as loan_init_term,
+  t1.loan_init_principal          as loan_init_principal,
+  t1.loan_init_interest           as loan_init_interest,
+  t1.loan_init_term_fee           as loan_init_term_fee,
+  t1.loan_init_svc_fee            as loan_init_svc_fee,
+  t1.loan_term                    as loan_term,
+  t1.account_age                  as account_age,
+  t1.should_repay_date            as should_repay_date,
+  t1.loan_term_repaid             as loan_term_repaid,
+  t1.loan_term_remain             as loan_term_remain,
+  t1.loan_status                  as loan_status,
+  t1.loan_status_cn               as loan_status_cn,
+  t1.loan_out_reason              as loan_out_reason,
+  t1.paid_out_type                as paid_out_type,
+  t1.paid_out_type_cn             as paid_out_type_cn,
+  t1.paid_out_date                as paid_out_date,
+  t1.terminal_date                as terminal_date,
+  t1.paid_amount                  as paid_amount,
+  t1.paid_principal               as paid_principal,
+  t1.paid_interest                as paid_interest,
+  t1.paid_penalty                 as paid_penalty,
+  t1.paid_svc_fee                 as paid_svc_fee,
+  t1.paid_term_fee                as paid_term_fee,
+  t1.paid_mult                    as paid_mult,
+  t1.remain_amount                as remain_amount,
+  t1.remain_principal             as remain_principal,
+  t1.remain_interest              as remain_interest,
+  t1.remain_svc_fee               as remain_svc_fee,
+  t1.remain_term_fee              as remain_term_fee,
+  t1.remain_othAmounts            as remain_othAmounts,
+  t1.overdue_principal            as overdue_principal,
+  t1.overdue_interest             as overdue_interest,
+  t1.overdue_svc_fee              as overdue_svc_fee,
+  t1.overdue_term_fee             as overdue_term_fee,
+  t1.overdue_penalty              as overdue_penalty,
+  t1.overdue_mult_amt             as overdue_mult_amt,
+  t1.overdue_date_first           as overdue_date_first,
+  t1.overdue_date_start           as overdue_date_start,
+  t1.overdue_days                 as overdue_days,
+  t1.overdue_date                 as overdue_date,
+  t1.dpd_begin_date               as dpd_begin_date,
+  t1.dpd_days                     as dpd_days,
+  t1.dpd_days_count               as dpd_days_count,
+  t1.dpd_days_max                 as dpd_days_max,
+  t1.collect_out_date             as collect_out_date,
+  t1.overdue_term                 as overdue_term,
+  t1.overdue_terms_count          as overdue_terms_count,
+  t1.overdue_terms_max            as overdue_terms_max,
+  t1.overdue_principal_accumulate as overdue_principal_accumulate,
+  t1.overdue_principal_max        as overdue_principal_max,
+  t1.s_d_date                     as s_d_date,
+  if(t1.paid_out_date is null,if(t1.e_d_date = '3000-12-31',to_date(date_sub(current_timestamp(),1)),t1.e_d_date),t1.paid_out_date) as e_d_date,
+  -- t1.e_d_date                     as e_d_date,
+  t1.create_time                  as create_time,
+  t1.update_time                  as update_time,
+  t1.is_settled                   as is_settled,
+  t2.project_id                   as project_id
 from ods.loan_info as t1
-join dim_new.biz_conf as t2
-on t1.product_id = t2.product_id;
+join dim.project_due_bill_no as t2
+on  t1.product_id  = t2.partition_id
+and t1.due_bill_no = t2.due_bill_no;
 
 
--- 还款计划表（做拉链表）
--- 数据库主键 schedule_id
--- 业务主键 cust_id,due_bill_no
--- 按照 is_settled 分区
 -- DROP VIEW IF EXISTS `ods.repay_schedule_abs`;
 CREATE ViEW IF NOT EXISTS `ods.repay_schedule_abs`(
   `due_bill_no`                        COMMENT '借据编号',
@@ -1162,213 +1171,164 @@ CREATE ViEW IF NOT EXISTS `ods.repay_schedule_abs`(
   `reduce_penalty`                     COMMENT '减免罚息',
   `reduce_mult_amt`                    COMMENT '减免滞纳金',
   `effective_date`                     COMMENT '生效日期',
-  `s_d_date`                           COMMENT 'ods层起始日期',
-  `e_d_date`                           COMMENT 'ods层结束日期',
-  `effective_time`                     COMMENT '生效时间',
-  `expire_time`                        COMMENT '失效时间',
+  `create_time`                        COMMENT '创建时间',
+  `update_time`                        COMMENT '更新时间',
+  `s_d_date`                           COMMENT '数据生效日期',
+  `e_d_date`                           COMMENT '数据失效日期',
   `is_settled`                         COMMENT '是否已结清',
+  `import_id`                          COMMENT '导入Id',
   `project_id`                         COMMENT '项目编号'
 ) COMMENT '还款计划表' as select
-  due_bill_no,
-  loan_active_date,
-  loan_init_principal,
-  loan_init_term,
-  loan_term,
-  start_interest_date,
-  curr_bal,
-  should_repay_date,
-  should_repay_date_history,
-  grace_date,
-  should_repay_amount,
-  should_repay_principal,
-  should_repay_interest,
-  should_repay_term_fee,
-  should_repay_svc_fee,
-  should_repay_penalty,
-  should_repay_mult_amt,
-  should_repay_penalty_acru,
-  schedule_status,
-  schedule_status_cn,
-  repay_status,
-  paid_out_date,
-  paid_out_type,
-  paid_out_type_cn,
-  paid_amount,
-  paid_principal,
-  paid_interest,
-  paid_term_fee,
-  paid_svc_fee,
-  paid_penalty,
-  paid_mult,
-  reduce_amount,
-  reduce_principal,
-  reduce_interest,
-  reduce_term_fee,
-  reduce_svc_fee,
-  reduce_penalty,
-  reduce_mult_amt,
-  effective_date,
-  biz_date                    as s_d_date,
-  nvl(lead(biz_date) over(partition by abs_project_id,due_bill_no,loan_term order by biz_date),'3000-12-31') as e_d_date,
-  cast(biz_date as timestamp) as effective_time,
-  cast(nvl(lead(biz_date) over(partition by abs_project_id,due_bill_no,loan_term order by biz_date),'3000-12-31') as timestamp) as expire_time,
-  'no'                        as is_settled,
-  abs_project_id              as project_id
-from ods.repay_schedule_inter as t1
-join dim_new.biz_conf as t2
-on t1.product_id = t2.product_id
-;
+  t1.due_bill_no               as due_bill_no,
+  t1.loan_active_date          as loan_active_date,
+  t1.loan_init_principal       as loan_init_principal,
+  t1.loan_init_term            as loan_init_term,
+  t1.loan_term                 as loan_term,
+  t1.start_interest_date       as start_interest_date,
+  t1.curr_bal                  as curr_bal,
+  t1.should_repay_date         as should_repay_date,
+  t1.should_repay_date_history as should_repay_date_history,
+  t1.grace_date                as grace_date,
+  t1.should_repay_amount       as should_repay_amount,
+  t1.should_repay_principal    as should_repay_principal,
+  t1.should_repay_interest     as should_repay_interest,
+  t1.should_repay_term_fee     as should_repay_term_fee,
+  t1.should_repay_svc_fee      as should_repay_svc_fee,
+  t1.should_repay_penalty      as should_repay_penalty,
+  t1.should_repay_mult_amt     as should_repay_mult_amt,
+  t1.should_repay_penalty_acru as should_repay_penalty_acru,
+  t1.schedule_status           as schedule_status,
+  t1.schedule_status_cn        as schedule_status_cn,
+  t1.repay_status              as repay_status,
+  t1.paid_out_date             as paid_out_date,
+  t1.paid_out_type             as paid_out_type,
+  t1.paid_out_type_cn          as paid_out_type_cn,
+  t1.paid_amount               as paid_amount,
+  t1.paid_principal            as paid_principal,
+  t1.paid_interest             as paid_interest,
+  t1.paid_term_fee             as paid_term_fee,
+  t1.paid_svc_fee              as paid_svc_fee,
+  t1.paid_penalty              as paid_penalty,
+  t1.paid_mult                 as paid_mult,
+  t1.reduce_amount             as reduce_amount,
+  t1.reduce_principal          as reduce_principal,
+  t1.reduce_interest           as reduce_interest,
+  t1.reduce_term_fee           as reduce_term_fee,
+  t1.reduce_svc_fee            as reduce_svc_fee,
+  t1.reduce_penalty            as reduce_penalty,
+  t1.reduce_mult_amt           as reduce_mult_amt,
+  t1.effective_date            as effective_date,
+  t1.create_time               as create_time,
+  t1.update_time               as update_time,
+  t1.s_d_date                  as s_d_date,
+  t1.e_d_date                  as e_d_date,
+  t1.is_settled                as is_settled,
+  t2.import_id                 as import_id,
+  t2.project_id                as project_id
+from ods.repay_schedule as t1
+join dim.project_due_bill_no as t2
+on  t1.product_id  = t2.partition_id
+and t1.due_bill_no = t2.due_bill_no;
 
 
 -- DROP VIEW IF EXISTS `ods.repay_detail_abs`;
 CREATE VIEW IF NOT EXISTS `ods.repay_detail_abs`(
   `due_bill_no`                        COMMENT '借据号',
-  `loan_active_date`                   COMMENT '放款日期',
-  `loan_init_term`                     COMMENT '贷款期数（3、6、9等）',
   `repay_term`                         COMMENT '实还期数',
   `order_id`                           COMMENT '订单号',
-  `loan_status`                        COMMENT '借据状态（英文原值）（N：正常，O：逾期，F：已还清，NORMAL_SETTLE：正常结清，OVERDUE_SETTLE：逾期结清，PRE_SETTLE：提前结清）',
-  `loan_status_cn`                     COMMENT '借据状态（汉语解释）',
-  `overdue_days`                       COMMENT '逾期天数',
+  `repay_type`                         COMMENT '还款类型（英文原值）（NORMAL：正常还款，PRE：提前还款，OVERDUE：逾期还款，PRE_SETTLE：用户提前结清，COMP：代偿还款，RECOVER：逾期追偿还款，REFUND：退票，BUYBACK：回购，REDUCE：减免，DISCOUNT：商户贴息，RECEIVABLE：退款回款，INTERNAL_REFUND：退款退息，RECOVERY_REPAYMENT：降额还本，INTEREST_REBATE：降额退息）',
+  `repay_type_cn`                      COMMENT '还款类型（汉语解释）',
   `payment_id`                         COMMENT '实还流水号',
   `txn_time`                           COMMENT '交易时间',
   `post_time`                          COMMENT '入账时间',
-  `bnp_type`                           COMMENT '还款成分（英文原值）（Pricinpal：本金，Interest：利息，Penalty：罚息，Mulct：罚金，Compound：复利，CardFee：年费，OverLimitFee：超限费，LatePaymentCharge：滞纳金，NSFCharge：资金不足罚金，TXNFee：交易费，TERMFee：手续费，SVCFee：服务费，Compensation：赔偿金，Damages：违约金，LifeInsuFee：寿险计划包费）',
+  `bnp_type`                           COMMENT '还款成分（英文原值）（Pricinpal：本金，Interest：利息，Penalty：罚息，TXNFee：交易费，TERMFee：手续费，SVCFee：服务费，LatePaymentCharge：滞纳金，RepayFee：实还费用，EarlyRepayFee：提前还款手续费，OtherFee：其它相关费用，CardFee：年费，Mulct：罚金，Compensation：赔偿金，Damages：违约金，Compound：复利，OverLimitFee：超限费，NSFCharge：资金不足罚金，LifeInsuFee：寿险计划包费）',
   `bnp_type_cn`                        COMMENT '还款成分（汉语解释）',
   `repay_amount`                       COMMENT '还款金额',
   `batch_date`                         COMMENT '批量日期',
   `create_time`                        COMMENT '创建时间',
   `update_time`                        COMMENT '更新时间',
   `biz_date`                           COMMENT '交易时间',
+  `import_id`                          COMMENT '导入Id',
   `project_id`                         COMMENT '项目编号'
 ) COMMENT '实还明细表' AS select
-  due_bill_no,
-  loan_active_date,
-  loan_init_term,
-  repay_term,
-  order_id,
-  loan_status,
-  loan_status_cn,
-  overdue_days,
-  payment_id,
-  txn_time,
-  post_time,
-  bnp_type,
-  bnp_type_cn,
-  repay_amount,
-  batch_date,
-  create_time,
-  update_time,
-  biz_date,
-  abs_project_id as project_id
+  t1.due_bill_no   as due_bill_no,
+  t1.repay_term    as repay_term,
+  t1.order_id      as order_id,
+  t1.repay_type    as repay_type,
+  t1.repay_type_cn as repay_type_cn,
+  t1.payment_id    as payment_id,
+  t1.txn_time      as txn_time,
+  t1.post_time     as post_time,
+  t1.bnp_type      as bnp_type,
+  t1.bnp_type_cn   as bnp_type_cn,
+  t1.repay_amount  as repay_amount,
+  t1.batch_date    as batch_date,
+  t1.create_time   as create_time,
+  t1.update_time   as update_time,
+  t1.biz_date      as biz_date,
+  t2.import_id     as import_id,
+  t2.project_id    as project_id
 from ods.repay_detail as t1
-join dim_new.biz_conf as t2
-on t1.product_id = t2.product_id;
+join dim.project_due_bill_no as t2
+on  t1.product_id  = t2.partition_id
+and t1.due_bill_no = t2.due_bill_no;
 
 
 -- DROP VIEW IF EXISTS `ods.order_info_abs`;
 CREATE VIEW IF NOT EXISTS `ods.order_info_abs`(
   `order_id`                           COMMENT '订单编号',
-  `ori_order_id`                       COMMENT '原订单编号',
   `apply_no`                           COMMENT '申请件编号',
   `due_bill_no`                        COMMENT '借据号',
   `term`                               COMMENT '处理期数',
-  `channel_id`                         COMMENT '服务渠道编号（VISA：VISA，MC：MC，JCB：JCB，CUP：CUP，AMEX：AMEX，BANK：本行，ICL：ic系统，THIR：第三方，SUNS：阳光，AG：客服）',
   `pay_channel`                        COMMENT '支付渠道',
   `command_type`                       COMMENT '支付指令类型（SPA：单笔代付，SDB：单笔代扣，QSP：单笔代付查询，QSD：单笔代扣查询，BDB：批量代扣，BDA：批量代付）',
   `order_status`                       COMMENT '订单状态（C：已提交，P：待提交，Q：待审批，W：处理中，S：已完成，V：已失效，E：失败，T：超时，R：已重提，G：拆分处理中，D：拆分已完成，B：撤销，X：已受理待入账）',
-  `order_time`                         COMMENT '订单时间',
-  `repay_serial_no`                    COMMENT '还款流水号',
-  `service_id`                         COMMENT '交易服务码',
-  `assign_repay_ind`                   COMMENT '指定余额成分还款标志（Y：是，N：否）',
   `repay_way`                          COMMENT '还款方式（ONLINE：线上，OFFLINE：线下）',
-  `txn_type`                           COMMENT '交易类型（Inq：查询，Cash：取现，AgentDebit：付款，Loan：分期，Auth：消费，PreAuth：预授权，PAComp：预授权完成，Load：圈存，Credit：存款，AgentCredit：收款，TransferCredit：转入，TransferDeditDepos：转出，AdviceSettle：结算通知，BigAmountLoan：大）',
   `txn_amt`                            COMMENT '交易金额',
-  `original_txn_amt`                   COMMENT '原始交易金额',
   `success_amt`                        COMMENT '成功金额',
   `currency`                           COMMENT '币种',
-  `code`                               COMMENT '状态码',
-  `message`                            COMMENT '描述',
-  `response_code`                      COMMENT '对外返回码',
-  `response_message`                   COMMENT '对外返回描述',
   `business_date`                      COMMENT '业务日期',
-  `send_time`                          COMMENT '发送时间',
-  `opt_datetime`                       COMMENT '更新时间',
-  `setup_date`                         COMMENT '创建日期',
   `loan_usage`                         COMMENT '贷款用途（B：回购，C：差额补足，D：代偿，F：追偿代扣，H：处置回收，I：强制结清扣款，L：放款申请，M：预约提前结清扣款，N：提前还当期，O：逾期扣款，P：打款通知，R：退货，T：退票，W：赎回结清，X：账务调整，Z：委托转付）',
   `purpose`                            COMMENT '支付用途',
-  `online_flag`                        COMMENT '联机标识（Y：是，N：否）',
-  `online_allow`                       COMMENT '允许联机标识（Y：是，N：否）',
-  `order_pay_no`                       COMMENT '支付流水号',
-  `bank_trade_no`                      COMMENT '银行交易流水号',
-  `bank_trade_time`                    COMMENT '线下银行订单交易时间',
   `bank_trade_act_no`                  COMMENT '银行付款账号',
   `bank_trade_act_name`                COMMENT '银行付款账户名称',
   `bank_trade_act_phone`               COMMENT '银行预留手机号',
-  `service_sn`                         COMMENT '流水号',
-  `outer_no`                           COMMENT '外部凭证号',
-  `confirm_flag`                       COMMENT '确认标志',
   `txn_time`                           COMMENT '交易时间',
   `txn_date`                           COMMENT '交易日期',
-  `capital_plan_no`                    COMMENT '资金计划编号',
-  `memo`                               COMMENT '备注',
   `create_time`                        COMMENT '创建时间',
   `update_time`                        COMMENT '更新时间',
   `biz_date`                           COMMENT '交易日期',
   `project_id`                         COMMENT '项目编号'
-) COMMENT '订单流水表' AS
-select
-  order_id,
-  ori_order_id,
-  apply_no,
-  due_bill_no,
-  term,
-  t1.channel_id,
-  pay_channel,
-  command_type,
-  order_status,
-  order_time,
-  repay_serial_no,
-  service_id,
-  assign_repay_ind,
-  repay_way,
-  txn_type,
-  txn_amt,
-  original_txn_amt,
-  success_amt,
-  currency,
-  code,
-  message,
-  response_code,
-  response_message,
-  business_date,
-  send_time,
-  opt_datetime,
-  setup_date,
-  loan_usage,
-  purpose,
-  online_flag,
-  online_allow,
-  order_pay_no,
-  bank_trade_no,
-  bank_trade_time,
-  bank_trade_act_no,
-  bank_trade_act_name,
-  bank_trade_act_phone,
-  service_sn,
-  outer_no,
-  confirm_flag,
-  txn_time,
-  txn_date,
-  capital_plan_no,
-  memo,
-  create_time,
-  update_time,
-  biz_date,
-  abs_project_id as project_id
+) COMMENT '订单流水表' AS select
+  t1.order_id             as order_id,
+  t1.apply_no             as apply_no,
+  t1.due_bill_no          as due_bill_no,
+  t1.term                 as term,
+  t1.pay_channel          as pay_channel,
+  t1.command_type         as command_type,
+  t1.order_status         as order_status,
+  t1.repay_way            as repay_way,
+  t1.txn_amt              as txn_amt,
+  t1.success_amt          as success_amt,
+  t1.currency             as currency,
+  t1.business_date        as business_date,
+  t1.loan_usage           as loan_usage,
+  t1.purpose              as purpose,
+  t1.bank_trade_act_no    as bank_trade_act_no,
+  t1.bank_trade_act_name  as bank_trade_act_name,
+  t1.bank_trade_act_phone as bank_trade_act_phone,
+  t1.txn_time             as txn_time,
+  t1.txn_date             as txn_date,
+  t1.create_time          as create_time,
+  t1.update_time          as update_time,
+  t1.biz_date             as biz_date,
+  t2.project_id           as project_id
 from ods.order_info as t1
-join dim_new.biz_conf as t2
-on t1.product_id = t2.product_id;
+join dim.project_due_bill_no as t2
+on  t1.product_id  = t2.partition_id
+and t1.due_bill_no = t2.due_bill_no;
+
+
 
 
 
@@ -1385,29 +1345,8 @@ CREATE VIEW IF NOT EXISTS `ods.t_05_repaymentplan`(
   `should_repay_cost`                  COMMENT '应还费用',
   `effective_date`                     COMMENT '生效日期',
   `repay_status`                       COMMENT '还款状态（1：入池前已还，2：入池前未还）',
-  `schedule_status`                    COMMENT '还款计划状态（英文原值）（N：正常，O：逾期，F：已还清）',
-  `schedule_status_cn`                 COMMENT '还款计划状态（汉语解释）',
-  `paid_out_date`                      COMMENT '还清日期',
-  `paid_out_type`                      COMMENT '结清类型（英文原值）（BANK_REF：退票结清，BUY_BACK：资产回购，CAPITAL_VERI：资产核销，DISPOSAL：处置结束，NORMAL_SETTLE：正常结清，OVER_COMP：逾期代偿，OVERDUE_SETTLE：逾期结清，PRE_SETTLE：提前结清，REDEMPTION：赎回，REFUND：退车，REFUND_SETTLEMENT：退票结清）',
-  `paid_out_type_cn`                   COMMENT '结清类型（汉语解释）',
-  `paid_amount`                        COMMENT '已还金额',
-  `paid_principal`                     COMMENT '已还本金',
-  `paid_interest`                      COMMENT '已还利息',
-  `paid_term_fee`                      COMMENT '已还手续费',
-  `paid_svc_fee`                       COMMENT '已还服务费',
-  `paid_penalty`                       COMMENT '已还罚息',
-  `paid_mult`                          COMMENT '已还滞纳金',
-  `reduce_amount`                      COMMENT '减免金额',
-  `reduce_principal`                   COMMENT '减免本金',
-  `reduce_interest`                    COMMENT '减免利息',
-  `reduce_term_fee`                    COMMENT '减免手续费',
-  `reduce_svc_fee`                     COMMENT '减免服务费',
-  `reduce_penalty`                     COMMENT '减免罚息',
-  `reduce_mult_amt`                    COMMENT '减免滞纳金',
   `import_id`                          COMMENT '导入Id',
-  `data_source`                        COMMENT '数据来源（1：startLink，2：excelImport，3：systemgenerated）',
-  `s_d_date`                           COMMENT '生效日期',
-  `e_d_date`                           COMMENT '失效日期'
+  `data_source`                        COMMENT '数据来源（1：startLink，2：excelImport，3：systemgenerated）'
 ) COMMENT '还款计划表-文件五' as select
   project_id                                                                                  as project_id,
   due_bill_no                                                                                 as serial_number,
@@ -1418,42 +1357,21 @@ CREATE VIEW IF NOT EXISTS `ods.t_05_repaymentplan`(
   should_repay_term_fee + should_repay_svc_fee + should_repay_penalty + should_repay_mult_amt as should_repay_cost,
   effective_date                                                                              as effective_date,
   repay_status                                                                                as repay_status,
-  schedule_status                                                                             as schedule_status,
-  schedule_status_cn                                                                          as schedule_status_cn,
-  paid_out_date                                                                               as paid_out_date,
-  paid_out_type                                                                               as paid_out_type,
-  paid_out_type_cn                                                                            as paid_out_type_cn,
-  paid_amount                                                                                 as paid_amount,
-  paid_principal                                                                              as paid_principal,
-  paid_interest                                                                               as paid_interest,
-  paid_term_fee                                                                               as paid_term_fee,
-  paid_svc_fee                                                                                as paid_svc_fee,
-  paid_penalty                                                                                as paid_penalty,
-  paid_mult                                                                                   as paid_mult,
-  reduce_amount                                                                               as reduce_amount,
-  reduce_principal                                                                            as reduce_principal,
-  reduce_interest                                                                             as reduce_interest,
-  reduce_term_fee                                                                             as reduce_term_fee,
-  reduce_svc_fee                                                                              as reduce_svc_fee,
-  reduce_penalty                                                                              as reduce_penalty,
-  reduce_mult_amt                                                                             as reduce_mult_amt,
-  cast(null as string)                                                                        as import_id,
-  cast(null as string)                                                                        as data_source,
-  s_d_date                                                                                    as s_d_date,
-  e_d_date                                                                                    as e_d_date
+  import_id                                                                                   as import_id,
+  data_source                                                                                 as data_source
 from (
   select
     project_id as dim_project_id,
     data_source
-  from dim_new.project_info
+  from dim.project_info
 ) as project_info
 join (
-  select * from ods.repay_schedule_abs
-  where 1 > 0
-    and effective_date = s_d_date
+  select
+    *
+  from ods.repay_schedule_abs
+  where effective_date = s_d_date
 ) as repay_schedule_abs
-on dim_project_id = project_id
-;
+on dim_project_id = project_id;
 
 
 -- DROP VIEW IF EXISTS `ods.t_07_actualrepayinfo`;
@@ -1487,7 +1405,7 @@ CREATE VIEW IF NOT EXISTS `ods.t_07_actualrepayinfo`(
   biz_date                       as actual_repay_time,
   remain_principal               as current_period_loan_balance,
   repay_type                     as repay_type,
-  current_account_status         as current_account_status,
+  loan_status_cn                 as current_account_status,
   actual_repay_principal         as actual_repay_principal,
   actual_repay_interest          as actual_repay_interest,
   actual_repay_fee               as actual_repay_fee,
@@ -1498,7 +1416,6 @@ CREATE VIEW IF NOT EXISTS `ods.t_07_actualrepayinfo`(
   other_fee                      as other_fee,
   actual_work_interest_rate      as actual_work_interest_rate,
   import_id                      as import_id,
-  -- cast(null as string)           as import_id,
   data_source                    as data_source,
   create_time                    as create_time,
   update_time                    as update_time
@@ -1506,54 +1423,36 @@ from (
   select
     project_id as dim_project_id,
     data_source
-  from dim_new.project_info
+  from dim.project_info
 ) as project_info
 join (
   select
-    split_part(project_id,'@',1)                                      as project_id,
-    due_bill_no                                                       as due_bill_no,
-    repay_term                                                        as term,
-    'Y'                                                               as is_borrowers_oneself_repayment,
-    biz_date                                                          as biz_date,
-    case loan_status_cn
-    when '正常结清' then '正常还款'
-    when '逾期结清' then '逾期还款'
-    when '提前结清' then '提前还款'
-    else loan_status_cn end                                           as repay_type,
-    case loan_status_cn
-    when '正常还款' then '正常'
-    when '逾期还款' then '正常'
-    when '提前还款' then '提前还清'
-    else '正常' end                                                   as current_account_status,
-    sum(if(bnp_type = 'Pricinpal', repay_amount,0))                   as actual_repay_principal,
-    sum(if(bnp_type = 'Interest',  repay_amount,0))                   as actual_repay_interest,
-    sum(if(bnp_type in ('TXNFee','TERMFee','SVCFee'),repay_amount,0)) as actual_repay_fee,
-    sum(if(bnp_type = 'Damages',   repay_amount,0))                   as penalbond,
-    sum(if(bnp_type = 'Penalty',    repay_amount,0))                  as penalty_interest,
-    sum(if(bnp_type = 'Compensation',   repay_amount,0))              as compensation,
-    sum(if(bnp_type = 'TERMFee',   repay_amount,0))                   as advanced_commission_charge,
-    sum(if(bnp_type = 'SVCFee',   repay_amount,0))                    as other_fee,
-    0                                                                 as actual_work_interest_rate,
-    nvl(cast(split_part(project_id,'@',2) as string))                 as import_id,
-    create_time                                                       as create_time,
-    update_time                                                       as update_time
+    project_id                                         as project_id,
+    due_bill_no                                        as due_bill_no,
+    repay_term                                         as term,
+    'Y'                                                as is_borrowers_oneself_repayment,
+    biz_date                                           as biz_date,
+    repay_type                                         as repay_type,
+    sum(if(bnp_type = 'Pricinpal',    repay_amount,0)) as actual_repay_principal,
+    sum(if(bnp_type = 'Interest',     repay_amount,0)) as actual_repay_interest,
+    sum(if(bnp_type = 'RepayFee',     repay_amount,0)) as actual_repay_fee,
+    sum(if(bnp_type = 'Damages',      repay_amount,0)) as penalbond,
+    sum(if(bnp_type = 'Penalty',      repay_amount,0)) as penalty_interest,
+    sum(if(bnp_type = 'Compensation', repay_amount,0)) as compensation,
+    sum(if(bnp_type = 'EarlyRepayFee',repay_amount,0)) as advanced_commission_charge,
+    sum(if(bnp_type = 'OtherFee',     repay_amount,0)) as other_fee,
+    0                                                  as actual_work_interest_rate,
+    import_id                                          as import_id,
+    create_time                                        as create_time,
+    update_time                                        as update_time
   from ods.repay_detail_abs
   group by
-    split_part(project_id,'@',1), -- project_id
+    project_id,
     due_bill_no,
     repay_term,
     biz_date,
-    case loan_status_cn
-    when '正常结清' then '正常还款'
-    when '逾期结清' then '逾期还款'
-    when '提前结清' then '提前还款'
-    else loan_status_cn end,
-    case loan_status_cn
-    when '正常结清' then '正常'
-    when '逾期结清' then '正常'
-    when '提前结清' then '提前还清'
-    else '正常' end,
-    nvl(cast(split_part(project_id,'@',2) as string)), -- import_id
+    repay_type,
+    import_id,
     create_time,
     update_time
 ) as repay_detail_abs
@@ -1562,102 +1461,17 @@ left join (
   select
     project_id       as loan_project_id,
     due_bill_no      as loan_due_bill_no,
-    remain_principal as remain_principal,
+    remain_principal,
+    loan_status_cn,
     s_d_date,
     e_d_date
   from ods.loan_info_abs
 ) as loan_info
 on  project_id  = loan_project_id
 and due_bill_no = loan_due_bill_no
-where biz_date between s_d_date and date_sub(e_d_date,1)
-;
+where biz_date between s_d_date and date_sub(e_d_date,1);
 
 
-
--- DROP VIEW IF EXISTS `ods.t_07_actualrepayinfo`;
-CREATE VIEW IF NOT EXISTS `ods.t_07_actualrepayinfo`(
-  `project_id`                         COMMENT '项目编号',
-  `serial_number`                      COMMENT '借据号',
-  `term`                               COMMENT '期次',
-  `is_borrowers_oneself_repayment`     COMMENT '是否借款人本人还款（预定义字段：Y、N，默认：Y）',
-  `actual_repay_time`                  COMMENT '实际还清日期（若没有还清传还款日期，若还清就传实际还清的日期）',
-  `current_period_loan_balance`        COMMENT '当期贷款余额（各期还款日（T+1）更新该字段，即截至当期还款日资产的剩余（未偿还）贷款本金余额）',
-  `repay_type`                         COMMENT '还款类型 1，提前还款 2，正常还款 3，部分还款 4，逾期还款',
-  `current_account_status`             COMMENT '当期账户状态（各期还款日（T+1）更新该字段，正常：在还款日前该期应还已还清，提前还清（早偿）：贷款在该期还款日前提前全部还清，逾期：贷款在该期还款日时，实还金额小于应还金额）',
-  `actual_repay_principal`             COMMENT '实还本金（元）',
-  `actual_repay_interest`              COMMENT '实还利息（元）',
-  `actual_repay_fee`                   COMMENT '实还费用（元）',
-  `penalbond`                          COMMENT '违约金',
-  `penalty_interest`                   COMMENT '罚息',
-  `compensation`                       COMMENT '赔偿金（提前还款/逾期所产生的赔偿金）',
-  `advanced_commission_charge`         COMMENT '提前还款手续费',
-  `other_fee`                          COMMENT '其他相关费用 （违约金、罚款、赔偿金和提前还款手续费以外的费用）',
-  `actual_work_interest_rate`          COMMENT '实际还款执行利率',
-  `data_source`                        COMMENT '数据来源（1：startLink，2：excelImport）',
-  `import_id`                          COMMENT '导入Id',
-  `create_time`                        COMMENT '创建时间',
-  `update_time`                        COMMENT '更新时间'
-) COMMENT '实际还款信息表-文件七' as select
-  project_id                                                        as project_id,
-  due_bill_no                                                       as serial_number,
-  repay_term                                                        as term,
-  'Y'                                                               as is_borrowers_oneself_repayment,
-  biz_date                                                          as actual_repay_time,
-  remain_principal                                                  as current_period_loan_balance,
-  loan_status_cn                                                    as repay_type,
-  case loan_status_cn
-  when '正常还款' then '正常'
-  when '逾期还款' then '正常'
-  when '提前还款' then '提前还清'
-  else '正常' end                                                   as current_account_status,
-  sum(if(bnp_type = 'Pricinpal', repay_amount,0))                   as actual_repay_principal,
-  sum(if(bnp_type = 'Interest',  repay_amount,0))                   as actual_repay_interest,
-  sum(if(bnp_type in ('TXNFee','TERMFee','SVCFee'),repay_amount,0)) as actual_repay_fee,
-  sum(if(bnp_type = 'Damages',   repay_amount,0))                   as penalbond,
-  sum(if(bnp_type = 'Penalty',    repay_amount,0))                  as penalty_interest,
-  sum(if(bnp_type = 'Compensation',   repay_amount,0))              as compensation,
-  sum(if(bnp_type = 'TERMFee',   repay_amount,0))                   as advanced_commission_charge,
-  sum(if(bnp_type = 'SVCFee',   repay_amount,0))                    as other_fee,
-  0                                                                 as actual_work_interest_rate,
-  cast(null as string)                                              as import_id,
-  cast(null as string)                                              as data_source,
-  create_time                                                       as create_time,
-  update_time                                                       as update_time
-from (
-  select
-    project_id as dim_project_id,
-    data_source
-  from dim_new.project_info
-) as project_info
-join ods.repay_detail_abs
-on dim_project_id = project_id
-left join (
-  select
-    project_id       as loan_project_id,
-    due_bill_no      as loan_due_bill_no,
-    remain_principal as remain_principal,
-    s_d_date,
-    e_d_date
-  from ods.loan_info_abs
-) as loan_info
-on  project_id  = loan_project_id
-and due_bill_no = loan_due_bill_no
-where biz_date between s_d_date and date_sub(e_d_date,1)
-group by
-  project_id,
-  due_bill_no,
-  repay_term,
-  biz_date,
-  remain_principal,
-  loan_status_cn,
-  case loan_status_cn
-  when '正常还款' then '正常'
-  when '逾期还款' then '正常'
-  when '提前还款' then '提前还清'
-  else '正常' end,
-  create_time,
-  update_time
-;
 
 
 
@@ -1937,8 +1751,8 @@ left join (
     bag_info.bag_remain_principal       as package_principal_balance,
     package_remain_principal            as package_remain_principal,
     package_remain_periods              as package_remain_periods
-  from dim_new.bag_due_bill_no bag_due
-  inner join dim_new.bag_info bag_info
+  from dim.bag_due_bill_no bag_due
+  inner join dim.bag_info bag_info
   on bag_due.bag_id = bag_info.bag_id
   where bag_info.bag_date between s_d_date and date_sub(e_d_date,1)
 ) bag_snapshot

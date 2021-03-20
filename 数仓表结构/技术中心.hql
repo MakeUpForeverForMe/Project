@@ -14352,4 +14352,7 @@ select * from ods.repay_schedule_inter_hdfs;
 
 
 
-root_dir=/dat
+
+
+
+

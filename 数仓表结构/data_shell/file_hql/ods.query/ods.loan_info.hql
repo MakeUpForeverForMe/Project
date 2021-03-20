@@ -14,8 +14,6 @@ set hive.exec.max.dynamic.partitions.pernode=50000;
 set hive.vectorized.execution.enabled=false;
 set hive.vectorized.execution.reduce.enabled=false;
 set hive.vectorized.execution.reduce.groupby.enabled=false;
--- 设置可以使用正则匹配 `(a|b)?+.+`
-set hive.support.quoted.identifiers=None;
 
 
 
@@ -25,15 +23,16 @@ select
   due_bill_no,
   apply_no,
   loan_active_date,
-  loan_init_principal,
   loan_init_term,
-  max(loan_term)         over(partition by due_bill_no order by s_d_date) as loan_term,
-  max(should_repay_date) over(partition by due_bill_no order by s_d_date) as should_repay_date,
-  loan_term_repaid,
-  loan_term_remain,
+  loan_init_principal,
   loan_init_interest,
   loan_init_term_fee,
   loan_init_svc_fee,
+  max(loan_term)                                         over(partition by product_id,due_bill_no order by biz_date)    as loan_term,
+  max(account_age)                                       over(partition by product_id,due_bill_no order by biz_date)    as account_age,
+  max(should_repay_date)                                 over(partition by product_id,due_bill_no order by biz_date)    as should_repay_date,
+  loan_term_repaid,
+  loan_term_remain,
   loan_status,
   loan_status_cn,
   loan_out_reason,
@@ -53,35 +52,57 @@ select
   remain_interest,
   remain_svc_fee,
   remain_term_fee,
+  remain_othAmounts,
   overdue_principal,
   overdue_interest,
   overdue_svc_fee,
   overdue_term_fee,
   overdue_penalty,
   overdue_mult_amt,
-  min(overdue_date_start) over(partition by due_bill_no order by s_d_date) as overdue_date_first,
+  min(overdue_date_start)                                over(partition by product_id,due_bill_no order by biz_date)    as overdue_date_first,
   overdue_date_start,
   overdue_days,
   overdue_date,
   overdue_date_start as dpd_begin_date,
   overdue_days as dpd_days,
-  0 as dpd_days_count,
-  max(overdue_days) over(partition by due_bill_no order by s_d_date) as dpd_days_max,
+  max(dpd_dpd_days_count + overdue_days)                 over(partition by product_id,due_bill_no order by biz_date)    as dpd_days_count,
+  max(overdue_days)                                      over(partition by product_id,due_bill_no order by biz_date)    as dpd_days_max,
   collect_out_date as collect_out_date,
   overdue_term,
-  count(distinct if(overdue_days > 0,overdue_term,null)) over(partition by due_bill_no order by s_d_date)    as overdue_terms_count,
-  max(overdue_terms_max)                                 over(partition by due_bill_no order by s_d_date)    as overdue_terms_max,
-  nvl(sum(distinct overdue_principal)                    over(partition by due_bill_no order by s_d_date),0) as overdue_principal_accumulate,
-  nvl(max(overdue_principal)                             over(partition by due_bill_no order by s_d_date),0) as overdue_principal_max,
-  s_d_date,
-  e_d_date,
-  effective_time,
-  expire_time,
-  product_id
-
-
-  `(biz_date|product_id)?+.+`,
+  count(distinct if(overdue_days > 0,overdue_term,null)) over(partition by product_id,due_bill_no order by biz_date)    as overdue_terms_count,
+  max(overdue_terms_max)                                 over(partition by product_id,due_bill_no order by biz_date)    as overdue_terms_max,
+  nvl(sum(distinct overdue_principal)                    over(partition by product_id,due_bill_no order by biz_date),0) as overdue_principal_accumulate,
+  nvl(max(overdue_principal)                             over(partition by product_id,due_bill_no order by biz_date),0) as overdue_principal_max,
+  create_time,
+  update_time,
   biz_date as s_d_date,
-  lead(biz_date) over(partition by product_id,due_bill_no,loan_term order by biz_date) as e_d_date,
+  nvl(lead(biz_date)                                     over(partition by product_id,due_bill_no order by biz_date),'3000-12-31') as e_d_date,
   product_id
-from ods${db_suffix}.repay_schedule_inter;
+from ods${db_suffix}.loan_info_inter
+join (
+  select
+    dpd_product_id,
+    dpd_due_bill_no,
+    dpd_overdue_date_start,
+    dpd_overdue_date_next,
+    nvl(lag(dpd_dpd_days_count) over(partition by dpd_product_id,dpd_due_bill_no order by dpd_overdue_date_start),0) as dpd_dpd_days_count
+  from (
+    select
+      product_id                                                                                            as dpd_product_id,
+      due_bill_no                                                                                           as dpd_due_bill_no,
+      nvl(overdue_date_start,'1970-01-01')                                                                  as dpd_overdue_date_start,
+      nvl(lead(overdue_date_start) over(partition by due_bill_no order by overdue_date_start),'3000-12-31') as dpd_overdue_date_next,
+      sum(max(overdue_days)) over(partition by due_bill_no order by overdue_date_start)                     as dpd_dpd_days_count
+    from ods${db_suffix}.loan_info_inter
+    group by product_id,due_bill_no,overdue_date_start
+  ) as tmp
+) as dpd_days_count
+on  product_id  = dpd_product_id
+and due_bill_no = dpd_due_bill_no
+and biz_date between dpd_overdue_date_start and date_sub(dpd_overdue_date_next,1)
+-- where 1 > 0
+--   and product_id = 'DIDI201908161538'
+--   and due_bill_no = 'DD000230362020091720570081493b'
+-- limit 10
+-- order by s_d_date
+;
