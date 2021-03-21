@@ -14352,6 +14352,12 @@ select * from ods.repay_schedule_inter_hdfs;
 
 
 
+ALTER table ods.loan_info_inter drop if exists partition(biz_date = '2019-11-02',product_id = '001503');
+
+
+
+
+
 
 
 
