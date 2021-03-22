@@ -69,13 +69,13 @@ from (
         select
           min(bag_date) as s_d_date,
           '1' as rn
-        from dim_new.bag_info
+        from dim.bag_info
       ) as t1
       join (
         select
           max(should_repay_date) as e_d_date,
           '1' as rn
-        from ods_new_s.repay_schedule_abs
+        from ods.repay_schedule_abs
         where '${ST9}' between s_d_date and date_sub(e_d_date,1)
       ) as t2
       on t1.rn = t2.rn
@@ -94,12 +94,12 @@ from (
         due_bill_no,
         should_repay_date,
         paid_out_date
-      from ods_new_s.repay_schedule_abs
+      from ods.repay_schedule_abs
       where '${ST9}' between s_d_date and date_sub(e_d_date,1)
     ) as t4
-    join dim_new.bag_due_bill_no as t5
+    join dim.bag_due_bill_no as t5
     on t4.due_bill_no = t5.due_bill_no
-    join dim_new.bag_info as t6
+    join dim.bag_info as t6
     on t5.bag_id = t6.bag_id
     group by t6.bag_id,t6.project_id,t6.bag_date
   ) as t6
@@ -116,11 +116,11 @@ left join (
     sum(nvl(t.should_repay_principal,0)) as should_repay_principal,
     sum(nvl(t.should_repay_interest,0))  as should_repay_interest,
     sum(nvl(t.should_repay_term_fee,0) + nvl(t.should_repay_svc_fee,0) + nvl(t.should_repay_penalty,0) + nvl(t.should_repay_mult_amt,0)) as should_repay_cost
-  from ods_new_s.repay_schedule_abs as t
-  join dim_new.bag_due_bill_no as t1
+  from ods.repay_schedule_abs as t
+  join dim.bag_due_bill_no as t1
   on t.due_bill_no = t1.due_bill_no
   where '${ST9}' between s_d_date and date_sub(e_d_date,1)
-    and if(paid_out_type_cn is NULL,'A', paid_out_type_cn) != '提前结清'
+    and if(paid_out_type_cn is NULL,'A',paid_out_type_cn) != '提前结清'
   group by t.project_id,t1.bag_id,t.should_repay_date
 ) as t2
 on  t1.project_id = t2.project_id
@@ -156,10 +156,10 @@ left join (
       loan_term,
       paid_out_type_cn,
       project_id
-    from ods_new_s.repay_schedule_abs
+    from ods.repay_schedule_abs
     where '${ST9}' between s_d_date and date_sub(e_d_date,1)
   ) as t
-  join dim_new.bag_due_bill_no as t1
+  join dim.bag_due_bill_no as t1
   on t.due_bill_no = t1.due_bill_no
   join (
     select
@@ -170,7 +170,7 @@ left join (
       sum(nvl(if(bnp_type = 'Pricinpal',repay_amount,0),0))                             as paid_principal,
       sum(nvl(if(bnp_type = 'Interest',repay_amount,0),0))                              as paid_interest,
       sum(nvl(if(bnp_type != 'Pricinpal' and bnp_type != 'Interest',repay_amount,0),0)) as paid_cost
-    from ods_new_s.repay_detail_abs
+    from ods.repay_detail_abs
     group by due_bill_no,repay_term
   ) as t2
   on  t.due_bill_no = t2.due_bill_no
@@ -185,10 +185,10 @@ left join (
     t3.bag_id,
     t3.project_id,
     t1.biz_date
-  from ods_new_s.repay_detail_abs as t1
-  join dim_new.bag_due_bill_no as t2
+  from ods.repay_detail_abs as t1
+  join dim.bag_due_bill_no as t2
   on t1.due_bill_no = t2.due_bill_no
-  join dim_new.bag_info as t3
+  join dim.bag_info as t3
   on t2.bag_id = t3.bag_id
 ) as t4
 on  t1.project_id = t4.project_id

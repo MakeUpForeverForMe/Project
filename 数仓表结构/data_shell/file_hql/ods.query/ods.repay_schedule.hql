@@ -20,12 +20,11 @@ set hive.support.quoted.identifiers=None;
 
 
 
-insert overwrite table ods${db_suffix}.repay_schedule partition(is_settled,product_id)
+insert overwrite table ods${db_suffix}.repay_schedule partition(is_settled = 'no',product_id)
 select
   `(biz_date|product_id)?+.+`,
   biz_date as s_d_date,
   nvl(lead(biz_date) over(partition by product_id,due_bill_no,loan_term order by biz_date),'3000-12-31') as e_d_date,
-  'no' as is_settled,
   product_id
 from ods${db_suffix}.repay_schedule_inter
 -- limit 10

@@ -326,8 +326,9 @@ CREATE TABLE IF NOT EXISTS `ods.risk_control`(
   `risk_control_type`                                 decimal(2,0)   COMMENT '风控数据类型（1：授信，2：用信，3：星云）',
   `apply_id`                                          string         COMMENT '申请编号',
   `due_bill_no`                                       string         COMMENT '借据编号',
-  `map_comment`                                       map<string,    string> COMMENT 'Map数据的Key解释字段',
-  `map_value`                                         map<string,    string> COMMENT 'Map类型的风控数据',
+  `map_key`                                           string         COMMENT '数据的Key',
+  `map_com`                                           string         COMMENT '数据的Key注释',
+  `map_val`                                           string         COMMENT '数据的Val',
   `create_time`                                       timestamp      COMMENT '创建时间',
   `update_time`                                       timestamp      COMMENT '更新时间'
 ) COMMENT '风控信息表'
@@ -358,7 +359,7 @@ CREATE TABLE IF NOT EXISTS `ods${db_suffix}.loan_lending`(
   `loan_active_date`                                  string         COMMENT '放款日期',
   `loan_expire_date`                                  string         COMMENT '贷款到期日期',
   `cycle_day`                                         decimal(2,0)   COMMENT '账单日',
-  `loan_type`                                         string         COMMENT '分期类型（英文原值）（MCEP：等额本金，MCEI：等额本息，R：消费转分期，C：现金分期，B：账单分期，P：POS分期，M：大额分期（专项分期），MCAT：随借随还，STAIR：阶梯还款）',
+  `loan_type`                                         string         COMMENT '分期类型（英文原值）（MCEP：等额本金，MCEI：等额本息，R：消费转分期，C：现金分期，B：账单分期，P：POS分期，M：大额分期（专项分期），MCAT：随借随还，STAIR：阶梯还款，Z：默认值）',
   `loan_type_cn`                                      string         COMMENT '分期类型（汉语解释）',
   `contract_daily_interest_rate_basis`                decimal(3,0)   COMMENT '日利率计算基础',
   `interest_rate_type`                                string         COMMENT '利率类型',
@@ -700,6 +701,7 @@ CREATE VIEW IF NOT EXISTS `ods.customer_info_abs`(
   `income_year`                        COMMENT '年收入',
   `cutomer_type`                       COMMENT '客戶类型（个人或企业）',
   `cust_rating`                        COMMENT '内部信用等级',
+  `product_id`                         COMMENT '产品编号',
   `project_id`                         COMMENT '项目编号'
 ) COMMENT '客户信息表' AS select
   t1.due_bill_no       as due_bill_no,
@@ -735,6 +737,7 @@ CREATE VIEW IF NOT EXISTS `ods.customer_info_abs`(
   t1.income_year       as income_year,
   t1.cutomer_type      as cutomer_type,
   t1.cust_rating       as cust_rating,
+  t1.product_id        as product_id,
   t2.project_id        as project_id
 from ods.customer_info as t1
 join dim.project_due_bill_no as t2
@@ -770,6 +773,7 @@ CREATE VIEW IF NOT EXISTS `ods.linkman_info_abs`(
   `deal_date`                          COMMENT '业务时间',
   `create_time`                        COMMENT '创建时间',
   `update_time`                        COMMENT '更新时间',
+  `product_id`                         COMMENT '产品编号',
   `project_id`                         COMMENT '项目编号'
 ) COMMENT '联系人信息表' AS select
   t1.cust_id              as cust_id,
@@ -798,6 +802,7 @@ CREATE VIEW IF NOT EXISTS `ods.linkman_info_abs`(
   t1.deal_date            as deal_date,
   t1.create_time          as create_time,
   t1.update_time          as update_time,
+  t1.product_id           as product_id,
   t2.project_id           as project_id
 from ods.linkman_info as t1
 join dim.project_due_bill_no as t2
@@ -844,6 +849,7 @@ CREATE VIEW IF NOT EXISTS `ods.guaranty_info_abs`(
   `car_colour`                         COMMENT '车辆颜色',
   `create_time`                        COMMENT '创建时间',
   `update_time`                        COMMENT '更新时间',
+  `product_id`                         COMMENT '产品编号',
   `project_id`                         COMMENT '项目编号'
 ) COMMENT '抵押物（车）信息表' AS select
   t1.due_bill_no                    as due_bill_no,
@@ -883,6 +889,7 @@ CREATE VIEW IF NOT EXISTS `ods.guaranty_info_abs`(
   t1.car_colour                     as car_colour,
   t1.create_time                    as create_time,
   t1.update_time                    as update_time,
+  t1.product_id                     as product_id,
   t2.project_id                     as project_id
 from ods.guaranty_info as t1
 join dim.project_due_bill_no as t2
@@ -912,6 +919,7 @@ CREATE VIEW IF NOT EXISTS `ods.enterprise_info_abs` (
   `province`                           COMMENT '企业省份',
   `create_time`                        COMMENT '创建时间',
   `update_time`                        COMMENT '更新时间',
+  `product_id`                         COMMENT '产品编号',
   `project_id`                         COMMENT '项目编号'
 ) COMMENT '企业信息表' AS select
   t1.due_bill_no         as due_bill_no,
@@ -934,6 +942,7 @@ CREATE VIEW IF NOT EXISTS `ods.enterprise_info_abs` (
   t1.province            as province,
   t1.create_time         as create_time,
   t1.update_time         as update_time,
+  t1.product_id          as product_id,
   t2.project_id          as project_id
 from ods.enterprise_info as t1
 join dim.project_due_bill_no as t2
@@ -968,6 +977,7 @@ CREATE VIEW IF NOT EXISTS `ods.loan_lending_abs`(
   `bus_product_name`                   COMMENT '产品方案名称',
   `mortgage_rate`                      COMMENT '抵押率',
   `biz_date`                           COMMENT '放款日期',
+  `product_id`                         COMMENT '产品编号',
   `project_id`                         COMMENT '项目编号'
 ) COMMENT '放款表' AS select
   t1.apply_no                           as apply_no,
@@ -995,6 +1005,7 @@ CREATE VIEW IF NOT EXISTS `ods.loan_lending_abs`(
   t1.bus_product_name                   as bus_product_name,
   t1.mortgage_rate                      as mortgage_rate,
   t1.biz_date                           as biz_date,
+  t1.product_id                         as product_id,
   t2.project_id                         as project_id
 from ods.loan_lending as t1
 join dim.project_due_bill_no as t2
@@ -1062,6 +1073,7 @@ CREATE VIEW IF NOT EXISTS `ods.loan_info_abs`(
   `create_time`                        COMMENT '创建时间',
   `update_time`                        COMMENT '更新时间',
   `is_settled`                         COMMENT '是否已结清',
+  `product_id`                         COMMENT '产品编号',
   `project_id`                         COMMENT '项目编号'
 ) COMMENT '借据信息表' AS select
   t1.due_bill_no                  as due_bill_no,
@@ -1123,6 +1135,7 @@ CREATE VIEW IF NOT EXISTS `ods.loan_info_abs`(
   t1.create_time                  as create_time,
   t1.update_time                  as update_time,
   t1.is_settled                   as is_settled,
+  t1.product_id                   as product_id,
   t2.project_id                   as project_id
 from ods.loan_info as t1
 join dim.project_due_bill_no as t2
@@ -1177,6 +1190,7 @@ CREATE ViEW IF NOT EXISTS `ods.repay_schedule_abs`(
   `e_d_date`                           COMMENT '数据失效日期',
   `is_settled`                         COMMENT '是否已结清',
   `import_id`                          COMMENT '导入Id',
+  `product_id`                         COMMENT '产品编号',
   `project_id`                         COMMENT '项目编号'
 ) COMMENT '还款计划表' as select
   t1.due_bill_no               as due_bill_no,
@@ -1224,6 +1238,7 @@ CREATE ViEW IF NOT EXISTS `ods.repay_schedule_abs`(
   t1.e_d_date                  as e_d_date,
   t1.is_settled                as is_settled,
   t2.import_id                 as import_id,
+  t1.product_id                as product_id,
   t2.project_id                as project_id
 from ods.repay_schedule as t1
 join dim.project_due_bill_no as t2
@@ -1249,6 +1264,7 @@ CREATE VIEW IF NOT EXISTS `ods.repay_detail_abs`(
   `update_time`                        COMMENT '更新时间',
   `biz_date`                           COMMENT '交易时间',
   `import_id`                          COMMENT '导入Id',
+  `product_id`                         COMMENT '产品编号',
   `project_id`                         COMMENT '项目编号'
 ) COMMENT '实还明细表' AS select
   t1.due_bill_no   as due_bill_no,
@@ -1267,6 +1283,7 @@ CREATE VIEW IF NOT EXISTS `ods.repay_detail_abs`(
   t1.update_time   as update_time,
   t1.biz_date      as biz_date,
   t2.import_id     as import_id,
+  t1.product_id    as product_id,
   t2.project_id    as project_id
 from ods.repay_detail as t1
 join dim.project_due_bill_no as t2
@@ -1298,6 +1315,7 @@ CREATE VIEW IF NOT EXISTS `ods.order_info_abs`(
   `create_time`                        COMMENT '创建时间',
   `update_time`                        COMMENT '更新时间',
   `biz_date`                           COMMENT '交易日期',
+  `product_id`                         COMMENT '产品编号',
   `project_id`                         COMMENT '项目编号'
 ) COMMENT '订单流水表' AS select
   t1.order_id             as order_id,
@@ -1322,6 +1340,7 @@ CREATE VIEW IF NOT EXISTS `ods.order_info_abs`(
   t1.create_time          as create_time,
   t1.update_time          as update_time,
   t1.biz_date             as biz_date,
+  t1.product_id           as product_id,
   t2.project_id           as project_id
 from ods.order_info as t1
 join dim.project_due_bill_no as t2

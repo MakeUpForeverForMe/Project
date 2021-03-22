@@ -1,14 +1,19 @@
-set spark.executor.memory=4g;
-set spark.executor.memoryOverhead=4g;
-set spark.shuffle.memoryFraction=0.6;         -- shuffle操作的内存占比
-set spark.maxRemoteBlockSizeFetchToMem=200m;
-set hive.auto.convert.join=false;             -- 关闭自动 MapJoin
-set hive.mapjoin.optimized.hashtable=false;
-set hive.mapjoin.followby.gby.localtask.max.memory.usage=0.9;
+-- 设置 Container 大小
+set hive.tez.container.size=4096;
+set tez.am.resource.memory.mb=4096;
+-- 合并小文件
+set hive.merge.tezfiles=true;
+set hive.merge.size.per.task=128000000; -- 128M
+set hive.merge.smallfiles.avgsize=128000000; -- 128M
+-- 设置动态分区
 set hive.exec.dynamic.partition=true;
 set hive.exec.dynamic.partition.mode=nonstrict;
-set hive.exec.max.dynamic.partitions=30000;
-set hive.exec.max.dynamic.partitions.pernode=10000;
+set hive.exec.max.dynamic.partitions=200000;
+set hive.exec.max.dynamic.partitions.pernode=50000;
+-- 禁用 Hive 矢量执行
+set hive.vectorized.execution.enabled=false;
+set hive.vectorized.execution.reduce.enabled=false;
+set hive.vectorized.execution.reduce.groupby.enabled=false;
 
 
 -- set hivevar:bag_id=;
@@ -53,8 +58,8 @@ from (
       should_repay_cost          as should_repay_cost,
       repay_schedule.due_bill_no as due_bill_no,
       bag_info.bag_id            as bag_id
-    from (select project_id,bag_date,bag_id from dim_new.bag_info ${bag_id}) as bag_info
-    join (select due_bill_no,bag_id from dim_new.bag_due_bill_no ${bag_id}) as bag_due
+    from (select project_id,bag_date,bag_id from dim.bag_info ${bag_id}) as bag_info
+    join (select due_bill_no,bag_id from dim.bag_due_bill_no ${bag_id}) as bag_due
     on bag_info.bag_id = bag_due.bag_id
     join (
       select
@@ -67,7 +72,7 @@ from (
         s_d_date,
         e_d_date,
         project_id
-      from ods_new_s.repay_schedule_abs
+      from ods.repay_schedule_abs
       where 1 > 0
         -- and due_bill_no = '1000682129'
       group by should_repay_date,due_bill_no,s_d_date,e_d_date,project_id

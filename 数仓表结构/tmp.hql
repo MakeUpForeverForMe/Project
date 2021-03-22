@@ -1206,191 +1206,80 @@ select
   current_timestamp()    as create_time,
   'ximing.wei'           as update_user,
   current_timestamp()    as update_time
-from (select 'ap' as col_type,uuid() as uuid,* from dim.project_info) as biz_conf
-lateral view explode(map(
-  concat_ws('~~','project_name',      '项目名称'),                                 project_name,
-  concat_ws('~~','project_stage',     '项目阶段'),                                 project_stage,
-  concat_ws('~~','asset_side',        '资产方'),                                   asset_side,
-  concat_ws('~~','fund_side',         '资金方'),                                   fund_side,
-  concat_ws('~~','year',              '年份'),                                     year,
-  concat_ws('~~','term',              '期数'),                                     term,
-  concat_ws('~~','remarks',           '备注'),                                     remarks,
-  concat_ws('~~','project_full_name', '项目全名称'),                               project_full_name,
-  concat_ws('~~','asset_type',        '资产类别（1：汽车贷，2：房贷，3：消费贷）'),asset_type,
-  concat_ws('~~','project_type',      '业务模式（1：存量，2：增量）'),             project_type,
-  concat_ws('~~','mode',              '模型归属'),                                 mode,
-  concat_ws('~~','project_time',      '立项时间'),                                 project_time,
-  concat_ws('~~','project_begin_date','项目开始时间'),                             project_begin_date,
-  concat_ws('~~','project_end_date',  '项目结束时间'),                             project_end_date,
-  concat_ws('~~','asset_pool_type',   '资产池类型'),                               asset_pool_type,
-  concat_ws('~~','public_offer',      '公募名称'),                                 public_offer,
-  concat_ws('~~','data_source',       '数据来源'),                                 data_source,
-  concat_ws('~~','create_user',       '创建人'),                                   create_user,
-  concat_ws('~~','create_time',       '创建时间'),                                 create_time,
-  concat_ws('~~','update_time',       '更新时间'),                                 update_time,
-  concat_ws('~~','project_id',        '项目编号'),                                 project_id
-)) a as map_key,map_val
-where 1 > 0
-  and is_empty(map_val) is not null
--- limit 200
-;
-
-
-insert into table dim.data_conf
-select
-  col_type               as col_type,
-  uuid                   as col_id,
-  split(map_key,'~~')[0] as col_name,
-  map_val                as col_val,
-  split(map_key,'~~')[1] as col_comment,
-  'ximing.wei'           as create_user,
-  current_timestamp()    as create_time,
-  'ximing.wei'           as update_user,
-  current_timestamp()    as update_time
-from (select 'ab' as col_type,uuid() as uuid,* from dim.bag_info) as biz_conf
-lateral view explode(map(
-  concat_ws('~~','project_id',          '项目编号'),      project_id,
-  concat_ws('~~','bag_name',            '包名称'),        bag_name,
-  concat_ws('~~','bag_status',          '包状态'),        bag_status,
-  concat_ws('~~','bag_remain_principal','封包总本金余额'),bag_remain_principal,
-  concat_ws('~~','bag_date',            '封包日期'),      bag_date,
-  concat_ws('~~','insert_date',         '封包操作日期'),  insert_date,
-  concat_ws('~~','bag_id',              '包编号'),        bag_id
-)) a as map_key,map_val
-where 1 > 0
-  and is_empty(map_val) is not null
--- limit 200
-;
-
-
-insert into table dim.data_conf
-select
-  col_type               as col_type,
-  uuid                   as col_id,
-  split(map_key,'~~')[0] as col_name,
-  map_val                as col_val,
-  split(map_key,'~~')[1] as col_comment,
-  'ximing.wei'           as create_user,
-  current_timestamp()    as create_time,
-  'ximing.wei'           as update_user,
-  current_timestamp()    as update_time
 from (
-  select
-    'pp' as col_type,
-    uuid() as uuid,
-    capital_id,
-    capital_name,
-    channel_id,
-    channel_name,
-    project_id,
-    abs_project_name,
-    partition_id
-  from (
-    select distinct
-      partition_id,
-      project_id
-    from dim.project_due_bill_no
-    order by partition_id
-  ) as tmp
-  left join (
-    select 'HTZG01' as capital_id,'华泰资管' as capital_name,'0010'    as channel_id,'上海易鑫' as channel_name,'PL201905080051'   as abs_project_id,'上海易鑫-华泰资管-车分期-2019年第1期'            as abs_project_name union all
-    select 'HTZG01' as capital_id,'华泰资管' as capital_name,'0010'    as channel_id,'上海易鑫' as channel_name,'CL201912260074'   as abs_project_id,'上海易鑫-华泰资管-车分期-2019年第1期-循环'       as abs_project_name union all
-    select 'HTZG01' as capital_id,'华泰资管' as capital_name,'0010'    as channel_id,'上海易鑫' as channel_name,'CL201905310055'   as abs_project_id,'上海易鑫-华泰资管-车分期-2019年第2期'            as abs_project_name union all
-    select 'HTZG01' as capital_id,'华泰资管' as capital_name,'0010'    as channel_id,'上海易鑫' as channel_name,'CL202003200082'   as abs_project_id,'上海易鑫-华泰资管-车分期-2019年第2期-循环'       as abs_project_name union all
-    select 'GYZL01' as capital_id,'国银租赁' as capital_name,'0010'    as channel_id,'上海易鑫' as channel_name,'CL201906040057'   as abs_project_id,'上海易鑫-国银租赁-车分期-2018年第1期'            as abs_project_name union all
-    select 'GYZL01' as capital_id,'国银租赁' as capital_name,'0010'    as channel_id,'上海易鑫' as channel_name,'CL201906040058'   as abs_project_id,'上海易鑫-国银租赁-车分期-2019年第1期'            as abs_project_name union all
-    select 'JGSM01' as capital_id,'机构私募' as capital_name,'0010'    as channel_id,'上海易鑫' as channel_name,'CL201905220053'   as abs_project_id,'上海易鑫-菁享1号-车分期-2019年第1期'             as abs_project_name union all
-    select 'JGSM01' as capital_id,'机构私募' as capital_name,'0010'    as channel_id,'上海易鑫' as channel_name,'CL201912170073'   as abs_project_id,'上海易鑫-菁享1号-车分期-2019年第1期-循环'        as abs_project_name union all
-    select 'YD01'   as capital_id,'银登'     as capital_name,'abs0006' as channel_id,'东亚银行' as channel_name,'PL201908210066'   as abs_project_id,'东亚-银登-车位分期-2019年第1期-实际'             as abs_project_name union all
-    select 'YD01'   as capital_id,'银登'     as capital_name,'abs0006' as channel_id,'东亚银行' as channel_name,'PL201908220067'   as abs_project_id,'东亚中国-银登-车位分期-2019年第1期-te'           as abs_project_name union all
-    select 'JGSM01' as capital_id,'机构私募' as capital_name,'abs0006' as channel_id,'东亚银行' as channel_name,'PL201904110050'   as abs_project_id,'东亚银行-机构-车位分期-2019年第1期'              as abs_project_name union all
-    select 'GYZL01' as capital_id,'国银租赁' as capital_name,'abs0001' as channel_id,'天津恒通' as channel_name,'CL201906040056'   as abs_project_id,'天津恒通-国银租赁-车抵贷-2018年第1期'            as abs_project_name union all
-    select 'JGSM01' as capital_id,'机构私募' as capital_name,'abs0001' as channel_id,'天津恒通' as channel_name,'cl00265'          as abs_project_id,'天津恒通-机构私募-车抵贷-2019年第1期'            as abs_project_name union all
-    select 'LCT01'  as capital_id,'理财通'   as capital_name,'abs0001' as channel_id,'天津恒通' as channel_name,'cl00187'          as abs_project_id,'天津恒通-理财通-车抵贷-2017年第1期'              as abs_project_name union all
-    select 'LCT01'  as capital_id,'理财通'   as capital_name,'abs0001' as channel_id,'天津恒通' as channel_name,'cl00185'          as abs_project_id,'天津恒通-理财通-车抵贷-2017年第2期'              as abs_project_name union all
-    select 'LCT01'  as capital_id,'理财通'   as capital_name,'abs0001' as channel_id,'天津恒通' as channel_name,'cl00186'          as abs_project_id,'天津恒通-理财通-车抵贷-2018年第4期'              as abs_project_name union all
-    select 'LCT01'  as capital_id,'理财通'   as capital_name,'abs0001' as channel_id,'天津恒通' as channel_name,'cl00199'          as abs_project_id,'天津恒通-理财通-车抵贷-2018年第5期'              as abs_project_name union all
-    select 'LCT01'  as capital_id,'理财通'   as capital_name,'abs0001' as channel_id,'天津恒通' as channel_name,'cl00217'          as abs_project_id,'天津恒通-理财通-车抵贷-2018年第6期'              as abs_project_name union all
-    select 'LCT01'  as capital_id,'理财通'   as capital_name,'abs0001' as channel_id,'天津恒通' as channel_name,'cl00229'          as abs_project_id,'天津恒通-理财通-车抵贷-2018年第7期'              as abs_project_name union all
-    select 'LCT01'  as capital_id,'理财通'   as capital_name,'abs0001' as channel_id,'天津恒通' as channel_name,'cl00243'          as abs_project_id,'天津恒通-理财通-车抵贷-2018年第8期'              as abs_project_name union all
-    select 'ZHBL01' as capital_id,'中豪保理' as capital_name,'0003'    as channel_id,'汇通信诚' as channel_name,'CL202003230083'   as abs_project_id,'汇通信诚-中豪保理-车分期-2020年第1期'            as abs_project_name union all
-    select 'HYBL01' as capital_id,'和赢保理' as capital_name,'0003'    as channel_id,'汇通信诚' as channel_name,'CL202011090089'   as abs_project_id,'汇通信诚-和赢保理-应收ABN-2020年第1期'           as abs_project_name union all
-    select 'HYBL01' as capital_id,'和赢保理' as capital_name,'0003'    as channel_id,'汇通信诚' as channel_name,'cl00333'          as abs_project_id,'汇通信诚-和赢保理-车分期-2019年第1期'            as abs_project_name union all
-    select 'HYBL01' as capital_id,'和赢保理' as capital_name,'0003'    as channel_id,'汇通信诚' as channel_name,'CL202007020086'   as abs_project_id,'汇通信诚-和赢保理-车类应收-2020年第1期'          as abs_project_name union all
-    select 'HYBL01' as capital_id,'和赢保理' as capital_name,'0003'    as channel_id,'汇通信诚' as channel_name,'001601'           as abs_project_id,'汇通信诚-和赢保理-车资产-2019年第2期'            as abs_project_name union all
-    select 'GYZL01' as capital_id,'国银租赁' as capital_name,'0003'    as channel_id,'汇通信诚' as channel_name,'CL202012280092'   as abs_project_id,'汇通信诚-国银租赁-新增2.0-2021年第0期-全'        as abs_project_name union all
-    select 'GYZL01' as capital_id,'国银租赁' as capital_name,'0003'    as channel_id,'汇通信诚' as channel_name,'CL202102010097'   as abs_project_id,'汇通信诚-国银租赁-新增2.0-2021年第1期'           as abs_project_name union all
-    select 'GYZL01' as capital_id,'国银租赁' as capital_name,'0003'    as channel_id,'汇通信诚' as channel_name,'CL202102240099'   as abs_project_id,'汇通信诚-国银租赁-新增2.0-2021年第2期'           as abs_project_name union all
-    select 'GYZL01' as capital_id,'国银租赁' as capital_name,'0003'    as channel_id,'汇通信诚' as channel_name,'CL202102240100'   as abs_project_id,'汇通信诚-国银租赁-新增2.0-2021年第3期'           as abs_project_name union all
-    select 'GYZL01' as capital_id,'国银租赁' as capital_name,'0003'    as channel_id,'汇通信诚' as channel_name,'cl00297'          as abs_project_id,'汇通信诚-国银租赁-车分期-2019年第1期'            as abs_project_name union all
-    select 'GYZL01' as capital_id,'国银租赁' as capital_name,'0003'    as channel_id,'汇通信诚' as channel_name,'cl00306'          as abs_project_id,'汇通信诚-国银租赁-车分期-2019年第2期'            as abs_project_name union all
-    select 'GYZL01' as capital_id,'国银租赁' as capital_name,'0003'    as channel_id,'汇通信诚' as channel_name,'cl00309'          as abs_project_id,'汇通信诚-国银租赁-车分期-2019年第3期'            as abs_project_name union all
-    select 'GYZL01' as capital_id,'国银租赁' as capital_name,'0003'    as channel_id,'汇通信诚' as channel_name,'CL201911130070'   as abs_project_id,'汇通信诚-国银租赁-车分期-2019年第4期'            as abs_project_name union all
-    select 'GYZL01' as capital_id,'国银租赁' as capital_name,'0003'    as channel_id,'汇通信诚' as channel_name,'CL202002240081'   as abs_project_id,'汇通信诚-国银租赁-车分期-2020年第1期'            as abs_project_name union all
-    select 'YFYH01' as capital_id,'永丰银行' as capital_name,'0003'    as channel_id,'汇通信诚' as channel_name,'CL202011090088'   as abs_project_id,'汇通信诚-永丰银行-车分期-2020年第1期'            as abs_project_name union all
-    select 'YFYH01' as capital_id,'永丰银行' as capital_name,'0003'    as channel_id,'汇通信诚' as channel_name,'CL202012160091'   as abs_project_id,'汇通信诚-永丰银行-车分期-2020年第2期'            as abs_project_name union all
-    select 'YFYH01' as capital_id,'永丰银行' as capital_name,'0003'    as channel_id,'汇通信诚' as channel_name,'PL202101200093'   as abs_project_id,'汇通信诚-永丰银行-车分期-2020年第2期-新'         as abs_project_name union all
-    select 'YCXT'   as capital_id,'粤财信托' as capital_name,'0003'    as channel_id,'汇通信诚' as channel_name,'cl00326'          as abs_project_id,'汇通信诚-粤财信托-车类资产-2019年第1期'          as abs_project_name union all
-    select 'YCXT'   as capital_id,'粤财信托' as capital_name,'0003'    as channel_id,'汇通信诚' as channel_name,'CL201912100072'   as abs_project_id,'汇通信诚-粤财信托-车类资产-2019年第2期'          as abs_project_name union all
-    select 'ZHXT01' as capital_id,'中航信托' as capital_name,'abs0004' as channel_id,'沣邦租赁' as channel_name,'CL201905240054'   as abs_project_id,'沣邦租赁-华润银行-车分期-2019年第1期'            as abs_project_name union all
-    select 'YNXT01' as capital_id,'云南信托' as capital_name,'10041'   as channel_id,'浦发'     as channel_name,'pl00282'          as abs_project_id,'浦发银行-机构私募-消费贷-2019年第1期'            as abs_project_name union all
-    select 'ZHXT01' as capital_id,'中航信托' as capital_name,'10000'   as channel_id,'滴滴中航' as channel_name,'DIDI201908161538' as abs_project_id,'滴滴-新分享-消费贷-2019年第1期'                  as abs_project_name union all
-    select 'MSJZ01' as capital_id,'民生金租' as capital_name,'0005'    as channel_id,'瓜子'     as channel_name,'WS0005200001'     as abs_project_id,'瓜子租赁-民生金租-车分期-2020年第1期'            as abs_project_name union all
-    select 'YNXT01' as capital_id,'云南信托' as capital_name,'0001'    as channel_id,'盒子支付' as channel_name,'001503'           as abs_project_id,'盒子-新分享-消费贷-2019年第1期'                  as abs_project_name union all
-    select 'YNXT01' as capital_id,'云南信托' as capital_name,'0001'    as channel_id,'盒子支付' as channel_name,'001505'           as abs_project_id,'盒子-新分享-消费贷-2019年第3期'                  as abs_project_name union all
-    select 'YNXT01' as capital_id,'云南信托' as capital_name,'0001'    as channel_id,'盒子支付' as channel_name,'001504'           as abs_project_id,'盒子科技-新分享-消费贷-2019年第2期'              as abs_project_name union all
-    select 'JGSM01' as capital_id,'机构私募' as capital_name,'abs0008' as channel_id,'有车有家' as channel_name,'CL201906050059'   as abs_project_id,'车贷1-公开募集-车贷资产-2019年第1期'             as abs_project_name union all
-    select 'XFX01'  as capital_id,'新分享'   as capital_name,'abs0002' as channel_id,'先锋太盟' as channel_name,'cl00232'          as abs_project_id,'先锋太盟1期资产包1'                              as abs_project_name union all
-    select 'XFX01'  as capital_id,'新分享'   as capital_name,'abs0002' as channel_id,'先锋太盟' as channel_name,'cl00233'          as abs_project_id,'先锋太盟1期资产包2'                              as abs_project_name union all
-    select 'HYBL01' as capital_id,'和赢保理' as capital_name,'0007'    as channel_id,'广汽租赁' as channel_name,'CL202101260095'   as abs_project_id,'广汽租赁-和赢保理-汽车租赁资产-2021年第1期-全量' as abs_project_name union all
-    select 'HYBL01' as capital_id,'和赢保理' as capital_name,'0007'    as channel_id,'广汽租赁' as channel_name,'CL202102050098'   as abs_project_id,'广汽租赁-和赢保理-汽车租赁资产-2021年第1期-拟入' as abs_project_name
-  ) as biz_conf
-  on project_id = abs_project_id
+  select 'pp' as col_type,uuid() as uuid,'HTZG01' as capital_id,'华泰资管' as capital_name,'0010'    as channel_id,'上海易鑫' as channel_name,'PL201905080051'   as project_id,'上海易鑫-华泰资管-车分期-2019年第1期'            as project_name union all
+  select 'pp' as col_type,uuid() as uuid,'HTZG01' as capital_id,'华泰资管' as capital_name,'0010'    as channel_id,'上海易鑫' as channel_name,'CL201912260074'   as project_id,'上海易鑫-华泰资管-车分期-2019年第1期-循环'       as project_name union all
+  select 'pp' as col_type,uuid() as uuid,'HTZG01' as capital_id,'华泰资管' as capital_name,'0010'    as channel_id,'上海易鑫' as channel_name,'CL201905310055'   as project_id,'上海易鑫-华泰资管-车分期-2019年第2期'            as project_name union all
+  select 'pp' as col_type,uuid() as uuid,'HTZG01' as capital_id,'华泰资管' as capital_name,'0010'    as channel_id,'上海易鑫' as channel_name,'CL202003200082'   as project_id,'上海易鑫-华泰资管-车分期-2019年第2期-循环'       as project_name union all
+  select 'pp' as col_type,uuid() as uuid,'GYZL01' as capital_id,'国银租赁' as capital_name,'0010'    as channel_id,'上海易鑫' as channel_name,'CL201906040057'   as project_id,'上海易鑫-国银租赁-车分期-2018年第1期'            as project_name union all
+  select 'pp' as col_type,uuid() as uuid,'GYZL01' as capital_id,'国银租赁' as capital_name,'0010'    as channel_id,'上海易鑫' as channel_name,'CL201906040058'   as project_id,'上海易鑫-国银租赁-车分期-2019年第1期'            as project_name union all
+  select 'pp' as col_type,uuid() as uuid,'JGSM01' as capital_id,'机构私募' as capital_name,'0010'    as channel_id,'上海易鑫' as channel_name,'CL201905220053'   as project_id,'上海易鑫-菁享1号-车分期-2019年第1期'             as project_name union all
+  select 'pp' as col_type,uuid() as uuid,'JGSM01' as capital_id,'机构私募' as capital_name,'0010'    as channel_id,'上海易鑫' as channel_name,'CL201912170073'   as project_id,'上海易鑫-菁享1号-车分期-2019年第1期-循环'        as project_name union all
+  select 'pp' as col_type,uuid() as uuid,'YD01'   as capital_id,'银登'     as capital_name,'abs0006' as channel_id,'东亚银行' as channel_name,'PL201908210066'   as project_id,'东亚-银登-车位分期-2019年第1期-实际'             as project_name union all
+  select 'pp' as col_type,uuid() as uuid,'YD01'   as capital_id,'银登'     as capital_name,'abs0006' as channel_id,'东亚银行' as channel_name,'PL201908220067'   as project_id,'东亚中国-银登-车位分期-2019年第1期-te'           as project_name union all
+  select 'pp' as col_type,uuid() as uuid,'JGSM01' as capital_id,'机构私募' as capital_name,'abs0006' as channel_id,'东亚银行' as channel_name,'PL201904110050'   as project_id,'东亚银行-机构-车位分期-2019年第1期'              as project_name union all
+  select 'pp' as col_type,uuid() as uuid,'GYZL01' as capital_id,'国银租赁' as capital_name,'abs0001' as channel_id,'天津恒通' as channel_name,'CL201906040056'   as project_id,'天津恒通-国银租赁-车抵贷-2018年第1期'            as project_name union all
+  select 'pp' as col_type,uuid() as uuid,'JGSM01' as capital_id,'机构私募' as capital_name,'abs0001' as channel_id,'天津恒通' as channel_name,'cl00265'          as project_id,'天津恒通-机构私募-车抵贷-2019年第1期'            as project_name union all
+  select 'pp' as col_type,uuid() as uuid,'LCT01'  as capital_id,'理财通'   as capital_name,'abs0001' as channel_id,'天津恒通' as channel_name,'cl00187'          as project_id,'天津恒通-理财通-车抵贷-2017年第1期'              as project_name union all
+  select 'pp' as col_type,uuid() as uuid,'LCT01'  as capital_id,'理财通'   as capital_name,'abs0001' as channel_id,'天津恒通' as channel_name,'cl00185'          as project_id,'天津恒通-理财通-车抵贷-2017年第2期'              as project_name union all
+  select 'pp' as col_type,uuid() as uuid,'LCT01'  as capital_id,'理财通'   as capital_name,'abs0001' as channel_id,'天津恒通' as channel_name,'cl00186'          as project_id,'天津恒通-理财通-车抵贷-2018年第4期'              as project_name union all
+  select 'pp' as col_type,uuid() as uuid,'LCT01'  as capital_id,'理财通'   as capital_name,'abs0001' as channel_id,'天津恒通' as channel_name,'cl00199'          as project_id,'天津恒通-理财通-车抵贷-2018年第5期'              as project_name union all
+  select 'pp' as col_type,uuid() as uuid,'LCT01'  as capital_id,'理财通'   as capital_name,'abs0001' as channel_id,'天津恒通' as channel_name,'cl00217'          as project_id,'天津恒通-理财通-车抵贷-2018年第6期'              as project_name union all
+  select 'pp' as col_type,uuid() as uuid,'LCT01'  as capital_id,'理财通'   as capital_name,'abs0001' as channel_id,'天津恒通' as channel_name,'cl00229'          as project_id,'天津恒通-理财通-车抵贷-2018年第7期'              as project_name union all
+  select 'pp' as col_type,uuid() as uuid,'LCT01'  as capital_id,'理财通'   as capital_name,'abs0001' as channel_id,'天津恒通' as channel_name,'cl00243'          as project_id,'天津恒通-理财通-车抵贷-2018年第8期'              as project_name union all
+  select 'pp' as col_type,uuid() as uuid,'ZHBL01' as capital_id,'中豪保理' as capital_name,'0003'    as channel_id,'汇通信诚' as channel_name,'CL202003230083'   as project_id,'汇通信诚-中豪保理-车分期-2020年第1期'            as project_name union all
+  select 'pp' as col_type,uuid() as uuid,'HYBL01' as capital_id,'和赢保理' as capital_name,'0003'    as channel_id,'汇通信诚' as channel_name,'CL202011090089'   as project_id,'汇通信诚-和赢保理-应收ABN-2020年第1期'           as project_name union all
+  select 'pp' as col_type,uuid() as uuid,'HYBL01' as capital_id,'和赢保理' as capital_name,'0003'    as channel_id,'汇通信诚' as channel_name,'cl00333'          as project_id,'汇通信诚-和赢保理-车分期-2019年第1期'            as project_name union all
+  select 'pp' as col_type,uuid() as uuid,'HYBL01' as capital_id,'和赢保理' as capital_name,'0003'    as channel_id,'汇通信诚' as channel_name,'CL202007020086'   as project_id,'汇通信诚-和赢保理-车类应收-2020年第1期'          as project_name union all
+  select 'pp' as col_type,uuid() as uuid,'HYBL01' as capital_id,'和赢保理' as capital_name,'0003'    as channel_id,'汇通信诚' as channel_name,'001601'           as project_id,'汇通信诚-和赢保理-车资产-2019年第2期'            as project_name union all
+  select 'pp' as col_type,uuid() as uuid,'GYZL01' as capital_id,'国银租赁' as capital_name,'0003'    as channel_id,'汇通信诚' as channel_name,'CL202012280092'   as project_id,'汇通信诚-国银租赁-新增2.0-2021年第0期-全'        as project_name union all
+  select 'pp' as col_type,uuid() as uuid,'GYZL01' as capital_id,'国银租赁' as capital_name,'0003'    as channel_id,'汇通信诚' as channel_name,'CL202102010097'   as project_id,'汇通信诚-国银租赁-新增2.0-2021年第1期'           as project_name union all
+  select 'pp' as col_type,uuid() as uuid,'GYZL01' as capital_id,'国银租赁' as capital_name,'0003'    as channel_id,'汇通信诚' as channel_name,'CL202102240099'   as project_id,'汇通信诚-国银租赁-新增2.0-2021年第2期'           as project_name union all
+  select 'pp' as col_type,uuid() as uuid,'GYZL01' as capital_id,'国银租赁' as capital_name,'0003'    as channel_id,'汇通信诚' as channel_name,'CL202102240100'   as project_id,'汇通信诚-国银租赁-新增2.0-2021年第3期'           as project_name union all
+  select 'pp' as col_type,uuid() as uuid,'GYZL01' as capital_id,'国银租赁' as capital_name,'0003'    as channel_id,'汇通信诚' as channel_name,'cl00297'          as project_id,'汇通信诚-国银租赁-车分期-2019年第1期'            as project_name union all
+  select 'pp' as col_type,uuid() as uuid,'GYZL01' as capital_id,'国银租赁' as capital_name,'0003'    as channel_id,'汇通信诚' as channel_name,'cl00306'          as project_id,'汇通信诚-国银租赁-车分期-2019年第2期'            as project_name union all
+  select 'pp' as col_type,uuid() as uuid,'GYZL01' as capital_id,'国银租赁' as capital_name,'0003'    as channel_id,'汇通信诚' as channel_name,'cl00309'          as project_id,'汇通信诚-国银租赁-车分期-2019年第3期'            as project_name union all
+  select 'pp' as col_type,uuid() as uuid,'GYZL01' as capital_id,'国银租赁' as capital_name,'0003'    as channel_id,'汇通信诚' as channel_name,'CL201911130070'   as project_id,'汇通信诚-国银租赁-车分期-2019年第4期'            as project_name union all
+  select 'pp' as col_type,uuid() as uuid,'GYZL01' as capital_id,'国银租赁' as capital_name,'0003'    as channel_id,'汇通信诚' as channel_name,'CL202002240081'   as project_id,'汇通信诚-国银租赁-车分期-2020年第1期'            as project_name union all
+  select 'pp' as col_type,uuid() as uuid,'YFYH01' as capital_id,'永丰银行' as capital_name,'0003'    as channel_id,'汇通信诚' as channel_name,'CL202011090088'   as project_id,'汇通信诚-永丰银行-车分期-2020年第1期'            as project_name union all
+  select 'pp' as col_type,uuid() as uuid,'YFYH01' as capital_id,'永丰银行' as capital_name,'0003'    as channel_id,'汇通信诚' as channel_name,'CL202012160091'   as project_id,'汇通信诚-永丰银行-车分期-2020年第2期'            as project_name union all
+  select 'pp' as col_type,uuid() as uuid,'YFYH01' as capital_id,'永丰银行' as capital_name,'0003'    as channel_id,'汇通信诚' as channel_name,'PL202101200093'   as project_id,'汇通信诚-永丰银行-车分期-2020年第2期-新'         as project_name union all
+  select 'pp' as col_type,uuid() as uuid,'YCXT'   as capital_id,'粤财信托' as capital_name,'0003'    as channel_id,'汇通信诚' as channel_name,'cl00326'          as project_id,'汇通信诚-粤财信托-车类资产-2019年第1期'          as project_name union all
+  select 'pp' as col_type,uuid() as uuid,'YCXT'   as capital_id,'粤财信托' as capital_name,'0003'    as channel_id,'汇通信诚' as channel_name,'CL201912100072'   as project_id,'汇通信诚-粤财信托-车类资产-2019年第2期'          as project_name union all
+  select 'pp' as col_type,uuid() as uuid,'ZHXT01' as capital_id,'中航信托' as capital_name,'abs0004' as channel_id,'沣邦租赁' as channel_name,'CL201905240054'   as project_id,'沣邦租赁-华润银行-车分期-2019年第1期'            as project_name union all
+  select 'pp' as col_type,uuid() as uuid,'YNXT01' as capital_id,'云南信托' as capital_name,'10041'   as channel_id,'浦发'     as channel_name,'pl00282'          as project_id,'浦发银行-机构私募-消费贷-2019年第1期'            as project_name union all
+  select 'pp' as col_type,uuid() as uuid,'ZHXT01' as capital_id,'中航信托' as capital_name,'10000'   as channel_id,'滴滴中航' as channel_name,'DIDI201908161538' as project_id,'滴滴-新分享-消费贷-2019年第1期'                  as project_name union all
+  select 'pp' as col_type,uuid() as uuid,'MSJZ01' as capital_id,'民生金租' as capital_name,'0005'    as channel_id,'瓜子'     as channel_name,'WS0005200001'     as project_id,'瓜子租赁-民生金租-车分期-2020年第1期'            as project_name union all
+  select 'pp' as col_type,uuid() as uuid,'YNXT01' as capital_id,'云南信托' as capital_name,'0001'    as channel_id,'盒子支付' as channel_name,'001503'           as project_id,'盒子-新分享-消费贷-2019年第1期'                  as project_name union all
+  select 'pp' as col_type,uuid() as uuid,'YNXT01' as capital_id,'云南信托' as capital_name,'0001'    as channel_id,'盒子支付' as channel_name,'001505'           as project_id,'盒子-新分享-消费贷-2019年第3期'                  as project_name union all
+  select 'pp' as col_type,uuid() as uuid,'YNXT01' as capital_id,'云南信托' as capital_name,'0001'    as channel_id,'盒子支付' as channel_name,'001504'           as project_id,'盒子科技-新分享-消费贷-2019年第2期'              as project_name union all
+  select 'pp' as col_type,uuid() as uuid,'JGSM01' as capital_id,'机构私募' as capital_name,'abs0008' as channel_id,'有车有家' as channel_name,'CL201906050059'   as project_id,'车贷1-公开募集-车贷资产-2019年第1期'             as project_name union all
+  select 'pp' as col_type,uuid() as uuid,'XFX01'  as capital_id,'新分享'   as capital_name,'abs0002' as channel_id,'先锋太盟' as channel_name,'cl00232'          as project_id,'先锋太盟1期资产包1'                              as project_name union all
+  select 'pp' as col_type,uuid() as uuid,'XFX01'  as capital_id,'新分享'   as capital_name,'abs0002' as channel_id,'先锋太盟' as channel_name,'cl00233'          as project_id,'先锋太盟1期资产包2'                              as project_name union all
+  select 'pp' as col_type,uuid() as uuid,'HYBL01' as capital_id,'和赢保理' as capital_name,'0007'    as channel_id,'广汽租赁' as channel_name,'CL202101260095'   as project_id,'广汽租赁-和赢保理-汽车租赁资产-2021年第1期-全量' as project_name union all
+  select 'pp' as col_type,uuid() as uuid,'HYBL01' as capital_id,'和赢保理' as capital_name,'0007'    as channel_id,'广汽租赁' as channel_name,'CL202102050098'   as project_id,'广汽租赁-和赢保理-汽车租赁资产-2021年第1期-拟入' as project_name
 ) as biz_conf
 lateral view explode(map(
-  concat_ws('~~','capital_id',      '资金方编号'),capital_id,
-  concat_ws('~~','capital_name',    '资金方名称'),capital_name,
-  concat_ws('~~','channel_id',      '渠道方编号'),channel_id,
-  concat_ws('~~','channel_name',    '渠道方名称'),channel_name,
-  concat_ws('~~','project_id',      '项目编号'),  project_id,
-  concat_ws('~~','abs_project_name','项目名称'),  abs_project_name,
-  concat_ws('~~','partition_id',    '分区编号'),  partition_id
+  concat_ws('~~','capital_id',  '资金方编号'),capital_id,
+  concat_ws('~~','capital_name','资金方名称'),capital_name,
+  concat_ws('~~','channel_id',  '渠道方编号'),channel_id,
+  concat_ws('~~','channel_name','渠道方名称'),channel_name,
+  concat_ws('~~','project_id',  '项目编号'),  project_id,
+  concat_ws('~~','project_name','项目名称'),  project_name
 )) a as map_key,map_val
 where 1 > 0
   and is_empty(map_val) is not null
-limit 300
+limit 500
 ;
-
-
-
-
-
-
-
-
-
-
 
 
 
 insert overwrite table dim.data_conf
-select
-  case col_type
-  when 'astrology_conf'           then 'ac'
-  when 'astrology_investor'       then 'ai'
-  when 'abs_project_info'         then 'ap'
-  when 'abs_bag_info'             then 'ab'
-  when 'abs_project_partition_id' then 'pp'
-  else col_type end as col_type,
-  col_id,
-  col_name,
-  col_val,
-  col_comment,
-  create_user,
-  create_time,
-  update_user,
-  update_time
-from dim.data_conf;
+select * from dim.data_conf
+where 1 > 0
+  -- and col_type != 'pp'
+  and col_type not in ('ap','ab')
+;
 
 
 
@@ -1416,13 +1305,6 @@ show partitions dw.dw_loan_apply_stat_day partition(product_id = 'pl00282');
 
 
 
-set hive.execution.engine=mr;
-set mapreduce.map.memory.mb=4096;
-set mapreduce.reduce.memory.mb=4096;
-set mapreduce.map.java.opts=-Xmx4096m;
-set mapreduce.reduce.java.opts=-Xmx4096m;
-set yarn.app.mapreduce.am.resource.mb=5192;
-set yarn.app.mapreduce.am.command-opts=-Xmx4096m;
 
 
 
@@ -1467,6 +1349,15 @@ set hivevar:ST9=2020-12-01;
 
 
 set hivevar:ST9=2020-10-15;
+
+
+set hive.execution.engine=mr;
+set mapreduce.map.memory.mb=4096;
+set mapreduce.reduce.memory.mb=4096;
+set mapreduce.map.java.opts=-Xmx4096m;
+set mapreduce.reduce.java.opts=-Xmx4096m;
+set yarn.app.mapreduce.am.resource.mb=5192;
+set yarn.app.mapreduce.am.command-opts=-Xmx4096m;
 
 
 

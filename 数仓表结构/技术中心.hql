@@ -14352,7 +14352,10 @@ select * from ods.repay_schedule_inter_hdfs;
 
 
 
-ALTER table ods.loan_info_inter drop if exists partition(biz_date = '2019-11-02',product_id = '001503');
+ALTER table ods.loan_info drop if exists partition(product_id = '001602');
+
+
+select if(1 > null,1,2) as a;
 
 
 
@@ -14362,3 +14365,6 @@ ALTER table ods.loan_info_inter drop if exists partition(biz_date = '2019-11-02'
 
 
 
+
+
+SELECT date_add(current_date(),interval 2 day) as aa;
