@@ -1,10 +1,15 @@
+set hive.exec.input.listing.max.threads=50;
+set tez.grouping.min-size=50000000;
+set tez.grouping.max-size=50000000;
+set hive.exec.reducers.max=500;
+
 -- 设置 Container 大小
 set hive.tez.container.size=4096;
 set tez.am.resource.memory.mb=4096;
 -- 合并小文件
 set hive.merge.tezfiles=true;
-set hive.merge.size.per.task=128000000; -- 128M
-set hive.merge.smallfiles.avgsize=128000000; -- 128M
+set hive.merge.size.per.task=64000000;      -- 64M
+set hive.merge.smallfiles.avgsize=64000000; -- 64M
 -- 设置动态分区
 set hive.exec.dynamic.partition=true;
 set hive.exec.dynamic.partition.mode=nonstrict;
@@ -24,6 +29,7 @@ insert overwrite table ods.customer_info partition(product_id)
 select distinct *
 from (
   select
+    nvl(loan_result.loan_order_id,get_json_object(msg_log.original_msg,'$.applicationId')) as apply_id,    -- 有放款为借据号，无则为授信申请号
     nvl(loan_result.loan_order_id,get_json_object(msg_log.original_msg,'$.applicationId')) as due_bill_no, -- 有放款为借据号，无则为授信申请号
     concat_ws('_',biz_conf.channel_id,sha256(get_json_object(msg_log.original_msg,'$.userInfo.ocrInfo.idNo'),'idNumber',1),sha256(get_json_object(msg_log.original_msg,'$.userInfo.ocrInfo.name'),'userName',1)) as cust_id,
     sha256(get_json_object(msg_log.original_msg,'$.userInfo.ocrInfo.idNo'),'idNumber',1)   as user_hash_no,
@@ -135,7 +141,8 @@ insert overwrite table ods.customer_info partition(product_id)
 select distinct *
 from (
   select
-    resp_log.due_bill_no                                                            as apply_no,
+    resp_log.due_bill_no                                                            as apply_id,
+    resp_log.due_bill_no                                                            as due_bill_no,
     concat_ws('_',biz_conf.channel_id,resp_log.id_no,resp_log.name)                 as cust_id,
     resp_log.id_no                                                                  as user_hash_no,
     resp_log.outer_cust_id                                                          as outer_cust_id,
@@ -307,6 +314,7 @@ insert overwrite table ods.customer_info partition(product_id)
 select distinct *
 from (
   select
+    get_json_object(msg_log.original_msg,'$.reqContent.jsonReq.content.reqData.applyNo')                                  as apply_id,
     get_json_object(msg_log.original_msg,'$.reqContent.jsonReq.content.reqData.applyNo')                                  as due_bill_no,
     concat_ws('_',biz_conf.channel_id,sha256(get_json_object(msg_log.original_msg,'$.reqContent.jsonReq.content.reqData.idNo'),'idNumber',1),sha256(get_json_object(msg_log.original_msg,'$.reqContent.jsonReq.content.reqData.custName'),'userName',1)) as cust_id,
     sha256(get_json_object(msg_log.original_msg,'$.reqContent.jsonReq.content.reqData.idNo'),'idNumber',1)                as user_hash_no,
@@ -505,6 +513,7 @@ insert overwrite table ods.customer_info partition(product_id)
 select distinct *
 from (
   select
+    get_json_object(msg_log.original_msg,'$.data.applyNo')                                                            as apply_id,
     is_empty(
       loan_result.due_bill_no,
       get_json_object(msg_log.original_msg,'$.data.applyNo')

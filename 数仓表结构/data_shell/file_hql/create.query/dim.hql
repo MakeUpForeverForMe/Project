@@ -123,7 +123,7 @@ CREATE DATABASE IF NOT EXISTS dim COMMENT '维度数据层' location 'cosn://big
 -- 配置信息
 -- DROP TABLE IF EXISTS `dim.data_conf`;
 CREATE TABLE IF NOT EXISTS `dim.data_conf`(
-  `col_type`                      string         COMMENT '数据类型（ac：astrology_conf、星象配置表，ai：astrology_investor、星象投资人信息表，pp：abs_project_partition_id、星云项目与数据分区的映射，ap：abs_project_info、星云项目表，ab：abs_bag_info、星云包信息表）',
+  `col_type`                      string         COMMENT '数据类型（ac：astrology_conf、星象配置表，ai：astrology_investor、星象投资人信息表，pp：abs_project_partition_id、星云配置表）',
   `col_id`                        string         COMMENT '关联编号',
   `col_name`                      string         COMMENT '字段名称',
   `col_val`                       string         COMMENT '字段内容',
@@ -176,6 +176,12 @@ STORED AS TEXTFILE;
 
 
 
+CREATE TABLE IF NOT EXISTS `dim.funds_flow_date_conf`(
+  `business_date`     string COMMENT '',
+  `process_date`      string COMMENT '',
+  `last_process_date` string COMMENT ''
+) COMMENT ''
+STORED AS TEXTFILE;
 
 
 

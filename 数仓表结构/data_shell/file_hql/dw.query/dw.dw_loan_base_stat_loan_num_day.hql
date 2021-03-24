@@ -6,7 +6,7 @@ set hive.exec.dynamic.partition=true;
 set hive.exec.dynamic.partition.mode=nonstrict;
 set hive.exec.max.dynamic.partitions=30000;
 set hive.exec.max.dynamic.partitions.pernode=10000;
- 
+
 
 insert overwrite table dw${db_suffix}.dw_loan_base_stat_loan_num_day partition(biz_date = '${ST9}',product_id)
 select

@@ -1453,7 +1453,6 @@ STORED as PARQUET;
 
 
 
-
 -- 项目表
 -- DROP TABLE IF EXISTS `stage.abs_t_project`;
 CREATE EXTERNAL TABLE IF NOT EXISTS `stage.abs_t_project`(
@@ -1605,6 +1604,7 @@ CREATE EXTERNAL TABLE `stage.ecas_loan_ht_repair`(
 PARTITIONED BY (`d_date` string COMMENT '观察日期',`p_type` string COMMENT '数据类型')
 STORED as PARQUET;
 
+
 -- DROP TABLE IF EXISTS `stage.ecas_repay_schedule_ht_repair`;
 CREATE EXTERNAL TABLE `stage.ecas_repay_schedule_ht_repair`(
   `org`                                               string        COMMENT '机构号',
@@ -1651,3 +1651,41 @@ CREATE EXTERNAL TABLE `stage.ecas_repay_schedule_ht_repair`(
 ) COMMENT '汇通还款计划修数表'
 PARTITIONED BY (`d_date` string COMMENT '观察日期',`p_type` string COMMENT '数据类型')
 STORED as PARQUET;
+
+
+-- DROP TABLE IF EXISTS `stage.t_transaction_blend_record`;
+CREATE EXTERNAL TABLE `stage.t_transaction_blend_record`(
+  `id`                                                int           COMMENT '',
+  `blend_serial_no`                                   string        COMMENT '流水勾兑编号',
+  `record_type`                                       string        COMMENT '记录类型  D:借方 C:贷方 M:手工调整值 F:结果值 G:看管值',
+  `loan_amt`                                          decimal(18,2) COMMENT '放款金额',
+  `cust_repay_amt`                                    decimal(18,2) COMMENT '客户还款',
+  `comp_bak_amt`                                      decimal(18,2) COMMENT '代偿回款',
+  `buy_bak_amt`                                       decimal(18,2) COMMENT '回购回款',
+  `deduct_sve_fee`                                    decimal(18,2) COMMENT '划扣手续费',
+  `return_ticket_bak_amt`                             decimal(18,2) COMMENT '退票回款',
+  `invest_amt`                                        decimal(18,2) COMMENT '投资金额',
+  `invest_redeem_amt`                                 decimal(18,2) COMMENT '投资赎回金额',
+  `invest_earning`                                    decimal(18,2) COMMENT '投资收益',
+  `acct_int`                                          decimal(18,2) COMMENT '账户利息',
+  `acct_fee`                                          decimal(18,2) COMMENT '账户费用',
+  `tax_amt`                                           decimal(18,2) COMMENT '税费支付',
+  `invest_cash`                                       decimal(18,2) COMMENT '投资兑付',
+  `ci_fund`                                           decimal(18,2) COMMENT '信保基金',
+  `ci_redeem_amt`                                     decimal(18,2) COMMENT '信保赎回',
+  `ci_earning`                                        decimal(18,2) COMMENT '信保收益',
+  `other_amt`                                         decimal(18,2) COMMENT '其他金额',
+  `trade_day_bal`                                     decimal(18,2) COMMENT 'T日余额',
+  `trade_yesterday_bal`                               decimal(18,2) COMMENT 'T-1日余额',
+  `trade_day__bal_diff`                               decimal(18,2) COMMENT 'T日余额差异',
+  `remark`                                            string        COMMENT '备注',
+  `create_date`                                       bigint        COMMENT '创建时间',
+  `update_date`                                       bigint        COMMENT '创建时间',
+  `calc_date`                                         string        COMMENT '勾兑记录日期',
+  `product_code`                                      string        COMMENT '信托产品编号',
+  `product_name`                                      string        COMMENT '信托产品名称',
+  `ch_diff_explain`                                   string        COMMENT '',
+  `en_diff_explain`                                   string        COMMENT ''
+) COMMENT '资金表'
+PARTITIONED BY (`d_date` string COMMENT '观察日期')
+STORED AS PARQUET;

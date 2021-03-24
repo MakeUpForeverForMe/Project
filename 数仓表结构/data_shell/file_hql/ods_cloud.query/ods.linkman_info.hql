@@ -1,10 +1,15 @@
+set hive.exec.input.listing.max.threads=50;
+set tez.grouping.min-size=50000000;
+set tez.grouping.max-size=50000000;
+set hive.exec.reducers.max=500;
+
 -- 设置 Container 大小
-set hive.tez.container.size=4096;
-set tez.am.resource.memory.mb=4096;
+set hive.tez.container.size=2048;
+set tez.am.resource.memory.mb=2048;
 -- 合并小文件
 set hive.merge.tezfiles=true;
-set hive.merge.size.per.task=128000000;
-set hive.merge.smallfiles.avgsize=128000000;
+set hive.merge.size.per.task=64000000;      -- 64M
+set hive.merge.smallfiles.avgsize=64000000; -- 64M
 -- 设置动态分区
 set hive.exec.dynamic.partition=true;
 set hive.exec.dynamic.partition.mode=nonstrict;
@@ -71,7 +76,7 @@ select distinct
   to_date(update_time)                                                                         as deal_date,
   create_time                                                                                  as create_time,
   update_time                                                                                  as update_time,
-  project_id                                                                                   as product_id
+  project_id_lower                                                                             as project_id
 from (
   select distinct
     abs_project_id,
@@ -86,7 +91,10 @@ from (
   ) as tmp
 ) as biz_conf
 join (
-  select * from stage.asset_03_t_contact_person_info
+  select
+    *,
+    case project_id when 'Cl00333' then 'cl00333' else project_id end as project_id_lower
+  from stage.asset_03_t_contact_person_info
   where project_id not in (
     '001601',           -- 汇通
     'DIDI201908161538', -- 滴滴
@@ -96,6 +104,6 @@ join (
     ''
   )
 ) as linkman_info
-on abs_project_id = project_id
+on abs_project_id = project_id_lower
 -- limit 10
 ;

@@ -73,17 +73,18 @@ stored as parquet;
 
 -- 在途资金-代偿版
 -- drop table if exists `dm_eagle.eagle_unreach_funds`;
-create table if not exists `dm_eagle.eagle_unreach_funds`(
+create external table if not exists `dm.eagle_unreach_funds`(
   `capital_id`                                    string         COMMENT '资金方编号',
   `channel_id`                                    string         COMMENT '渠道方编号',
   `project_id`                                    string         COMMENT '项目编号',
-  `trade_yesterday_bal`                           decimal(25,5)  COMMENT '前一日末在途金额',
-  `repay_today_bal`                               decimal(25,5)  COMMENT '当日到账在途金额',
-  `repay_sum_daily`                               decimal(25,5)  COMMENT '当日新增在途金额',
-  `trade_today_bal`                               decimal(25,5)  COMMENT '当日终在途金额'
+  `trade_yesterday_bal`                           decimal(15,4)  COMMENT '前一日末在途金额',
+  `repay_today_bal`                               decimal(15,4)  COMMENT '当日到账在途金额',
+  `repay_sum_daily`                               decimal(15,4)  COMMENT '当日新增在途金额',
+  `trade_today_bal`                               decimal(15,4)  COMMENT '当日终在途金额'
 ) COMMENT '在途资金-代偿版'
 partitioned by (`biz_date` string COMMENT '观察日期')
-stored as parquet;
+stored as parquet
+location 'cosn://bigdatacenter-sit-1253824322/user/hadoop/warehouse/dm.db/eagle_unreach_funds';
 
 
 -- 拓展信息-到账信息(代偿版)
@@ -103,49 +104,53 @@ stored as parquet;
 
 -- 当日费用支出-代偿版
 -- drop table if exists `dm_eagle.eagle_acct_cost`;
-create table if not exists `dm_eagle.eagle_acct_cost`(
+create  external table if not exists `dm.eagle_acct_cost`(
   `capital_id`                                    string         COMMENT '资金方编号',
   `channel_id`                                    string         COMMENT '渠道方编号',
   `project_id`                                    string         COMMENT '项目编号',
-  `acct_total_fee`                                decimal(25,5)  COMMENT '当日费用支出金额',
+  `acct_total_fee`                                decimal(15,4)  COMMENT '当日费用支出金额',
   `fee_type`                                      string         COMMENT '费用类型：1-账户费用2-扣划手续费3-其他4-税费支持',
-  `amount`                                        decimal(25,5)  COMMENT '对应项的类型及金额'
+  `amount`                                        decimal(15,4)  COMMENT '对应项的类型及金额'
 ) COMMENT '当日费用支出-代偿版'
 partitioned by (`biz_date` string COMMENT '观察日期')
-stored as parquet;
+stored as parquet
+location 'cosn://bigdatacenter-sit-1253824322/user/hadoop/warehouse/dm.db/eagle_acct_cost';
+
 
 
 -- 资金相关
 -- 资金账户信息
 -- drop table if exists `dm_eagle.eagle_funds`;
-create table if not exists `dm_eagle.eagle_funds`(
+create external table if not exists `dm.eagle_funds`(
   `capital_id`                                    string         COMMENT '资金方编号',
   `channel_id`                                    string         COMMENT '渠道方编号',
   `project_id`                                    string         COMMENT '项目编号',
-  `trade_yesterday_bal`                           decimal(25,5)  COMMENT '当日初账户余额',
-  `loan_today_bal`                                decimal(25,5)  COMMENT '当日放款金额',
-  `repay_today_bal`                               decimal(25,5)  COMMENT '当日到账回款金额:客户还款+代偿回款+回购回购+退票回款',
-  `acct_int`                                      decimal(25,5)  COMMENT '当日账户利息',
-  `acct_total_fee`                                decimal(25,5)  COMMENT '当日费用支出',
-  `invest_cash`                                   decimal(25,5)  COMMENT '当日投资兑付金额',
-  `trade_today_bal`                               decimal(25,5)  COMMENT 'T日余额'
+  `trade_yesterday_bal`                           decimal(15,4)  COMMENT '当日初账户余额',
+  `loan_today_bal`                                decimal(15,4)  COMMENT '当日放款金额',
+  `repay_today_bal`                               decimal(15,4)  COMMENT '当日到账回款金额:客户还款+代偿回款+回购回购+退票回款',
+  `acct_int`                                      decimal(15,4)  COMMENT '当日账户利息',
+  `acct_total_fee`                                decimal(15,4)  COMMENT '当日费用支出',
+  `invest_cash`                                   decimal(15,4)  COMMENT '当日投资兑付金额',
+  `trade_today_bal`                               decimal(15,4)  COMMENT 'T日余额'
 ) COMMENT '资金账户信息'
 partitioned by (`biz_date` string COMMENT '观察日期')
-stored as parquet;
+stored as parquet
+location 'cosn://bigdatacenter-sit-1253824322/user/hadoop/warehouse/dm.db/eagle_funds';
 
 
 -- 回款明细
 -- drop table if exists `dm_eagle.eagle_repayment_detail`;
-create table if not exists `dm_eagle.eagle_repayment_detail`(
+create external table if not exists `dm.eagle_repayment_detail`(
   `capital_id`                                    string         COMMENT '资金方编号',
   `channel_id`                                    string         COMMENT '渠道方编号',
   `project_id`                                    string         COMMENT '项目编号',
-  `repay_today_bal`                               decimal(25,5)  COMMENT '当日回款总金额:客户还款+代偿回款+回购回购+退票回款',
+  `repay_today_bal`                               decimal(15,4)  COMMENT '当日回款总金额:客户还款+代偿回款+回购回购+退票回款',
   `repay_type`                                    string         COMMENT '费用类型：1-客户还款2-代偿回款3-回购回款4-退票回款',
-  `amount`                                        decimal(25,5)  COMMENT '对应项的金额'
+  `amount`                                        decimal(15,4)  COMMENT '对应项的金额'
 ) COMMENT '回款明细'
 partitioned by (`biz_date` string COMMENT '观察日期')
-stored as parquet;
+stored as parquet
+location 'cosn://bigdatacenter-sit-1253824322/user/hadoop/warehouse/dm.db/eagle_repayment_detail';
 
 
 

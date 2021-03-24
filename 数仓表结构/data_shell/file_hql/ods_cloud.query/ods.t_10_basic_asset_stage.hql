@@ -1,6 +1,29 @@
-set spark.executor.memory=4g;
-set spark.executor.memoryOverhead=4g;
-insert overwrite table ods_new_s.t_10_basic_asset_stage
+set hive.exec.input.listing.max.threads=50;
+set tez.grouping.min-size=50000000;
+set tez.grouping.max-size=50000000;
+set hive.exec.reducers.max=500;
+
+-- 设置 Container 大小
+set hive.tez.container.size=2048;
+set tez.am.resource.memory.mb=2048;
+-- 合并小文件
+set hive.merge.tezfiles=true;
+set hive.merge.size.per.task=64000000;      -- 64M
+set hive.merge.smallfiles.avgsize=64000000; -- 64M
+-- 设置动态分区
+set hive.exec.dynamic.partition=true;
+set hive.exec.dynamic.partition.mode=nonstrict;
+set hive.exec.max.dynamic.partitions=200000;
+set hive.exec.max.dynamic.partitions.pernode=50000;
+-- 禁用 Hive 矢量执行
+set hive.vectorized.execution.enabled=false;
+set hive.vectorized.execution.reduce.enabled=false;
+set hive.vectorized.execution.reduce.groupby.enabled=false;
+
+
+
+
+insert overwrite table ods.t_10_basic_asset_stage
 select
   0                                                   as id,
   cast(null as string)                                as import_id,
@@ -8,7 +31,7 @@ select
   project_info.asset_type                             as asset_type,
   loan_info.due_bill_no                               as serial_number,
   lending.contract_no                                 as contract_code,
-  lending.loan_init_principal                         as contract_amount,
+  loan_info.loan_init_principal                         as contract_amount,
   lending.interest_rate_type                          as interest_rate_type,
   lending.loan_init_interest_rate                     as contract_interest_rate,
   0                                                   as base_interest_rate,
@@ -56,7 +79,7 @@ select
   loan_info.remain_principal                          as remain_amounts,
   loan_info.remain_interest                           as remain_interest,
   loan_info.remain_othAmounts                         as remain_other_amounts,
-  lending.loan_init_term                              as periods,
+  loan_info.loan_init_term                              as periods,
   cast(null as string)                                as period_amounts,
   cast(null as string)                                as bus_product_id,
   cast(null as string)                                as bus_product_name,
@@ -71,39 +94,50 @@ select
   cast(null as string)                                as status_change_log,
   cast(null as string)                                as package_filter_id,
   cast(null as string)                                as virtual_asset_bag_id,
-  nvl(risk.map_value['wind_control_status'],'Yes')         as wind_control_status,
-  nvl(risk.map_value['wind_control_status_pool'],'Yes')    as wind_control_status_pool,
-  nvl(risk.map_value['cheat_level'],-1)               as cheat_level,
-  nvl(risk.map_value['score_range'],-1)               as score_range,
-  nvl(risk.map_value['score_level'],-1)               as score_level,
+  nvl(risk.wind_control_status,'Yes')                 as wind_control_status,
+  nvl(risk.wind_control_status_pool,'Yes')            as wind_control_status_pool,
+  nvl(risk.cheat_level,-1)                            as cheat_level,
+  nvl(risk.score_range,-1)                            as score_range,
+  nvl(risk.score_level,-1)                            as score_level,
   cast(null as string)                                as create_time,
   cast(null as string)                                as update_time,
   1                                                   as data_source,
   cust.resident_address                               as address,
   lending.mortgage_rate                               as mortgage_rates
 from (
-  select * from ods_new_s.loan_info_cloud
+  select * from ods.loan_info_abs
   where e_d_date = '3000-12-31'
 ) loan_info
-left join ods_new_s.loan_lending_cloud lending
+left join ods.loan_lending_abs lending
 on loan_info.due_bill_no = lending.due_bill_no
-inner join dim_new.project_info project_info
+inner join dim.project_info project_info
 on loan_info.product_id = project_info.project_id
-inner join dim_new.project_due_bill_no pro_due
+inner join dim.project_due_bill_no pro_due
 on loan_info.due_bill_no = pro_due.due_bill_no
 left join (
   select
     due_bill_no,
     min(should_repay_date) as first_repay_date
-  from ods_new_s.repay_schedule_inter
+  from ods.repay_schedule_abs
   group by due_bill_no
 ) first_repay
 on loan_info.due_bill_no = first_repay.due_bill_no
-inner join ods_new_s.customer_info_cloud cust
+inner join ods.customer_info_abs cust
 on loan_info.due_bill_no = cust.due_bill_no
 left join (
-  select distinct due_bill_no,first_value(map_value) over(partition by due_bill_no order by biz_date desc) as map_value
-  from ods_new_s.risk_control where source_table='t_asset_wind_control_history'
+select
+    distinct
+      due_bill_no,
+      product_id,
+      max(if(map_key = 'wind_control_status',map_val,'Yes'))              as wind_control_status,
+      max(if(map_key = 'wind_control_status_pool',map_val,'Yes'))         as wind_control_status_pool,
+      max(if(map_key = 'score_range',map_val,-1))                         as score_range,
+      max(if(map_key = 'cheat_level',map_val,-1))                         as cheat_level,
+      max(if(map_key = 'score_level',map_val,-1))                         as score_level
+    from ods.risk_control
+    where source_table in ('t_asset_wind_control_history')
+      and map_key in ('wind_control_status','wind_control_status_pool','cheat_level','score_range','score_level')
+    group by due_bill_no, product_id
 ) risk
 on loan_info.due_bill_no = risk.due_bill_no
 group by
@@ -112,12 +146,16 @@ loan_info.product_id,
 project_info.asset_type,
 loan_info.due_bill_no,
 lending.contract_no,
-lending.loan_init_principal,
+loan_info.loan_init_principal,
 lending.interest_rate_type,
 lending.loan_init_interest_rate,
 lending.loan_issue_date,
 lending.loan_expiry_date,
-risk.map_value,
+risk.wind_control_status,
+risk.wind_control_status_pool,
+risk.score_range,
+risk.cheat_level,
+risk.score_level,
 first_repay.first_repay_date,
 lending.loan_type,
 lending.cycle_day,
@@ -145,7 +183,7 @@ loan_info.overdue_days,
 loan_info.remain_principal,
 loan_info.remain_interest,
 loan_info.remain_othAmounts,
-lending.loan_init_term,
+loan_info.loan_init_term,
 cust.resident_address,
 lending.tail_amount,
 lending.tail_amount_rate,

@@ -14348,11 +14348,36 @@ insert overwrite table ods.repay_schedule_inter_hdfs partition(biz_date,product_
 select * from ods.repay_schedule_inter_hdfs;
 
 
+root_dir=/data/data_shell
+
+data_manage=$root_dir/bin/data_manage.sh
+ods_cloud=$root_dir/file_hql/ods_cloud.query
+ods=$root_dir/file_hql/ods.query
+
+param=$root_dir/param_beeline
+
+mail=$root_dir/conf_mail/data_receives_mail_ximing.config
+
+log=$root_dir/log
+
+
+
+sh $data_manage -s 2017-06-01 -e 2021-03-22 -f $ods_cloud/ods.loan_info_inter.hql      -a $mail -n 10 &> $log/cloud_loan.log
+sh $data_manage -s 2020-12-02 -e 2021-03-22 -f $ods_cloud/ods.repay_schedule_inter.hql -a $mail -n 10 &> $log/cloud_schedule.log
 
 
 
 
-ALTER table ods.loan_info drop if exists partition(product_id = '001602');
+
+ALTER table ods.loan_info_inter drop if exists partition(product_id = 'Cl00333');
+
+
+
+
+
+
+
+
 
 
 select if(1 > null,1,2) as a;
@@ -14364,7 +14389,29 @@ select if(1 > null,1,2) as a;
 
 
 
+select * from ods_new_s.loan_info where due_bill_no = '1120070408514963542686'
+and (
+'2021-01-14' between s_d_date and date_sub(e_d_date,1) or
+'2021-01-16' between s_d_date and date_sub(e_d_date,1)
+);
 
 
 
-SELECT date_add(current_date(),interval 2 day) as aa;
+
+select count(1) as tt from ods.loan_info;
+
+
+select
+  product_id,
+  due_bill_no,
+  max(if(map_key = 'wind_control_status',map_val,null)) as wind_control_status,
+  max(if(map_key = 'cheat_level',map_val,null))         as cheat_level,
+  max(if(map_key = 'score_range',map_val,null))         as score_range
+from ods.risk_control
+where source_table in ('t_asset_wind_control_history')
+  and map_key in ('wind_control_status','cheat_level','score_range')
+group by product_id,due_bill_no
+limit 10
+;
+
+

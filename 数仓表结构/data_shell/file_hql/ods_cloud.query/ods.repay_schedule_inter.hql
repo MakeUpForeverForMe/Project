@@ -1,6 +1,15 @@
+set hive.exec.input.listing.max.threads=50;
+set tez.grouping.min-size=50000000;
+set tez.grouping.max-size=50000000;
+set hive.exec.reducers.max=500;
+
 -- 设置 Container 大小
-set hive.tez.container.size=4096;
-set tez.am.resource.memory.mb=4096;
+set hive.tez.container.size=2048;
+set tez.am.resource.memory.mb=2048;
+-- 合并小文件
+set hive.merge.tezfiles=true;
+set hive.merge.size.per.task=64000000;      -- 64M
+set hive.merge.smallfiles.avgsize=64000000; -- 64M
 -- 设置动态分区
 set hive.exec.dynamic.partition=true;
 set hive.exec.dynamic.partition.mode=nonstrict;
@@ -71,10 +80,9 @@ set hive.vectorized.execution.reduce.groupby.enabled=false;
 --     effective_date         as effective_date,
 --     create_time            as create_time,
 --     update_time            as update_time,
---     project_id             as project_id
+--     case project_id when 'Cl00333' then 'cl00333' else project_id end as project_id
 --   from stage.abs_05_t_repaymentplan_history
 --   where 1 > 0
---     and '${ST9}' <= '2020-11-30'
 --     and effective_date <= '2020-11-30'
 --     and project_id not in (
 --       '001601',           -- 汇通
@@ -87,7 +95,7 @@ set hive.vectorized.execution.reduce.groupby.enabled=false;
 -- ) as abs_05
 -- left join (
 --   select distinct
---     project_id                                 as project_id,
+--     case project_id when 'Cl00333' then 'cl00333' else project_id end as project_id,
 --     serial_number                              as serial_number,
 --     is_empty(actual_loan_date,loan_issue_date) as loan_active_date,
 --     periods                                    as loan_init_term,
@@ -149,7 +157,10 @@ set hive.vectorized.execution.reduce.groupby.enabled=false;
 --   asset_05.project_id             as product_id
 -- from (
 --   select distinct
---     is_empty(map_from_str(extra_info)['项目编号'],project_id)          as project_id,
+--     case is_empty(map_from_str(extra_info)['项目编号'],project_id)
+--       when 'Cl00333' then 'cl00333'
+--       else is_empty(map_from_str(extra_info)['项目编号'],project_id)
+--     end                                                                as project_id,
 --     is_empty(map_from_str(extra_info)['借据号'],asset_id)              as due_bill_no,
 --     is_empty(map_from_str(extra_info)['期次'],period)                  as loan_term,
 --     is_empty(map_from_str(extra_info)['应还款日'],repay_date)          as should_repay_date,
@@ -162,7 +173,6 @@ set hive.vectorized.execution.reduce.groupby.enabled=false;
 --     update_time                                                        as update_time
 --   from stage.asset_05_t_repayment_schedule
 --   where 1 > 0
---     and '${ST9}' = '2020-12-01'
 --     and d_date = '2020-12-01'
 --     and is_empty(map_from_str(extra_info)['项目编号'],project_id) not in (
 --       '001601',           -- 汇通
@@ -183,7 +193,7 @@ set hive.vectorized.execution.reduce.groupby.enabled=false;
 --     should_repay_interest  as should_repay_interest,
 --     should_repay_cost      as should_repay_term_fee,
 --     effective_date         as effective_date,
---     project_id             as project_id
+--     case project_id when 'Cl00333' then 'cl00333' else project_id end as project_id
 --   from stage.abs_05_t_repaymentplan_history
 --   where 1 > 0
 --     and effective_date <= '2020-11-30'
@@ -206,7 +216,10 @@ set hive.vectorized.execution.reduce.groupby.enabled=false;
 -- and asset_05.effective_date         = abs_05.effective_date
 -- left join (
 --   select distinct
---     is_empty(map_from_str(extra_info)['项目编号'],project_id)                          as project_id,
+--     case is_empty(map_from_str(extra_info)['项目编号'],project_id)
+--       when 'Cl00333' then 'cl00333'
+--       else is_empty(map_from_str(extra_info)['项目编号'],project_id)
+--     end                                                                                as project_id,
 --     is_empty(map_from_str(extra_info)['借据号'],asset_id)                              as due_bill_no,
 --     is_empty(
 --       case when length(map_from_str(extra_info)['实际放款时间']) = 19 then to_date(map_from_str(extra_info)['实际放款时间'])
@@ -279,7 +292,10 @@ select
   asset_05_today.project_id             as product_id
 from (
   select distinct
-    is_empty(map_from_str(extra_info)['项目编号'],project_id)          as project_id,
+    case is_empty(map_from_str(extra_info)['项目编号'],project_id)
+      when 'Cl00333' then 'cl00333'
+      else is_empty(map_from_str(extra_info)['项目编号'],project_id)
+    end                                                                as project_id,
     is_empty(map_from_str(extra_info)['借据号'],asset_id)              as due_bill_no,
     is_empty(map_from_str(extra_info)['期次'],period)                  as loan_term,
     is_empty(map_from_str(extra_info)['应还款日'],repay_date)          as should_repay_date,
@@ -305,7 +321,10 @@ from (
 ) as asset_05_today
 left join (
   select distinct
-    is_empty(map_from_str(extra_info)['项目编号'],project_id)          as project_id,
+    case is_empty(map_from_str(extra_info)['项目编号'],project_id)
+      when 'Cl00333' then 'cl00333'
+      else is_empty(map_from_str(extra_info)['项目编号'],project_id)
+    end                                                                as project_id,
     is_empty(map_from_str(extra_info)['借据号'],asset_id)              as due_bill_no,
     is_empty(map_from_str(extra_info)['期次'],period)                  as loan_term,
     is_empty(map_from_str(extra_info)['应还款日'],repay_date)          as should_repay_date,
@@ -327,18 +346,21 @@ left join (
       ''
     )
 ) as asset_05_yesterday
-on  is_empty(asset_05_today.project_id,'aa')             = is_empty(asset_05_yesterday.project_id,'aa')
-and is_empty(asset_05_today.due_bill_no,'aa')            = is_empty(asset_05_yesterday.due_bill_no,'aa')
-and is_empty(asset_05_today.loan_term,'aa')              = is_empty(asset_05_yesterday.loan_term,'aa')
-and is_empty(asset_05_today.should_repay_date,'aa')      = is_empty(asset_05_yesterday.should_repay_date,'aa')
-and is_empty(asset_05_today.should_repay_principal,'aa') = is_empty(asset_05_yesterday.should_repay_principal,'aa')
-and is_empty(asset_05_today.should_repay_interest,'aa')  = is_empty(asset_05_yesterday.should_repay_interest,'aa')
-and is_empty(asset_05_today.should_repay_term_fee,'aa')  = is_empty(asset_05_yesterday.should_repay_term_fee,'aa')
-and is_empty(asset_05_today.should_repay_penalty,'aa')   = is_empty(asset_05_yesterday.should_repay_penalty,'aa')
-and is_empty(asset_05_today.effective_date,'aa')         = is_empty(asset_05_yesterday.effective_date,'aa')
+on  is_empty(asset_05_today.project_id,            'aa') = is_empty(asset_05_yesterday.project_id,            'aa')
+and is_empty(asset_05_today.due_bill_no,           'aa') = is_empty(asset_05_yesterday.due_bill_no,           'aa')
+and is_empty(asset_05_today.loan_term,             'aa') = is_empty(asset_05_yesterday.loan_term,             'aa')
+and is_empty(asset_05_today.should_repay_date,     'aa') = is_empty(asset_05_yesterday.should_repay_date,     'aa')
+and is_empty(asset_05_today.should_repay_principal,   0) = is_empty(asset_05_yesterday.should_repay_principal,   0)
+and is_empty(asset_05_today.should_repay_interest,    0) = is_empty(asset_05_yesterday.should_repay_interest,    0)
+and is_empty(asset_05_today.should_repay_term_fee,    0) = is_empty(asset_05_yesterday.should_repay_term_fee,    0)
+and is_empty(asset_05_today.should_repay_penalty,     0) = is_empty(asset_05_yesterday.should_repay_penalty,     0)
+and is_empty(asset_05_today.effective_date,        'aa') = is_empty(asset_05_yesterday.effective_date,        'aa')
 left join (
   select distinct
-    is_empty(map_from_str(extra_info)['项目编号'],project_id)                          as project_id,
+    case is_empty(map_from_str(extra_info)['项目编号'],project_id)
+      when 'Cl00333' then 'cl00333'
+      else is_empty(map_from_str(extra_info)['项目编号'],project_id)
+    end                                                                                as project_id,
     is_empty(map_from_str(extra_info)['借据号'],asset_id)                              as due_bill_no,
     is_empty(
       case when length(map_from_str(extra_info)['实际放款时间']) = 19 then to_date(map_from_str(extra_info)['实际放款时间'])

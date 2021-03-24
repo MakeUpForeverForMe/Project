@@ -1,10 +1,15 @@
+set hive.exec.input.listing.max.threads=50;
+set tez.grouping.min-size=50000000;
+set tez.grouping.max-size=50000000;
+set hive.exec.reducers.max=500;
+
 -- 设置 Container 大小
-set hive.tez.container.size=4096;
-set tez.am.resource.memory.mb=4096;
+set hive.tez.container.size=2048;
+set tez.am.resource.memory.mb=2048;
 -- 合并小文件
 set hive.merge.tezfiles=true;
-set hive.merge.size.per.task=128000000; -- 128M
-set hive.merge.smallfiles.avgsize=128000000; -- 128M
+set hive.merge.size.per.task=64000000;      -- 64M
+set hive.merge.smallfiles.avgsize=64000000; -- 64M
 -- 设置动态分区
 set hive.exec.dynamic.partition=true;
 set hive.exec.dynamic.partition.mode=nonstrict;
@@ -170,20 +175,24 @@ from (
       account_date,
       create_time,
       update_time,
-      project_id
+      case project_id when 'Cl00333' then 'cl00333' else project_id end as project_id
     from stage.asset_10_t_asset_check
     where account_date = '${ST9}'
       and project_id not in (
-        '001601',           -- 汇通
-        'DIDI201908161538', -- 滴滴
-        'WS0005200001',     -- 瓜子
-        'CL202012280092',   -- 汇通国银
-        'CL202102010097',   -- 汇通国银
+        '001601',
+        'DIDI201908161538',
+        'WS0005200001',
+        'CL202012280092',
+        'CL202102010097',
         ''
       )
   ) as asset
   left join (
     select distinct
+      case is_empty(map_from_str(extra_info)['项目编号'],project_id)
+        when 'Cl00333' then 'cl00333'
+        else is_empty(map_from_str(extra_info)['项目编号'],project_id)
+      end                                                                 as project_id,
       is_empty(map_from_str(extra_info)['借据号'],asset_id)               as asset_id,
       is_empty(
         case when length(map_from_str(extra_info)['实际放款时间']) = 19 then to_date(map_from_str(extra_info)['实际放款时间'])
@@ -194,7 +203,8 @@ from (
       is_empty(map_from_str(extra_info)['贷款总费用(元)'],loan_total_fee) as loan_total_fee
     from stage.asset_01_t_loan_contract_info
   ) as loan
-  on asset.asset_id = loan.asset_id
+  on  asset.project_id = loan.project_id
+  and asset.asset_id   = loan.asset_id
 ) as today
 left join (
   select
@@ -292,20 +302,24 @@ left join (
       account_date,
       create_time,
       update_time,
-      project_id
+      case project_id when 'Cl00333' then 'cl00333' else project_id end as project_id
     from stage.asset_10_t_asset_check
     where account_date = date_sub('${ST9}',1)
       and project_id not in (
-        '001601',           -- 汇通
-        'DIDI201908161538', -- 滴滴
-        'WS0005200001',     -- 瓜子
-        'CL202012280092',   -- 汇通国银
-        'CL202102010097',   -- 汇通国银
+        '001601',
+        'DIDI201908161538',
+        'WS0005200001',
+        'CL202012280092',
+        'CL202102010097',
         ''
       )
   ) as asset
   left join (
     select distinct
+      case is_empty(map_from_str(extra_info)['项目编号'],project_id)
+        when 'Cl00333' then 'cl00333'
+        else is_empty(map_from_str(extra_info)['项目编号'],project_id)
+      end                                                                 as project_id,
       is_empty(map_from_str(extra_info)['借据号'],asset_id)               as asset_id,
       is_empty(
         case when length(map_from_str(extra_info)['实际放款时间']) = 19 then to_date(map_from_str(extra_info)['实际放款时间'])
@@ -316,7 +330,8 @@ left join (
       is_empty(map_from_str(extra_info)['贷款总费用(元)'],loan_total_fee) as loan_total_fee
     from stage.asset_01_t_loan_contract_info
   ) as loan
-  on asset.asset_id = loan.asset_id
+  on  asset.project_id = loan.project_id
+  and asset.asset_id   = loan.asset_id
 ) as yesterday
 on  is_empty(today.product_id                  ,'a') = is_empty(yesterday.product_id                  ,'a')
 and is_empty(today.due_bill_no                 ,'a') = is_empty(yesterday.due_bill_no                 ,'a')
@@ -332,20 +347,20 @@ and is_empty(today.loan_out_reason             ,'a') = is_empty(yesterday.loan_o
 and is_empty(today.paid_out_type               ,'a') = is_empty(yesterday.paid_out_type               ,'a')
 and is_empty(today.paid_out_date               ,'a') = is_empty(yesterday.paid_out_date               ,'a')
 and is_empty(today.terminal_date               ,'a') = is_empty(yesterday.terminal_date               ,'a')
-and is_empty(today.loan_init_principal         ,'a') = is_empty(yesterday.loan_init_principal         ,'a')
-and is_empty(today.loan_init_interest          ,'a') = is_empty(yesterday.loan_init_interest          ,'a')
-and is_empty(today.loan_init_term_fee          ,'a') = is_empty(yesterday.loan_init_term_fee          ,'a')
-and is_empty(today.paid_principal              ,'a') = is_empty(yesterday.paid_principal              ,'a')
-and is_empty(today.overdue_principal           ,'a') = is_empty(yesterday.overdue_principal           ,'a')
-and is_empty(today.overdue_interest            ,'a') = is_empty(yesterday.overdue_interest            ,'a')
-and is_empty(today.overdue_term_fee            ,'a') = is_empty(yesterday.overdue_term_fee            ,'a')
+and is_empty(today.loan_init_principal         ,  0) = is_empty(yesterday.loan_init_principal         ,  0)
+and is_empty(today.loan_init_interest          ,  0) = is_empty(yesterday.loan_init_interest          ,  0)
+and is_empty(today.loan_init_term_fee          ,  0) = is_empty(yesterday.loan_init_term_fee          ,  0)
+and is_empty(today.paid_principal              ,  0) = is_empty(yesterday.paid_principal              ,  0)
+and is_empty(today.overdue_principal           ,  0) = is_empty(yesterday.overdue_principal           ,  0)
+and is_empty(today.overdue_interest            ,  0) = is_empty(yesterday.overdue_interest            ,  0)
+and is_empty(today.overdue_term_fee            ,  0) = is_empty(yesterday.overdue_term_fee            ,  0)
 and is_empty(today.overdue_date                ,'a') = is_empty(yesterday.overdue_date                ,'a')
 and is_empty(today.overdue_days                ,'a') = is_empty(yesterday.overdue_days                ,'a')
 and is_empty(today.overdue_term                ,'a') = is_empty(yesterday.overdue_term                ,'a')
 and is_empty(today.overdue_terms_count         ,'a') = is_empty(yesterday.overdue_terms_count         ,'a')
 and is_empty(today.overdue_terms_max           ,'a') = is_empty(yesterday.overdue_terms_max           ,'a')
-and is_empty(today.overdue_principal_accumulate,'a') = is_empty(yesterday.overdue_principal_accumulate,'a')
-and is_empty(today.overdue_principal_max       ,'a') = is_empty(yesterday.overdue_principal_max       ,'a')
+and is_empty(today.overdue_principal_accumulate,  0) = is_empty(yesterday.overdue_principal_accumulate,  0)
+and is_empty(today.overdue_principal_max       ,  0) = is_empty(yesterday.overdue_principal_max       ,  0)
 and is_empty(today.dpd_days_max                ,'a') = is_empty(yesterday.dpd_days_max                ,'a')
 where yesterday.due_bill_no is null
 -- limit 1

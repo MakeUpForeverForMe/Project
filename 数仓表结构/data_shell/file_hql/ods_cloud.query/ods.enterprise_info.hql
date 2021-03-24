@@ -1,9 +1,21 @@
+set hive.exec.input.listing.max.threads=50;
+set tez.grouping.min-size=50000000;
+set tez.grouping.max-size=50000000;
+set hive.exec.reducers.max=500;
+
+-- 设置 Container 大小
+set hive.tez.container.size=2048;
+set tez.am.resource.memory.mb=2048;
+-- 合并小文件
+set hive.merge.tezfiles=true;
+set hive.merge.size.per.task=64000000;      -- 64M
+set hive.merge.smallfiles.avgsize=64000000; -- 64M
 -- 设置动态分区
 set hive.exec.dynamic.partition=true;
 set hive.exec.dynamic.partition.mode=nonstrict;
 set hive.exec.max.dynamic.partitions=200000;
 set hive.exec.max.dynamic.partitions.pernode=50000;
--- 执行sql前，加上如下参数，禁用hive矢量执行：
+-- 禁用 Hive 矢量执行
 set hive.vectorized.execution.enabled=false;
 set hive.vectorized.execution.reduce.enabled=false;
 set hive.vectorized.execution.reduce.groupby.enabled=false;
@@ -32,7 +44,7 @@ select distinct
   province                                                                         as province,            -- 企业省份
   create_time                                                                      as create_time,         -- 创建时间
   update_time                                                                      as update_time,         -- 更新时间
-  project_id                                                                       as product_id           -- 项目编号
+  case project_id when 'Cl00333' then 'cl00333' else project_id end                as project_id           -- 项目编号
 from stage.asset_12_t_enterprise_info
 -- limit 10
 ;

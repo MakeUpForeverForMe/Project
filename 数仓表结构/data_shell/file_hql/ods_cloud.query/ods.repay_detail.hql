@@ -1,6 +1,15 @@
+set hive.exec.input.listing.max.threads=50;
+set tez.grouping.min-size=50000000;
+set tez.grouping.max-size=50000000;
+set hive.exec.reducers.max=500;
+
 -- 设置 Container 大小
-set hive.tez.container.size=4096;
-set tez.am.resource.memory.mb=4096;
+set hive.tez.container.size=2048;
+set tez.am.resource.memory.mb=2048;
+-- 合并小文件
+set hive.merge.tezfiles=true;
+set hive.merge.size.per.task=64000000;      -- 64M
+set hive.merge.smallfiles.avgsize=64000000; -- 64M
 -- 设置动态分区
 set hive.exec.dynamic.partition=true;
 set hive.exec.dynamic.partition.mode=nonstrict;
@@ -97,8 +106,10 @@ from (
       is_empty(map_from_str(extra_info)['其它相关费用'],0)               as otherfee,
       create_time                                                        as create_time,
       update_time                                                        as update_time,
-      is_empty(project_id,   map_from_str(extra_info)['项目编号'])       as project_id,
-      '123' as aa
+      case is_empty(project_id,map_from_str(extra_info)['项目编号'])
+        when 'Cl00333' then 'cl00333'
+        else is_empty(project_id,map_from_str(extra_info)['项目编号'])
+      end                                                                as project_id
     from stage.asset_07_t_repayment_info
     where 1 > 0
       and is_empty(project_id,   map_from_str(extra_info)['项目编号']) not in (
@@ -138,11 +149,14 @@ left join (
     )                                                         as loan_active_date,
     is_empty(map_from_str(extra_info)['总期数'],periods)      as loan_init_term,
     is_empty(map_from_str(extra_info)['借据号'],asset_id)     as loan_due_bill_no,
-    is_empty(map_from_str(extra_info)['项目编号'],project_id) as loan_product_id
+    case is_empty(map_from_str(extra_info)['项目编号'],project_id)
+      when 'Cl00333' then 'cl00333'
+      else is_empty(map_from_str(extra_info)['项目编号'],project_id)
+    end                                                       as loan_product_id
   from stage.asset_01_t_loan_contract_info
 ) as loan_contract
-on  due_bill_no = loan_due_bill_no
-and product_id  = loan_product_id
+on  product_id  = loan_product_id
+and due_bill_no = loan_due_bill_no
 -- order by due_bill_no,repay_term
 -- limit 50
 ;

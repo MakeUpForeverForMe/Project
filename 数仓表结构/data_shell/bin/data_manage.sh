@@ -48,6 +48,7 @@ execute_hql(){
 }
 
 
+manage_kv_tmp_file=$(mktemp -t kv.XXXXXX) || exit 1
 
 OPTIND=1
 while getopts :f:b:i:s:e:r:k:a:n:th opt; do
@@ -108,8 +109,7 @@ while getopts :f:b:i:s:e:r:k:a:n:th opt; do
         exit 1
       }
 
-      manage_kv_tmp_file=$(mktemp -t kv.XXXXXX.$(s_r_r ${manage_hql})) || exit 1
-      echo "set hivevar:$manage_kv_key=$manage_kv_val;" > $manage_kv_tmp_file
+      echo "set hivevar:$manage_kv_key=$manage_kv_val;" >> $manage_kv_tmp_file
     ;;
     (:)
       echo "请添加参数: -$OPTARG"

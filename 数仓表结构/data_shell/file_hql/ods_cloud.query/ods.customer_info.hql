@@ -1,10 +1,15 @@
+set hive.exec.input.listing.max.threads=50;
+set tez.grouping.min-size=50000000;
+set tez.grouping.max-size=50000000;
+set hive.exec.reducers.max=500;
+
 -- 设置 Container 大小
-set hive.tez.container.size=4096;
-set tez.am.resource.memory.mb=4096;
+set hive.tez.container.size=2048;
+set tez.am.resource.memory.mb=2048;
 -- 合并小文件
 set hive.merge.tezfiles=true;
-set hive.merge.size.per.task=128000000; -- 128M
-set hive.merge.smallfiles.avgsize=128000000; -- 128M
+set hive.merge.size.per.task=64000000;      -- 64M
+set hive.merge.smallfiles.avgsize=64000000; -- 64M
 -- 设置动态分区
 set hive.exec.dynamic.partition=true;
 set hive.exec.dynamic.partition.mode=nonstrict;
@@ -19,6 +24,7 @@ set hive.vectorized.execution.reduce.groupby.enabled=false;
 
 insert overwrite table ods.customer_info partition(product_id)
 select distinct
+  due_bill_no                                                                                       as apply_id,
   due_bill_no                                                                                       as due_bill_no,
   concat_ws('_',channel_id,sha256(decrypt_aes(document_num,'tencentabs123456'),'idNumber',1),sha256(decrypt_aes(borrower_name,'tencentabs123456'),'userName',1)) as cust_id,
   sha256(decrypt_aes(document_num,'tencentabs123456'),'idNumber',1)                                 as user_hash_no,
@@ -96,7 +102,10 @@ from (
 ) as biz_conf
 join (
   select
-    is_empty(map_from_str(extra_info)['项目编号'],project_id)                                                          as project_id,
+    case is_empty(map_from_str(extra_info)['项目编号'],project_id)
+      when 'Cl00333' then 'cl00333'
+      else is_empty(map_from_str(extra_info)['项目编号'],project_id)
+    end                                                                                                                as project_id,
     is_empty(map_from_str(extra_info)['借据号'],asset_id)                                                              as due_bill_no,
     is_empty(map_from_str(extra_info)['证件类型'])                                                                     as certificate_type,
     is_empty(map_from_str(extra_info)['身份证号'],document_num)                                                        as document_num,
@@ -143,7 +152,10 @@ join (
 on abs_project_id = project_id
 join (
   select
-    is_empty(map_from_str(extra_info)['项目编号'],project_id) as product_id_contract,
+    case is_empty(map_from_str(extra_info)['项目编号'],project_id)
+      when 'Cl00333' then 'cl00333'
+      else is_empty(map_from_str(extra_info)['项目编号'],project_id)
+    end                                                       as product_id_contract,
     is_empty(map_from_str(extra_info)['借据号'],asset_id)     as serial_number,
     is_empty(
       case when length(map_from_str(extra_info)['实际放款时间']) = 19 then to_date(map_from_str(extra_info)['实际放款时间'])

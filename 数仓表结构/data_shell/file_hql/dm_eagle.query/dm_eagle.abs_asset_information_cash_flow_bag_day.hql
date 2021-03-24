@@ -17,12 +17,13 @@ set hive.vectorized.execution.reduce.groupby.enabled=false;
 
 
 
+set hivevar:ST9=2020-10-15;
 
 -- insert overwrite table dm_eagle.abs_asset_information_cash_flow_bag_day partition(bag_id)
 select
   t1.project_id                                                                                                       as project_id,             --'项目编号'
   t1.bag_date                                                                                                         as bag_date,               --'封包日期'
-  max(t4.biz_date) over(partition by t1.project_id,t1.bag_date,t1.bag_id order by t1.biz_date) as data_extraction_day as data_extraction_day,    --'最新数据提取日'
+  max(t4.biz_date) over(partition by t1.project_id,t1.bag_date,t1.bag_id order by t1.biz_date)                        as data_extraction_day,    --'最新数据提取日'
 
   nvl(t2.should_repay_amount   ,0)                                                                                    as should_repay_amount,    --'应收金额'
   nvl(t2.should_repay_principal,0)                                                                                    as should_repay_principal, --'应收本金'
@@ -50,7 +51,7 @@ select
   nvl(t3.normal_paid_cost      ,0)                                                                                    as normal_paid_cost,       --'正常还款费用'
 
   t1.biz_date                                                                                                         as biz_date,               --'观察日期（应还日/实还日）'
-  t1.bag_id                                                                                                           as bag_id,                 --包编号
+  t1.bag_id                                                                                                           as bag_id                  --包编号
 from (
   select
     t6.project_id,

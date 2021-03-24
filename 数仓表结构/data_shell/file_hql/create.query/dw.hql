@@ -386,7 +386,7 @@ STORED AS PARQUET;
 
 --- 乐信资产服务报告
 -- drop table if exists `dw`.`dw_report_cal_day`;
-create  table if not exists `dw`.`dw_report_cal_day`(
+create  table if not exists `dw.dw_report_cal_day`(
   `project_id`                            string         COMMENT '项目id',
   `m2plus_recover_amount`                 decimal(25,5)  COMMENT '当前违约30天+回收金额',
   `m2plus_recover_prin`                   decimal(25,5)  COMMENT '当前违约30天+回收本金',
@@ -425,3 +425,45 @@ create  table if not exists `dw`.`dw_report_cal_day`(
 ) COMMENT '服务报告乐信国民、乐信中铁、乐信国民二期'
 PARTITIONED BY (`biz_date` string COMMENT '快照日')
 STORED AS PARQUET;
+
+
+
+
+
+CREATE EXTERNAL TABLE `dw.dw_transaction_blend_record`(
+  `blend_serial_no` string COMMENT '流水勾兑编号',
+  `record_type` string COMMENT '记录类型  D:借方 C:贷方 M:手工调整值 F:结果值 G:看管值',
+  `loan_amt` decimal(18,2) COMMENT '放款金额',
+  `cust_repay_amt` decimal(18,2) COMMENT '客户还款',
+  `comp_bak_amt` decimal(18,2) COMMENT '代偿回款',
+  `buy_bak_amt` decimal(18,2) COMMENT '回购回款',
+  `deduct_sve_fee` decimal(18,2) COMMENT '划扣手续费',
+  `invest_amt` decimal(18,2) COMMENT '投资金额',
+  `invest_redeem_amt` decimal(18,2) COMMENT '投资赎回金额',
+  `invest_earning` decimal(18,2) COMMENT '投资收益',
+  `acct_int` decimal(18,2) COMMENT '账户利息',
+  `acct_fee` decimal(18,2) COMMENT '账户费用',
+  `tax_amt` decimal(18,2) COMMENT '税费支付',
+  `invest_cash` decimal(18,2) COMMENT '投资兑付',
+  `ci_fund` decimal(18,2) COMMENT '信保基金',
+  `ci_redeem_amt` decimal(18,2) COMMENT '信保赎回',
+  `ci_earning` decimal(18,2) COMMENT '信保收益',
+  `other_amt` decimal(18,2) COMMENT '其他金额',
+  `trade_day_bal` decimal(18,2) COMMENT 'T日余额',
+  `trade_yesterday_bal` decimal(18,2) COMMENT 'T-1日余额',
+  `trade_day__bal_diff` decimal(18,2) COMMENT 'T日余额差异',
+  `remark` string COMMENT '备注',
+  `create_date` bigint COMMENT '创建时间',
+  `update_date` bigint COMMENT '创建时间',
+  `calc_date` string COMMENT '勾兑记录日期',
+  `product_code` string COMMENT '信托产品编号',
+  `product_name` string COMMENT '信托产品名称',
+  `return_ticket_bak_amt` decimal(18,2) COMMENT '退票回款',
+  `ch_diff_explain` string COMMENT '',
+  `en_diff_explain` string COMMENT '')
+COMMENT '资金打标流水表'
+PARTITIONED BY (
+  `biz_date` string COMMENT '????')
+stored as parquet
+LOCATION
+  'cosn://bigdatacenter-sit-1253824322/user/hadoop/warehouse/dw.db/dw_transaction_blend_record';

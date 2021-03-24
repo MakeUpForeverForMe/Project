@@ -1,36 +1,53 @@
-set spark.executor.memory=4g;
-set spark.executor.memoryOverhead=4g;
+-- 设置 Container 大小
+set hive.tez.container.size=4096;
+set tez.am.resource.memory.mb=4096;
+-- 合并小文件
+set hive.merge.tezfiles=true;
+set hive.merge.size.per.task=128000000; -- 128M
+set hive.merge.smallfiles.avgsize=128000000; -- 128M
+-- 设置动态分区
 set hive.exec.dynamic.partition=true;
 set hive.exec.dynamic.partition.mode=nonstrict;
 set hive.exec.max.dynamic.partitions=200000;
 set hive.exec.max.dynamic.partitions.pernode=50000;
--- 执行sql前，加上如下参数，禁用hive矢量执行：
+-- 禁用 Hive 矢量执行
 set hive.vectorized.execution.enabled=false;
 set hive.vectorized.execution.reduce.enabled=false;
 set hive.vectorized.execution.reduce.groupby.enabled=false;
 
 
--- set hivevar:bag_id=;
 
+set hive.execution.engine=mr;
+set mapreduce.map.memory.mb=4096;
+set mapreduce.reduce.memory.mb=4096;
+set mapreduce.map.java.opts=-Xmx4096m;
+set mapreduce.reduce.java.opts=-Xmx4096m;
+set yarn.app.mapreduce.am.resource.mb=5192;
+set yarn.app.mapreduce.am.command-opts=-Xmx4096m;
+
+
+
+-- set hivevar:bag_id=;
 -- set hivevar:ST9=2021-01-11;
 
 
 with loan_base as ( -- 取封包日期至当前时间为止的数据
   select
-    bag_info.project_id,
-    bag_info.bag_id,
-    bag_due.due_bill_no,
-    loan_lending.contract_no,
-    loan_info.overdue_days,
-    if(loan_info.s_d_date = min(loan_info.s_d_date) over(partition by loan_info.due_bill_no,loan_info.overdue_days),'y','n') as is_first_overdue_day,
-    bag_info.bag_date,
-    min(loan_info.s_d_date) over(partition by bag_due.due_bill_no) as min_date,
-    loan_info.s_d_date,
-    loan_info.e_d_date
+    bag_info.project_id                                                             as project_id,
+    bag_info.bag_id                                                                 as bag_id,
+    bag_due.due_bill_no                                                             as due_bill_no,
+    loan_lending.contract_no                                                        as contract_no,
+    loan_info.overdue_days                                                          as overdue_days,
+    if(loan_info.s_d_date = loan_info.overdue_days_min_date,'y','n')                as is_first_overdue_day,
+    bag_info.bag_date                                                               as bag_date,
+    if(bag_info.bag_date < loan_info.min_date,loan_info.min_date,bag_info.bag_date) as min_date,
+    '${ST9}'                                                                        as biz_date,
+    loan_info.s_d_date                                                              as s_d_date,
+    loan_info.e_d_date                                                              as e_d_date
   from (
     select
       project_id,bag_date,bag_id
-    from dim_new.bag_info
+    from dim.bag_info
     where 1 > 0
       and bag_date <= '${ST9}'
       ${bag_id}
@@ -38,7 +55,7 @@ with loan_base as ( -- 取封包日期至当前时间为止的数据
   join (
     select
       due_bill_no,bag_id
-    from dim_new.bag_due_bill_no
+    from dim.bag_due_bill_no
     where 1 > 0
       ${bag_id}
   ) as bag_due
@@ -48,9 +65,11 @@ with loan_base as ( -- 取封包日期至当前时间为止的数据
       project_id,
       due_bill_no,
       overdue_days,
+      min(s_d_date) over(partition by due_bill_no,overdue_days) as overdue_days_min_date,
+      min(s_d_date) over(partition by due_bill_no) as min_date,
       s_d_date,
       e_d_date
-    from ods_new_s.loan_info_abs
+    from ods.loan_info_abs
     where 1 > 0
       and s_d_date <= '${ST9}'
       -- and overdue_days = 0
@@ -65,7 +84,7 @@ with loan_base as ( -- 取封包日期至当前时间为止的数据
       project_id,
       due_bill_no,
       contract_no
-    from ods_new_s.loan_lending_abs
+    from ods.loan_lending_abs
   ) as loan_lending
   on  loan_info.project_id  = loan_lending.project_id
   and loan_info.due_bill_no = loan_lending.due_bill_no
@@ -74,7 +93,7 @@ with loan_base as ( -- 取封包日期至当前时间为止的数据
       project_id,
       due_bill_no,
       user_hash_no
-    from ods_new_s.customer_info_abs
+    from ods.customer_info_abs
     where 1 > 0
       -- and user_hash_no = 'a_7836af23d8bc3d641933b6ed459945d964bbbf975cecc7a9ae09293c28fd53a3'
   ) as customer_info
@@ -86,6 +105,8 @@ with loan_base as ( -- 取封包日期至当前时间为止的数据
   -- order by due_bill_no,s_d_date
   -- limit 10
 )
+
+
 insert overwrite table dm_eagle.abs_overdue_rate_details_day partition(biz_date,project_id,bag_id)
 select
   molecular_once.is_allbag          as is_allbag,
@@ -103,11 +124,12 @@ select
   loan_info.overdue_principal       as overdue_principal,
   loan_info.overdue_interest        as overdue_interest,
   (loan_info.overdue_svc_fee + loan_info.overdue_term_fee + loan_info.overdue_penalty + loan_info.overdue_mult_amt) as overdue_cost,
-  '${ST9}'                          as biz_date,
+  molecular_once.biz_date           as biz_date,
   molecular_once.project_id         as project_id,
   molecular_once.bag_id             as bag_id
 from ( -- 累计
   select distinct -- 封包时累计所有包
+    biz_date,
     project_id,
     'default_all_bag' as bag_id,
     'y' as is_allbag,
@@ -118,10 +140,11 @@ from ( -- 累计
   where 1 > 0
     and is_first_overdue_day = 'y'
     and overdue_days in (1,8,15,31,61,91,121,151,181)
-    and project_id = 'CL201911130070'
-    and bag_id = 'CL201911130070_12'
+    -- and project_id = 'CL201911130070'
+    -- and bag_id = 'CL201911130070_12'
   union all
   select distinct -- 封包时累计单个包
+    biz_date,
     project_id,
     bag_id,
     'n' as is_allbag,
@@ -132,8 +155,8 @@ from ( -- 累计
   where 1 > 0
     and is_first_overdue_day = 'y'
     and overdue_days in (1,8,15,31,61,91,121,151,181)
-    and project_id = 'CL201911130070'
-    and bag_id = 'CL201911130070_12'
+    -- and project_id = 'CL201911130070'
+    -- and bag_id = 'CL201911130070_12'
 ) as molecular_once
 left join ( -- 当前
   select distinct -- 封包时当前所有包
@@ -144,7 +167,7 @@ left join ( -- 当前
     due_bill_no
   from loan_base
   where 1 > 0
-    and '${ST9}' between s_d_date and date_sub(e_d_date,1)
+    and biz_date between s_d_date and date_sub(e_d_date,1)
     -- and if(bag_date < min_date,min_date,bag_date) between s_d_date and date_sub(e_d_date,1)
   union all
   select distinct -- 封包时当前单个包
@@ -155,7 +178,7 @@ left join ( -- 当前
     due_bill_no
   from loan_base
   where 1 > 0
-    and '${ST9}' between s_d_date and date_sub(e_d_date,1)
+    and biz_date between s_d_date and date_sub(e_d_date,1)
     -- and if(bag_date < min_date,min_date,bag_date) between s_d_date and date_sub(e_d_date,1)
 ) as molecular_curr
 on  molecular_once.project_id  = molecular_curr.project_id
@@ -171,7 +194,7 @@ left join ( -- 新增
     due_bill_no
   from loan_base
   where 1 > 0
-    and '${ST9}' between s_d_date and date_sub(e_d_date,1)
+    and biz_date between s_d_date and date_sub(e_d_date,1)
     and overdue_days in (1,8,15,31,61,91,121,151,181)
     and is_first_overdue_day = 'y'
   union all
@@ -183,7 +206,7 @@ left join ( -- 新增
     due_bill_no
   from loan_base
   where 1 > 0
-    and '${ST9}' between s_d_date and date_sub(e_d_date,1)
+    and biz_date between s_d_date and date_sub(e_d_date,1)
     and overdue_days in (1,8,15,31,61,91,121,151,181)
     and is_first_overdue_day = 'y'
 ) as molecular_new
@@ -191,14 +214,13 @@ on  molecular_once.project_id  = molecular_new.project_id
 and molecular_once.bag_id      = molecular_new.bag_id
 and molecular_once.is_allbag   = molecular_new.is_allbag
 and molecular_once.due_bill_no = molecular_new.due_bill_no
-left join dim_new.biz_conf
-on molecular_once.project_id = biz_conf.abs_project_id
 left join (
-  select * from ods_new_s.loan_info_cloud
+  select * from ods.loan_info_abs
   where 1 > 0
     and '${ST9}' between s_d_date and date_sub(e_d_date,1)
 ) as loan_info
-on  biz_conf.product_id        = loan_info.product_id
+on  molecular_once.project_id  = loan_info.project_id
 and molecular_once.due_bill_no = loan_info.due_bill_no
 -- order by due_bill_no,project_id,bag_id
+-- limit 10
 ;

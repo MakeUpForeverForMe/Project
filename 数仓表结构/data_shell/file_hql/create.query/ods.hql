@@ -1,8 +1,8 @@
 -- DROP DATABASE IF EXISTS `ods`;
-CREATE DATABASE IF NOT EXISTS `ods` COMMENT 'ods标准层（代偿前）' location 'cosn://bigdata-center-prod-1253824322/user/hadoop/warehouse/ods.db';
+CREATE DATABASE IF NOT EXISTS `ods` COMMENT 'ods标准层（代偿前）';
 
 -- DROP DATABASE IF EXISTS `ods_cps`;
-CREATE DATABASE IF NOT EXISTS `ods_cps` COMMENT 'ods标准层（代偿后）' location 'cosn://bigdata-center-prod-1253824322/user/hadoop/warehouse/ods_cps.db';
+CREATE DATABASE IF NOT EXISTS `ods_cps` COMMENT 'ods标准层（代偿后）';
 
 
 -- 授信申请表
@@ -292,7 +292,7 @@ STORED AS PARQUET;
 
 
 -- DROP TABLE IF EXISTS `ods.t_enterprise_info`;
-CREATE TABLE IF NOT EXISTS `ods.enterprise_info` (
+CREATE TABLE IF NOT EXISTS `ods.enterprise_info`(
   `due_bill_no`                                       string         COMMENT '资产借据号',
   `contract_role`                                     string         COMMENT '合同角色（0：主借款企业，1：共同借款企业，2：担保企业，3：无）',
   `enterprise_name`                                   string         COMMENT '企业，名称',
@@ -898,7 +898,7 @@ and t1.due_bill_no = t2.due_bill_no;
 
 
 -- DROP VIEW IF EXISTS `ods.enterprise_info_abs`;
-CREATE VIEW IF NOT EXISTS `ods.enterprise_info_abs` (
+CREATE VIEW IF NOT EXISTS `ods.enterprise_info_abs`(
   `due_bill_no`                        COMMENT '资产借据号',
   `contract_role`                      COMMENT '合同角色（0：主借款企业，1：共同借款企业，2：担保企业，3：无）',
   `enterprise_name`                    COMMENT '企业，名称',
@@ -1315,6 +1315,7 @@ CREATE VIEW IF NOT EXISTS `ods.order_info_abs`(
   `create_time`                        COMMENT '创建时间',
   `update_time`                        COMMENT '更新时间',
   `biz_date`                           COMMENT '交易日期',
+  `import_id`                          COMMENT '导入Id',
   `product_id`                         COMMENT '产品编号',
   `project_id`                         COMMENT '项目编号'
 ) COMMENT '订单流水表' AS select
@@ -1340,6 +1341,7 @@ CREATE VIEW IF NOT EXISTS `ods.order_info_abs`(
   t1.create_time          as create_time,
   t1.update_time          as update_time,
   t1.biz_date             as biz_date,
+  t2.import_id            as import_id,
   t1.product_id           as product_id,
   t2.project_id           as project_id
 from ods.order_info as t1

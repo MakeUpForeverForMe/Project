@@ -15,6 +15,8 @@ set hivevar:ST9=2021-03-10;
 
 set hive.execution.engine=mr;
 
+set hive.execution.engine=spark;
+
 set mapreduce.map.memory.mb=8192;
 set mapreduce.reduce.memory.mb=8192;
 
@@ -46,7 +48,8 @@ set hive.support.quoted.identifiers=None;     -- 设置可以使用正则表达�
 set hive.optimize.index.filter=true;
 set hive.stats.fetch.column.stats=true;
 -- set hive.auto.convert.join=false;             -- 关闭自动 MapJoin
-set hive.auto.convert.join.noconditionaltask.size=1073741824; -- 基于统计信息将基础join转化为map join的阈值
+-- set hive.auto.convert.join.noconditionaltask=false;  -- 关闭自动 MapJoin
+-- set hive.auto.convert.join.noconditionaltask.size=1073741824; -- 基于统计信息将基础join转化为map join的阈值
 set hive.mapjoin.followby.gby.localtask.max.memory.usage=0.9;
 -- set hive.mapjoin.optimized.hashtable=false;
 -- set hive.mapred.mode=nonstrict; -- 非严格模式
@@ -1333,11 +1336,15 @@ set hivevar:product_id=
 set hivevar:product_id='001601';
 
 
-set hivevar:ST9=2019-11-27;
+set hivevar:ST9=2019-10-27;
+
+
 set hivevar:ST9=2019-11-28;
 set hivevar:ST9=2019-11-29;
 set hivevar:ST9=2019-11-30;
 
+
+set hivevar:ST9=2020-10-15;
 
 set hivevar:ST9=2019-10-23;
 set hivevar:ST9=2019-10-25;
@@ -1347,9 +1354,15 @@ set hivevar:ST9=2020-11-30;
 set hivevar:ST9=2020-12-01;
 
 
+set hivevar:ST9=2021-02-01;
 
-set hivevar:ST9=2020-10-15;
 
+
+
+set hive.exec.input.listing.max.threads=50;
+set tez.grouping.min-size=15000000;
+set tez.grouping.max-size=15000000;
+set hive.exec.reducers.max=500;
 
 set hive.execution.engine=mr;
 set mapreduce.map.memory.mb=4096;
@@ -1376,13 +1389,19 @@ set hive.support.quoted.identifiers=None;
 
 
 
+
+set hive.exec.input.listing.max.threads=50;
+set tez.grouping.min-size=50000000;
+set tez.grouping.max-size=50000000;
+set hive.exec.reducers.max=500;
+
 -- 设置 Container 大小
 set hive.tez.container.size=4096;
 set tez.am.resource.memory.mb=4096;
 -- 合并小文件
 set hive.merge.tezfiles=true;
-set hive.merge.size.per.task=128000000; -- 128M
-set hive.merge.smallfiles.avgsize=128000000; -- 128M
+set hive.merge.size.per.task=64000000;      -- 64M
+set hive.merge.smallfiles.avgsize=64000000; -- 64M
 -- 设置动态分区
 set hive.exec.dynamic.partition=true;
 set hive.exec.dynamic.partition.mode=nonstrict;
@@ -1397,6 +1416,9 @@ set hive.vectorized.execution.reduce.groupby.enabled=false;
 
 
 
+
+case project_id when 'Cl00333' then 'cl00333' else project_id end as project_id
+
 select distinct product_id
 from (
   select
@@ -1407,6 +1429,21 @@ from (
   group by col_id
 ) as tmp
 where channel_id = '0006'
+
+
+select
+  product_id,
+  due_bill_no,
+  max(if(map_key = 'wind_control_status',map_val,null)) as wind_control_status,
+  max(if(map_key = 'cheat_level',map_val,null))         as cheat_level,
+  max(if(map_key = 'score_range',map_val,null))         as score_range
+from ods.risk_control
+where source_table in ('t_asset_wind_control_history')
+  and map_key in ('wind_control_status','cheat_level','score_range')
+group by product_id,due_bill_no
+limit 10
+;
+
 
 
 (

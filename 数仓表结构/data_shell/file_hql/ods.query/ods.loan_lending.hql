@@ -1,10 +1,15 @@
+set hive.exec.input.listing.max.threads=50;
+set tez.grouping.min-size=50000000;
+set tez.grouping.max-size=50000000;
+set hive.exec.reducers.max=500;
+
 -- 设置 Container 大小
 set hive.tez.container.size=4096;
 set tez.am.resource.memory.mb=4096;
 -- 合并小文件
 set hive.merge.tezfiles=true;
-set hive.merge.size.per.task=128000000; -- 128M
-set hive.merge.smallfiles.avgsize=128000000; -- 128M
+set hive.merge.size.per.task=64000000;      -- 64M
+set hive.merge.smallfiles.avgsize=64000000; -- 64M
 -- 设置动态分区
 set hive.exec.dynamic.partition=true;
 set hive.exec.dynamic.partition.mode=nonstrict;
@@ -16,6 +21,18 @@ set hive.vectorized.execution.reduce.enabled=false;
 set hive.vectorized.execution.reduce.groupby.enabled=false;
 
 
+-- set hivevar:db_suffix=;set hivevar:tb_suffix=_asset;
+-- set hivevar:db_suffix=_cps;set hivevar:tb_suffix=;
+-- set hivevar:db_suffix=;set hivevar:tb_suffix=;
+
+-- set hivevar:ST9=2021-03-22;
+-- set hivevar:product_id=
+-- '001801','001802','001803','001804',
+-- '001901','001902','001903','001904','001905','001906','001907',
+-- '002001','002002','002003','002004','002005','002006','002007',
+-- '002401','002402',
+-- ''
+-- ;
 
 
 insert overwrite table ods${db_suffix}.loan_lending partition(product_id)
@@ -55,7 +72,8 @@ from (
   select
     apply_no                        as apply_no,
     contract_no                     as contract_no,
-    if(dayofmonth(loan_expire_date) - dayofmonth(active_date) > 27,
+    if(
+      dayofmonth(loan_expire_date) - dayofmonth(active_date) > 27,
       (year(loan_expire_date) - year(active_date)) * 12 + month(loan_expire_date) - month(active_date) + 1,
       (year(loan_expire_date) - year(active_date)) * 12 + month(loan_expire_date) - month(active_date)
     )                               as contract_term,
@@ -69,16 +87,17 @@ from (
     cast(cycle_day as decimal(2,0)) as cycle_day,
     loan_type                       as loan_type,
     case loan_type
-    when 'R'     then '消费转分期'
-    when 'C'     then '现金分期'
-    when 'B'     then '账单分期'
-    when 'P'     then 'POS分期'
-    when 'M'     then '大额分期（专项分期）'
-    when 'MCAT'  then '随借随还'
-    when 'MCEP'  then '等额本金'
-    when 'MCEI'  then '等额本息'
-    when 'STAIR' then '阶梯还款'
-    else loan_type end              as loan_type_cn,
+      when 'R'     then '消费转分期'
+      when 'C'     then '现金分期'
+      when 'B'     then '账单分期'
+      when 'P'     then 'POS分期'
+      when 'M'     then '大额分期（专项分期）'
+      when 'MCAT'  then '随借随还'
+      when 'MCEP'  then '等额本金'
+      when 'MCEI'  then '等额本息'
+      when 'STAIR' then '阶梯还款'
+      else loan_type
+    end                             as loan_type_cn,
     '固定利率'                      as interest_rate_type,
     interest_rate                   as loan_init_interest_rate,
     term_fee_rate                   as loan_init_term_fee_rate,

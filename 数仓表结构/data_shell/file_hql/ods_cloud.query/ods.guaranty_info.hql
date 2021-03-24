@@ -1,9 +1,21 @@
+set hive.exec.input.listing.max.threads=50;
+set tez.grouping.min-size=50000000;
+set tez.grouping.max-size=50000000;
+set hive.exec.reducers.max=500;
+
+-- 设置 Container 大小
+set hive.tez.container.size=2048;
+set tez.am.resource.memory.mb=2048;
+-- 合并小文件
+set hive.merge.tezfiles=true;
+set hive.merge.size.per.task=64000000;      -- 64M
+set hive.merge.smallfiles.avgsize=64000000; -- 64M
 -- 设置动态分区
 set hive.exec.dynamic.partition=true;
 set hive.exec.dynamic.partition.mode=nonstrict;
 set hive.exec.max.dynamic.partitions=200000;
 set hive.exec.max.dynamic.partitions.pernode=50000;
--- 执行sql前，加上如下参数，禁用hive矢量执行：
+-- 禁用 Hive 矢量执行
 set hive.vectorized.execution.enabled=false;
 set hive.vectorized.execution.reduce.enabled=false;
 set hive.vectorized.execution.reduce.groupby.enabled=false;
@@ -49,17 +61,28 @@ select distinct
   is_empty(map_from_str(extra_info)['车辆颜色'])                                    as car_colour,
   create_time                                                                       as create_time,
   update_time                                                                       as update_time,
-  is_empty(map_from_str(extra_info)['项目编号'],project_id)                         as product_id
-from (select * from stage.asset_04_t_guaranty_info) as t_guaranty_info
+  project_id_lower                                                                  as project_id
+from (
+  select
+    *,
+    case is_empty(map_from_str(extra_info)['项目编号'],project_id)
+      when 'Cl00333' then 'cl00333'
+      else is_empty(map_from_str(extra_info)['项目编号'],project_id)
+    end as project_id_lower
+  from stage.asset_04_t_guaranty_info
+) as t_guaranty_info
 left join (
   select distinct
-    project_id    as t_04_project_id,
+    case project_id
+      when 'Cl00333' then 'cl00333'
+      else project_id
+    end           as t_04_project_id,
     serial_number as t_04_serial_number,
     guaranty_code as t_04_guaranty_code,
     car_brand     as t_04_car_brand
   from stage.abs_04_t_guarantycarinfo
 ) as stage_04
-on  is_empty(map_from_str(extra_info)['项目编号'],project_id)                = t_04_project_id
+on  project_id_lower                                                         = t_04_project_id
 and is_empty(map_from_str(extra_info)['借据号'],asset_id)                    = t_04_serial_number
 and nvl(is_empty(map_from_str(extra_info)['抵押物编号'],guaranty_umber),'a') = is_empty(t_04_guaranty_code,'a')
 -- limit 10
