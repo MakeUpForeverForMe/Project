@@ -74,7 +74,7 @@ select
   overdue_date,
   overdue_date_start as dpd_begin_date,
   overdue_days as dpd_days,
-  max(dpd_dpd_days_count + overdue_days)                 over(partition by product_id,due_bill_no order by biz_date)    as dpd_days_count,
+  max(nvl(dpd_dpd_days_count,0) + overdue_days)          over(partition by product_id,due_bill_no order by biz_date)    as dpd_days_count,
   max(overdue_days)                                      over(partition by product_id,due_bill_no order by biz_date)    as dpd_days_max,
   collect_out_date as collect_out_date,
   overdue_term,
@@ -88,7 +88,7 @@ select
   nvl(lead(biz_date)                                     over(partition by product_id,due_bill_no order by biz_date),'3000-12-31') as e_d_date,
   product_id
 from ods${db_suffix}.loan_info_inter
-join (
+left join (
   select
     dpd_product_id,
     dpd_due_bill_no,

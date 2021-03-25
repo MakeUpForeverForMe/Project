@@ -1,10 +1,15 @@
+set hive.exec.input.listing.max.threads=50;
+set tez.grouping.min-size=50000000;
+set tez.grouping.max-size=50000000;
+set hive.exec.reducers.max=500;
+
 -- 设置 Container 大小
 set hive.tez.container.size=4096;
 set tez.am.resource.memory.mb=4096;
 -- 合并小文件
 set hive.merge.tezfiles=true;
-set hive.merge.size.per.task=128000000; -- 128M
-set hive.merge.smallfiles.avgsize=128000000; -- 128M
+set hive.merge.size.per.task=64000000;      -- 64M
+set hive.merge.smallfiles.avgsize=64000000; -- 64M
 -- 设置动态分区
 set hive.exec.dynamic.partition=true;
 set hive.exec.dynamic.partition.mode=nonstrict;
@@ -15,15 +20,8 @@ set hive.vectorized.execution.enabled=false;
 set hive.vectorized.execution.reduce.enabled=false;
 set hive.vectorized.execution.reduce.groupby.enabled=false;
 
-
-set hive.execution.engine=mr;
-set mapreduce.map.memory.mb=4096;
-set mapreduce.reduce.memory.mb=4096;
-set mapreduce.map.java.opts=-Xmx4096m;
-set mapreduce.reduce.java.opts=-Xmx4096m;
-set yarn.app.mapreduce.am.resource.mb=5192;
-set yarn.app.mapreduce.am.command-opts=-Xmx4096m;
-
+set hive.auto.convert.join=false;                    -- 关闭自动 MapJoin
+set hive.auto.convert.join.noconditionaltask=false;  -- 关闭自动 MapJoin
 
 
 set hivevar:ST9=2020-10-15;

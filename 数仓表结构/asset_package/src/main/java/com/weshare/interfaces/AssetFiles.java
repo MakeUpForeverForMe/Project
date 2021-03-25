@@ -12,5 +12,5 @@ public interface AssetFiles {
 
     void updateData(Dataset<String> dataset,SparkSession sparkSession,String fileId);
 
-    void deleteData(Dataset<String> dataset, SparkSession sparkSession,String fileId);
+    void deleteData(Dataset<String> dataset, SparkSession sparkSession,String fileId,String importId);
 }

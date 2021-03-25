@@ -15,8 +15,8 @@ set hive.auto.convert.join=false;
 --) COMMENT '还款计划和实还明细实还时间对照临时表'
 --partitioned by (biz_date string COMMENT '观察日期',product_id string COMMENT '产品编号')
 --stored as parquet;
---set hivevar:ST9=2021-02-27;
-insert overwrite table ods.schedule_repay_order_info_ddht partition(biz_date = '${ST9}',product_id)
+--set hivevar:ST9=2021-03-24;
+insert overwrite table stage.schedule_repay_order_info_ddht partition(biz_date = '${ST9}',product_id)
 select
  t1.due_bill_no
 ,t2.order_id
@@ -32,7 +32,7 @@ due_bill_no
 ,paid_out_date
 ,product_code as product_id
 from
-ods.ecas_repay_schedule 
+stage.ecas_repay_schedule
 where 
 product_code in ('001601','001602','001603')
 and d_date = date_sub(current_date(),1)
@@ -48,7 +48,7 @@ order_id
 ,txn_date
 ,sum(repay_amt) as txn_amt
 from
-ods.ecas_repay_hst
+stage.ecas_repay_hst
 where
 d_date = date_sub(current_date(),1)
 and p_type = 'ddht'

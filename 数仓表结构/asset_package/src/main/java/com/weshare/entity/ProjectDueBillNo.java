@@ -8,6 +8,7 @@ import java.io.Serializable;
  */
 public class ProjectDueBillNo implements Serializable {
     private static final long serialVersionUID = 1L;
+    private String importId;
     private String dueBillNo;
     private String projectId;
     private String relatedProjectId;
@@ -19,6 +20,14 @@ public class ProjectDueBillNo implements Serializable {
     public ProjectDueBillNo(String dueBillNo, String projectId) {
         this.dueBillNo = dueBillNo;
         this.projectId = projectId;
+    }
+
+    public String getImportId() {
+        return importId;
+    }
+
+    public void setImportId(String importId) {
+        this.importId = importId;
     }
 
     public String getDueBillNo() {

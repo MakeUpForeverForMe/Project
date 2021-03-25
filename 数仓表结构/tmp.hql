@@ -47,7 +47,7 @@ set hive.support.quoted.identifiers=None;     -- 设置可以使用正则表达�
 -- set hive.groupby.orderby.position.alias=true; -- 设置 Hive 可以使用 group by 1,2,3
 set hive.optimize.index.filter=true;
 set hive.stats.fetch.column.stats=true;
--- set hive.auto.convert.join=false;             -- 关闭自动 MapJoin
+-- set hive.auto.convert.join=false;                    -- 关闭自动 MapJoin
 -- set hive.auto.convert.join.noconditionaltask=false;  -- 关闭自动 MapJoin
 -- set hive.auto.convert.join.noconditionaltask.size=1073741824; -- 基于统计信息将基础join转化为map join的阈值
 set hive.mapjoin.followby.gby.localtask.max.memory.usage=0.9;
@@ -1387,7 +1387,25 @@ set hive.load.dynamic.partitions.thread=1;
 -- 设置可以使用正则匹配 `(a|b)?+.+`
 set hive.support.quoted.identifiers=None;
 
+set hive.cbo.enable=false;
 
+set fs.cosn.read.ahead.block.size=424288;
+set fs.cosn.read.ahead.queue.size=2;
+set fs.cosn.read.ahead.block.size=524288;
+set fs.cosn.upload.buffer=mapped_disk;
+set fs.cosn.upload.buffer.size=-1;
+set fs.cosn.read.ahead.block.size=524288;
+set hive.exec.input.listing.max.threads=36;
+
+
+
+-- 设置map处理的文件大小 可减少Map task 的个数
+set mapreduce.input.fileinputformat.split.maxsize=1024000000;
+
+
+
+set hive.auto.convert.join=false;                    -- 关闭自动 MapJoin
+set hive.auto.convert.join.noconditionaltask=false;  -- 关闭自动 MapJoin
 
 
 set hive.exec.input.listing.max.threads=50;

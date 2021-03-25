@@ -1,22 +1,25 @@
--- 设置 Container 大小
-set hive.tez.container.size = 4096;
-set tez.am.resource.memory.mb = 4096;
--- 设置map处理的文件大小 可减少Map task 的个数
-set mapreduce.input.fileinputformat.split.maxsize=1024000000;
---合并小文件
-set hive.merge.tezfiles = true;
-set hive.merge.size.per.task = 128000000; -- 128M
-set hive.merge.smallfiles.avgsize = 128000000; -- 128M
+set hive.exec.input.listing.max.threads=50;
+set tez.grouping.min-size=50000000;
+set tez.grouping.max-size=50000000;
+set hive.exec.reducers.max=500;
 
+-- 设置 Container 大小
+set hive.tez.container.size=4096;
+set tez.am.resource.memory.mb=4096;
+-- 合并小文件
+set hive.merge.tezfiles=true;
+set hive.merge.size.per.task=64000000;      -- 64M
+set hive.merge.smallfiles.avgsize=64000000; -- 64M
 -- 设置动态分区
-set hive.exec.dynamic.partition = true;
-set hive.exec.dynamic.partition.mode = nonstrict;
-set hive.exec.max.dynamic.partitions = 200000;
-set hive.exec.max.dynamic.partitions.pernode = 50000;
+set hive.exec.dynamic.partition=true;
+set hive.exec.dynamic.partition.mode=nonstrict;
+set hive.exec.max.dynamic.partitions=200000;
+set hive.exec.max.dynamic.partitions.pernode=50000;
 -- 禁用 Hive 矢量执行
-set hive.vectorized.execution.enabled = false;
-set hive.vectorized.execution.reduce.enabled = false;
-set hive.vectorized.execution.reduce.groupby.enabled = false;
+set hive.vectorized.execution.enabled=false;
+set hive.vectorized.execution.reduce.enabled=false;
+set hive.vectorized.execution.reduce.groupby.enabled=false;
+
 
 -- set hivevar:ST9 = 2020-10-01;
 
@@ -193,12 +196,13 @@ bill_info as (
     select distinct
       due_bill_no,
       product_id,
-      if(map_key = 'wind_control_status',map_val,null) as wind_control_status,
-      if(map_key = 'cheat_level',map_val,null)         as cheat_level,
-      if(map_key = 'score_range',map_val,null)         as score_range
+      max(if(map_key = 'wind_control_status',map_val,null)) as wind_control_status,
+      max(if(map_key = 'cheat_level',map_val,null))         as cheat_level,
+      max(if(map_key = 'score_range',map_val,null))         as score_range
     from ods.risk_control
     where source_table in ('t_asset_wind_control_history')
       and map_key in ('wind_control_status','cheat_level','score_range')
+    group by product_id,due_bill_no
   ) as risk_control
   on  loan_info.due_bill_no = risk_control.due_bill_no
   and loan_info.project_id  = risk_control.product_id
@@ -206,10 +210,11 @@ bill_info as (
     select
       due_bill_no,
       product_id,
-      if(map_key = 'credit_level',map_val,null) as credit_level
+      max(if(map_key = 'credit_level',map_val,null)) as credit_level
     from ods.risk_control
     where source_table in ('t_duration_risk_control_result')
       and map_key in ('credit_level')
+    group by product_id,due_bill_no
   ) as credit_control
   on  loan_info.due_bill_no = credit_control.due_bill_no
   and loan_info.project_id  = credit_control.product_id

@@ -80,7 +80,8 @@ public class ProjectInfoImpl implements AssetFiles, Serializable {
     }
 
     @Override
-    public void deleteData(Dataset<String> dataset, SparkSession sparkSession, String fileId) {
+    public void deleteData(Dataset<String> dataset, SparkSession sparkSession, String fileId, String importId) {
         sparkSession.sql("alter table dim.project_info drop partition (project_id = '" + fileId + "') ");
+        sparkSession.sql("alter table dim.project_due_bill_no drop partition (project_id = '" + fileId + "',import_id = '" + importId + "') ");
     }
 }

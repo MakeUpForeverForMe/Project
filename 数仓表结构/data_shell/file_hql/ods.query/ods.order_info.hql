@@ -21,17 +21,62 @@ set hive.vectorized.execution.reduce.enabled=false;
 set hive.vectorized.execution.reduce.groupby.enabled=false;
 
 
--- set hivevar:product_id='001801','001802','001803','001804','001901','001902','001903','001904','001905','001906','001907','002001','002002','002003','002004','002005','002006','002007';
 
--- set hivevar:db_suffix=;set hivevar:tb_suffix=_asset; -- ecas_order_asset 存储的是全量数据
--- set hivevar:db_suffix=_cps;set hivevar:tb_suffix=; -- ecas_order 存储的是历史数据，ecas_order_hst 存储的是最近3天的数据
+-- #---------------------------------------------- 手动跑批参数 ----------------------------------------------# --
 
--- set hivevar:ST9=2020-11-10; -- 结束日期
+-- 乐信代偿前
+-- set hivevar:db_suffix=;set hivevar:tb_suffix=_asset;
+
+-- 乐信代偿后
+-- set hivevar:db_suffix=_cps;set hivevar:tb_suffix=;
+
+-- 滴滴汇通瓜子
+-- set hivevar:db_suffix=;set hivevar:tb_suffix=;
 
 
+-- 乐信产品编号
+-- set hivevar:product_id=
+--   select distinct product_id
+--   from (
+--     select
+--       max(if(col_name = 'channel_id',col_val,null)) as channel_id,
+--       max(if(col_name = 'product_id',col_val,null)) as product_id
+--     from dim.data_conf
+--     where col_type = 'ac'
+--     group by col_id
+--   ) as tmp
+--   where channel_id = '0006'
+-- ;
+
+
+-- 滴滴汇通瓜子产品编号
+-- set hivevar:product_id='DIDI201908161538','001601','001602','001603','001701','001702';
+
+
+-- 手动跑批日志
+-- set hivevar:ST9=2021-03-23;
+
+
+-- 跑全量的时候用的参数
+-- set hivevar:join_str=;
+
+-- #---------------------------------------------- 手动跑批参数 ----------------------------------------------# --
+
+
+
+-- #---------------------------------------------- 自动跑批参数 ----------------------------------------------# --
+
+-- 修数重跑天数
 set hivevar:days=20;
 
+-- 各表的 where 条件
 set hivevar:where_date=and d_date = '${ST9}';
+
+-- 跑增量的时候用的参数
+set hivevar:join_str=where if(schedule_repay_order_info_ddht.order_id is not null, schedule_repay_order_info_ddht.paid_out_date,nvl(txn_date,datefmt(cast(txn_time as string),'ms','yyyy-MM-dd'))) between date_sub('${ST9}',${days}) and '${ST9}';
+
+-- #---------------------------------------------- 自动跑批参数 ----------------------------------------------# --
+
 
 insert overwrite table ods${db_suffix}.order_info partition(biz_date,product_id)
 select
@@ -147,7 +192,7 @@ from (
     group by order_id
   ) as schedule_repay_order_info_ddht
   on ecas_order.order_id = schedule_repay_order_info_ddht.order_id
-  where if(schedule_repay_order_info_ddht.order_id is not null, schedule_repay_order_info_ddht.paid_out_date,nvl(txn_date,datefmt(cast(txn_time as string),'ms','yyyy-MM-dd'))) between date_sub('${ST9}',${days}) and '${ST9}'
+  ${join_str}
 ) as ecas_order_res
 join (
   select

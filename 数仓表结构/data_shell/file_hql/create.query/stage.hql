@@ -1503,6 +1503,31 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `stage.abs_t_related_assets`(
 STORED as PARQUET;
 
 
+-- 资产包信息表
+-- DROP TABLE IF EXISTS `stage.abs_t_related_assets`;
+CREATE EXTERNAL TABLE IF NOT EXISTS `stage.abs_t_asset_bag`(
+  `id`                        int           COMMENT '主键id',
+  `project_id`                string        COMMENT '项目编号',
+  `asset_bag_id`              string        COMMENT '资产包编号',
+  `asset_bag_name`            string        COMMENT '资产包名称',
+  `asset_count`               int           COMMENT '资产包资产数量',
+  `package_principal_balance` decimal(20,2) COMMENT '封包总本金余额',
+  `bag_date`                  string        COMMENT '封包日期',
+  `bus_product_id`            string        COMMENT '业务产品编号',
+  `bag_conditions`            string        COMMENT '封包条件',
+  `weight_avg_remain_term`    decimal(10,2) COMMENT '加权平均剩余期限（月）',
+  `bag_rate`                  decimal(20,2) COMMENT '封包平均利率',
+  `bag_weight_rate`           decimal(20,2) COMMENT '加权平均利率',
+  `asset_bag_calc_rule`       int           COMMENT '封包规模计算规则（1：按实际剩余本金，2：按还款计划）',
+  `asset_bag_type`            int           COMMENT '资产包类型（1：初始包，2：循环包）',
+  `status`                    int           COMMENT '包状态（1：未封包，2：已封包，3：已解包，4：封包中，5：封包失败）',
+  `package_filter_id`         string        COMMENT '虚拟过滤包id',
+  `create_time`               string        COMMENT '创建时间',
+  `update_time`               string        COMMENT '更新时间'
+) COMMENT '资产包信息表'
+STORED as PARQUET;
+
+
 
 
 

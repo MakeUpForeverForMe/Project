@@ -156,6 +156,13 @@ then
       print_log "normal job start !"
       sh /root/data_shell/bin_abs/abs-submit.sh ${input_file_prefix} ${input_file_suffix}
       impala-shell -q "refresh dim_new.${input_file_prefix};"
+      # 如果为债转文件,则处理完毕后调用债转回调接口,需要解析出文件中的import_id
+      if [[ ${input_file_prefix} = 'project_due_bill_no' && ${row_type} = 'insert' ]]
+      then
+          import_id=$(parse_json "`cat ${import_file_dir}/${input_file_prefix}/$input_file`" "import_id")
+          curl -d "import_id=${import_id}" --connect-timeout 30 -m 60 ${call_back_address}/uabs-core/callback/assetTransferSuccessConfirm >> $log_file
+          print_log "asset transfer finished,project id is ${input_file_suffix} ! "
+      fi
     fi
 else
   print_log "illegal arguments : the size of arguments is not one or two ! "

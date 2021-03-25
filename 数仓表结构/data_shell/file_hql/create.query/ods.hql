@@ -6,10 +6,6 @@ CREATE DATABASE IF NOT EXISTS `ods_cps` COMMENT 'ods标准层（代偿后）';
 
 
 -- 授信申请表
--- 数据库主键 apply_id
--- 业务主键 apply_id
--- 可能有多次授信
--- 按照 biz_date,product_id 分区
 -- DROP TABLE IF EXISTS `ods.credit_apply`;
 CREATE TABLE IF NOT EXISTS `ods.credit_apply`(
   `cust_id`                                           string         COMMENT '客户编号',
@@ -39,9 +35,6 @@ STORED AS PARQUET;
 
 
 -- 用信申请表
--- 数据库主键 apply_id
--- 业务主键 apply_id
--- 按照 biz_date 分区
 -- DROP TABLE IF EXISTS `ods.loan_apply`;
 CREATE TABLE IF NOT EXISTS `ods.loan_apply`(
   `cust_id`                                           string         COMMENT '客户编号',
@@ -78,7 +71,6 @@ STORED AS PARQUET;
 
 
 -- 客户信息表
--- 数据库主键 cust_id
 -- DROP TABLE IF EXISTS `ods.customer_info`;
 CREATE TABLE IF NOT EXISTS `ods.customer_info`(
   `apply_id`                                          string         COMMENT '申请编号',
@@ -121,9 +113,6 @@ STORED AS PARQUET;
 
 
 -- 联系人信息表
--- 数据库主键 linkman_id
--- 业务主键 cust_id,due_bill_no,relation_id,card_no
--- 分区表：每日分区存储新增数据
 -- DROP TABLE IF EXISTS `ods.linkman_info`;
 CREATE TABLE IF NOT EXISTS `ods.linkman_info`(
   `cust_id`                                           string         COMMENT '客户编号',
@@ -157,6 +146,7 @@ PARTITIONED BY (`product_id` string COMMENT '产品编号')
 STORED AS PARQUET;
 
 
+-- 用户标签表
 -- DROP TABLE IF EXISTS `ods.user_label`;
 CREATE TABLE IF NOT EXISTS `ods.user_label`(
   `user_hash_no`                                      string         COMMENT '用户NO',
@@ -247,6 +237,7 @@ CREATE TABLE IF NOT EXISTS `ods.user_label`(
 STORED AS PARQUET;
 
 
+-- 抵押物（车）信息表
 -- DROP TABLE IF EXISTS `ods.guaranty_info`;
 CREATE TABLE IF NOT EXISTS `ods.guaranty_info`(
   `due_bill_no`                                       string         COMMENT '借据号',
@@ -291,6 +282,7 @@ PARTITIONED BY (`product_id` string COMMENT '产品编号')
 STORED AS PARQUET;
 
 
+-- 企业信息表
 -- DROP TABLE IF EXISTS `ods.t_enterprise_info`;
 CREATE TABLE IF NOT EXISTS `ods.enterprise_info`(
   `due_bill_no`                                       string         COMMENT '资产借据号',
@@ -319,8 +311,6 @@ STORED AS PARQUET;
 
 
 -- 风控信息表
--- 授信的时候没有产品，用项目编号做分区字段
--- 其他的会有产品编号，用产品编号做分区字段
 -- DROP TABLE IF EXISTS `ods.risk_control`;
 CREATE TABLE IF NOT EXISTS `ods.risk_control`(
   `risk_control_type`                                 decimal(2,0)   COMMENT '风控数据类型（1：授信，2：用信，3：星云）',
@@ -346,6 +336,7 @@ set hivevar:db_suffix=_cps; -- 代偿后
 
 
 
+-- 放款表
 -- DROP TABLE IF EXISTS `ods${db_suffix}.loan_lending`;
 CREATE TABLE IF NOT EXISTS `ods${db_suffix}.loan_lending`(
   `apply_no`                                          string         COMMENT '进件编号',
@@ -378,6 +369,7 @@ PARTITIONED BY (`product_id` string COMMENT '产品编号')
 STORED AS PARQUET;
 
 
+-- 借据信息增量表
 -- DROP TABLE IF EXISTS `ods${db_suffix}.loan_info_inter`;
 CREATE TABLE IF NOT EXISTS `ods${db_suffix}.loan_info_inter`(
   `due_bill_no`                                       string         COMMENT '借据编号',
@@ -437,9 +429,7 @@ STORED AS PARQUET
 location '/user/hadoop/warehouse/ods${db_suffix}.db/loan_info_inter';
 
 
--- 借据表现表（做拉链表）
--- 业务主键 due_bill_no
--- 按照 is_settled 分区
+-- 借据信息表
 -- DROP TABLE IF EXISTS `ods${db_suffix}.loan_info`;
 CREATE TABLE IF NOT EXISTS `ods${db_suffix}.loan_info`(
   `due_bill_no`                                       string         COMMENT '借据编号',
@@ -495,10 +485,10 @@ CREATE TABLE IF NOT EXISTS `ods${db_suffix}.loan_info`(
   `overdue_terms_max`                                 decimal(3,0)   COMMENT '历史单次最长逾期期数',
   `overdue_principal_accumulate`                      decimal(20,5)  COMMENT '累计逾期本金',
   `overdue_principal_max`                             decimal(20,5)  COMMENT '历史最大逾期本金',
-  `s_d_date`                                          string         COMMENT 'ods层起始日期',
-  `e_d_date`                                          string         COMMENT 'ods层结束日期',
   `create_time`                                       string         COMMENT '创建时间',
-  `update_time`                                       string         COMMENT '更新时间'
+  `update_time`                                       string         COMMENT '更新时间',
+  `s_d_date`                                          string         COMMENT 'ods层起始日期',
+  `e_d_date`                                          string         COMMENT 'ods层结束日期'
 ) COMMENT '借据信息表'
 PARTITIONED BY (`is_settled` string COMMENT '是否已结清',`product_id` string COMMENT '产品编号')
 STORED AS PARQUET;
@@ -605,11 +595,7 @@ PARTITIONED BY (`is_settled` string COMMENT '是否已结清',`product_id` strin
 STORED AS PARQUET;
 
 
--- 订单流水表
 -- 实还明细表
--- 数据库主键 payment_id
--- 业务主键 cust_id,due_bill_no,order_id
--- 按照 biz_date 分区
 -- DROP TABLE IF EXISTS `ods${db_suffix}.repay_detail`;
 CREATE TABLE IF NOT EXISTS `ods${db_suffix}.repay_detail`(
   `due_bill_no`                                       string         COMMENT '借据号',
@@ -631,8 +617,7 @@ PARTITIONED BY (`biz_date` string COMMENT '实还日期',`product_id` string COM
 STORED AS PARQUET;
 
 
--- 数据库主键 order_id
--- 按照 biz_date 分区
+-- 订单流水表
 -- DROP TABLE IF EXISTS `ods${db_suffix}.order_info`;
 CREATE TABLE IF NOT EXISTS `ods${db_suffix}.order_info`(
   `order_id`                                          string         COMMENT '订单编号',
@@ -1068,10 +1053,10 @@ CREATE VIEW IF NOT EXISTS `ods.loan_info_abs`(
   `overdue_terms_max`                  COMMENT '历史单次最长逾期期数',
   `overdue_principal_accumulate`       COMMENT '累计逾期本金',
   `overdue_principal_max`              COMMENT '历史最大逾期本金',
-  `s_d_date`                           COMMENT 'ods层起始日期',
-  `e_d_date`                           COMMENT 'ods层结束日期',
   `create_time`                        COMMENT '创建时间',
   `update_time`                        COMMENT '更新时间',
+  `s_d_date`                           COMMENT 'ods层起始日期',
+  `e_d_date`                           COMMENT 'ods层结束日期',
   `is_settled`                         COMMENT '是否已结清',
   `product_id`                         COMMENT '产品编号',
   `project_id`                         COMMENT '项目编号'
@@ -1129,11 +1114,11 @@ CREATE VIEW IF NOT EXISTS `ods.loan_info_abs`(
   t1.overdue_terms_max            as overdue_terms_max,
   t1.overdue_principal_accumulate as overdue_principal_accumulate,
   t1.overdue_principal_max        as overdue_principal_max,
+  t1.create_time                  as create_time,
+  t1.update_time                  as update_time,
   t1.s_d_date                     as s_d_date,
   if(t1.paid_out_date is null,if(t1.e_d_date = '3000-12-31',to_date(date_sub(current_timestamp(),1)),t1.e_d_date),t1.paid_out_date) as e_d_date,
   -- t1.e_d_date                     as e_d_date,
-  t1.create_time                  as create_time,
-  t1.update_time                  as update_time,
   t1.is_settled                   as is_settled,
   t1.product_id                   as product_id,
   t2.project_id                   as project_id

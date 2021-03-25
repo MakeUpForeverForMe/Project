@@ -35,12 +35,11 @@ public class BagDueBillNoImpl implements AssetFiles, Serializable {
                 for (JsonElement due_bill_no : due_bill_nos) {
                     BagDueBillNo bagDueBillNo = new BagDueBillNo();
                     bagDueBillNo.setBagId(bagId);
-                    BagDueBillNoHelper helper = gson.fromJson(due_bill_no, new TypeToken<BagDueBillNoHelper>(){}.getType());
+                    BagDueBillNoHelper helper = gson.fromJson(due_bill_no, new TypeToken<BagDueBillNoHelper>() {
+                    }.getType());
                     bagDueBillNo.setDueBillNo(helper.getSerialNumber());
                     bagDueBillNo.setPackageRemainPrincipal(helper.getPackageRemainPrincipal());
                     bagDueBillNo.setPackageRemainPeriods(helper.getPackageRemainPeriods());
-                    bagDueBillNo.setRelatedProjectId(helper.getRelatedProjectId());
-                    bagDueBillNo.setRelatedDate(helper.getRelatedDate());
                     list.add(bagDueBillNo);
                 }
                 return list.iterator();
@@ -50,45 +49,24 @@ public class BagDueBillNoImpl implements AssetFiles, Serializable {
     }
 
     @Override
-    public void insertData(Dataset<String> dataSet,SparkSession sparkSession,String fileId) {
+    public void insertData(Dataset<String> dataSet, SparkSession sparkSession, String fileId) {
         Dataset<BagDueBillNo> processDS = process(dataSet);
         processDS.registerTempTable("temp_dim_bag_due_bill_no");
         sparkSession.sql("insert into table dim.bag_due_bill_no partition(bag_id = '" + fileId + "') " +
-                "select " +
-                    "temp.dueBillNo, " +
-                    "temp.relatedProjectId, " +
-                    "temp.relatedDate, " +
-                    "loan.product_id as partition_id, " +
-                    "temp.packageRemainPrincipal, " +
-                    "temp.packageRemainPeriods " +
-                "from temp_dim_bag_due_bill_no temp " +
-                "inner join " +
-                "(select product_id,due_bill_no from ods.loan_info_cloud group by product_id,due_bill_no) loan " +
-                "on temp.dueBillNo = loan.due_bill_no ");
+                "select dueBillNo,packageRemainPrincipal,packageRemainPeriods from temp_dim_bag_due_bill_no ");
     }
 
     @Override
-    public void updateData(Dataset<String> dataSet,SparkSession sparkSession,String fileId) {
+    public void updateData(Dataset<String> dataSet, SparkSession sparkSession, String fileId) {
         Dataset<BagDueBillNo> processDS = process(dataSet);
         processDS.registerTempTable("temp_dim_bag_due_bill_no");
         sparkSession.sql("insert overwrite table dim.bag_due_bill_no partition(bag_id = '" + fileId + "') " +
-                "select " +
-                    "temp.dueBillNo, " +
-                    "temp.relatedProjectId, " +
-                    "temp.relatedDate, " +
-                    "loan.product_id as partition_id, " +
-                    "temp.packageRemainPrincipal, " +
-                    "temp.packageRemainPeriods " +
-                "from temp_dim_bag_due_bill_no temp " +
-                "inner join " +
-                "(select product_id,due_bill_no from ods.loan_info_cloud group by product_id,due_bill_no) loan " +
-                "on temp.dueBillNo = loan.due_bill_no ");
+                "select dueBillNo,packageRemainPrincipal,packageRemainPeriods from temp_dim_bag_due_bill_no ");
     }
 
     @Override
-    public void deleteData(Dataset<String> dataset, SparkSession sparkSession,String fileId) {
-        sparkSession.sql("alter table dim.bag_due_bill_no drop partition (bag_id = '" + fileId +
-                "')");
+    public void deleteData(Dataset<String> dataset, SparkSession sparkSession, String fileId, String importId) {
+        sparkSession.sql("alter table dim.bag_due_bill_no drop partition (bag_id = '" + fileId + "')");
     }
 
 }

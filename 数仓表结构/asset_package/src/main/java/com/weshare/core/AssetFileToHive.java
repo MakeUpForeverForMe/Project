@@ -62,6 +62,9 @@ public class AssetFileToHive {
             return;
         }
         String rowType = getRowType(json);
+        //对于债转的project_due_bill_no文件,需要提前解析出import_id
+        String importId = null;
+        if("project_due_bill_no".equals(fileName)) importId = getImportId(json);
         LOGGER.info("========== row_type : " + rowType);
         SparkSession sparkSession =
                 SparkSession.builder().appName("AssetFileToHive : " + fileName + "@" + fileId)
@@ -83,28 +86,30 @@ public class AssetFileToHive {
                 AssetFileToHive projectInfo = new AssetFileToHive(new ProjectInfoImpl());
                 if ("insert".equals(rowType)) projectInfo.executeInsert(textFileDS,sparkSession,fileId);
                 else if ("update".equals(rowType)) projectInfo.executeUpdate(textFileDS,sparkSession,fileId);
-                else if ("delete".equals(rowType)) projectInfo.executeDelete(textFileDS,sparkSession,fileId);
+                else if ("delete".equals(rowType)) projectInfo.executeDelete(textFileDS,sparkSession,fileId,null);
                 else LOGGER.warn("error row type value!");
                 break;
             case "project_due_bill_no" :
                 AssetFileToHive projectDueBillNo = new AssetFileToHive(new ProjectDueBillNoImpl());
+                sparkSession.sql("set hive.exec.dynamic.partition=true");
+                sparkSession.sql("set hive.exec.dynamic.partition.mode=nonstrict");
                 if ("insert".equals(rowType)) projectDueBillNo.executeInsert(textFileDS,sparkSession,fileId);
                 else if ("update".equals(rowType)) projectDueBillNo.executeUpdate(textFileDS,sparkSession,fileId);
-                else if ("delete".equals(rowType)) projectDueBillNo.executeDelete(textFileDS,sparkSession,fileId);
+                else if ("delete".equals(rowType)) projectDueBillNo.executeDelete(textFileDS,sparkSession, fileId,importId);
                 else LOGGER.warn("error row type value!");
                 break;
             case "bag_info":
                 AssetFileToHive bagInfo = new AssetFileToHive(new BagInfoImpl());
                 if ("insert".equals(rowType)) bagInfo.executeInsert(textFileDS,sparkSession,fileId);
                 else if ("update".equals(rowType)) bagInfo.executeUpdate(textFileDS,sparkSession,fileId);
-                else if ("delete".equals(rowType)) bagInfo.executeDelete(textFileDS,sparkSession,fileId);
+                else if ("delete".equals(rowType)) bagInfo.executeDelete(textFileDS,sparkSession,fileId,null);
                 else LOGGER.warn("error row type value!");
                 break;
             case "bag_due_bill_no":
                 AssetFileToHive bagDueBillNo = new AssetFileToHive(new BagDueBillNoImpl());
                 if ("insert".equals(rowType)) bagDueBillNo.executeInsert(textFileDS,sparkSession,fileId);
                 else if ("update".equals(rowType)) bagDueBillNo.executeUpdate(textFileDS,sparkSession,fileId);
-                else if ("delete".equals(rowType)) bagDueBillNo.executeDelete(textFileDS,sparkSession,fileId);
+                else if ("delete".equals(rowType)) bagDueBillNo.executeDelete(textFileDS,sparkSession, fileId,null);
                 else LOGGER.warn("error row type value!");
                 break;
         }
@@ -123,8 +128,9 @@ public class AssetFileToHive {
         assetFiles.updateData(dataset,sparkSession,fileId);
     }
 
-    public void executeDelete(Dataset<String> dataset,SparkSession sparkSession,String fileId) {
-        assetFiles.deleteData(dataset,sparkSession,fileId);
+    public void executeDelete(Dataset<String> dataset,SparkSession sparkSession,String fileId,
+                              String importId) {
+        assetFiles.deleteData(dataset,sparkSession,fileId,importId);
     }
 
     /**
@@ -135,5 +141,10 @@ public class AssetFileToHive {
     public static String getRowType(String context) {
         JsonObject jsonObject = new JsonParser().parse(context).getAsJsonObject();
         return jsonObject.get("row_type").getAsString();
+    }
+
+    public static String getImportId(String context) {
+        JsonObject jsonObject = new JsonParser().parse(context).getAsJsonObject();
+        return jsonObject.get("import_id").getAsString();
     }
 }

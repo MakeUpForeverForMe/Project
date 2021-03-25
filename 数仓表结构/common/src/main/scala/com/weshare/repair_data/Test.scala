@@ -8,8 +8,11 @@ import java.util.Calendar
  **/
 object Test {
   def main(args: Array[String]): Unit = {
+    val a=( i:Int)=>{i}
 
-    val start_Date = "2019-11-01"
+
+
+   /* val start_Date = "2019-11-01"
     val end_date = "2019-11-10"
     //println(start_Date.compareTo(end_date))
     val format = new SimpleDateFormat("yyyy-MM-dd")
@@ -23,6 +26,6 @@ object Test {
     if (start_date_.getTime.compareTo(pmt_date_.getTime) < 0) {
       println("test")
 
-    }
+    }*/
   }
 }

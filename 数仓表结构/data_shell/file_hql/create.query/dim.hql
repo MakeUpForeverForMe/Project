@@ -256,7 +256,7 @@ CREATE TABLE IF NOT EXISTS `dim.project_info`(
   `project_time`                  string         COMMENT '立项时间',
   `project_begin_date`            string         COMMENT '项目开始时间',
   `project_end_date`              string         COMMENT '项目结束时间',
-  `asset_pool_type`               string         COMMENT '资产池类型',
+  `asset_pool_type`               string         COMMENT '资产池类型（1：静态池，2：动态池）',
   `public_offer`                  string         COMMENT '公募名称',
   `data_source`                   string         COMMENT '数据来源',
   `create_user`                   string         COMMENT '创建人',
@@ -300,6 +300,7 @@ STORED AS TEXTFILE;
 -- 包借据映射
 -- DROP TABLE IF EXISTS `dim.bag_due_bill_no`;
 CREATE TABLE IF NOT EXISTS `dim.bag_due_bill_no`(
+  `project_id`                    string         COMMENT '项目编号',
   `due_bill_no`                   string         COMMENT '借据编号',
   `package_remain_principal`      decimal(15,4)  COMMENT '封包时本金余额',
   `package_remain_periods`        int            COMMENT '封包时剩余期数'

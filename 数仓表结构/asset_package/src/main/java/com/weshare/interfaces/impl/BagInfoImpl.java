@@ -56,9 +56,8 @@ public class BagInfoImpl implements AssetFiles, Serializable {
     }
 
     @Override
-    public void deleteData(Dataset<String> dataset, SparkSession sparkSession, String fileId) {
+    public void deleteData(Dataset<String> dataset, SparkSession sparkSession, String fileId, String importId) {
         sparkSession.sql("alter table dim.bag_info drop partition (bag_id = '" + fileId + "')");
         sparkSession.sql("alter table dim.bag_due_bill_no drop partition (bag_id = '" + fileId + "')");
     }
-
 }

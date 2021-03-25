@@ -14361,15 +14361,28 @@ mail=$root_dir/conf_mail/data_receives_mail_ximing.config
 log=$root_dir/log
 
 
+sh $data_manage -s 2020-10-24 -e 2020-10-24 -f $ods/ods.loan_info_inter.hql -i $param/ods_new_s_cps.param_lx.hql -a $mail -n 10 &>> $log/loan_cps.log &
+sh $data_manage -s 2020-10-25 -e 2020-10-25 -f $ods/ods.loan_info_inter.hql -i $param/ods_new_s_cps.param_lx.hql -a $mail -n 10 &>> $log/loan_cps.log &
+sh $data_manage -s 2020-10-26 -e 2020-10-26 -f $ods/ods.loan_info_inter.hql -i $param/ods_new_s_cps.param_lx.hql -a $mail -n 10 &>> $log/loan_cps.log &
+sh $data_manage -s 2021-03-06 -e 2021-03-06 -f $ods/ods.loan_info_inter.hql -i $param/ods_new_s_cps.param_lx.hql -a $mail -n 10 &>> $log/loan_cps.log &
+sh $data_manage -s 2021-03-07 -e 2021-03-07 -f $ods/ods.loan_info_inter.hql -i $param/ods_new_s_cps.param_lx.hql -a $mail -n 10 &>> $log/loan_cps.log &
+sh $data_manage -s 2021-03-08 -e 2021-03-08 -f $ods/ods.loan_info_inter.hql -i $param/ods_new_s_cps.param_lx.hql -a $mail -n 10 &>> $log/loan_cps.log &
+sh $data_manage -s 2021-03-10 -e 2021-03-10 -f $ods/ods.loan_info_inter.hql -i $param/ods_new_s_cps.param_lx.hql -a $mail -n 10 &>> $log/loan_cps.log &
+sh $data_manage -s 2021-03-20 -e 2021-03-20 -f $ods/ods.loan_info_inter.hql -i $param/ods_new_s_cps.param_lx.hql -a $mail -n 10 &>> $log/loan_cps.log &
+sh $data_manage -s 2021-03-21 -e 2021-03-21 -f $ods/ods.loan_info_inter.hql -i $param/ods_new_s_cps.param_lx.hql -a $mail -n 10 &>> $log/loan_cps.log &
 
-sh $data_manage -s 2017-06-01 -e 2021-03-22 -f $ods_cloud/ods.loan_info_inter.hql      -a $mail -n 10 &> $log/cloud_loan.log
-sh $data_manage -s 2020-12-02 -e 2021-03-22 -f $ods_cloud/ods.repay_schedule_inter.hql -a $mail -n 10 &> $log/cloud_schedule.log
+sh $data_manage -s 2020-10-26 -e 2020-10-26 -f $ods/ods.repay_schedule_inter.hql -i $param/ods_new_s.param_lx.hql -a $mail &>> $log/schedule.log &
+
+
+nohup sh $data_manage -s 2017-06-01 -e 2021-03-22 -f $ods_cloud/ods.loan_info_inter.hql      -a $mail -n 20 &> $log/cloud_loan.log     &
+nohup sh $data_manage -s 2020-12-02 -e 2021-03-22 -f $ods_cloud/ods.repay_schedule_inter.hql -a $mail -n 20 &> $log/cloud_schedule.log &
 
 
 
 
 
 ALTER table ods.loan_info_inter drop if exists partition(product_id = 'Cl00333');
+
 
 
 
@@ -14413,5 +14426,59 @@ where source_table in ('t_asset_wind_control_history')
 group by product_id,due_bill_no
 limit 10
 ;
+
+
+select * from dim.project_due_bill_no
+where import_id is not null
+limit 10;
+
+
+select * from dim.project_due_bill_no
+where partition_id is null
+limit 10;
+
+select count(1) from dim.project_due_bill_no;
+
+
+
+
+
+
+
+ALTER TABLE dim.bag_due_bill_no SET TBLPROPERTIES('EXTERNAL' = 'true');
+
+
+ALTER TABLE dim.bag_due_bill_no drop if exists partition(bag_id = '__HIVE_DEFAULT_PARTITION__');
+
+show partitions dim.bag_due_bill_no;
+
+MSCK REPAIR TABLE dim.bag_due_bill_no;
+
+
+
+select distinct
+  length(account_date) as aa,
+  length(loan_settlement_date) as bb
+from stage.asset_10_t_asset_check;
+
+
+
+
+select distinct length(biz_date) as aa
+from ods.loan_info_inter;
+
+
+
+select distinct
+  length(s_d_date) as aa,
+  length(e_d_date) as bb
+from ods.repay_schedule;
+
+
+
+
+
+select datediff('2021-03-01','2021-02-01');
+
 
 

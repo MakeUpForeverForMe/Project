@@ -15,30 +15,31 @@ base_file_name=$(basename "${BASH_SOURCE[0]}")
 
 log=$log/${base_file_name}.${e_date}.log
 
-parallel='-n 10'
+parallel='-n 1'
+# parallel='-n 10'
 
 echo -e "${date_s_aa:=$(date +'%F %T')} 资产 ods_cloud 开始 当前脚本进程ID为：$(pid)\n" &>> $log
 
 
-sh $data_manage -s ${e_date} -e ${e_date} -f $ods_cloud_hql/ods.risk_control.hql -a $rd &
+sh $data_manage -s ${e_date} -e ${e_date} -f $ods_cloud_hql/ods.risk_control.hql         -a $rd &
 
-sh $data_manage -s ${e_date} -e ${e_date} -f $ods_cloud_hql/ods.customer_info.hql -a $rd &
+sh $data_manage -s ${e_date} -e ${e_date} -f $ods_cloud_hql/ods.customer_info.hql        -a $rd &
 
-sh $data_manage -s ${e_date} -e ${e_date} -f $ods_cloud_hql/ods.enterprise_info.hql -a $rd &
+sh $data_manage -s ${e_date} -e ${e_date} -f $ods_cloud_hql/ods.enterprise_info.hql      -a $rd &
 
-sh $data_manage -s ${e_date} -e ${e_date} -f $ods_cloud_hql/ods.linkman_info.hql -a $rd &
+sh $data_manage -s ${e_date} -e ${e_date} -f $ods_cloud_hql/ods.linkman_info.hql         -a $rd &
 
-sh $data_manage -s ${e_date} -e ${e_date} -f $ods_cloud_hql/ods.guaranty_info.hql -a $rd &
+sh $data_manage -s ${e_date} -e ${e_date} -f $ods_cloud_hql/ods.guaranty_info.hql        -a $rd &
 
-sh $data_manage -s ${s_date} -e ${e_date} -f $ods_cloud_hql/ods.loan_lending.hql -a $rd ${parallel} &
+sh $data_manage -s ${s_date} -e ${e_date} -f $ods_cloud_hql/ods.loan_lending.hql         -a $rd ${parallel} &
 
-sh $data_manage -s ${s_date} -e ${e_date} -f $ods_cloud_hql/ods.loan_info_inter.hql -a $rd ${parallel} &
+sh $data_manage -s ${s_date} -e ${e_date} -f $ods_cloud_hql/ods.loan_info_inter.hql      -a $rd ${parallel} &
 
 sh $data_manage -s ${s_date} -e ${e_date} -f $ods_cloud_hql/ods.repay_schedule_inter.hql -a $rd ${parallel} &
 
-sh $data_manage -s ${s_date} -e ${e_date} -f $ods_cloud_hql/ods.repay_detail.hql -a $rd ${parallel} &
+sh $data_manage -s ${s_date} -e ${e_date} -f $ods_cloud_hql/ods.repay_detail.hql         -a $rd ${parallel} &
 
-sh $data_manage -s ${s_date} -e ${e_date} -f $ods_cloud_hql/ods.order_info.hql -a $rd ${parallel} &
+sh $data_manage -s ${s_date} -e ${e_date} -f $ods_cloud_hql/ods.order_info.hql           -a $rd ${parallel} &
 
 
 wait_jobs

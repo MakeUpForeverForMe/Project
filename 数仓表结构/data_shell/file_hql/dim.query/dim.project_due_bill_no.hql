@@ -11,11 +11,12 @@ set hive.vectorized.execution.reduce.groupby.enabled=false;
 
 insert overwrite table dim.project_due_bill_no partition(project_id)
 select distinct
-  asset_01.due_bill_no                          as due_bill_no,
-  t_project.related_project_id                  as related_project_id,
-  null                                          as related_date,
-  nvl(loan_info.product_id,asset_01.project_id) as partition_id,
-  asset_01.project_id                           as project_id
+  abs_01.due_bill_no                          as due_bill_no,
+  t_project.related_project_id                as related_project_id,
+  null                                        as related_date,
+  nvl(loan_info.product_id,abs_01.project_id) as partition_id,
+  abs_01.import_id                            as import_id,
+  abs_01.project_id                           as project_id
 from (
   select distinct
     t_project.project_id,
@@ -38,14 +39,12 @@ from (
 ) as t_project
 join (
   select
-    is_empty(map_from_str(extra_info)['借据号'],asset_id) as due_bill_no,
-    case is_empty(map_from_str(extra_info)['项目编号'],project_id)
-    when 'Cl00333' then 'cl00333'
-    else is_empty(map_from_str(extra_info)['项目编号'],project_id)
-    end                                                   as project_id
-  from stage.asset_01_t_loan_contract_info
+    case project_id when 'Cl00333' then 'cl00333' else project_id end as project_id,
+    serial_number                                                     as due_bill_no,
+    import_id                                                         as import_id
+  from stage.abs_01_t_loancontractinfo
   where 1 > 0
-    and is_empty(map_from_str(extra_info)['借据号'],asset_id) not in (
+    and case project_id when 'Cl00333' then 'cl00333' else project_id end not in (
       '5100835880',
       '5100836522',
       '5100839019',
@@ -64,16 +63,16 @@ join (
       '5100874704',
       ''
     )
-) as asset_01
-on t_project.project_id = asset_01.project_id
+) as abs_01
+on t_project.project_id = abs_01.project_id
 join (
   select
-    is_empty(map_from_str(extra_info)['项目编号'],project_id) as project_id,
-    is_empty(map_from_str(extra_info)['借据号'],asset_id)     as due_bill_no
-  from stage.asset_02_t_principal_borrower_info
-) as asset_02
-on  asset_01.project_id  = asset_02.project_id
-and asset_01.due_bill_no = asset_02.due_bill_no
+    case project_id when 'Cl00333' then 'cl00333' else project_id end as project_id,
+    serial_number                                                     as due_bill_no
+  from stage.abs_02_t_borrowerinfo
+) as abs_02
+on  abs_01.project_id  = abs_02.project_id
+and abs_01.due_bill_no = abs_02.due_bill_no
 left join (
   select distinct
     product_code as product_id,
@@ -82,6 +81,6 @@ left join (
   where d_date = date_sub(current_date(),2)
     and p_type in ('ddht','htgy')
 ) as loan_info
-on asset_01.due_bill_no = loan_info.due_bill_no
+on abs_01.due_bill_no = loan_info.due_bill_no
 -- limit 100
 ;
