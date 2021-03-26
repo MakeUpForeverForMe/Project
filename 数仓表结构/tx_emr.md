@@ -20,7 +20,24 @@ core缩容需要开白名单功能，不会产生数据丢失（tx底层做了�
 emr技术人员修复中
 
 ### 六、hive任务最终阶段movetask失败
-master节点内存不足，任务提交失败
+1、master节点内存不足，任务提交失败
+2、分区字段值区分大小写导致，分区手动修复调整
 
 ### 七、emr上的flink组件部署后跑任务空指针异常
 自搭flink组件可以提交yarn任务
+
+### 八、自动伸缩扩容失败
+1、单次扩容有数量限制，需联系腾讯云的人提高限制
+2、同类型的机器不够了，需要增加其他类型的机器规格
+
+### 九、hive on tez执行报错No work found for tablescan TS[310] (state=,code=0)
+关闭mapjoin
+set hive.auto.convert.join=false;                    -- 关闭自动 MapJoin
+set hive.auto.convert.join.noconditionaltask=false;  -- 关闭自动 MapJoin
+
+### 十、cos访问请求QPS存在上限，并发访问过多时会出现50X
+暂时无解决方案，影响跑批速度
+
+### 十一、跑批时task节点100G数据盘占用率超过80%
+原因未知
+
