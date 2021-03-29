@@ -36,7 +36,7 @@ with loan_base as ( -- 取封包日期至当前时间为止的数据
     bag_due.due_bill_no                                                             as due_bill_no,
     loan_lending.contract_no                                                        as contract_no,
     loan_info.overdue_days                                                          as overdue_days,
-    if(loan_info.s_d_date = loan_info.overdue_days_min_date,'y','n')                as is_first_overdue_day,
+    if(loan_info.s_d_date = loan_info.overdue_days_min_start_date,'y','n')          as is_first_overdue_day,
     bag_info.bag_date                                                               as bag_date,
     if(bag_info.bag_date < loan_info.min_date,loan_info.min_date,bag_info.bag_date) as min_date,
     '${ST9}'                                                                        as biz_date,
@@ -63,8 +63,8 @@ with loan_base as ( -- 取封包日期至当前时间为止的数据
       project_id,
       due_bill_no,
       overdue_days,
-      min(s_d_date) over(partition by due_bill_no,overdue_days) as overdue_days_min_date,
-      min(s_d_date) over(partition by due_bill_no) as min_date,
+      min(overdue_date_start) over(partition by due_bill_no,overdue_days) as overdue_days_min_start_date,
+      min(s_d_date)           over(partition by due_bill_no) as min_date,
       s_d_date,
       e_d_date
     from ods.loan_info_abs

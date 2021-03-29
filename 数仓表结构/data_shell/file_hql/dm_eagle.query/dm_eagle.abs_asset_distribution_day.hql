@@ -192,7 +192,7 @@ bill_info as (
   on  loan_info.due_bill_no = customer_info.due_bill_no
   and loan_info.project_id  = customer_info.project_id
   left join (
-    select distinct
+    select
       due_bill_no,
       product_id,
       max(if(map_key = 'wind_control_status',map_val,null)) as wind_control_status,

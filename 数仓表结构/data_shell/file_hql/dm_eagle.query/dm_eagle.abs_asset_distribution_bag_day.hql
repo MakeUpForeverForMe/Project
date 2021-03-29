@@ -193,7 +193,7 @@ bill_info as (
   on  loan_info.due_bill_no = customer_info.due_bill_no
   and loan_info.project_id  = customer_info.project_id
   left join (
-    select distinct
+    select
       due_bill_no,
       product_id,
       max(if(map_key = 'wind_control_status',map_val,null)) as wind_control_status,
@@ -234,14 +234,15 @@ bill_info as (
 -- 项目下所有有包的借据
 project_total_bag_bill as (
   select
-    project_id,
-    bag_id,
-    sum(remain_principal)        as total_remain_principal,
-    count(bill_info.due_bill_no) as total_bill
+    bill_info.project_id,
+    bag.bag_id,
+    sum(bill_info.remain_principal) as total_remain_principal,
+    count(bill_info.due_bill_no)    as total_bill
   from bill_info
   inner join dim.bag_due_bill_no as bag
-  on bag.due_bill_no = bill_info.due_bill_no
-  group by project_id,bag_id
+  on  bag.project_id  = bill_info.project_id
+  and bag.due_bill_no = bill_info.due_bill_no
+  group by bill_info.project_id,bag.bag_id
 )
 
 
@@ -310,7 +311,8 @@ inner join (
   ))mode_info as part_info
 ) as tmp
 on bag.due_bill_no = tmp.due_bill_no
-inner join dim.bag_info baginfo on bag.bag_id = baginfo.bag_id
+inner join dim.bag_info baginfo
+on bag.bag_id = baginfo.bag_id
 inner join project_total_bag_bill as project_total
 on  baginfo.project_id = project_total.project_id
 and baginfo.bag_id     = project_total.bag_id
