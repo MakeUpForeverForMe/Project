@@ -14482,3 +14482,60 @@ select datediff('2021-03-01','2021-02-01');
 
 
 
+
+
+select
+  split(aa,'_') as aa
+from (
+  select 'project-id_fdsfsdhk' as aa union all
+  select 'dsfsdhk' as aaa
+) as tmp
+;
+
+
+select
+  abs_01.project_id,
+  abs_01.due_bill_no
+from (
+  select
+    case project_id when 'Cl00333' then 'cl00333' else project_id end as project_id,
+    if(size(split(serial_number,'_')) = 2,split(serial_number,'_')[1],split(serial_number,'_')[0]) as due_bill_no,
+    import_id                                                         as import_id
+  from stage.abs_01_t_loancontractinfo
+  where 1 > 0
+    and case project_id when 'Cl00333' then 'cl00333' else project_id end not in (
+      '5100835880',
+      '5100836522',
+      '5100839019',
+      '5100842477',
+      '5100844953',
+      '5100847081',
+      '5100848663',
+      '5100851402',
+      '5100851697',
+      '5100854650',
+      '5100855935',
+      '5100856230',
+      '5100857239',
+      '5100871716',
+      '5100872146',
+      '5100874704',
+      ''
+    )
+    and project_id = 'CL202003230083'
+) as abs_01
+join (
+  select
+    case project_id when 'Cl00333' then 'cl00333' else project_id end as project_id,
+    if(size(split(serial_number,'_')) = 2,split(serial_number,'_')[1],split(serial_number,'_')[0]) as due_bill_no
+  from stage.abs_02_t_borrowerinfo
+) as abs_02
+on  abs_01.project_id  = abs_02.project_id
+and abs_01.due_bill_no = abs_02.due_bill_no
+limit 10
+;
+
+
+
+
+nohup sh $data_manage -s 2017-06-01 -e 2021-03-29 -f $dm_eagle_hql/dm_eagle.abs_asset_distribution_bag_snapshot_day.hql -a $mail -n 40 &> log/aa &

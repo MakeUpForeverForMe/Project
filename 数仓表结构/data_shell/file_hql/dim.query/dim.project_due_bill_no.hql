@@ -40,7 +40,7 @@ from (
 join (
   select
     case project_id when 'Cl00333' then 'cl00333' else project_id end as project_id,
-    serial_number                                                     as due_bill_no,
+    if(size(split(serial_number,'_')) = 2,split(serial_number,'_')[1],split(serial_number,'_')[0]) as due_bill_no,
     import_id                                                         as import_id
   from stage.abs_01_t_loancontractinfo
   where 1 > 0
@@ -68,7 +68,7 @@ on t_project.project_id = abs_01.project_id
 join (
   select
     case project_id when 'Cl00333' then 'cl00333' else project_id end as project_id,
-    serial_number                                                     as due_bill_no
+    if(size(split(serial_number,'_')) = 2,split(serial_number,'_')[1],split(serial_number,'_')[0]) as due_bill_no
   from stage.abs_02_t_borrowerinfo
 ) as abs_02
 on  abs_01.project_id  = abs_02.project_id

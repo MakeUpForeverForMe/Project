@@ -58,8 +58,25 @@ from
             where biz_date='${ST9}' ${hive_param_str}
         ) lend
         on loan.due_bill_no=lend.due_bill_no
-            left join dim.biz_conf b
-                      on loan.product_id=b.product_id
+        left join (
+            select distinct
+                capital_id,
+                channel_id,
+                project_id,
+                product_id_vt,
+                product_id
+              from (
+                select
+                  max(if(col_name = 'capital_id',   col_val,null)) as capital_id,
+                  max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
+                  max(if(col_name = 'project_id',   col_val,null)) as project_id,
+                  max(if(col_name = 'product_id_vt',col_val,null)) as product_id_vt,
+                  max(if(col_name = 'product_id',   col_val,null)) as product_id
+                from dim.data_conf
+                where col_type = 'ac'
+                group by col_id
+                )tmp
+        ) b on loan.product_id=b.product_id
     group by b.project_id
 ) loan
     left join
@@ -77,8 +94,25 @@ from
             from ods.repay_detail
             where biz_date = '${ST9}'  ${hive_param_str}
         ) repay
-            left join dim.biz_conf b
-                      on repay.product_id=b.product_id
+        left join (
+            select distinct
+                capital_id,
+                channel_id,
+                project_id,
+                product_id_vt,
+                product_id
+              from (
+                select
+                  max(if(col_name = 'capital_id',   col_val,null)) as capital_id,
+                  max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
+                  max(if(col_name = 'project_id',   col_val,null)) as project_id,
+                  max(if(col_name = 'product_id_vt',col_val,null)) as product_id_vt,
+                  max(if(col_name = 'product_id',   col_val,null)) as product_id
+                from dim.data_conf
+                where col_type = 'ac'
+                group by col_id
+                )tmp
+        ) b on repay.product_id=b.product_id
     group by b.project_id
 ) totalRp
 on loan.project_id=totalRp.project_id
@@ -105,8 +139,25 @@ on loan.project_id=totalRp.project_id
             where biz_date='${ST9}' ${hive_param_str}
         ) r
         on o.order_id=r.order_id
-            left join dim.biz_conf b
-                      on o.product_id=b.product_id
+        left join (
+            select distinct
+                capital_id,
+                channel_id,
+                project_id,
+                product_id_vt,
+                product_id
+              from (
+                select
+                  max(if(col_name = 'capital_id',   col_val,null)) as capital_id,
+                  max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
+                  max(if(col_name = 'project_id',   col_val,null)) as project_id,
+                  max(if(col_name = 'product_id_vt',col_val,null)) as product_id_vt,
+                  max(if(col_name = 'product_id',   col_val,null)) as product_id
+                from dim.data_conf
+                where col_type = 'ac'
+                group by col_id
+                )tmp
+        ) b on o.product_id=b.product_id
     group by b.project_id
 ) cust
 on loan.project_id=cust.project_id
@@ -132,8 +183,25 @@ on loan.project_id=cust.project_id
             where biz_date='${ST9}' ${hive_param_str}
         ) r
         on o.order_id=r.order_id
-            left join dim.biz_conf b
-                      on o.product_id=b.product_id
+        left join (
+            select distinct
+                capital_id,
+                channel_id,
+                project_id,
+                product_id_vt,
+                product_id
+              from (
+                    select
+                      max(if(col_name = 'capital_id',   col_val,null)) as capital_id,
+                      max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
+                      max(if(col_name = 'project_id',   col_val,null)) as project_id,
+                      max(if(col_name = 'product_id_vt',col_val,null)) as product_id_vt,
+                      max(if(col_name = 'product_id',   col_val,null)) as product_id
+                    from dim.data_conf
+                    where col_type = 'ac'
+                    group by col_id
+                )tmp
+        ) b on o.product_id=b.product_id
     group by b.project_id
 ) other
 on loan.project_id=other.project_id;

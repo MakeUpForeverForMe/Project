@@ -1425,6 +1425,44 @@ PARTITIONED BY (`biz_date` string COMMENT '观察日期',`project_id` string COM
 STORED AS PARQUET;
 
 
+-- 现金流分析（包）
+-- drop table if exists `dm_eagle.abs_asset_information_cash_flow_bag_day_old`;
+create table if not exists `dm_eagle.abs_asset_information_cash_flow_bag_day_old`(
+  `project_id`                                    string         COMMENT '项目编号',
+  `bag_date`                                      string         COMMENT '封包日期',
+  `data_extraction_day`                           string         COMMENT '最新数据提取日',
+
+  `should_repay_amount`                           decimal(30,10) COMMENT '应收金额',
+  `should_repay_principal`                        decimal(30,10) COMMENT '应收本金',
+  `should_repay_interest`                         decimal(30,10) COMMENT '应收利息',
+  `should_repay_cost`                             decimal(30,10) COMMENT '应收费用',
+
+  `paid_amount`                                   decimal(30,10) COMMENT '实收金额',
+  `paid_principal`                                decimal(30,10) COMMENT '实收本金',
+  `paid_interest`                                 decimal(30,10) COMMENT '实收利息',
+  `paid_cost`                                     decimal(30,10) COMMENT '实收费用',
+
+  `overdue_paid_amount`                           decimal(30,10) COMMENT '逾期还款金额',
+  `overdue_paid_principal`                        decimal(30,10) COMMENT '逾期还款本金',
+  `overdue_paid_interest`                         decimal(30,10) COMMENT '逾期还款利息',
+  `overdue_paid_cost`                             decimal(30,10) COMMENT '逾期还款费用',
+
+  `prepayment_amount`                             decimal(30,10) COMMENT '提前还款金额',
+  `prepayment_principal`                          decimal(30,10) COMMENT '提前还款本金',
+  `prepayment_interest`                           decimal(30,10) COMMENT '提前还款利息',
+  `prepayment_cost`                               decimal(30,10) COMMENT '提前还款费用',
+
+  `normal_paid_amount`                            decimal(30,10) COMMENT '正常还款金额',
+  `normal_paid_principal`                         decimal(30,10) COMMENT '正常还款本金',
+  `normal_paid_interest`                          decimal(30,10) COMMENT '正常还款利息',
+  `normal_paid_cost`                              decimal(30,10) COMMENT '正常还款费用',
+
+  `biz_date`                                      string         COMMENT '观察日期（应还日/实还日）'
+) COMMENT '现金流分析（包）'
+PARTITIONED BY (`bag_id` string COMMENT '包编号')
+STORED AS PARQUET;
+
+
 -- abs分布表（项目——所有包）
 -- drop table if exists `dm_eagle.abs_asset_distribution_day`;
 create table if not exists `dm_eagle.abs_asset_distribution_day`(

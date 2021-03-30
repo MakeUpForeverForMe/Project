@@ -39,6 +39,6 @@ select
   `ch_diff_explain`       ,
   `en_diff_explain`       ,
   `calc_date`
-from stg.t_transaction_blend_record
+from stage.t_transaction_blend_record
 where d_date='${ST9}' and record_type='G'
 ;
