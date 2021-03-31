@@ -179,11 +179,11 @@ from (
     from stage.asset_10_t_asset_check
     where account_date = '${ST9}'
       and project_id not in (
-        '001601',
-        'DIDI201908161538',
-        'WS0005200001',
-        'CL202012280092',
-        'CL202102010097',
+        '001601',           -- 汇通
+        'DIDI201908161538', -- 滴滴
+        'WS0005200001',     -- 瓜子
+        'CL202012280092',   -- 汇通国银
+        'CL202102010097',   -- 汇通国银
         ''
       )
   ) as asset

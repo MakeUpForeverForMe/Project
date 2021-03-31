@@ -71,6 +71,7 @@ select
   repay_hst_today.product_id                     as product_id
 from (
   select
+  distinct
     repay.due_bill_no,
     repay.term,
     repay.order_id,
@@ -123,6 +124,7 @@ from (
 ) as repay_hst_today
 left join (
   select
+  distinct
     repay.due_bill_no,
     repay.term,
     repay.order_id,

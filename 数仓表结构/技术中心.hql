@@ -14538,4 +14538,17 @@ limit 10
 
 
 
-nohup sh $data_manage -s 2017-06-01 -e 2021-03-29 -f $dm_eagle_hql/dm_eagle.abs_asset_distribution_bag_snapshot_day.hql -a $mail -n 40 &> log/aa &
+select max(biz_date) from dm_eagle.abs_asset_distribution_bag_day;
+
+select max(e_d_date) from ods.loan_info_abs;
+
+
+select distinct project_id from ods.t_10_basic_asset;
+
+select * from ods.t_10_basic_asset where project_id = 'CL202011090089' limit 10;
+
+
+
+select distinct project_id from stage.asset_10_t_asset_check order by project_id;
+
+

@@ -27,7 +27,7 @@ insert overwrite table ods.t_10_basic_asset_stage
 select
   0                                                   as id,
   cast(null as string)                                as import_id,
-  loan_info.product_id                                as project_id,
+  loan_info.project_id                                as project_id,
   project_info.asset_type                             as asset_type,
   loan_info.due_bill_no                               as serial_number,
   lending.contract_no                                 as contract_code,
@@ -79,7 +79,7 @@ select
   loan_info.remain_principal                          as remain_amounts,
   loan_info.remain_interest                           as remain_interest,
   loan_info.remain_othAmounts                         as remain_other_amounts,
-  loan_info.loan_init_term                              as periods,
+  loan_info.loan_init_term                            as periods,
   cast(null as string)                                as period_amounts,
   cast(null as string)                                as bus_product_id,
   cast(null as string)                                as bus_product_name,
@@ -106,12 +106,12 @@ select
   lending.mortgage_rate                               as mortgage_rates
 from (
   select * from ods.loan_info_abs
-  where e_d_date = '3000-12-31'
+  where e_d_date = '2021-03-30'
 ) loan_info
 left join ods.loan_lending_abs lending
 on loan_info.due_bill_no = lending.due_bill_no
 inner join dim.project_info project_info
-on loan_info.product_id = project_info.project_id
+on loan_info.project_id = project_info.project_id
 inner join dim.project_due_bill_no pro_due
 on loan_info.due_bill_no = pro_due.due_bill_no
 left join (
@@ -125,69 +125,69 @@ on loan_info.due_bill_no = first_repay.due_bill_no
 inner join ods.customer_info_abs cust
 on loan_info.due_bill_no = cust.due_bill_no
 left join (
-select
-    distinct
-      due_bill_no,
-      product_id,
-      max(if(map_key = 'wind_control_status',map_val,'Yes'))              as wind_control_status,
-      max(if(map_key = 'wind_control_status_pool',map_val,'Yes'))         as wind_control_status_pool,
-      max(if(map_key = 'score_range',map_val,-1))                         as score_range,
-      max(if(map_key = 'cheat_level',map_val,-1))                         as cheat_level,
-      max(if(map_key = 'score_level',map_val,-1))                         as score_level
-    from ods.risk_control
-    where source_table in ('t_asset_wind_control_history')
-      and map_key in ('wind_control_status','wind_control_status_pool','cheat_level','score_range','score_level')
-    group by due_bill_no, product_id
+  select
+    due_bill_no,
+    product_id,
+    max(if(map_key = 'wind_control_status',map_val,'Yes'))              as wind_control_status,
+    max(if(map_key = 'wind_control_status_pool',map_val,'Yes'))         as wind_control_status_pool,
+    max(if(map_key = 'score_range',map_val,-1))                         as score_range,
+    max(if(map_key = 'cheat_level',map_val,-1))                         as cheat_level,
+    max(if(map_key = 'score_level',map_val,-1))                         as score_level
+  from ods.risk_control
+  where source_table in ('t_asset_wind_control_history')
+    and map_key in ('wind_control_status','wind_control_status_pool','cheat_level','score_range','score_level')
+  group by due_bill_no,product_id
 ) risk
 on loan_info.due_bill_no = risk.due_bill_no
 group by
-loan_info.due_bill_no,
-loan_info.product_id,
-project_info.asset_type,
-loan_info.due_bill_no,
-lending.contract_no,
-loan_info.loan_init_principal,
-lending.interest_rate_type,
-lending.loan_init_interest_rate,
-lending.loan_issue_date,
-lending.loan_expiry_date,
-risk.wind_control_status,
-risk.wind_control_status_pool,
-risk.score_range,
-risk.cheat_level,
-risk.score_level,
-first_repay.first_repay_date,
-lending.loan_type,
-lending.cycle_day,
-lending.loan_usage,
-lending.guarantee_type,
-loan_info.remain_principal,
-cust.cutomer_type,
-cust.name,
-cust.idcard_type,
-cust.idcard_no,
-cust.mobie,
-cust.sex,
-cust.birthday,
-cust.age,
-cust.resident_province,
-cust.resident_city,
-cust.marriage_status,
-cust.resident_county,
-cust.income_year,
-cust.education_ws,
-loan_info.loan_term_remain,
-loan_info.account_age,
-lending.contract_term,
-loan_info.overdue_days,
-loan_info.remain_principal,
-loan_info.remain_interest,
-loan_info.remain_othAmounts,
-loan_info.loan_init_term,
-cust.resident_address,
-lending.tail_amount,
-lending.tail_amount_rate,
-cust.cust_rating,
-cust.job_type,
-lending.mortgage_rate
+  loan_info.due_bill_no,
+  loan_info.project_id,
+  project_info.asset_type,
+  loan_info.due_bill_no,
+  lending.contract_no,
+  loan_info.loan_init_principal,
+  lending.interest_rate_type,
+  lending.loan_init_interest_rate,
+  lending.loan_issue_date,
+  lending.loan_expiry_date,
+  risk.wind_control_status,
+  risk.wind_control_status_pool,
+  risk.score_range,
+  risk.cheat_level,
+  risk.score_level,
+  first_repay.first_repay_date,
+  lending.loan_type,
+  lending.cycle_day,
+  lending.loan_usage,
+  lending.guarantee_type,
+  loan_info.remain_principal,
+  cust.cutomer_type,
+  cust.name,
+  cust.idcard_type,
+  cust.idcard_no,
+  cust.mobie,
+  cust.sex,
+  cust.birthday,
+  cust.age,
+  cust.resident_province,
+  cust.resident_city,
+  cust.marriage_status,
+  cust.resident_county,
+  cust.income_year,
+  cust.education_ws,
+  loan_info.loan_term_remain,
+  loan_info.account_age,
+  lending.contract_term,
+  loan_info.overdue_days,
+  loan_info.remain_principal,
+  loan_info.remain_interest,
+  loan_info.remain_othAmounts,
+  loan_info.loan_init_term,
+  cust.resident_address,
+  lending.tail_amount,
+  lending.tail_amount_rate,
+  cust.cust_rating,
+  cust.job_type,
+  lending.mortgage_rate
+-- limit 10
 ;

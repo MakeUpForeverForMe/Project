@@ -1760,6 +1760,5 @@ left join (
   from dim.bag_due_bill_no bag_due
   inner join dim.bag_info bag_info
   on bag_due.bag_id = bag_info.bag_id
-  where bag_info.bag_date between s_d_date and date_sub(e_d_date,1)
 ) bag_snapshot
-on cur.serial_number = bag_snapshot.due_bill_no;
+on stage.serial_number = bag_snapshot.due_bill_no;

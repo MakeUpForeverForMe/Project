@@ -16,23 +16,26 @@ set hive.vectorized.execution.reduce.enabled=false;
 set hive.vectorized.execution.reduce.groupby.enabled=false;
 set hivevar:db_suffix=;
 set hivevar:tb_suffix=;
-
+set hivevar:p_types='ddht','htgy';
+set hivevar:product_id_list='001601','001602','001603','002201','002202','002203';
+--set hivevar:ST9=2021-03-29;
+--set hivevar:d_date=2021-03-29;
 
 with repay_hst_repair as (
 select
       repayhst.due_bill_no,repayhst.term,bnp_type,repayhst.d_date,repay_amt,
       if(repair_hst.order_id is not null,repair_hst.paid_out_date,repayhst.txn_date) as txn_date
          from (
-                select * from   stage.ecas_repay_hst  where 1 > 0  and d_date ='${d_date}'   and p_type in ('ddht')   and txn_date <= date_add('${ST9}',30)
+                select * from   stage.ecas_repay_hst  where 1 > 0  and d_date ='${d_date}'   and p_type in (${p_types})   and txn_date <= date_add('${ST9}',30)
                 --11月修数  删除掉汇通的两笔线下还款的罚息实还数据
                 and payment_id not in ('000016043097811admin000068000001','000016043095431admin000068000001')
           )repayhst
            left join (
-          select distinct order_id,paid_out_date  from  stage.schedule_repay_order_info_ddht  where biz_date='${d_date}' and product_id in ('001601','001602','001603')
+          select distinct order_id,paid_out_date  from  stage.schedule_repay_order_info_ddht  where biz_date='${d_date}' and product_id in (${product_id_list})
           )repair_hst on repayhst.order_id=repair_hst.order_id
 
 )
-insert overwrite table ods${db_suffix}.repay_schedule_inter partition(biz_date,product_id)
+--insert overwrite table ods${db_suffix}.repay_schedule_inter partition(biz_date,product_id)
 select
 repay_schedule.due_bill_no,
   ecas_loan.loan_active_date,
@@ -218,7 +221,11 @@ repay_schedule.due_bill_no,
                          when tmp.due_bill_no="1000000403" and tmp.d_date >='2020-11-09' and tmp.curr_term=0  then 48.56 else tmp.reduce_penalty end                           as reduce_penalty,
                     case when tmp.due_bill_no="1000000381" and tmp.d_date >='2020-08-17' then new_schedule.reduce_mult_amt else tmp.reduce_mult_amt end as reduce_mult_amt,
                     tmp.create_time,tmp.create_user,tmp.lst_upd_time,tmp.lst_upd_user,
-                    case when tmp.due_bill_no="1000000381" and tmp.d_date >='2020-08-17' then '2020-08-17'
+                    case
+                         when tmp.due_bill_no="1000000223" and tmp.d_date >='2020-10-07' and tmp.curr_term=10 then '2020-10-07'
+                         when tmp.due_bill_no="1000000720" and tmp.d_date >='2020-10-16' and tmp.curr_term=3 then '2020-10-16'
+                         when tmp.due_bill_no="1000000060" and tmp.d_date >='2020-10-04' and tmp.curr_term=10 then '2020-10-04'
+                        when tmp.due_bill_no="1000000381" and tmp.d_date >='2020-08-17' then '2020-08-17'
                          when  tmp.due_bill_no="1000004836" and  tmp.d_date >='2021-11-23' then '2020-11-23'
                         when tmp.due_bill_no="1000001858" and tmp.d_date ='2020-09-21' and tmp.curr_term=0 then null
                          when tmp.due_bill_no="1000000163" and tmp.d_date >='2020-09-29' and (tmp.curr_term=0 or tmp.curr_term between 6 and 36) then '2020-09-29'
@@ -235,14 +242,14 @@ repay_schedule.due_bill_no,
                         else tmp.schedule_status end as schedule_status,
                     concat(tmp.due_bill_no,'::',tmp.curr_term) as due_bill_no_curr_term
              from (
-             select  * from stage.ecas_repay_schedule  where d_date = '${ST9}' and p_type in ('ddht')   and product_code in ('001601','001602','001603') and schedule_id not in ('000016006898691admin000068000001')
+             select  * from stage.ecas_repay_schedule  where d_date = '${ST9}' and p_type in (${p_types})  and product_code in (${product_id_list}) and schedule_id not in ('000016006898691admin000068000001')
              union all
-             select  * from stage.ecas_repay_schedule_ht_repair  where d_date = '${ST9}' and p_type in ('ddht')   and product_code in ('001601','001602','001603') and schedule_id not in ('000016006898691admin000068000001')
+             select  * from stage.ecas_repay_schedule_ht_repair  where d_date = '${ST9}' and p_type in (${p_types})   and product_code in (${product_id_list}) and schedule_id not in ('000016006898691admin000068000001')
              )tmp
             left join
                 (
                     select due_bill_no,curr_term,paid_out_date,schedule_status,paid_out_type,reduced_amt,reduce_term_prin,reduce_term_int,reduce_term_fee,reduce_svc_fee,reduce_penalty,reduce_mult_amt
-                    from stage.ecas_repay_schedule where d_date='${d_date}' and p_type='ddht' and product_code in ('001601','001602','001603')
+                    from stage.ecas_repay_schedule where d_date='${d_date}' and p_type in (${p_types})  and product_code in (${product_id_list})
                     and paid_out_date is not null and paid_out_date<=date_add('${ST9}',10) and schedule_id not in ('000016006898691admin000068000001')
                 )new_schedule on tmp.due_bill_no=new_schedule.due_bill_no and tmp.curr_term=new_schedule.curr_term
              ) as schedule
@@ -269,8 +276,12 @@ repay_schedule.due_bill_no,
                         tmp.curr_term,
                         concat(tmp.due_bill_no,'::',cast(tmp.curr_term as string)) as due_bill_no_curr_term,
                         tmp.d_date,
-                        case when  tmp.due_bill_no="1000000381" and tmp.d_date >='2020-08-17' then '2020-08-17'
-                              when  tmp.due_bill_no="1000004836" and  tmp.d_date >='2021-11-23' then '2020-11-23'
+                        case
+                             when tmp.due_bill_no="1000000223" and tmp.d_date >='2020-10-07' and tmp.curr_term=10 then '2020-10-07'
+                             when tmp.due_bill_no="1000000720" and tmp.d_date >='2020-10-16' and tmp.curr_term=3 then '2020-10-16'
+                             when tmp.due_bill_no="1000000060" and tmp.d_date >='2020-10-04' and tmp.curr_term=10 then '2020-10-04'
+                            when  tmp.due_bill_no="1000000381" and tmp.d_date >='2020-08-17' then '2020-08-17'
+                            when  tmp.due_bill_no="1000004836" and  tmp.d_date >='2021-11-23' then '2020-11-23'
                             when tmp.due_bill_no="1000000163" and tmp.d_date >='2020-09-29' and (tmp.curr_term=0 or tmp.curr_term between 6 and 36) then '2020-09-29'
                              when tmp.due_bill_no="1000000403" and tmp.d_date >='2020-11-09' and (tmp.curr_term=0 or tmp.curr_term between 3 and 36)  then '2020-11-09'
                               when tmp.due_bill_no="1000001858" and tmp.d_date ='2020-09-21' and tmp.curr_term=0 then null
@@ -280,15 +291,15 @@ repay_schedule.due_bill_no,
                           else tmp.paid_out_date end as paid_out_date
                         from
                          (
-                         select  * from stage.ecas_repay_schedule where p_type="ddht" and d_date= '${ST9}'  and product_code in ('001601','001602','001603') and schedule_id not in ('000016006898691admin000068000001')
+                         select  * from stage.ecas_repay_schedule where p_type in (${p_types}) and d_date= '${ST9}'  and product_code in (${product_id_list}) and schedule_id not in ('000016006898691admin000068000001')
                          union all
                          --汇通修数表
-                         select  * from stage.ecas_repay_schedule_ht_repair where p_type="ddht" and d_date= '${ST9}' and product_code in ('001601','001602','001603') and schedule_id not in ('000016006898691admin000068000001')
+                         select  * from stage.ecas_repay_schedule_ht_repair where p_type in (${p_types}) and d_date= '${ST9}' and product_code in (${product_id_list}) and schedule_id not in ('000016006898691admin000068000001')
                          )tmp
                         left join (
                         -- 最新一天的还款计划 更新还款计划上的结清日期
                          select due_bill_no,curr_term,paid_out_date,schedule_status from
-                           stage.ecas_repay_schedule where d_date='${d_date}' and p_type='ddht' and product_code in ('001601','001602','001603') and schedule_id not in ('000016006898691admin000068000001')
+                           stage.ecas_repay_schedule where d_date='${d_date}' and p_type in (${p_types}) and product_code in (${product_id_list}) and schedule_id not in ('000016006898691admin000068000001')
                           and paid_out_date is not null and paid_out_date<=date_add('${ST9}',10)
                         )new_schedule on tmp.due_bill_no=new_schedule.due_bill_no and tmp.curr_term=new_schedule.curr_term
                      )tmp1
@@ -346,6 +357,9 @@ repay_schedule.due_bill_no,
                     when date_sub('${ST9}',1) >= pmt_due_date and curr_term!=0  then 'O'
                     else schedule_status end                                                                 as schedule_status,
             case
+                 when due_bill_no="1000000223" and d_date >='2020-10-07' and curr_term=10 then '2020-10-07'
+                 when due_bill_no="1000000720" and d_date >='2020-10-16' and curr_term=3 then '2020-10-16'
+                 when due_bill_no="1000000060" and d_date >='2020-10-04' and curr_term=10 then '2020-10-04'
                 when  due_bill_no='1000000381' and d_date >='2020-08-17' then '2020-08-17'
                 when  due_bill_no="1000004836" and  d_date >='2021-11-23' then '2020-11-23'
                 when due_bill_no="1000000163" and d_date >='2020-09-29' and (curr_term=0 or curr_term between 6 and 36) then '2020-09-29'
@@ -404,7 +418,11 @@ repay_schedule.due_bill_no,
 
                     case when tmp.due_bill_no="1000000381" and tmp.d_date >='2020-08-17' then new_schedule.reduce_mult_amt else tmp.reduce_mult_amt end as reduce_mult_amt,
                     tmp.create_time,tmp.create_user,tmp.lst_upd_time,tmp.lst_upd_user,
-                    case when tmp.due_bill_no="1000000381" and tmp.d_date >='2020-08-17' then '2020-08-17'
+                    case
+                         when tmp.due_bill_no="1000000223" and tmp.d_date >='2020-10-07' and tmp.curr_term=10 then '2020-10-07'
+                         when tmp.due_bill_no="1000000720" and tmp.d_date >='2020-10-16' and tmp.curr_term=3 then '2020-10-16'
+                         when tmp.due_bill_no="1000000060" and tmp.d_date >='2020-10-04' and tmp.curr_term=10 then '2020-10-04'
+                         when tmp.due_bill_no="1000000381" and tmp.d_date >='2020-08-17' then '2020-08-17'
                          when tmp.due_bill_no="1000004836" and tmp.d_date >='2020-11-23' then '2020-11-23'
                          when tmp.paid_out_date >tmp.d_date then null
                          when tmp.due_bill_no="1000001858" and tmp.d_date ='2020-09-21' and tmp.curr_term=0 then null
@@ -421,13 +439,13 @@ repay_schedule.due_bill_no,
                         else tmp.schedule_status end as schedule_status,
                     concat(tmp.due_bill_no,'::',tmp.curr_term) as due_bill_no_curr_term
         from
-          (select * from  stage.ecas_repay_schedule where d_date = date_sub('${ST9}',1) and p_type in ('ddht')  and product_code in ('001601','001602','001603') and schedule_id not in ('000016006898691admin000068000001')
+          (select * from  stage.ecas_repay_schedule where d_date = date_sub('${ST9}',1) and p_type in (${p_types})  and product_code in (${product_id_list}) and schedule_id not in ('000016006898691admin000068000001')
           union all
-          select * from  stage.ecas_repay_schedule_ht_repair where d_date = date_sub('${ST9}',1) and p_type in ('ddht')  and product_code in ('001601','001602','001603') and schedule_id not in ('000016006898691admin000068000001')
+          select * from  stage.ecas_repay_schedule_ht_repair where d_date = date_sub('${ST9}',1) and p_type in (${p_types})  and product_code in (${product_id_list}) and schedule_id not in ('000016006898691admin000068000001')
           )tmp
            left join (
                     select due_bill_no,curr_term,paid_out_date,schedule_status,paid_out_type,reduced_amt,reduce_term_prin,reduce_term_int,reduce_term_fee,reduce_svc_fee,reduce_penalty,reduce_mult_amt
-                    from stage.ecas_repay_schedule where d_date='${d_date}' and p_type='ddht' and product_code in ('001601','001602','001603') and schedule_id not in ('000016006898691admin000068000001')
+                    from stage.ecas_repay_schedule where d_date='${d_date}' and p_type in (${p_types}) and product_code in (${product_id_list}) and schedule_id not in ('000016006898691admin000068000001')
                     and paid_out_date is not null and paid_out_date<=date_add('${ST9}',10)
             )new_schedule on tmp.due_bill_no=new_schedule.due_bill_no and tmp.curr_term=new_schedule.curr_term
          ) as schedule_yest
@@ -455,8 +473,12 @@ repay_schedule.due_bill_no,
                         tmp.curr_term,
                         concat(tmp.due_bill_no,'::',cast(tmp.curr_term as string)) as due_bill_no_curr_term,
                         tmp.d_date,
-                        case when  tmp.due_bill_no='1000000381' and tmp.d_date >='2020-08-17' then '2020-08-17'
-                              when tmp.due_bill_no="1000004836" and tmp.d_date >='2020-11-23' then '2020-11-23'
+                        case
+                             when tmp.due_bill_no="1000000223" and tmp.d_date >='2020-10-07' and tmp.curr_term=10 then '2020-10-07'
+                             when tmp.due_bill_no="1000000720" and tmp.d_date >='2020-10-16' and tmp.curr_term=3 then '2020-10-16'
+                             when tmp.due_bill_no="1000000060" and tmp.d_date >='2020-10-04' and tmp.curr_term=10 then '2020-10-04'
+                            when  tmp.due_bill_no='1000000381' and tmp.d_date >='2020-08-17' then '2020-08-17'
+                             when tmp.due_bill_no="1000004836" and tmp.d_date >='2020-11-23' then '2020-11-23'
                              when tmp.due_bill_no="1000001858" and tmp.d_date ='2020-09-21' and tmp.curr_term=0 then null
                              when tmp.due_bill_no="1000000163" and tmp.d_date >='2020-09-29' and (tmp.curr_term=0 or tmp.curr_term between 6 and 36) then '2020-09-29'
                              when tmp.due_bill_no="1000000403" and tmp.d_date >='2020-11-09' and (tmp.curr_term=0 or tmp.curr_term between 3 and 36)  then '2020-11-09'
@@ -466,15 +488,15 @@ repay_schedule.due_bill_no,
                           else tmp.paid_out_date end as paid_out_date
                         from
                          (
-                         select  * from stage.ecas_repay_schedule where p_type="ddht" and d_date= date_sub('${ST9}',1)  and product_code in ('001601','001602','001603') and schedule_id not in ('000016006898691admin000068000001')
+                         select  * from stage.ecas_repay_schedule where p_type in (${p_types}) and d_date= date_sub('${ST9}',1)  and product_code in (${product_id_list}) and schedule_id not in ('000016006898691admin000068000001')
                          union all
                          --汇通修数表
-                         select  * from stage.ecas_repay_schedule_ht_repair where p_type="ddht" and d_date= date_sub('${ST9}',1) and product_code in ('001601','001602','001603') and schedule_id not in ('000016006898691admin000068000001')
+                         select  * from stage.ecas_repay_schedule_ht_repair where p_type in (${p_types}) and d_date= date_sub('${ST9}',1) and product_code in (${product_id_list}) and schedule_id not in ('000016006898691admin000068000001')
                          )tmp
                         left join (
                         -- 最新一天的还款计划 更新还款计划上的结清日期
                          select due_bill_no,curr_term,paid_out_date,schedule_status from
-                          stage.ecas_repay_schedule where d_date='${d_date}' and p_type='ddht' and product_code in ('001601','001602','001603')
+                          stage.ecas_repay_schedule where d_date='${d_date}' and p_type in (${p_types}) and product_code in (${product_id_list})
                           and paid_out_date is not null and paid_out_date<=date_add('${ST9}',10) and schedule_id not in ('000016006898691admin000068000001')
                         )new_schedule on tmp.due_bill_no=new_schedule.due_bill_no and tmp.curr_term=new_schedule.curr_term
                      )tmp1
@@ -555,10 +577,11 @@ repay_schedule.due_bill_no,
   from stage.ecas_loan${tb_suffix}
   where 1 > 0
     and d_date = '${d_date}'
-    and product_code in ('001601','001602','001603')
+    and product_code in (${product_id_list})
 ) as ecas_loan
 on  repay_schedule.product_id  = ecas_loan.product_id
 and repay_schedule.due_bill_no = ecas_loan.ecas_loan_due_bill_no      
 where repay_schedule_tmp.due_bill_no is null;
+---and  repay_schedule.product_id in ("002201" ,"002202","002203")limit 1;
 
 

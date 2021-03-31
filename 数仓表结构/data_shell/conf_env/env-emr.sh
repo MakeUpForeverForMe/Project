@@ -12,7 +12,7 @@ case $ip in
   (10.80.* )
     is_test=n
     hive_host='10.80.0.46:2181,10.80.0.255:2181,10.80.1.113:2181/;serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=hiveserver2'
-    impala_host=10.80.0.70:27000
+    impala_host=10.80.1.43:27001
     ;;
   (10.83.* )
     is_test=y
@@ -61,7 +61,7 @@ mail="$python $bin/send_mail.py"
 export HADOOP_CLIENT_OPTS="-Djline.terminal=jline.UnsupportedTerminal"
 
 beeline="beeline -n hadoop -u 'jdbc:hive2://$hive_host'"
-impala="impala-shell -u hive -i $impala_host"
+impala="impala-shell -u hadoop -i $impala_host"
 
 mysql_cmd="mysql_fun"
 

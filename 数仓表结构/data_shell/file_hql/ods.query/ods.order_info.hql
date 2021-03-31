@@ -50,7 +50,7 @@ set hive.vectorized.execution.reduce.groupby.enabled=false;
 
 
 -- 滴滴汇通瓜子产品编号
--- set hivevar:product_id='DIDI201908161538','001601','001602','001603','001701','001702';
+-- set hivevar:product_id='DIDI201908161538','001601','001602','001603','001701','001702','002201','002202','002203';
 
 
 -- 手动跑批日志

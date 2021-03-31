@@ -16,18 +16,22 @@ set hive.exec.max.dynamic.partitions.pernode=50000;
 set hive.vectorized.execution.enabled=false;
 set hive.vectorized.execution.reduce.enabled=false;
 set hive.vectorized.execution.reduce.groupby.enabled=false;
+set hivevar:p_types='ddht','htgy';
+set hivevar:product_id_list='001601','001602','001603','002201','002202','002203';
+--set hivevar:ST9=2021-01-01;
+--set hivevar:d_date=2021-01-01;
 
 with repay_hst_repair as (
 select
       repayhst.due_bill_no,repayhst.term,bnp_type,repayhst.d_date,repay_amt,
       if(repair_hst.order_id is not null,repair_hst.paid_out_date,repayhst.txn_date) as txn_date
          from (
-                select * from   stage.ecas_repay_hst  where 1 > 0  and d_date ='${d_date}'    and p_type in ('ddht')   and txn_date <= date_add('${ST9}',30)
+                select * from   stage.ecas_repay_hst  where 1 > 0  and d_date ='${d_date}'    and p_type in (${p_types})   and txn_date <= date_add('${ST9}',30)
                 --11月修数  删除掉汇通的两笔线下还款的罚息实还数据
                 and payment_id not in ('000016043097811admin000068000001','000016043095431admin000068000001')
           )repayhst
            left join (
-          select distinct order_id,paid_out_date  from  stage.schedule_repay_order_info_ddht  where biz_date='${d_date}'  and product_id in ('001601','001602','001603')
+          select distinct order_id,paid_out_date  from  stage.schedule_repay_order_info_ddht  where biz_date='${d_date}'  and product_id in (${product_id_list})
           )repair_hst on repayhst.order_id=repair_hst.order_id
 
 )
@@ -326,9 +330,9 @@ insert overwrite table ods.loan_info_inter partition(biz_date,product_id)
         d_date                            as d_date
         from
       (
-       select * from stage.ecas_loan where 1 > 0 and d_date = '${ST9}' and p_type in ('ddht') and product_code in ('001601','001602','001603')
+       select * from stage.ecas_loan where 1 > 0 and d_date = '${ST9}' and p_type in (${p_types})and product_code in (${product_id_list})
         union all
-      select * from stage.ecas_loan_ht_repair  where 1 > 0 and d_date = '${ST9}' and p_type in ('ddht') and product_code in ('001601','001602','001603')
+      select * from stage.ecas_loan_ht_repair  where 1 > 0 and d_date = '${ST9}' and p_type in (${p_types}) and product_code in (${product_id_list})
       )tmp
     ) as ecas_loan
     left join (
@@ -354,6 +358,9 @@ insert overwrite table ods.loan_info_inter partition(biz_date,product_id)
                          tmp.due_bill_no,
                          tmp.curr_term,
                          case
+                            when tmp.due_bill_no="1000000223" and tmp.d_date >='2020-10-07' and tmp.curr_term=10 then '2020-10-07'
+                            when tmp.due_bill_no="1000000720" and tmp.d_date >='2020-10-16' and tmp.curr_term=3 then '2020-10-16'
+                            when tmp.due_bill_no="1000000060" and tmp.d_date >='2020-10-04' and tmp.curr_term=10 then '2020-10-04'
                             when tmp.due_bill_no="1000004836" and tmp.d_date >='2020-11-23' then '2020-11-23'
                             when tmp.due_bill_no='1000000381' and tmp.d_date >='2020-08-17' then '2020-08-17'
                             when tmp.due_bill_no="1000001858" and tmp.d_date ='2020-09-21' and tmp.curr_term=0 then null
@@ -368,14 +375,14 @@ insert overwrite table ods.loan_info_inter partition(biz_date,product_id)
                          tmp.d_date
                          from
                          (
-                         select  * from  stage.ecas_repay_schedule where p_type="ddht" and d_date='${ST9}' and product_code in ('001601','001602','001603') and schedule_id not in ('000016006898691admin000068000001')
+                         select  * from  stage.ecas_repay_schedule where p_type in (${p_types})  and d_date='${ST9}' and product_code in (${product_id_list}) and schedule_id not in ('000016006898691admin000068000001')
                          union all
-                         select  * from  stage.ecas_repay_schedule_ht_repair where p_type="ddht" and d_date='${ST9}' and product_code in ('001601','001602','001603') and schedule_id not in ('000016006898691admin000068000001')
+                         select  * from  stage.ecas_repay_schedule_ht_repair where p_type in (${p_types}) and d_date='${ST9}' and product_code in (${product_id_list}) and schedule_id not in ('000016006898691admin000068000001')
                          )tmp
                          left join
                           (
                             select due_bill_no,curr_term,paid_out_date,schedule_status
-                                    from stage.ecas_repay_schedule where d_date='${d_date}'  and p_type='ddht' and product_code in ('001601','001602','001603')
+                                    from stage.ecas_repay_schedule where d_date='${d_date}'  and p_type in (${p_types}) and product_code in (${product_id_list})
                                     and paid_out_date is not null and paid_out_date<=date_add('${ST9}',10) and schedule_id not in ('000016006898691admin000068000001')
                           )new_schedule on tmp.due_bill_no=new_schedule.due_bill_no and tmp.curr_term=new_schedule.curr_term
                     )tmp1
@@ -411,15 +418,15 @@ insert overwrite table ods.loan_info_inter partition(biz_date,product_id)
         product_code      as product_id
       from
       (
-      select * from stage.ecas_repay_schedule where d_date='${ST9}' and  p_type in ('ddht') and curr_term > 0  and product_code in('001601','001602','001603') and schedule_id not in ('000016006898691admin000068000001')
+      select * from stage.ecas_repay_schedule where d_date='${ST9}' and p_type in (${p_types}) and curr_term > 0  and product_code in(${product_id_list}) and schedule_id not in ('000016006898691admin000068000001')
     union all
-     select * from stage.ecas_repay_schedule_ht_repair where d_date='${ST9}' and  p_type in ('ddht') and curr_term > 0  and product_code in('001601','001602','001603') and schedule_id not in ('000016006898691admin000068000001')
+     select * from stage.ecas_repay_schedule_ht_repair where d_date='${ST9}' and  p_type in (${p_types}) and curr_term > 0  and product_code in (${product_id_list}) and schedule_id not in ('000016006898691admin000068000001')
       )tmp
       where 1 > 0
         and d_date = '${ST9}'      -- 取快照日当天的所有还款计划数据
-        and p_type in ('ddht')
+        and p_type in (${p_types})
         and d_date <= nvl(origin_pmt_due_date,pmt_due_date) -- 取快照日当天之后的所有还款计划数据（取最小值时，即为当前期数、应还日）
-        and curr_term > 0  and product_code in('001601','001602','001603')        -- 过滤掉汇通的第 0 期的情况
+        and curr_term > 0  and product_code in(${product_id_list})       -- 过滤掉汇通的第 0 期的情况
       group by due_bill_no,product_code
     ) as repay_schedule
     on ecas_loan.due_bill_no = repay_schedule.due_bill_no
@@ -431,12 +438,12 @@ insert overwrite table ods.loan_info_inter partition(biz_date,product_id)
         d_date
       from
       (
-      select * from stage.ecas_repay_schedule  where d_date='${ST9}' and product_code in('001601','001602','001603') and pmt_due_date <= d_date and curr_term>0  and schedule_id not in ('000016006898691admin000068000001')
+      select * from stage.ecas_repay_schedule  where d_date='${ST9}' and product_code in (${product_id_list}) and pmt_due_date <= d_date and curr_term>0  and schedule_id not in ('000016006898691admin000068000001')
         union all
-      select * from stage.ecas_repay_schedule_ht_repair  where d_date='${ST9}' and product_code in('001601','001602','001603') and pmt_due_date <= d_date and curr_term>0 and schedule_id not in ('000016006898691admin000068000001')
+      select * from stage.ecas_repay_schedule_ht_repair  where d_date='${ST9}' and product_code in (${product_id_list}) and pmt_due_date <= d_date and curr_term>0 and schedule_id not in ('000016006898691admin000068000001')
       )tmp
       where 1 > 0
-        and d_date='${ST9}' and product_code in('001601','001602','001603')
+        and d_date='${ST9}' and product_code in (${product_id_list})
         and pmt_due_date <= d_date and curr_term>0
       group by due_bill_no,d_date
     ) as overdue_term
@@ -508,6 +515,9 @@ insert overwrite table ods.loan_info_inter partition(biz_date,product_id)
                      when tmp.due_bill_no="1000000403" and tmp.d_date >='2020-11-09' and tmp.curr_term=0  then cast(48.56 as decimal(15,4)) else tmp.reduce_penalty end  as reduce_penalty,
                 tmp.reduce_mult_amt,
                 case
+                     when tmp.due_bill_no="1000000223" and tmp.d_date >='2020-10-07' and tmp.curr_term=10 then '2020-10-07'
+                     when tmp.due_bill_no="1000000720" and tmp.d_date >='2020-10-16' and tmp.curr_term=3 then '2020-10-16'
+                     when tmp.due_bill_no="1000000060" and tmp.d_date >='2020-10-04' and tmp.curr_term=10 then '2020-10-04'
                      when tmp.due_bill_no="1000004836" and tmp.d_date >='2020-11-23' then '2020-11-23'
                      when tmp.due_bill_no='1000000381' and tmp.d_date >='2020-08-17' then '2020-08-17'
                      when tmp.due_bill_no="1000001858" and tmp.d_date ='2020-09-21' and tmp.curr_term=0 then null
@@ -520,14 +530,14 @@ insert overwrite table ods.loan_info_inter partition(biz_date,product_id)
                      when tmp.paid_out_date!=new_schedule.paid_out_date and tmp.paid_out_date is not null then new_schedule.paid_out_date
                 else tmp.paid_out_date end  as paid_out_date
             from (
-            select * from stage.ecas_repay_schedule where d_date = '${ST9}' and p_type in ('ddht') and product_code in('001601','001602','001603') and schedule_id not in ('000016006898691admin000068000001')
+            select * from stage.ecas_repay_schedule where d_date = '${ST9}' and p_type in (${p_types}) and product_code in (${product_id_list}) and schedule_id not in ('000016006898691admin000068000001')
             union all
-            select * from stage.ecas_repay_schedule_ht_repair where d_date = '${ST9}' and p_type in ('ddht') and product_code in('001601','001602','001603') and schedule_id not in ('000016006898691admin000068000001')
+            select * from stage.ecas_repay_schedule_ht_repair where d_date = '${ST9}' and p_type in (${p_types}) and product_code in(${product_id_list}) and schedule_id not in ('000016006898691admin000068000001')
             )tmp
             left join
             (
                     select due_bill_no,curr_term,paid_out_date,schedule_status,reduce_svc_fee
-                    from stage.ecas_repay_schedule where d_date='${d_date}'  and p_type='ddht' and product_code in ('001601','001602','001603')
+                    from stage.ecas_repay_schedule where d_date='${d_date}'  and p_type in (${p_types}) and product_code in (${product_id_list})
                     and paid_out_date is not null and paid_out_date<=date_add('${ST9}',10) and schedule_id not in ('000016006898691admin000068000001')
             )new_schedule on tmp.due_bill_no=new_schedule.due_bill_no and tmp.curr_term=new_schedule.curr_term
 
@@ -552,14 +562,18 @@ insert overwrite table ods.loan_info_inter partition(biz_date,product_id)
                 curr_term
                 from
                 (
-                    select * from stage.ecas_loan where p_type='ddht' and product_code in ('001601','001602','001603') and d_date='${ST9}'
+                    select * from stage.ecas_loan where p_type in (${p_types}) and product_code in (${product_id_list}) and d_date='${ST9}'
                      union all
-                    select * from stage.ecas_loan_ht_repair where p_type='ddht' and product_code in ('001601','001602','001603') and d_date='${ST9}'
+                    select * from stage.ecas_loan_ht_repair where p_type in (${p_types}) and product_code in (${product_id_list}) and d_date='${ST9}'
                 )tmp
             )loan left join
             (
                 select tmp.due_bill_no,tmp.curr_term,
-                case when tmp.due_bill_no='1000000381' and tmp.d_date >='2020-08-17' then '2020-08-17'
+                case
+                     when tmp.due_bill_no="1000000223" and tmp.d_date >='2020-10-07' and tmp.curr_term=10 then '2020-10-07'
+                      when tmp.due_bill_no="1000000720" and tmp.d_date >='2020-10-16' and tmp.curr_term=3 then '2020-10-16'
+                      when tmp.due_bill_no="1000000060" and tmp.d_date >='2020-10-04' and tmp.curr_term=10 then '2020-10-04'
+                    when tmp.due_bill_no='1000000381' and tmp.d_date >='2020-08-17' then '2020-08-17'
                      when tmp.due_bill_no="1000004836" and tmp.d_date >='2020-11-23' then '2020-11-23'
                      when tmp.due_bill_no="1000000163" and tmp.d_date >='2020-09-29' and (tmp.curr_term=0 or tmp.curr_term between 6 and 36) then '2020-09-29'
                      when tmp.due_bill_no="1000000403" and tmp.d_date >='2020-11-09' and (tmp.curr_term=0 or tmp.curr_term between 3 and 36)  then '2020-11-09'
@@ -574,14 +588,14 @@ insert overwrite table ods.loan_info_inter partition(biz_date,product_id)
                 tmp.schedule_status,tmp.pmt_due_date
                 from
                 (
-                    select * from stage.ecas_repay_schedule where d_date='${ST9}' and  p_type='ddht'  and product_code in ('001601','001602','001603') and curr_term>0 and schedule_id not in ('000016006898691admin000068000001')
+                    select * from stage.ecas_repay_schedule where d_date='${ST9}' and  p_type in (${p_types})  and product_code in (${product_id_list}) and curr_term>0 and schedule_id not in ('000016006898691admin000068000001')
                     union all
-                    select * from stage.ecas_repay_schedule_ht_repair where d_date='${ST9}' and  p_type='ddht' and product_code in ('001601','001602','001603') and curr_term>0 and schedule_id not in ('000016006898691admin000068000001')
+                    select * from stage.ecas_repay_schedule_ht_repair where d_date='${ST9}' and  p_type in (${p_types}) and product_code in (${product_id_list}) and curr_term>0 and schedule_id not in ('000016006898691admin000068000001')
                 )tmp
                 left join
                 (
                     select due_bill_no,curr_term,paid_out_date,schedule_status
-                    from stage.ecas_repay_schedule where d_date='${d_date}'  and p_type='ddht' and product_code in ('001601','001602','001603')
+                    from stage.ecas_repay_schedule where d_date='${d_date}'  and p_type in (${p_types}) and product_code in (${product_id_list})
                     and paid_out_date is not null and paid_out_date<=date_add('${ST9}',10) and schedule_id not in ('000016006898691admin000068000001')
                 )new_schedule on tmp.due_bill_no=new_schedule.due_bill_no and tmp.curr_term=new_schedule.curr_term
              )schedule on loan.due_bill_no=schedule.due_bill_no
@@ -747,9 +761,9 @@ insert overwrite table ods.loan_info_inter partition(biz_date,product_id)
         else overdue_days end             as overdue_days,
          d_date                            as d_date
       from
-      (select * from stage.ecas_loan where 1 > 0 and d_date = date_sub('${ST9}',1) and p_type in ('ddht') and product_code in('001601','001602','001603')
+      (select * from stage.ecas_loan where 1 > 0 and d_date = date_sub('${ST9}',1) and p_type in (${p_types}) and product_code in (${product_id_list})
        union all
-       select * from stage.ecas_loan_ht_repair where 1 > 0 and d_date = date_sub('${ST9}',1) and p_type in ('ddht') and product_code in('001601','001602','001603')
+       select * from stage.ecas_loan_ht_repair where 1 > 0 and d_date = date_sub('${ST9}',1) and p_type in (${p_types}) and product_code in (${product_id_list})
        )tmp
     ) as ecas_loan
     left join (
@@ -775,6 +789,9 @@ insert overwrite table ods.loan_info_inter partition(biz_date,product_id)
                           tmp.due_bill_no,
                          tmp.curr_term,
                          case
+                              when tmp.due_bill_no="1000000223" and tmp.d_date >='2020-10-07' and tmp.curr_term=10 then '2020-10-07'
+                              when tmp.due_bill_no="1000000720" and tmp.d_date >='2020-10-16' and tmp.curr_term=3 then '2020-10-16'
+                              when tmp.due_bill_no="1000000060" and tmp.d_date >='2020-10-04' and tmp.curr_term=10 then '2020-10-04'
                               when tmp.due_bill_no="1000004836" and tmp.d_date >='2020-11-23' then '2020-11-23'
                               when tmp.due_bill_no='1000000275' and tmp.d_date >='2020-01-21' and tmp.d_date<'2020-02-12' then null
                               when tmp.due_bill_no="1000000381" and tmp.d_date >='2020-08-17' then '2020-08-17'
@@ -789,14 +806,14 @@ insert overwrite table ods.loan_info_inter partition(biz_date,product_id)
                          tmp.d_date
                          from
                          (
-                         select  * from  stage.ecas_repay_schedule where p_type="ddht" and d_date=date_sub('${ST9}',1) and product_code in ('001601','001602','001603') and schedule_id not in ('000016006898691admin000068000001')
+                         select  * from  stage.ecas_repay_schedule where p_type in (${p_types}) and d_date=date_sub('${ST9}',1) and product_code in (${product_id_list}) and schedule_id not in ('000016006898691admin000068000001')
                          union all
-                         select  * from  stage.ecas_repay_schedule_ht_repair where p_type="ddht" and d_date=date_sub('${ST9}',1) and product_code in ('001601','001602','001603') and schedule_id not in ('000016006898691admin000068000001')
+                         select  * from  stage.ecas_repay_schedule_ht_repair where p_type in (${p_types}) and d_date=date_sub('${ST9}',1) and product_code in (${product_id_list}) and schedule_id not in ('000016006898691admin000068000001')
                          )tmp
                          left join
                           (
                             select due_bill_no,curr_term,paid_out_date,schedule_status
-                                    from stage.ecas_repay_schedule where d_date='${d_date}'  and p_type='ddht' and product_code in ('001601','001602','001603')
+                                    from stage.ecas_repay_schedule where d_date='${d_date}'  and p_type in (${p_types}) and product_code in (${product_id_list})
                                     and paid_out_date is not null and paid_out_date<=date_add('${ST9}',10) and schedule_id not in ('000016006898691admin000068000001')
                           )new_schedule on tmp.due_bill_no=new_schedule.due_bill_no and tmp.curr_term=new_schedule.curr_term
                     )tmp1
@@ -832,11 +849,11 @@ insert overwrite table ods.loan_info_inter partition(biz_date,product_id)
         product_code      as product_id
       from
       (select  * from stage.ecas_repay_schedule   where 1 > 0 and d_date = date_sub('${ST9}',1) and d_date <= nvl(origin_pmt_due_date,pmt_due_date)        -- 取快照日当天之后的所有还款计划数据（取最小值时，即为当前期数、应还日）
-        and curr_term > 0    and product_code in('001601','001602','001603') and schedule_id not in ('000016006898691admin000068000001')
+        and curr_term > 0    and product_code in(${product_id_list}) and schedule_id not in ('000016006898691admin000068000001')
         union all
         select  * from stage.ecas_repay_schedule_ht_repair   where 1 > 0 and d_date = date_sub('${ST9}',1) -- 取快照日当天的所有还款计划数据
         and d_date <= nvl(origin_pmt_due_date,pmt_due_date)        -- 取快照日当天之后的所有还款计划数据（取最小值时，即为当前期数、应还日）
-        and curr_term > 0    and product_code in('001601','001602','001603') and schedule_id not in ('000016006898691admin000068000001')
+        and curr_term > 0    and product_code in(${product_id_list}) and schedule_id not in ('000016006898691admin000068000001')
         )tmp
       group by due_bill_no,product_code
     ) as repay_schedule
@@ -907,6 +924,9 @@ insert overwrite table ods.loan_info_inter partition(biz_date,product_id)
                      when tmp.due_bill_no="1000000403" and tmp.d_date >='2020-11-09' and tmp.curr_term=0  then 48.56 else tmp.reduce_penalty end  as reduce_penalty,
                 tmp.reduce_mult_amt,
                 case
+                     when tmp.due_bill_no="1000000223" and tmp.d_date >='2020-10-07' and tmp.curr_term=10 then '2020-10-07'
+                     when tmp.due_bill_no="1000000720" and tmp.d_date >='2020-10-16' and tmp.curr_term=3 then '2020-10-16'
+                     when tmp.due_bill_no="1000000060" and tmp.d_date >='2020-10-04' and tmp.curr_term=10 then '2020-10-04'
                      when tmp.due_bill_no="1000004836" and tmp.d_date >='2020-11-23' then '2020-11-23'
                      when tmp.due_bill_no="1000000381" and tmp.d_date >='2020-08-17' then '2020-08-17'
                      when tmp.paid_out_date >tmp.d_date then null
@@ -916,14 +936,14 @@ insert overwrite table ods.loan_info_inter partition(biz_date,product_id)
                      when tmp.paid_out_date!=new_schedule.paid_out_date and tmp.paid_out_date is not null then new_schedule.paid_out_date
                 else tmp.paid_out_date end  as paid_out_date
             from (
-            select * from stage.ecas_repay_schedule where d_date =date_sub('${ST9}',1) and p_type in ('ddht') and product_code in('001601','001602','001603') and schedule_id not in ('000016006898691admin000068000001')
+            select * from stage.ecas_repay_schedule where d_date =date_sub('${ST9}',1) and p_type in (${p_types}) and product_code in (${product_id_list}) and schedule_id not in ('000016006898691admin000068000001')
             union all
-            select * from stage.ecas_repay_schedule_ht_repair where d_date = date_sub('${ST9}',1) and p_type in ('ddht') and product_code in('001601','001602','001603') and schedule_id not in ('000016006898691admin000068000001')
+            select * from stage.ecas_repay_schedule_ht_repair where d_date = date_sub('${ST9}',1) and p_type in (${p_types}) and product_code in (${product_id_list}) and schedule_id not in ('000016006898691admin000068000001')
             )tmp
             left join
             (
                     select due_bill_no,curr_term,paid_out_date,schedule_status,reduce_svc_fee
-                    from stage.ecas_repay_schedule where d_date='${d_date}'  and p_type='ddht' and product_code in ('001601','001602','001603')
+                    from stage.ecas_repay_schedule where d_date='${d_date}'  and p_type in (${p_types}) and product_code in (${product_id_list})
                     and paid_out_date is not null and paid_out_date<=date_add('${ST9}',10) and schedule_id not in ('000016006898691admin000068000001')
             )new_schedule on tmp.due_bill_no=new_schedule.due_bill_no and tmp.curr_term=new_schedule.curr_term
 
@@ -948,14 +968,17 @@ insert overwrite table ods.loan_info_inter partition(biz_date,product_id)
                 curr_term
                 from
                 (
-                    select * from stage.ecas_loan where p_type='ddht' and product_code in ('001601','001602','001603') and d_date=date_sub('${ST9}',1)
+                    select * from stage.ecas_loan where p_type in (${p_types}) and product_code in (${product_id_list}) and d_date=date_sub('${ST9}',1)
                      union all
-                    select * from stage.ecas_loan_ht_repair where p_type='ddht' and product_code in ('001601','001602','001603') and d_date=date_sub('${ST9}',1)
+                    select * from stage.ecas_loan_ht_repair where p_type in (${p_types}) and product_code in (${product_id_list}) and d_date=date_sub('${ST9}',1)
                 )tmp
             )loan left join
             (
                 select tmp.due_bill_no,tmp.curr_term,
                 case
+                     when tmp.due_bill_no="1000000223" and tmp.d_date >='2020-10-07' and tmp.curr_term=10 then '2020-10-07'
+                     when tmp.due_bill_no="1000000720" and tmp.d_date >='2020-10-16' and tmp.curr_term=3 then '2020-10-16'
+                     when tmp.due_bill_no="1000000060" and tmp.d_date >='2020-10-04' and tmp.curr_term=10 then '2020-10-04'
                     when tmp.due_bill_no="1000004836" and tmp.d_date >='2020-11-23' then '2020-11-23'
                     when tmp.due_bill_no="1000000381" and tmp.d_date >='2020-08-17' then '2020-08-17'
                     when tmp.due_bill_no="1000000163" and tmp.d_date >='2020-09-29' and (tmp.curr_term=0 or tmp.curr_term between 6 and 36) then '2020-09-29'
@@ -969,14 +992,14 @@ insert overwrite table ods.loan_info_inter partition(biz_date,product_id)
                 tmp.schedule_status,tmp.pmt_due_date
                 from
                 (
-                select * from stage.ecas_repay_schedule where d_date=date_sub('${ST9}',1) and  p_type='ddht'  and product_code in ('001601','001602','001603') and curr_term>0
+                select * from stage.ecas_repay_schedule where d_date=date_sub('${ST9}',1) and  p_type in (${p_types})  and product_code in (${product_id_list}) and curr_term>0
                 union all
-                select * from stage.ecas_repay_schedule_ht_repair where d_date=date_sub('${ST9}',1) and  p_type='ddht' and product_code in ('001601','001602','001603') and curr_term>0
+                select * from stage.ecas_repay_schedule_ht_repair where d_date=date_sub('${ST9}',1) and  p_type in (${p_types}) and product_code in (${product_id_list}) and curr_term>0
                 )tmp
                 left join
                 (
                     select due_bill_no,curr_term,paid_out_date,schedule_status
-                    from stage.ecas_repay_schedule where d_date='${d_date}'  and p_type='ddht' and product_code in ('001601','001602','001603')
+                    from stage.ecas_repay_schedule where d_date='${d_date}'  and p_type in (${p_types}) and product_code in (${product_id_list})
                     and paid_out_date is not null and paid_out_date<=date_add('${ST9}',10) and schedule_id not in ('000016006898691admin000068000001')
                 )new_schedule on tmp.due_bill_no=new_schedule.due_bill_no and tmp.curr_term=new_schedule.curr_term
              )schedule on loan.due_bill_no=schedule.due_bill_no
@@ -1017,7 +1040,9 @@ insert overwrite table ods.loan_info_inter partition(biz_date,product_id)
   and is_empty(today.overdue_mult_amt       ,'a') = is_empty(yesterday.overdue_mult_amt       ,'a')
   and is_empty(today.overdue_date           ,'a') = is_empty(yesterday.overdue_date           ,'a')
   and is_empty(today.overdue_days           ,'a') = is_empty(yesterday.overdue_days           ,'a')
-  where yesterday.due_bill_no is null;
+  where yesterday.due_bill_no is null
+  --limit 1
+  ;
 
 
 
