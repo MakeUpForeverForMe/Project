@@ -14552,3 +14552,18 @@ select * from ods.t_10_basic_asset where project_id = 'CL202011090089' limit 10;
 select distinct project_id from stage.asset_10_t_asset_check order by project_id;
 
 
+
+
+select * from dim.project_info where project_id = 'CL202011090089' order by project_id;
+
+
+select * from dim.bag_info where project_id = 'CL202011090089';
+
+
+
+select distinct project_id from dim.project_info order by project_id;
+select distinct project_id from dim.project_due_bill_no order by project_id;
+select distinct project_id from dim.bag_info order by project_id;
+select distinct project_id from dim.bag_due_bill_no order by project_id;
+
+
