@@ -1288,10 +1288,58 @@ where 1 > 0
 
 
 
+set hive.exec.input.listing.max.threads=50;
+set tez.grouping.min-size=50000000;
+set tez.grouping.max-size=50000000;
+set hive.exec.reducers.max=500;
+
+-- 设置 Container 大小
+set hive.tez.container.size=4096;
+set tez.am.resource.memory.mb=4096;
+-- 合并小文件
+set hive.merge.tezfiles=true;
+set hive.merge.size.per.task=64000000;      -- 64M
+set hive.merge.smallfiles.avgsize=64000000; -- 64M
+-- 设置动态分区
+set hive.exec.dynamic.partition=true;
+set hive.exec.dynamic.partition.mode=nonstrict;
+set hive.exec.max.dynamic.partitions=200000;
+set hive.exec.max.dynamic.partitions.pernode=50000;
+-- 禁用 Hive 矢量执行
+set hive.vectorized.execution.enabled=false;
+set hive.vectorized.execution.reduce.enabled=false;
+set hive.vectorized.execution.reduce.groupby.enabled=false;
+
+set hive.auto.convert.join=false;                    -- 关闭自动 MapJoin
+set hive.auto.convert.join.noconditionaltask=false;  -- 关闭自动 MapJoin
 
 
+ALTER TABLE dm_eagle.abs_overdue_rate_day RENAME TO dm_eagle.del_abs_overdue_rate_day;
+
+insert overwrite table dm_eagle.abs_overdue_rate_day partition(biz_date,project_id,bag_id)
+select
+  is_allbag,
+  dpd,
+  remain_principal,
+  overdue_remain_principal,
+  overdue_remain_principal_new,
+  overdue_remain_principal_once,
+  bag_due_num,
+  overdue_num,
+  overdue_num_new,
+  overdue_num_once,
+  bag_due_person_num,
+  overdue_person_num,
+  overdue_person_num_new,
+  overdue_person_num_once,
+  biz_date,
+  project_id,
+  bag_id
+from dm_eagle.del_abs_overdue_rate_day;
 
 
+drop table dm_eagle.del_abs_overdue_rate_day;
+ALTER TABLE dm_eagle.abs_overdue_rate_day RENAME TO dm_eagle.del_abs_overdue_rate_day;
 
 
 

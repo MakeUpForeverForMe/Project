@@ -1352,7 +1352,9 @@ CREATE VIEW IF NOT EXISTS `ods.t_05_repaymentplan`(
   `effective_date`                     COMMENT '生效日期',
   `repay_status`                       COMMENT '还款状态（1：入池前已还，2：入池前未还）',
   `import_id`                          COMMENT '导入Id',
-  `data_source`                        COMMENT '数据来源（1：startLink，2：excelImport，3：systemgenerated）'
+  `data_source`                        COMMENT '数据来源（1：startLink，2：excelImport，3：systemgenerated）',
+  `s_d_date`                           comment '数据开始日期',
+  `e_d_date`                           comment '拉链表结日期'
 ) COMMENT '还款计划表-文件五' as select
   project_id                                                                                  as project_id,
   due_bill_no                                                                                 as serial_number,
@@ -1364,7 +1366,9 @@ CREATE VIEW IF NOT EXISTS `ods.t_05_repaymentplan`(
   effective_date                                                                              as effective_date,
   repay_status                                                                                as repay_status,
   import_id                                                                                   as import_id,
-  data_source                                                                                 as data_source
+  data_source                                                                                 as data_source,
+  s_d_date                                                                                    as s_d_date,
+  e_d_date                                                                                    as e_d_date
 from (
   select
     project_id as dim_project_id,
@@ -1375,7 +1379,7 @@ join (
   select
     *
   from ods.repay_schedule_abs
-  where effective_date = s_d_date
+  --where effective_date = s_d_date
 ) as repay_schedule_abs
 on dim_project_id = project_id;
 

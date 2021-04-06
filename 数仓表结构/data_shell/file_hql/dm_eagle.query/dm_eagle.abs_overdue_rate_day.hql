@@ -173,22 +173,22 @@ loan_due as ( -- 将符合条件的dpd数据做行列转换
 insert overwrite table dm_eagle.abs_overdue_rate_day partition(biz_date,project_id,bag_id)
 select
   denominator.is_allbag                               as is_allbag,
-  denominator.dpd_x                                   as dpd_x,
+  denominator.dpd_x                                   as dpd,
 
   denominator.remain_principal                        as remain_principal,
-  nvl(molecular_once.overdue_remain_principal_once,0) as overdue_remain_principal_once,
   nvl(molecular_curr.overdue_remain_principal,0)      as overdue_remain_principal,
   nvl(molecular_new.overdue_remain_principal_new,0)   as overdue_remain_principal_new,
+  nvl(molecular_once.overdue_remain_principal_once,0) as overdue_remain_principal_once,
 
   denominator.bag_due_num                             as bag_due_num,
-  nvl(molecular_once.overdue_num_once,0)              as overdue_num_once,
   nvl(molecular_curr.overdue_num,0)                   as overdue_num,
   nvl(molecular_new.overdue_num_new,0)                as overdue_num_new,
+  nvl(molecular_once.overdue_num_once,0)              as overdue_num_once,
 
   denominator.bag_due_person_num                      as bag_due_person_num,
-  nvl(molecular_once.overdue_person_num_once,0)       as overdue_person_num_once,
   nvl(molecular_curr.overdue_person_num,0)            as overdue_person_num,
   nvl(molecular_new.overdue_person_num_new,0)         as overdue_person_num_new,
+  nvl(molecular_once.overdue_person_num_once,0)       as overdue_person_num_once,
 
   '${ST9}'                                            as biz_date,
   denominator.project_id                              as project_id,
