@@ -68,7 +68,7 @@ SELECT
     should_repay_penalty,
     if(schedule_status = 'F','F','N') AS is_settled     
 FROM
-    ods_new_s_cps.repay_schedule 
+    ods_cps.repay_schedule
 WHERE
     '${ST9}' BETWEEN s_d_date 
     AND date_sub( e_d_date, 1 )
@@ -76,13 +76,19 @@ WHERE
     ) t1 
     join
 (
-    SELECT 
-    DISTINCT 
-    product_id, 
-    channel_id, 
-    project_id
-    FROM 
-    dim_new.biz_conf
+    select distinct
+         channel_id,
+         project_id,
+         product_id
+         from (
+           select
+             max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
+             max(if(col_name = 'project_id',   col_val,null)) as project_id,
+             max(if(col_name = 'product_id',   col_val,null)) as product_id
+           from dim.data_conf
+           where col_type = 'ac'
+           group by col_id
+       )tmp
     where 
     project_id in ('WS0009200001','WS0006200001','WS0006200002','WS0006200003')) t2
     on t1.product_id = t2.product_id

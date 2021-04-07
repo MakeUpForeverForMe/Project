@@ -62,12 +62,13 @@ public class AssetFileToHive {
             return;
         }
         String rowType = getRowType(json);
-        //对于债转的project_due_bill_no文件,需要提前解析出import_id
+        //对于债转的project_due_bill_no文件,需要提前解析出import_id44
         String importId = null;
         if("project_due_bill_no".equals(fileName)) importId = getImportId(json);
         LOGGER.info("========== row_type : " + rowType);
         SparkSession sparkSession =
                 SparkSession.builder().appName("AssetFileToHive : " + fileName + "@" + fileId)
+                    .config("hive.execution.engine","spark")
 //                .master("local[2]")
                 .enableHiveSupport()
                 .getOrCreate();

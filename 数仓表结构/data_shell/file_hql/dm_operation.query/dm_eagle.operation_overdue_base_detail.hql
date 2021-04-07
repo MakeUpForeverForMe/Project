@@ -77,11 +77,27 @@ from
         overdue_term,overdue_principal,overdue_interest,
         overdue_svc_fee,overdue_term_fee,overdue_penalty,overdue_mult_amt,
         remain_amount,remain_principal,remain_interest,remain_svc_fee,remain_term_fee
-    from ods_new_s.loan_info where '${ST9}' between s_d_date and date_sub(e_d_date,1)
+    from ods.loan_info where '${ST9}' between s_d_date and date_sub(e_d_date,1)
     and overdue_days > 0
 ) loan
 inner join
-(select * from dim_new.biz_conf where project_id in ('WS0009200001','WS0006200001','WS0006200002',
+(select distinct
+         channel_id,
+         project_id,
+         product_id,
+         product_name,
+         project_name
+         from (
+           select
+             max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
+             max(if(col_name = 'project_id',   col_val,null)) as project_id,
+             max(if(col_name = 'product_id',   col_val,null)) as product_id,
+             max(if(col_name = 'product_name',   col_val,null)) as product_name,
+             max(if(col_name = 'project_name',   col_val,null)) as project_name
+           from dim.data_conf
+           where col_type = 'ac'
+           group by col_id
+        )tmp where project_id in ('WS0009200001','WS0006200001','WS0006200002',
 'WS0006200003','bd')) biz
 on loan.product_id = biz.product_id
 left join ods_new_s.loan_lending lending
@@ -91,6 +107,6 @@ left join
     select
         due_bill_no as due_bill_no_cps,remain_amount as remain_amount_cps,remain_principal as remain_principal_cps
         ,remain_interest as remain_interest_cps,remain_svc_fee as remain_svc_fee_cps,remain_term_fee as remain_term_fee_cps
-    from ods_new_s_cps.loan_info where '${ST9}' between s_d_date and date_sub(e_d_date,1)
+    from ods_cps.loan_info where '${ST9}' between s_d_date and date_sub(e_d_date,1)
 ) loan_cps
 on loan.due_bill_no = loan_cps.due_bill_no_cps;

@@ -14,11 +14,11 @@ set hive.exec.max.dynamic.partitions.pernode=50000;
 set hive.vectorized.execution.enabled=false;
 set hive.vectorized.execution.reduce.enabled=false;
 set hive.vectorized.execution.reduce.groupby.enabled=false;
+set hive.groupby.orderby.position.alias=true;
 
 
 
-
--- insert overwrite table dm_eagle${db_suffix}.eagle_asset_scale_repaid_day partition (biz_date,product_id)
+ insert overwrite table dm_eagle${db_suffix}.eagle_asset_scale_repaid_day partition (biz_date,product_id)
 select
   capital_id                                                                             as capital_id,
   channel_id                                                                             as channel_id,
@@ -45,23 +45,28 @@ select
 from dw${db_suffix}.dw_loan_base_stat_repay_detail_day as repay_detail
 join (
   select distinct
-    product_id as dim_product_id,
-    channel_id
-  from (
-    select
-      max(if(col_name = 'capital_id',   col_val,null)) as capital_id,
-      max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
-      max(if(col_name = 'project_id',   col_val,null)) as project_id,
-      max(if(col_name = 'product_id_vt',col_val,null)) as product_id_vt,
-      max(if(col_name = 'product_id',   col_val,null)) as product_id
-    from dim.data_conf
-    where col_type = 'ac'
-    group by col_id
-  ) as tmp
+       capital_id,
+       channel_id,
+       project_id,
+       product_id_vt,
+       product_id
+       from (
+         select
+           max(if(col_name = 'capital_id',   col_val,null)) as capital_id,
+           max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
+           max(if(col_name = 'project_id',   col_val,null)) as project_id,
+           max(if(col_name = 'product_id_vt',col_val,null)) as product_id_vt,
+           max(if(col_name = 'product_id',   col_val,null)) as product_id
+         from dim.data_conf
+         where col_type = 'ac'
+         group by col_id
+         )tmp
+  where 1 > 0
+    and product_id_vt is not null
 ) as biz_conf
 on  repay_detail.product_id = biz_conf.product_id
 and repay_detail.biz_date = '${ST9}'
 and biz_conf.product_id${vt} is not null
 group by capital_id,channel_id,project_id,loan_terms,biz_date,biz_conf.product_id${vt}
-limit 10
+--limit 10
 ;

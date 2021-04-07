@@ -51,7 +51,7 @@ distinct
 due_bill_no
 ,cust_id 
 from 
-ods_new_s.loan_apply) a
+ods.loan_apply) a
 left join
 (
 select 
@@ -64,12 +64,12 @@ distinct
 cust_id,
 name
 from
-ods_new_s.customer_info) c
+ods.customer_info) c
 left join
 (select  
    dim_encrypt
   ,dim_decrypt  
-  from dim_new.dim_encrypt_info 
+  from dim.dim_encrypt_info
   where dim_type = 'userName'
 group by  
 dim_encrypt
@@ -103,7 +103,7 @@ FROM
 (
 SELECT 
 *
-FROM ods_new_s_cps.repay_schedule
+FROM ods_cps.repay_schedule
 WHERE '${ST9}' BETWEEN s_d_date AND date_sub(e_d_date, 1)
 ) t1
 LEFT JOIN 
@@ -111,16 +111,23 @@ LEFT JOIN
 due_bill_no, 
 contract_no
 from 
-ods_new_s_cps.loan_lending
+ods_cps.loan_lending
 ) t2
 ON t1.due_bill_no = t2.due_bill_no
  JOIN 
-(SELECT 
-DISTINCT 
-product_id, 
-channel_id, 
-project_id
-FROM dim_new.biz_conf
+(select distinct
+         channel_id,
+         project_id,
+         product_id
+         from (
+           select
+             max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
+             max(if(col_name = 'project_id',   col_val,null)) as project_id,
+             max(if(col_name = 'product_id',   col_val,null)) as product_id
+           from dim.data_conf
+           where col_type = 'ac'
+           group by col_id
+       )tmp
 where project_id in ('WS0009200001','WS0006200001','WS0006200002','WS0006200003')
 ) t3
 ON t1.product_id = t3.product_id
@@ -150,7 +157,7 @@ FROM
 (
 SELECT
 *
-FROM ods_new_s.repay_schedule
+FROM ods.repay_schedule
 WHERE '${ST9}' BETWEEN s_d_date AND date_sub(e_d_date, 1)
 ) t1
 LEFT JOIN
@@ -158,16 +165,23 @@ LEFT JOIN
 due_bill_no,
 contract_no
 from
-ods_new_s.loan_lending
+ods.loan_lending
 ) t2
 ON t1.due_bill_no = t2.due_bill_no
  JOIN
-(SELECT
-DISTINCT
-product_id,
-channel_id,
-project_id
-FROM dim_new.biz_conf
+(select distinct
+         channel_id,
+         project_id,
+         product_id
+         from (
+           select
+             max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
+             max(if(col_name = 'project_id',   col_val,null)) as project_id,
+             max(if(col_name = 'product_id',   col_val,null)) as product_id
+           from dim.data_conf
+           where col_type = 'ac'
+           group by col_id
+       )tmp
 where project_id in ('bd')
 ) t3
 ON t1.product_id = t3.product_id

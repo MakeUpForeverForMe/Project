@@ -54,15 +54,16 @@ public class ProjectDueBillNoImpl implements AssetFiles, Serializable {
     public void insertData(Dataset<String> dataset, SparkSession sparkSession, String fileId) {
         Dataset<ProjectDueBillNo> processDS = process(dataset);
         processDS.registerTempTable("temp_dim_project_due_bill_no");
-        sparkSession.sql("insert into table dim.project_due_bill_no partition(project_id='" + fileId + "') " +
+        sparkSession.sql("insert into table dim.project_due_bill_no partition(project_id='" + fileId + "',import_id) " +
                 "select " +
                 "temp.dueBillNo, " +
                 "temp.relatedProjectId, " +
                 "temp.relatedDate, " +
-                "loan.product_id as partition_id " +
+                "loan.product_id as partition_id, " +
+                "temp.importId " +
                 "from temp_dim_project_due_bill_no temp " +
-                "inner join " +
-                "(select product_id,due_bill_no from ods.loan_info_cloud group by product_id, " +
+                "left join " +
+                "(select product_id,due_bill_no from ods.loan_info_abs group by product_id, " +
                 "due_bill_no) loan " +
                 "on temp.dueBillNo = loan.due_bill_no ");
     }
@@ -71,15 +72,15 @@ public class ProjectDueBillNoImpl implements AssetFiles, Serializable {
     public void updateData(Dataset<String> dataset, SparkSession sparkSession, String fileId) {
         Dataset<ProjectDueBillNo> processDS = process(dataset);
         processDS.registerTempTable("temp_dim_project_due_bill_no");
-        sparkSession.sql("insert overwrite table dim.project_due_bill_no partition(project_id='" + fileId + "') " +
+        sparkSession.sql("insert overwrite table dim.project_due_bill_no partition(project_id='" + fileId + "',import_id) " +
                 "select " +
                 "temp.dueBillNo, " +
                 "temp.relatedProjectId, " +
                 "temp.relatedDate, " +
                 "loan.product_id as partition_id " +
                 "from temp_dim_project_due_bill_no temp " +
-                "inner join " +
-                "(select product_id,due_bill_no from ods.loan_info_cloud group by product_id, " +
+                "left join " +
+                "(select product_id,due_bill_no from ods.loan_info_abs group by product_id, " +
                 "due_bill_no) loan " +
                 "on temp.dueBillNo = loan.due_bill_no ");
     }

@@ -52,23 +52,29 @@ SELECT
     count( t1.due_bill_no ) AS loan_num,
     sum( nvl ( t3.loan_init_principal, 0 ) ) AS loan_principal
 FROM
-    ods_new_s_cps.loan_lending t1
-     JOIN (SELECT 
-           DISTINCT 
-           product_id, 
-           channel_id, 
-           project_id
-           FROM 
-           dim_new.biz_conf
-           where 
-           project_id in ('WS0009200001','WS0006200001','WS0006200002','WS0006200003')
+    ods_cps.loan_lending t1
+     JOIN (
+       select distinct
+         channel_id,
+         project_id,
+         product_id
+         from (
+           select
+             max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
+             max(if(col_name = 'project_id',   col_val,null)) as project_id,
+             max(if(col_name = 'product_id',   col_val,null)) as product_id
+           from dim.data_conf
+           where col_type = 'ac'
+           group by col_id
+        )tmp
+         where project_id in ('WS0009200001','WS0006200001','WS0006200002','WS0006200003')
     ) t2 
     ON t1.product_id = t2.product_id
     left join
     (select
         due_bill_no,
         loan_init_principal
-     from ods_new_s_cps.loan_info where '${ST9}' between s_d_date and date_sub(e_d_date,1)
+     from ods_cps.loan_info where '${ST9}' between s_d_date and date_sub(e_d_date,1)
     ) t3
     on t1.due_bill_no = t3.due_bill_no
 GROUP BY
@@ -98,23 +104,28 @@ SELECT
     count( t1.due_bill_no ) AS loan_num,
     sum( nvl ( t3.loan_init_principal, 0 ) ) AS loan_principal
 FROM
-    ods_new_s.loan_lending t1
-     JOIN (SELECT
-           DISTINCT
-           product_id,
-           channel_id,
-           project_id
-           FROM
-           dim_new.biz_conf
-           where
-           project_id in ('bd')
+    ods.loan_lending t1
+     JOIN (
+        select distinct
+         channel_id,
+         project_id,
+         product_id
+         from (
+           select
+             max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
+             max(if(col_name = 'project_id',   col_val,null)) as project_id,
+             max(if(col_name = 'product_id',   col_val,null)) as product_id
+           from dim.data_conf
+           where col_type = 'ac'
+           group by col_id
+        )tmp where project_id in ('bd')
     ) t2
     ON t1.product_id = t2.product_id
     left join
     (select
         due_bill_no,
         loan_init_principal
-     from ods_new_s.loan_info where '${ST9}' between s_d_date and date_sub(e_d_date,1)
+     from ods.loan_info where '${ST9}' between s_d_date and date_sub(e_d_date,1)
     ) t3
     on t1.due_bill_no = t3.due_bill_no
 GROUP BY

@@ -1,13 +1,24 @@
-set spark.executor.memory=4g;
-set spark.executor.memoryOverhead=4g;
-set spark.shuffle.memoryFraction=0.6;
-set spark.maxRemoteBlockSizeFetchToMem=4G;
-set hive.auto.convert.join=false;
+set hive.exec.input.listing.max.threads=50;
+set tez.grouping.min-size=50000000;
+set tez.grouping.max-size=50000000;
+set hive.exec.reducers.max=500;
+set hive.groupby.orderby.position.alias=true;
+-- 设置 Container 大小
+set hive.tez.container.size=4096;
+set tez.am.resource.memory.mb=4096;
+-- 合并小文件
+set hive.merge.tezfiles=true;
+set hive.merge.size.per.task=64000000;      -- 64M
+set hive.merge.smallfiles.avgsize=64000000; -- 64M
+-- 设置动态分区
 set hive.exec.dynamic.partition=true;
 set hive.exec.dynamic.partition.mode=nonstrict;
-set hive.exec.max.dynamic.partitions=30000;
-set hive.exec.max.dynamic.partitions.pernode=10000;
-set hive.groupby.orderby.position.alias=true;
+set hive.exec.max.dynamic.partitions=200000;
+set hive.exec.max.dynamic.partitions.pernode=50000;
+-- 禁用 Hive 矢量执行
+set hive.vectorized.execution.enabled=false;
+set hive.vectorized.execution.reduce.enabled=false;
+set hive.vectorized.execution.reduce.groupby.enabled=false;
 
 
 
@@ -36,8 +47,26 @@ from (
     sum(remain_principal)                               as remain_principal,
     date_format(biz_date,'yyyy-MM')                     as biz_month,
     biz_conf.product_id${vt}                            as product_id
-  from dw_new${db_suffix}.dw_loan_base_stat_overdue_num_day as overdue_num
-  join dim_new.biz_conf
+  from dw${db_suffix}.dw_loan_base_stat_overdue_num_day as overdue_num
+  join (
+    select distinct
+           capital_id,
+           channel_id,
+           project_id,
+           product_id_vt ,
+           product_id
+           from (
+                 select
+                   max(if(col_name = 'capital_id',   col_val,null)) as capital_id,
+                   max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
+                   max(if(col_name = 'project_id',   col_val,null)) as project_id,
+                   max(if(col_name = 'product_id_vt',col_val,null)) as product_id_vt,
+                   max(if(col_name = 'product_id',   col_val,null)) as product_id
+                 from dim.data_conf
+                 where col_type = 'ac'
+                 group by col_id
+        )tmp
+    )biz_conf
   on  overdue_num.product_id = biz_conf.product_id
   and overdue_num.biz_date = '${ST9}'
   and overdue_num.overdue_mob <= 12
@@ -52,8 +81,26 @@ left join (
     date_format(biz_date,'yyyy-MM') as loan_month_loan_num,
     sum(loan_principal)             as loan_principal,
     biz_conf.product_id${vt}        as product_id_loan_num
-  from dw_new${db_suffix}.dw_loan_base_stat_loan_num_day as loan_num
-  join dim_new.biz_conf
+  from dw${db_suffix}.dw_loan_base_stat_loan_num_day as loan_num
+   join (
+    select distinct
+           capital_id,
+           channel_id,
+           project_id,
+           product_id_vt ,
+           product_id
+           from (
+                 select
+                   max(if(col_name = 'capital_id',   col_val,null)) as capital_id,
+                   max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
+                   max(if(col_name = 'project_id',   col_val,null)) as project_id,
+                   max(if(col_name = 'product_id_vt',col_val,null)) as product_id_vt,
+                   max(if(col_name = 'product_id',   col_val,null)) as product_id
+                 from dim.data_conf
+                 where col_type = 'ac'
+                 group by col_id
+        )tmp
+    )biz_conf
   on  loan_num.product_id = biz_conf.product_id
   and loan_num.biz_date <= '${ST9}'
   and biz_conf.product_id${vt} is not null

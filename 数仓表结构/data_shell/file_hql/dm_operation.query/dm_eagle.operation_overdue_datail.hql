@@ -93,20 +93,26 @@ FROM (
     SELECT 
     *
     FROM 
-    ods_new_s_cps.loan_info
+    ods_cps.loan_info
     WHERE 
     '${ST9}' BETWEEN s_d_date AND date_sub(e_d_date, 1)
     and overdue_days > 0
 ) t1
-     JOIN (    
-    SELECT 
-    DISTINCT 
-    product_id, 
-    channel_id,
-    project_id
-    FROM 
-    dim_new.biz_conf
-    where project_id in ('WS0009200001','WS0006200001','WS0006200002','WS0006200003')
+     JOIN (
+     select distinct
+         channel_id,
+         project_id,
+         product_id
+         from (
+           select
+             max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
+             max(if(col_name = 'project_id',   col_val,null)) as project_id,
+             max(if(col_name = 'product_id',   col_val,null)) as product_id
+           from dim.data_conf
+           where col_type = 'ac'
+           group by col_id
+       )tmp
+        where project_id in ('WS0009200001','WS0006200001','WS0006200002','WS0006200003')
     ) t2
     ON t1.product_id = t2.product_id
 left join
@@ -117,7 +123,7 @@ left join
     ,loan_expire_date
     ,cycle_day
     from
-    ods_new_s_cps.loan_lending) t3
+    ods_cps.loan_lending) t3
     on t1.due_bill_no = t3.due_bill_no
 union all
 select
@@ -166,19 +172,25 @@ FROM (
     SELECT
     *
     FROM
-    ods_new_s.loan_info
+    ods.loan_info
     WHERE
     '${ST9}' BETWEEN s_d_date AND date_sub(e_d_date, 1)
     and overdue_days > 0
 ) t1
      JOIN (
-    SELECT
-    DISTINCT
-    product_id,
-    channel_id,
-    project_id
-    FROM
-    dim_new.biz_conf
+   select distinct
+         channel_id,
+         project_id,
+         product_id
+         from (
+           select
+             max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
+             max(if(col_name = 'project_id',   col_val,null)) as project_id,
+             max(if(col_name = 'product_id',   col_val,null)) as product_id
+           from dim.data_conf
+           where col_type = 'ac'
+           group by col_id
+       )tmp
     where project_id in ('bd')
     ) t2
     ON t1.product_id = t2.product_id
@@ -190,7 +202,7 @@ left join
     ,loan_expire_date
     ,cycle_day
     from
-    ods_new_s.loan_lending) t3
+    ods.loan_lending) t3
     on t1.due_bill_no = t3.due_bill_no
 ;
 

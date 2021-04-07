@@ -1,15 +1,24 @@
-set spark.executor.memory=4g;
-set spark.executor.memoryOverhead=4g;
-set spark.shuffle.memoryFraction=0.6;         -- shuffle操作的内存占比
-set spark.maxRemoteBlockSizeFetchToMem=200m;
-set hive.auto.convert.join=false;             -- 关闭自动 MapJoin
-set hive.mapjoin.optimized.hashtable=false;
-set hive.mapjoin.followby.gby.localtask.max.memory.usage=0.9;
+set hive.exec.input.listing.max.threads=50;
+set tez.grouping.min-size=50000000;
+set tez.grouping.max-size=50000000;
+set hive.exec.reducers.max=500;
+set hive.groupby.orderby.position.alias=true;
+-- 设置 Container 大小
+set hive.tez.container.size=4096;
+set tez.am.resource.memory.mb=4096;
+-- 合并小文件
+set hive.merge.tezfiles=true;
+set hive.merge.size.per.task=64000000;      -- 64M
+set hive.merge.smallfiles.avgsize=64000000; -- 64M
+-- 设置动态分区
 set hive.exec.dynamic.partition=true;
 set hive.exec.dynamic.partition.mode=nonstrict;
-set hive.exec.max.dynamic.partitions=30000;
-set hive.exec.max.dynamic.partitions.pernode=10000;
-
+set hive.exec.max.dynamic.partitions=200000;
+set hive.exec.max.dynamic.partitions.pernode=50000;
+-- 禁用 Hive 矢量执行
+set hive.vectorized.execution.enabled=false;
+set hive.vectorized.execution.reduce.enabled=false;
+set hive.vectorized.execution.reduce.groupby.enabled=false;
 
 
 insert overwrite table dm_eagle.eagle_asset_change_comp_t1 partition(biz_date)
@@ -24,7 +33,25 @@ select distinct
   a.today_remain_sum,
   a.d_date
 from dm.dm_watch_asset_change_comp_t1 as a
-left join dim_new.biz_conf as b
+left join (
+ select distinct
+       capital_id,
+       channel_id,
+       project_id,
+       product_id_vt,
+       product_id
+       from (
+             select
+               max(if(col_name = 'capital_id',   col_val,null)) as capital_id,
+               max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
+               max(if(col_name = 'project_id',   col_val,null)) as project_id,
+               max(if(col_name = 'product_id_vt',col_val,null)) as product_id_vt,
+               max(if(col_name = 'product_id',   col_val,null)) as product_id
+             from dim.data_conf
+             where col_type = 'ac'
+             group by col_id
+       )tmp
+) as b
 on a.project_id = b.project_id
 ;
 
@@ -41,7 +68,25 @@ select distinct
   a.today_remain_sum,
   a.d_date
 from dm.dm_watch_asset_change_t1 as a
-left join dim_new.biz_conf as b
+left join (
+ select distinct
+       capital_id,
+       channel_id,
+       project_id,
+       product_id_vt,
+       product_id
+       from (
+             select
+               max(if(col_name = 'capital_id',   col_val,null)) as capital_id,
+               max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
+               max(if(col_name = 'project_id',   col_val,null)) as project_id,
+               max(if(col_name = 'product_id_vt',col_val,null)) as product_id_vt,
+               max(if(col_name = 'product_id',   col_val,null)) as product_id
+             from dim.data_conf
+             where col_type = 'ac'
+             group by col_id
+       )tmp
+) as b
 on a.project_id = b.project_id
 ;
 
@@ -58,7 +103,25 @@ select distinct
   a.today_remain_sum,
   a.d_date
 from dm.dm_watch_asset_change_comp as a
-left join dim_new.biz_conf as b
+left join (
+ select distinct
+       capital_id,
+       channel_id,
+       project_id,
+      product_id_vt,
+       product_id
+       from (
+             select
+               max(if(col_name = 'capital_id',   col_val,null)) as capital_id,
+               max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
+               max(if(col_name = 'project_id',   col_val,null)) as project_id,
+               max(if(col_name = 'product_id_vt',col_val,null)) as product_id_vt,
+               max(if(col_name = 'product_id',   col_val,null)) as product_id
+             from dim.data_conf
+             where col_type = 'ac'
+             group by col_id
+       )tmp
+) as b
 on a.project_id = b.project_id
 ;
 
@@ -74,7 +137,25 @@ select distinct
   a.today_remain_sum,
   a.d_date
 from dm.dm_watch_asset_change as a
-left join dim_new.biz_conf as b
+left join (
+ select distinct
+       capital_id,
+       channel_id,
+       project_id,
+       product_id_vt,
+       product_id
+       from (
+             select
+               max(if(col_name = 'capital_id',   col_val,null)) as capital_id,
+               max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
+               max(if(col_name = 'project_id',   col_val,null)) as project_id,
+               max(if(col_name = 'product_id_vt',col_val,null)) as product_id_vt,
+               max(if(col_name = 'product_id',   col_val,null)) as product_id
+             from dim.data_conf
+             where col_type = 'ac'
+             group by col_id
+    )tmp
+) as b
 on a.project_id = b.project_id
 ;
 
@@ -90,7 +171,25 @@ select distinct
   a.trade_today_bal,
   a.d_date
 from dm.dm_watch_unreach_funds as a
-left join dim_new.biz_conf as b
+left join (
+ select distinct
+       capital_id,
+       channel_id,
+       project_id,
+       product_id_vt,
+       product_id
+       from (
+             select
+               max(if(col_name = 'capital_id',   col_val,null)) as capital_id,
+               max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
+               max(if(col_name = 'project_id',   col_val,null)) as project_id,
+               max(if(col_name = 'product_id_vt',col_val,null)) as product_id_vt,
+               max(if(col_name = 'product_id',   col_val,null)) as product_id
+             from dim.data_conf
+             where col_type = 'ac'
+             group by col_id
+       )tmp
+) as b
 on a.project_id = b.project_id
 ;
 
@@ -106,7 +205,25 @@ select distinct
   a.amount,
   a.d_date
 from dm.dm_watch_asset_comp_info as a
-left join dim_new.biz_conf as b
+left join (
+ select distinct
+       capital_id,
+       channel_id,
+       project_id,
+       product_id_vt,
+       product_id
+       from (
+             select
+               max(if(col_name = 'capital_id',   col_val,null)) as capital_id,
+               max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
+               max(if(col_name = 'project_id',   col_val,null)) as project_id,
+               max(if(col_name = 'product_id_vt',col_val,null)) as product_id_vt,
+               max(if(col_name = 'product_id',   col_val,null)) as product_id
+             from dim.data_conf
+             where col_type = 'ac'
+             group by col_id
+       )tmp
+) as b
 on a.project_id = b.project_id
 ;
 
@@ -121,7 +238,25 @@ select distinct
   a.amount,
   a.d_date
 from dm.dm_watch_acct_cost as a
-left join dim_new.biz_conf as b
+left join (
+ select distinct
+       capital_id,
+       channel_id,
+       project_id,
+       product_id_vt,
+       product_id
+       from (
+             select
+               max(if(col_name = 'capital_id',   col_val,null)) as capital_id,
+               max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
+               max(if(col_name = 'project_id',   col_val,null)) as project_id,
+               max(if(col_name = 'product_id_vt',col_val,null)) as product_id_vt,
+               max(if(col_name = 'product_id',   col_val,null)) as product_id
+             from dim.data_conf
+             where col_type = 'ac'
+             group by col_id
+       )tmp
+) as b
 on a.project_id = b.project_id
 ;
 
@@ -140,7 +275,25 @@ select distinct
   a.trade_today_bal,
   a.d_date
 from dm.dm_watch_funds as a
-left join dim_new.biz_conf as b
+left join (
+ select distinct
+       capital_id,
+       channel_id,
+       project_id,
+       product_id_vt,
+       product_id
+       from (
+             select
+               max(if(col_name = 'capital_id',   col_val,null)) as capital_id,
+               max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
+               max(if(col_name = 'project_id',   col_val,null)) as project_id,
+               max(if(col_name = 'product_id_vt',col_val,null)) as product_id_vt,
+               max(if(col_name = 'product_id',   col_val,null)) as product_id
+             from dim.data_conf
+             where col_type = 'ac'
+             group by col_id
+       )tmp
+) as b
 on a.project_id = b.project_id
 ;
 
@@ -155,7 +308,25 @@ select distinct
   a.amount,
   a.d_date
 from dm.dm_watch_repayment_detail as a
-left join dim_new.biz_conf as b
+left join (
+ select distinct
+       capital_id,
+       channel_id,
+       project_id,
+       product_id_vt,
+       product_id
+       from (
+             select
+               max(if(col_name = 'capital_id',   col_val,null)) as capital_id,
+               max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
+               max(if(col_name = 'project_id',   col_val,null)) as project_id,
+               max(if(col_name = 'product_id_vt',col_val,null)) as product_id_vt,
+               max(if(col_name = 'product_id',   col_val,null)) as product_id
+             from dim.data_conf
+             where col_type = 'ac'
+             group by col_id
+       )tmp
+) as b
 on a.project_id = b.project_id
 ;
 

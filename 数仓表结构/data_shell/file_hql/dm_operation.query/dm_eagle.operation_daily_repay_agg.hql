@@ -66,7 +66,7 @@ due_bill_no
 ,sum(if(bnp_type_cn = '利息', nvl(repay_amount,0),0)) as paid_interest
 ,0 as paid_fee
 ,sum(if(bnp_type_cn = '罚息', nvl(repay_amount,0),0)) as paid_penalty
-from ods_new_s_cps.repay_detail 
+from ods_cps.repay_detail
 group by 
 due_bill_no
 ,biz_date
@@ -82,7 +82,7 @@ left join
  repay_way,
  purpose
  from
- ods_new_s_cps.order_info
+ ods_cps.order_info
  where 
  order_id is not null
  and purpose != '放款申请'
@@ -96,7 +96,7 @@ distinct
 due_bill_no,
 loan_term,
 paid_out_date  
-FROM ods_new_s_cps.repay_schedule 
+FROM ods_cps.repay_schedule
 WHERE 
 '${ST9}' BETWEEN s_d_date AND date_sub( e_d_date, 1 )
 and paid_out_date is not null
@@ -104,16 +104,22 @@ and paid_out_date is not null
 on a.due_bill_no = c.due_bill_no
 and a.repay_term = c.loan_term
 join
-(SELECT 
-    DISTINCT 
-    product_id, 
-    channel_id, 
-    project_id
-    FROM 
-    dim_new.biz_conf
-    where 
-    project_id in ('WS0009200001','WS0006200001','WS0006200002','WS0006200003')
-    ) d
+(
+    select distinct
+         channel_id,
+         project_id,
+         product_id
+         from (
+           select
+             max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
+             max(if(col_name = 'project_id',   col_val,null)) as project_id,
+             max(if(col_name = 'product_id',   col_val,null)) as product_id
+           from dim.data_conf
+           where col_type = 'ac'
+           group by col_id
+        )tmp
+        where  project_id in ('WS0009200001','WS0006200001','WS0006200002','WS0006200003')
+   ) d
 on a.product_id = d.product_id
 group by
 a.product_id
@@ -161,7 +167,7 @@ due_bill_no
 ,sum(if(bnp_type_cn = '利息', nvl(repay_amount,0),0)) as paid_interest
 ,0 as paid_fee
 ,sum(if(bnp_type_cn = '罚息', nvl(repay_amount,0),0)) as paid_penalty
-from ods_new_s.repay_detail
+from ods.repay_detail
 group by
 due_bill_no
 ,biz_date
@@ -177,7 +183,7 @@ left join
  repay_way,
  purpose
  from
- ods_new_s.order_info
+ ods.order_info
  where
  order_id is not null
  and purpose != '放款申请'
@@ -191,7 +197,7 @@ distinct
 due_bill_no,
 loan_term,
 paid_out_date
-FROM ods_new_s.repay_schedule
+FROM ods.repay_schedule
 WHERE
 '${ST9}' BETWEEN s_d_date AND date_sub( e_d_date, 1 )
 and paid_out_date is not null
@@ -199,15 +205,21 @@ and paid_out_date is not null
 on a.due_bill_no = c.due_bill_no
 and a.repay_term = c.loan_term
 join
-(SELECT
-    DISTINCT
-    product_id,
-    channel_id,
-    project_id
-    FROM
-    dim_new.biz_conf
-    where
-    project_id in ('bd')
+(
+ select distinct
+         channel_id,
+         project_id,
+         product_id
+         from (
+           select
+             max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
+             max(if(col_name = 'project_id',   col_val,null)) as project_id,
+             max(if(col_name = 'product_id',   col_val,null)) as product_id
+           from dim.data_conf
+           where col_type = 'ac'
+           group by col_id
+        )tmp
+        where  project_id in ('bd')
     ) d
 on a.product_id = d.product_id
 group by

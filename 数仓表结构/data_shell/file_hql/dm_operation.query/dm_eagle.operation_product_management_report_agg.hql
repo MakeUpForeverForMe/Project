@@ -75,20 +75,26 @@ from
 SELECT 
 * 
 FROM 
-ods_new_s_cps.loan_info 
+ods_cps.loan_info
 WHERE 
 '${ST9}' BETWEEN s_d_date AND date_sub(e_d_date, 1)
 ) t1
  join
-(SELECT 
-DISTINCT 
-product_id, 
-channel_id, 
-project_id
-FROM 
-dim_new.biz_conf
-where 
-project_id in ('WS0009200001','WS0006200001','WS0006200002','WS0006200003') 
+(
+        select distinct
+         channel_id,
+         project_id,
+         product_id
+         from (
+           select
+             max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
+             max(if(col_name = 'project_id',   col_val,null)) as project_id,
+             max(if(col_name = 'product_id',   col_val,null)) as product_id
+           from dim.data_conf
+           where col_type = 'ac'
+           group by col_id
+       )tmp
+    where project_id in ('WS0009200001','WS0006200001','WS0006200002','WS0006200003')
 ) t2 
 on t1.product_id = t2.product_id
 group by
@@ -128,20 +134,26 @@ from
 SELECT
 *
 FROM
-ods_new_s.loan_info
+ods.loan_info
 WHERE
 '${ST9}' BETWEEN s_d_date AND date_sub(e_d_date, 1)
 ) t1
  join
-(SELECT
-DISTINCT
-product_id,
-channel_id,
-project_id
-FROM
-dim_new.biz_conf
-where
-project_id in ('bd')
+(
+    select distinct
+         channel_id,
+         project_id,
+         product_id
+         from (
+           select
+             max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
+             max(if(col_name = 'project_id',   col_val,null)) as project_id,
+             max(if(col_name = 'product_id',   col_val,null)) as product_id
+           from dim.data_conf
+           where col_type = 'ac'
+           group by col_id
+       )tmp
+    where project_id in ('bd')
 ) t2
 on t1.product_id = t2.product_id
 group by

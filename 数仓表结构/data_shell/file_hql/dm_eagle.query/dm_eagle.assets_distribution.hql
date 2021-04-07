@@ -1,19 +1,24 @@
-set yarn.app.mapreduce.am.resource.mb=8192;
-set yarn.app.mapreduce.am.command-opts=-Xmx4096m;
-
-set hive.execution.engine=mr;
-set mapreduce.map.memory.mb=8192;
-set mapreduce.reduce.memory.mb=8192;
-set mapreduce.map.java.opts=-Xmx4096m;
-set mapreduce.reduce.java.opts=-Xmx4096m;
-
+set hive.exec.input.listing.max.threads=50;
+set tez.grouping.min-size=50000000;
+set tez.grouping.max-size=50000000;
+set hive.exec.reducers.max=500;
+set hive.groupby.orderby.position.alias=true;
+-- 设置 Container 大小
+set hive.tez.container.size=4096;
+set tez.am.resource.memory.mb=4096;
+-- 合并小文件
+set hive.merge.tezfiles=true;
+set hive.merge.size.per.task=64000000;      -- 64M
+set hive.merge.smallfiles.avgsize=64000000; -- 64M
 -- 设置动态分区
-set hive.exec.dynamici.partition=true;
+set hive.exec.dynamic.partition=true;
 set hive.exec.dynamic.partition.mode=nonstrict;
-set hive.exec.max.dynamic.partitions=30000;
-set hive.exec.max.dynamic.partitions.pernode=10000;
-
-
+set hive.exec.max.dynamic.partitions=200000;
+set hive.exec.max.dynamic.partitions.pernode=50000;
+-- 禁用 Hive 矢量执行
+set hive.vectorized.execution.enabled=false;
+set hive.vectorized.execution.reduce.enabled=false;
+set hive.vectorized.execution.reduce.groupby.enabled=false;
 
 
 
@@ -150,9 +155,23 @@ left join(
 on  a.pro_code = c.product_id
 and a.order_id = c.due_bill_no
 left join (
-  select
-    *
-  from dim_new.biz_conf
+  select distinct
+         capital_id,
+         channel_id,
+         project_id,
+         product_id_vt,
+         product_id
+         from (
+           select
+             max(if(col_name = 'capital_id',   col_val,null)) as capital_id,
+             max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
+             max(if(col_name = 'project_id',   col_val,null)) as project_id,
+             max(if(col_name = 'product_id_vt',col_val,null)) as product_id_vt,
+             max(if(col_name = 'product_id',   col_val,null)) as product_id
+           from dim.data_conf
+           where col_type = 'ac'
+           group by col_id
+        )tmp
 ) as d
 on a.pro_code = d.product_id
 ;

@@ -1,14 +1,24 @@
-set spark.executor.memory=4g;
-set spark.executor.memoryOverhead=4g;
-set spark.shuffle.memoryFraction=0.6;
-set spark.maxRemoteBlockSizeFetchToMem=4G;
-set hive.auto.convert.join=false;
-set hive.mapjoin.optimized.hashtable=false;
-set hive.mapjoin.followby.gby.localtask.max.memory.usage=0.9;
+set hive.exec.input.listing.max.threads=50;
+set tez.grouping.min-size=50000000;
+set tez.grouping.max-size=50000000;
+set hive.exec.reducers.max=500;
+set hive.groupby.orderby.position.alias=true;
+-- 设置 Container 大小
+set hive.tez.container.size=4096;
+set tez.am.resource.memory.mb=4096;
+-- 合并小文件
+set hive.merge.tezfiles=true;
+set hive.merge.size.per.task=64000000;      -- 64M
+set hive.merge.smallfiles.avgsize=64000000; -- 64M
+-- 设置动态分区
 set hive.exec.dynamic.partition=true;
 set hive.exec.dynamic.partition.mode=nonstrict;
-set hive.exec.max.dynamic.partitions=30000;
-set hive.exec.max.dynamic.partitions.pernode=10000;
+set hive.exec.max.dynamic.partitions=200000;
+set hive.exec.max.dynamic.partitions.pernode=50000;
+-- 禁用 Hive 矢量执行
+set hive.vectorized.execution.enabled=false;
+set hive.vectorized.execution.reduce.enabled=false;
+set hive.vectorized.execution.reduce.groupby.enabled=false;
 
 
 
@@ -32,9 +42,23 @@ select
   -- '${ST9}'                                                       as biz_date,
   repaid_loan.product_id                                         as product_id
 from (
-  select
-    product_id,capital_id,channel_id,project_id
-  from dim_new.biz_conf
+    select distinct
+           capital_id,
+           channel_id,
+           project_id,
+           product_id_vt ,
+           product_id
+           from (
+                 select
+                   max(if(col_name = 'capital_id',   col_val,null)) as capital_id,
+                   max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
+                   max(if(col_name = 'project_id',   col_val,null)) as project_id,
+                   max(if(col_name = 'product_id_vt',col_val,null)) as product_id_vt,
+                   max(if(col_name = 'product_id',   col_val,null)) as product_id
+                 from dim.data_conf
+                 where col_type = 'ac'
+                 group by col_id
+        )tmp
 ) as biz_conf
 join (
   select
@@ -47,7 +71,7 @@ join (
     sum(if(bnp_type = 'Interest',           repay_amount,0)) as paid_interest,  -- 利息
     sum(if(bnp_type in ('TERMFee','SVCFee'),repay_amount,0)) as paid_svc_fee,   -- 费用
     sum(if(bnp_type = 'Penalty',            repay_amount,0)) as paid_penalty    -- 罚息
-  from ods_new_s${db_suffix}.repay_detail
+  from ods${db_suffix}.repay_detail
   where 1 > 0
     and biz_date = '${ST9}'
     and bnp_type in ('Pricinpal','Interest','TERMFee','SVCFee','Penalty')  ${hive_param_str}
@@ -60,7 +84,7 @@ left join (
     repay_term,
     sum(repay_amount) over(partition by product_id,due_bill_no order by repay_term rows between UNBOUNDED PRECEDING AND CURRENT ROW) as paid_principal,
     product_id
-  from ods_new_s${db_suffix}.repay_detail
+  from ods${db_suffix}.repay_detail
   where 1 > 0
     and biz_date <= '${ST9}'
     and bnp_type = 'Pricinpal' ${hive_param_str}
@@ -76,7 +100,7 @@ left join (
     loan_term,
     loan_init_principal,
     schedule_status
-  from ods_new_s${db_suffix}.repay_schedule
+  from ods${db_suffix}.repay_schedule
   where 1 > 0
     and '${ST9}' between s_d_date and date_sub(e_d_date,1) ${hive_param_str}
 ) as repay_schedule

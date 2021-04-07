@@ -77,7 +77,7 @@ from
                     due_bill_no,
                     txn_date,
                     success_amt
-                    FROM ods_new_s_cps.order_info
+                    FROM ods_cps.order_info
                 WHERE
                     loan_usage = 'T'
                 union all
@@ -86,18 +86,25 @@ from
                     due_bill_no,
                     txn_date,
                     success_amt
-                    FROM ods_new_s.order_info
+                    FROM ods.order_info
                 WHERE
                     loan_usage = 'T' and product_id in ('bd_product')
         ) t1
         left join
         (
-                SELECT
-                DISTINCT
-                product_id,
-                channel_id,
-                project_id
-                FROM dim_new.biz_conf
+                select distinct
+                 channel_id,
+                 project_id,
+                 product_id
+                 from (
+                   select
+                     max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
+                     max(if(col_name = 'project_id',   col_val,null)) as project_id,
+                     max(if(col_name = 'product_id',   col_val,null)) as product_id
+                   from dim.data_conf
+                   where col_type = 'ac'
+                   group by col_id
+               )tmp
         ) t2
         ON t1.product_id = t2.product_id
     ) t3

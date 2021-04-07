@@ -1,13 +1,24 @@
-set spark.executor.memory=4g;
-set spark.executor.memoryOverhead=4g;
-set spark.maxRemoteBlockSizeFetchToMem=4G;
-set spark.shuffle.memoryFraction=0.6;
-set spark.maxRemoteBlockSizeFetchToMem=200m;
-set hive.auto.convert.join=false;
+set hive.exec.input.listing.max.threads=50;
+set tez.grouping.min-size=50000000;
+set tez.grouping.max-size=50000000;
+set hive.exec.reducers.max=500;
+set hive.groupby.orderby.position.alias=true;
+-- 设置 Container 大小
+set hive.tez.container.size=4096;
+set tez.am.resource.memory.mb=4096;
+-- 合并小文件
+set hive.merge.tezfiles=true;
+set hive.merge.size.per.task=64000000;      -- 64M
+set hive.merge.smallfiles.avgsize=64000000; -- 64M
+-- 设置动态分区
 set hive.exec.dynamic.partition=true;
 set hive.exec.dynamic.partition.mode=nonstrict;
-set hive.exec.max.dynamic.partitions=30000;
-set hive.exec.max.dynamic.partitions.pernode=10000;
+set hive.exec.max.dynamic.partitions=200000;
+set hive.exec.max.dynamic.partitions.pernode=50000;
+-- 禁用 Hive 矢量执行
+set hive.vectorized.execution.enabled=false;
+set hive.vectorized.execution.reduce.enabled=false;
+set hive.vectorized.execution.reduce.groupby.enabled=false;
 
 
 insert overwrite table dm_eagle${db_suffix}.eagle_deferred_overdue_rate_full_month_product_day partition (biz_date = '${ST9}',product_id)
@@ -25,15 +36,25 @@ select
   -- overdue_num.biz_date                             as biz_date,
   biz_conf.product_id${vt}                         as product_id
 from (
-  select
-    capital_id,
-    channel_id,
-    project_id,
-    product_id,
-    product_id_vt
-  from dim_new.biz_conf
-  where 1 > 0
-    and biz_conf.product_id${vt} is not null
+  select distinct
+       capital_id,
+       channel_id,
+       project_id,
+       product_id_vt,
+       product_id
+       from (
+             select
+               max(if(col_name = 'capital_id',   col_val,null)) as capital_id,
+               max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
+               max(if(col_name = 'project_id',   col_val,null)) as project_id,
+               max(if(col_name = 'product_id_vt',col_val,null)) as product_id_vt,
+               max(if(col_name = 'product_id',   col_val,null)) as product_id
+             from dim.data_conf
+             where col_type = 'ac'
+             group by col_id
+       )tmp
+        where 1 > 0
+        and biz_conf.product_id${vt} is not null
 ) as biz_conf
 join (
   select
@@ -44,7 +65,7 @@ join (
     biz_date,
     product_id,
     dpd
-  from dw_new${db_suffix}.dw_loan_base_stat_overdue_num_day
+  from dw${db_suffix}.dw_loan_base_stat_overdue_num_day
   lateral view explode(
     split(
       concat_ws(',',
@@ -74,7 +95,7 @@ left join (
     sum(loan_principal) as loan_principal,
     biz_date,
     product_id
-  from dw_new${db_suffix}.dw_loan_base_stat_should_repay_day
+  from dw${db_suffix}.dw_loan_base_stat_should_repay_day
   where 1 > 0
     and biz_date = should_repay_date
   group by loan_active_date,biz_date,product_id

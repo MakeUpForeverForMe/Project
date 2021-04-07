@@ -67,7 +67,7 @@ distinct
 due_bill_no
 ,cust_id 
 from 
-ods_new_s.loan_apply) a
+ods.loan_apply) a
 left join
 (
 select 
@@ -80,12 +80,12 @@ distinct
 cust_id,
 name
 from
-ods_new_s.customer_info) c
+ods.customer_info) c
 left join
 (select  
    dim_encrypt
   ,dim_decrypt  
-  from dim_new.dim_encrypt_info 
+  from dim.dim_encrypt_info
   where dim_type = 'userName'
 group by  
 dim_encrypt
@@ -138,17 +138,25 @@ from
 (select 
 * 
 from 
-ods_new_s_cps.loan_info
+ods_cps.loan_info
 where 
 '${ST9}' between s_d_date and date_sub(e_d_date,1)
 ) t1
  join 
-(select 
- distinct 
- product_id
-, channel_id
-, project_id 
-from dim_new.biz_conf
+(
+    select distinct
+         channel_id,
+         project_id,
+         product_id
+         from (
+           select
+             max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
+             max(if(col_name = 'project_id',   col_val,null)) as project_id,
+             max(if(col_name = 'product_id',   col_val,null)) as product_id
+           from dim.data_conf
+           where col_type = 'ac'
+           group by col_id
+        )tmp
 where project_id in ('WS0009200001','WS0006200001','WS0006200002','WS0006200003')
 ) t2
 on t1.product_id = t2.product_id
@@ -163,7 +171,7 @@ left join
 ,loan_init_penalty_rate  
 ,loan_expire_date        
 from 
-ods_new_s_cps.loan_lending
+ods_cps.loan_lending
 ) t3
 on t1.due_bill_no = t3.due_bill_no
 left join
@@ -211,17 +219,25 @@ from
 (select
 *
 from
-ods_new_s.loan_info
+ods.loan_info
 where
 '${ST9}' between s_d_date and date_sub(e_d_date,1)
 ) t1
  join
-(select
- distinct
- product_id
-, channel_id
-, project_id
-from dim_new.biz_conf
+(
+select distinct
+         channel_id,
+         project_id,
+         product_id
+         from (
+           select
+             max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
+             max(if(col_name = 'project_id',   col_val,null)) as project_id,
+             max(if(col_name = 'product_id',   col_val,null)) as product_id
+           from dim.data_conf
+           where col_type = 'ac'
+           group by col_id
+        )tmp
 where project_id in ('bd')
 ) t2
 on t1.product_id = t2.product_id
@@ -236,7 +252,7 @@ left join
 ,loan_init_penalty_rate
 ,loan_expire_date
 from
-ods_new_s.loan_lending
+ods.loan_lending
 ) t3
 on t1.due_bill_no = t3.due_bill_no
 left join

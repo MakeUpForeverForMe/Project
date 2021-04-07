@@ -1,12 +1,24 @@
-set spark.executor.memory=4g;
-set spark.executor.memoryOverhead=4g;
-set spark.maxRemoteBlockSizeFetchToMem=200M;
-set hive.auto.convert.join=false;
+set hive.exec.input.listing.max.threads=50;
+set tez.grouping.min-size=50000000;
+set tez.grouping.max-size=50000000;
+set hive.exec.reducers.max=500;
+set hive.groupby.orderby.position.alias=true;
+-- 设置 Container 大小
+set hive.tez.container.size=4096;
+set tez.am.resource.memory.mb=4096;
+-- 合并小文件
+set hive.merge.tezfiles=true;
+set hive.merge.size.per.task=64000000;      -- 64M
+set hive.merge.smallfiles.avgsize=64000000; -- 64M
+-- 设置动态分区
 set hive.exec.dynamic.partition=true;
 set hive.exec.dynamic.partition.mode=nonstrict;
-set hive.exec.max.dynamic.partitions=30000;
-set hive.exec.max.dynamic.partitions.pernode=10000;
-set hive.groupby.orderby.position.alias=true;
+set hive.exec.max.dynamic.partitions=200000;
+set hive.exec.max.dynamic.partitions.pernode=50000;
+-- 禁用 Hive 矢量执行
+set hive.vectorized.execution.enabled=false;
+set hive.vectorized.execution.reduce.enabled=false;
+set hive.vectorized.execution.reduce.groupby.enabled=false;
 
 
 insert overwrite table dm_eagle.eagle_credit_loan_approval_rate_day partition (biz_date ='${ST9}',product_id)
@@ -68,8 +80,26 @@ from (
       sum(if(loan_apply_date = loan_approval_date,loan_approval_amount,0))     as loan_approval_amount,
       sum(loan_apply_num_person)                                               as loan_apply_num_person,
       sum(if(loan_apply_date = loan_approval_date,loan_approval_num_person,0)) as loan_approval_num_person
-    from dw_new.dw_loan_apply_stat_day
-    join dim_new.biz_conf
+    from dw.dw_loan_apply_stat_day
+    join (
+    select distinct
+       capital_id,
+       channel_id,
+       project_id,
+       product_id_vt,
+       product_id
+       from (
+         select
+           max(if(col_name = 'capital_id',   col_val,null)) as capital_id,
+           max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
+           max(if(col_name = 'project_id',   col_val,null)) as project_id,
+           max(if(col_name = 'product_id_vt',col_val,null)) as product_id_vt,
+           max(if(col_name = 'product_id',   col_val,null)) as product_id
+         from dim.data_conf
+         where col_type = 'ac'
+         group by col_id
+         )tmp
+    ) as biz_conf
     on  dw_loan_apply_stat_day.product_id = biz_conf.product_id
     and dw_loan_apply_stat_day.biz_date = '${ST9}'
     and biz_conf.product_id${vt} is not null
@@ -86,8 +116,26 @@ from (
       sum(if(loan_apply_date = loan_approval_date,loan_approval_amount,0))     as loan_approval_amount_yestday,
       sum(loan_apply_num_person)                                               as loan_apply_num_person_yestday,
       sum(if(loan_apply_date = loan_approval_date,loan_approval_num_person,0)) as loan_approval_num_person_yestday
-    from dw_new.dw_loan_apply_stat_day
-    join dim_new.biz_conf
+    from dw.dw_loan_apply_stat_day
+    join (
+    select distinct
+       capital_id,
+       channel_id,
+       project_id,
+       product_id_vt,
+       product_id
+       from (
+         select
+           max(if(col_name = 'capital_id',   col_val,null)) as capital_id,
+           max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
+           max(if(col_name = 'project_id',   col_val,null)) as project_id,
+           max(if(col_name = 'product_id_vt',col_val,null)) as product_id_vt,
+           max(if(col_name = 'product_id',   col_val,null)) as product_id
+         from dim.data_conf
+         where col_type = 'ac'
+         group by col_id
+         )tmp
+    )as biz_conf
     on  dw_loan_apply_stat_day.product_id = biz_conf.product_id
     and biz_conf.product_id${vt} is not null
     group by 1,2,3
@@ -120,8 +168,26 @@ full join (
       sum(if(credit_apply_date = credit_approval_date,credit_approval_amount,0))     as credit_approval_amount,
       sum(credit_apply_num_person)                                                   as credit_apply_num_person,
       sum(if(credit_apply_date = credit_approval_date,credit_approval_num_person,0)) as credit_approval_num_person
-    from  dw_new.dw_credit_apply_stat_day
-    join dim_new.biz_conf
+    from  dw.dw_credit_apply_stat_day
+    join (
+    select distinct
+       capital_id,
+       channel_id,
+       project_id,
+       product_id_vt,
+       product_id
+       from (
+         select
+           max(if(col_name = 'capital_id',   col_val,null)) as capital_id,
+           max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
+           max(if(col_name = 'project_id',   col_val,null)) as project_id,
+           max(if(col_name = 'product_id_vt',col_val,null)) as product_id_vt,
+           max(if(col_name = 'product_id',   col_val,null)) as product_id
+         from dim.data_conf
+         where col_type = 'ac'
+         group by col_id
+         )tmp
+    )biz_conf
     on  dw_credit_apply_stat_day.product_id = biz_conf.product_id
     and dw_credit_apply_stat_day.biz_date = '${ST9}'
     and biz_conf.product_id${vt} is not null
@@ -137,8 +203,26 @@ full join (
       sum(if(credit_apply_date = credit_approval_date,credit_approval_amount,0))     as credit_approval_amount_yestday,
       sum(credit_apply_num_person)                                                   as credit_apply_num_person_yestday,
       sum(if(credit_apply_date = credit_approval_date,credit_approval_num_person,0)) as credit_approval_num_person_yestday
-    from  dw_new.dw_credit_apply_stat_day
-    join dim_new.biz_conf
+    from  dw.dw_credit_apply_stat_day
+    join (
+        select distinct
+       capital_id,
+       channel_id,
+       project_id,
+       product_id_vt,
+       product_id
+       from (
+         select
+           max(if(col_name = 'capital_id',   col_val,null)) as capital_id,
+           max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
+           max(if(col_name = 'project_id',   col_val,null)) as project_id,
+           max(if(col_name = 'product_id_vt',col_val,null)) as product_id_vt,
+           max(if(col_name = 'product_id',   col_val,null)) as product_id
+         from dim.data_conf
+         where col_type = 'ac'
+         group by col_id
+         )tmp
+    )biz_conf
     on  dw_credit_apply_stat_day.product_id = biz_conf.product_id
     and biz_conf.product_id${vt} is not null
     group by 1,2
@@ -156,8 +240,26 @@ full join
         sum(credit_apply_num)                                                          as accu_credit_apply_num,
         sum(credit_apply_amount)                                                       as accu_credit_apply_amount,
         sum(credit_apply_num_person)                                                   as accu_credit_apply_num_person
-    from  dw_new.dw_credit_apply_stat_day
-    join dim_new.biz_conf
+    from  dw.dw_credit_apply_stat_day
+    join (
+        select distinct
+       capital_id,
+       channel_id,
+       project_id,
+       product_id_vt,
+       product_id
+       from (
+         select
+           max(if(col_name = 'capital_id',   col_val,null)) as capital_id,
+           max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
+           max(if(col_name = 'project_id',   col_val,null)) as project_id,
+           max(if(col_name = 'product_id_vt',col_val,null)) as product_id_vt,
+           max(if(col_name = 'product_id',   col_val,null)) as product_id
+         from dim.data_conf
+         where col_type = 'ac'
+         group by col_id
+         )tmp
+    )biz_conf
     on  dw_credit_apply_stat_day.product_id = biz_conf.product_id
     and dw_credit_apply_stat_day.biz_date <= '${ST9}'
     and biz_conf.product_id${vt} is not null
@@ -174,8 +276,26 @@ full join
         sum(loan_apply_num)                                                      as accu_loan_apply_num,
         sum(loan_apply_amount)                                                   as accu_loan_apply_amount,
         sum(loan_apply_num_person)                                               as accu_loan_apply_num_person
-    from dw_new.dw_loan_apply_stat_day
-    join dim_new.biz_conf
+    from dw.dw_loan_apply_stat_day
+    join (
+        select distinct
+       capital_id,
+       channel_id,
+       project_id,
+       product_id_vt,
+       product_id
+       from (
+         select
+           max(if(col_name = 'capital_id',   col_val,null)) as capital_id,
+           max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
+           max(if(col_name = 'project_id',   col_val,null)) as project_id,
+           max(if(col_name = 'product_id_vt',col_val,null)) as product_id_vt,
+           max(if(col_name = 'product_id',   col_val,null)) as product_id
+         from dim.data_conf
+         where col_type = 'ac'
+         group by col_id
+         )tmp
+    )biz_conf
     on  dw_loan_apply_stat_day.product_id = biz_conf.product_id
     and dw_loan_apply_stat_day.biz_date <= '${ST9}'
     and biz_conf.product_id${vt} is not null
@@ -185,11 +305,24 @@ on loan_loan_terms = loan_accu_loan_terms
 and loan_biz_date = loan_accu_biz_date
 and loan_product_id = loan_accu_product_id
  join (
-  select distinct
-    capital_id,channel_id,project_id,
-    product_id${vt} as dim_product_id
-  from dim_new.biz_conf
-  where (case when product_id = 'pl00282' and '${ST9}' > '2019-02-22' then 0 else 1 end) = 1
+        select distinct
+       capital_id,
+       channel_id,
+       project_id,
+       product_id${vt} as  dim_product_id,
+       product_id
+       from (
+         select
+           max(if(col_name = 'capital_id',   col_val,null)) as capital_id,
+           max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
+           max(if(col_name = 'project_id',   col_val,null)) as project_id,
+           max(if(col_name = 'product_id_vt',col_val,null)) as product_id_vt,
+           max(if(col_name = 'product_id',   col_val,null)) as product_id
+         from dim.data_conf
+         where col_type = 'ac'
+         group by col_id
+         )tmp
+        where (case when product_id = 'pl00282' and '${ST9}' > '2019-02-22' then 0 else 1 end) = 1
 ) as biz_conf
 on coalesce(credit_product_id,loan_product_id,credit_accu_product_id,loan_accu_product_id) = dim_product_id
 --where coalesce(loan_product_id,credit_product_id,credit_accu_product_id,loan_accu_product_id) != 'vt_pl00282'

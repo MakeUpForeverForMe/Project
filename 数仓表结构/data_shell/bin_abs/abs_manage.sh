@@ -3,7 +3,7 @@
 . ${abs_manage_dir:=$(cd `dirname "${BASH_SOURCE[0]}"`;pwd)}/../lib/function.sh
 . ${data_manage_dir:=$(cd `dirname "${BASH_SOURCE[0]}"`;pwd)}/../conf_env/env.sh
 
-import_file_dir=/root/data_shell/file_import/abs_cloud
+import_file_dir=/data/data_shell/file_import/abs_cloud
 log_file=${abs_manage_dir}/../log/abs_bag_project/logs/spark-driver.log
 input_file_list=(project_info project_due_bill_no bag_info bag_due_bill_no)
 call_back_address=$([[ ${is_test} == 'y' ]] && echo '10.83.0.69:8210' || echo 'https://uabs-server.weshareholdings.com')
@@ -160,10 +160,12 @@ then
       if [[ ${input_file_prefix} = 'project_due_bill_no' && ${row_type} = 'insert' ]]
       then
           import_id=$(parse_json "`cat ${import_file_dir}/${input_file_prefix}/$input_file`" "import_id")
-          curl -d "import_id=${import_id}" --connect-timeout 30 -m 60 ${call_back_address}/uabs-core/callback/assetTransferSuccessConfirm >> $log_file
+	  echo "import_id : ${import_id}"
+          curl -d "importId=${import_id}" --connect-timeout 30 -m 60 ${call_back_address}/uabs-core/callback/assetTransferSuccessConfirm >> $log_file
           print_log "asset transfer finished,project id is ${input_file_suffix} ! "
       fi
     fi
 else
   print_log "illegal arguments : the size of arguments is not one or two ! "
 fi
+

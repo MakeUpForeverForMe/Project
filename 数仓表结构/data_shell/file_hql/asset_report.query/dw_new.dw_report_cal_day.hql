@@ -139,7 +139,7 @@ from
 ods_new_s.loan_info
 where
 product_id in (${product_id_list})
-and '${last_date}' between s_d_date and date_sub(e_d_date,1)  and overdue_days >30
+and '${ST9}' between s_d_date and date_sub(e_d_date,1)  and overdue_days >30
 group by product_id
 )curr_over  on static_over_amount.product_id =curr_over.product_id
 --新加字段逾期剩余本金
