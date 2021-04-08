@@ -51,23 +51,23 @@ with dpds as ( -- 获取到多种dpd的码值
 ),
 loan_base as ( -- 取封包日期至当前时间为止的数据
   select
-    bag_info.project_id                                                             as project_id,
-    bag_info.bag_id                                                                 as bag_id,
-    bag_due.due_bill_no                                                             as due_bill_no,
-    customer_info.user_hash_no                                                      as user_hash_no,
-    loan_info.overdue_days                                                          as overdue_days,
-    if(loan_info.s_d_date = loan_info.overdue_days_min_start_date,'y','n')          as is_first_overdue_day,
-    loan_info.overdue_days_dpd                                                      as overdue_days_dpd,
-    loan_info.remain_principal                                                      as remain_principal,
-    loan_info.overdue_principal                                                     as overdue_principal,
-    if(loan_info.overdue_days > 0,loan_info.remain_principal,0)                     as overdue_remain_principal,
-    if(loan_info.overdue_days > 0,loan_info.due_bill_no,null)                       as overdue_due_bill_no,
-    if(loan_info.overdue_days > 0,customer_info.user_hash_no,null)                  as overdue_user_hash_no,
-    bag_info.bag_date                                                               as bag_date,
-    if(bag_info.bag_date < loan_info.min_date,loan_info.min_date,bag_info.bag_date) as min_date,
-    '${ST9}'                                                                        as biz_date,
-    loan_info.s_d_date                                                              as s_d_date,
-    loan_info.e_d_date                                                              as e_d_date
+    bag_info.project_id                                                              as project_id,
+    bag_info.bag_id                                                                  as bag_id,
+    bag_due.due_bill_no                                                              as due_bill_no,
+    customer_info.user_hash_no                                                       as user_hash_no,
+    loan_info.overdue_days                                                           as overdue_days,
+    if(loan_info.overdue_date_start = loan_info.overdue_days_min_start_date,'y','n') as is_first_overdue_day,
+    loan_info.overdue_days_dpd                                                       as overdue_days_dpd,
+    loan_info.remain_principal                                                       as remain_principal,
+    loan_info.overdue_principal                                                      as overdue_principal,
+    if(loan_info.overdue_days > 0,loan_info.remain_principal,0)                      as overdue_remain_principal,
+    if(loan_info.overdue_days > 0,loan_info.due_bill_no,null)                        as overdue_due_bill_no,
+    if(loan_info.overdue_days > 0,customer_info.user_hash_no,null)                   as overdue_user_hash_no,
+    bag_info.bag_date                                                                as bag_date,
+    if(bag_info.bag_date < loan_info.min_date,loan_info.min_date,bag_info.bag_date)  as min_date,
+    '${ST9}'                                                                         as biz_date,
+    loan_info.s_d_date                                                               as s_d_date,
+    loan_info.e_d_date                                                               as e_d_date
   from (
     select
       project_id,bag_date,bag_id
@@ -88,6 +88,7 @@ loan_base as ( -- 取封包日期至当前时间为止的数据
       project_id,
       due_bill_no,
       overdue_days,
+      overdue_date_start,
       split(concat_ws(',',
         if(overdue_days = 0,  '0',   null),
         if(overdue_days >= 1, '1+',  null),

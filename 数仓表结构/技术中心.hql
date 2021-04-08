@@ -14567,3 +14567,4 @@ select distinct project_id from dim.bag_info order by project_id;
 select distinct project_id from dim.bag_due_bill_no order by project_id;
 
 
+sh $data_manage -s ${s_date} -e ${e_date} -f $dm_eagle_hql/dm_eagle.abs_overdue_rate_day.hql -k bag_id='' -a $yuheng &
