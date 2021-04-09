@@ -29,7 +29,7 @@ dm_eagle_uabs_core=$([[ ${is_test} == 'n' ]] && echo $conf_env/prod_dm_eagle_uab
 
 
 file_hql=$base_dir/file_hql
-reload_hql=$base_dir/data_move_ddht_hql
+reload_hql=$base_dir/ods_reload.query
 dim_new_hql=$file_hql/dim.query
 ods_new_s_hql=$file_hql/ods.query
 ods_cloud_hql=$file_hql/ods_cloud.query
