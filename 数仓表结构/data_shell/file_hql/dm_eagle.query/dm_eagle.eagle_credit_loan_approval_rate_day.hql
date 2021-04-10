@@ -21,6 +21,8 @@ set hive.vectorized.execution.reduce.enabled=false;
 set hive.vectorized.execution.reduce.groupby.enabled=false;
 
 
+
+
 insert overwrite table dm_eagle.eagle_credit_loan_approval_rate_day partition (biz_date ='${ST9}',product_id)
 select
   capital_id                             as capital_id,
@@ -35,6 +37,7 @@ select
   nvl(loan_apply_num,0)                  as loan_apply_num,
   nvl(accu_loan_apply_num,0)             as loan_apply_num_accumulate,
   nvl(loan_approval_num,0)               as loan_approval_num,
+  nvl(accu_loan_approve_num,0)           as loan_approval_num_accumulate,
   nvl(loan_approval_rate,0)              as loan_approval_rate,
   nvl(loan_approval_rate_dod_ratio,0)    as loan_approval_rate_dod_ratio,
   nvl(credit_apply_amount,0)             as credit_apply_amount,
@@ -44,6 +47,7 @@ select
   nvl(loan_apply_amount,0)               as loan_apply_amount,
   nvl(accu_loan_apply_amount,0)          as loan_apply_amount_accumulate,
   nvl(loan_approval_amount,0)            as loan_approval_amount,
+  nvl(accu_loan_approve_amount,0)        as loan_approval_amount_accumulate,
   nvl(loan_approval_rate_amount,0)       as loan_approval_rate_amount,
   nvl(credit_apply_num_person,0)         as credit_apply_num_person,
   nvl(accu_credit_apply_num_person,0)    as credit_apply_num_person_accumulate,
@@ -51,7 +55,8 @@ select
   nvl(credit_approval_rate_person,0)     as credit_approval_rate_person,
   nvl(loan_apply_num_person,0)           as loan_apply_num_person,
   nvl(accu_loan_apply_num_person,0)      as loan_apply_num_person_accumulate,
-  nvl(loan_approval_num_person,0)        as loan_approval_num_person,
+  nvl(loan_approval_num_person,0)        as loan_approval_num_person_accumulate,
+  nvl(accu_loan_approve_num_person,0)    as loan_approval_num_person,
   nvl(loan_approval_rate_person,0)       as loan_approval_rate_person,
   coalesce(loan_product_id,credit_product_id,credit_accu_product_id,loan_accu_product_id) as product_id
 from (
@@ -273,9 +278,9 @@ full join
         loan_terms                                                               as loan_accu_loan_terms,
         '${ST9}'                                                                 as loan_accu_biz_date,
         biz_conf.product_id${vt}                                                 as loan_accu_product_id,
-        sum(loan_apply_num)                                                      as accu_loan_apply_num,
-        sum(loan_apply_amount)                                                   as accu_loan_apply_amount,
-        sum(loan_apply_num_person)                                               as accu_loan_apply_num_person
+        sum(loan_apply_num_count)                                                as accu_loan_apply_num,
+        sum(loan_apply_amount_count)                                             as accu_loan_apply_amount,
+        sum(loan_apply_num_person_count)                                         as accu_loan_apply_num_person
     from dw.dw_loan_apply_stat_day
     join (
         select distinct
@@ -297,13 +302,50 @@ full join
          )tmp
     )biz_conf
     on  dw_loan_apply_stat_day.product_id = biz_conf.product_id
-    and dw_loan_apply_stat_day.biz_date <= '${ST9}'
+    and dw_loan_apply_stat_day.biz_date = '${ST9}'
     and biz_conf.product_id${vt} is not null
     group by 1,2,3
 ) accu_loan_apply
 on loan_loan_terms = loan_accu_loan_terms
 and loan_biz_date = loan_accu_biz_date
 and loan_product_id = loan_accu_product_id
+full join (
+    select
+        loan_terms                                                               as loan_appov_accu_loan_terms,
+        '${ST9}'                                                                 as loan_appov_accu_biz_date,
+        biz_conf.product_id${vt}                                                 as loan_appov_accu_product_id,
+        sum(loan_approval_num_count)                                             as accu_loan_approve_num,
+        sum(loan_approval_amount_count)                                          as accu_loan_approve_amount,
+        sum(loan_approval_num_person_count)                                      as accu_loan_approve_num_person
+        from
+    dw.dw_loan_approval_stat_day
+  join (
+        select distinct
+       capital_id,
+       channel_id,
+       project_id,
+       product_id_vt,
+       product_id
+       from (
+         select
+           max(if(col_name = 'capital_id',   col_val,null)) as capital_id,
+           max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
+           max(if(col_name = 'project_id',   col_val,null)) as project_id,
+           max(if(col_name = 'product_id_vt',col_val,null)) as product_id_vt,
+           max(if(col_name = 'product_id',   col_val,null)) as product_id
+         from dim.data_conf
+         where col_type = 'ac'
+         group by col_id
+         )tmp
+    )biz_conf
+    on  dw_loan_approval_stat_day.product_id = biz_conf.product_id
+    and dw_loan_approval_stat_day.biz_date = '${ST9}'
+    and biz_conf.product_id${vt} is not null
+    group by 1,2,3
+)loan_appro_acc
+on loan_loan_terms = loan_appov_accu_loan_terms
+and loan_biz_date = loan_appov_accu_biz_date
+and loan_product_id = loan_appov_accu_product_id
  join (
         select distinct
        capital_id,

@@ -35,7 +35,7 @@ select
           )repair_hst on repayhst.order_id=repair_hst.order_id
 
 )
---insert overwrite table ods${db_suffix}.repay_schedule_inter partition(biz_date,product_id)
+insert overwrite table ods${db_suffix}.repay_schedule_inter partition(biz_date,product_id)
 select
 repay_schedule.due_bill_no,
   ecas_loan.loan_active_date,
@@ -574,7 +574,7 @@ repay_schedule.due_bill_no,
     due_bill_no  as ecas_loan_due_bill_no,
     active_date  as loan_active_date,
     product_code as product_id
-  from stage.ecas_loan${tb_suffix}
+  from stage.ecas_loan
   where 1 > 0
     and d_date = '${d_date}'
     and product_code in (${product_id_list})

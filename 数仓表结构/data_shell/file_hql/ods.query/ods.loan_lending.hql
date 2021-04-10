@@ -21,19 +21,23 @@ set hive.vectorized.execution.reduce.enabled=false;
 set hive.vectorized.execution.reduce.groupby.enabled=false;
 
 
--- set hivevar:db_suffix=;set hivevar:tb_suffix=_asset;
--- set hivevar:db_suffix=_cps;set hivevar:tb_suffix=;
--- set hivevar:db_suffix=;set hivevar:tb_suffix=;
+--set hivevar:db_suffix=;set hivevar:tb_suffix=_asset;
+ --set hivevar:db_suffix=_cps;set hivevar:tb_suffix=;
+ --set hivevar:db_suffix=;set hivevar:tb_suffix=;
 
--- set hivevar:ST9=2021-03-22;
--- set hivevar:product_id=
--- '001801','001802','001803','001804',
--- '001901','001902','001903','001904','001905','001906','001907',
--- '002001','002002','002003','002004','002005','002006','002007',
--- '002401','002402',
--- ''
--- ;
-
+--set hivevar:ST9=2021-03-28;
+ --set hivevar:product_id=
+ --'001801','001802','001803','001804',
+ --'001901','001902','001903','001904','001905','001906','001907',
+ --'002001','002002','002003','002004','002005','002006','002007',
+ --'002401','002402',
+ --''
+ --;
+ --set hivevar:product_id=
+ --'001601','001602','001603','001701',
+ --'001702','DIDI201908161538','002201','002202','002203','002204'
+ --''
+ --;
 
 insert overwrite table ods${db_suffix}.loan_lending partition(product_id)
 select

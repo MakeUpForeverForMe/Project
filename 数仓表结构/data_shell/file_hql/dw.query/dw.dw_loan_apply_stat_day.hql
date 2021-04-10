@@ -16,9 +16,26 @@ set hive.vectorized.execution.reduce.enabled=false;
 set hive.vectorized.execution.reduce.groupby.enabled=false;
 
 
-
+--set hivevar:ST9=2021-01-01;
+--set hivevar:hive_param_str=and product_id in ('001801') ;
 insert overwrite table dw.dw_loan_apply_stat_day partition(biz_date,product_id)
 select
+nvl(loan_apply_day.loan_terms,loan_apply_acc.loan_terms)              as loan_terms,
+nvl(loan_apply_day.loan_apply_date,loan_apply_acc.loan_apply_date)    as loan_apply_date,
+nvl(loan_apply_day.loan_apply_num,0)                                  as loan_apply_num,
+nvl(loan_apply_acc.loan_apply_num_count,0)                            as loan_apply_num_count,
+nvl(loan_apply_day.loan_apply_num_person,0)                           as loan_apply_num_person,
+nvl(loan_apply_acc.loan_apply_num_person_count,0)                     as loan_apply_num_person_count,
+nvl(loan_apply_day.loan_apply_amount,0)                               as loan_apply_amount,
+nvl(loan_apply_acc.loan_apply_amount_count,0)                         as loan_apply_amount_count,
+nvl(loan_apply_day.loan_approval_date,null)                           as loan_approval_date,
+nvl(loan_apply_day.loan_approval_num,0)                               as loan_approval_num,
+nvl(loan_apply_day.loan_approval_num_person,0)                        as loan_approval_num_person,
+nvl(loan_apply_day.loan_approval_amount,0)                            as loan_approval_amount,
+nvl(loan_apply_day.biz_date,loan_apply_acc.loan_apply_date)           as biz_date,
+nvl(loan_apply_day.product_id,loan_apply_acc.product_id)              as product_id
+from
+(select
   loan_terms,
   loan_apply_date                                             as loan_apply_date,
   count(due_bill_no)                                          as loan_apply_num,
@@ -28,7 +45,7 @@ select
   count(if(apply_status in (1,4),due_bill_no,null))           as loan_approval_num,
   count(distinct if(apply_status in (1,4),user_hash_no,null)) as loan_approval_num_person,
   sum(if(apply_status in (1,4),loan_amount_approval,0))       as loan_approval_amount,
-  loan_apply_date                                          as biz_date,
+  loan_apply_date                                             as biz_date,
   product_id
 from (
   select
@@ -51,7 +68,7 @@ from (
         else true
       end
     )
-    ${hive_param_str}
+   ${hive_param_str}
 ) as loan_apply
 group by
   loan_terms,
@@ -60,4 +77,30 @@ group by
   product_id
 -- order by product_id,loan_apply_date
 -- limit 5
+)loan_apply_day
+full join (
+select
+    loan_terms,
+    '${ST9}'                                                    as loan_apply_date,
+    product_id,
+    count(due_bill_no)                                          as loan_apply_num_count,
+    count(distinct user_hash_no)                                as loan_apply_num_person_count,
+    sum(loan_amount_apply)                                      as loan_apply_amount_count
+    from ods.loan_apply
+    where 1 > 0
+    and biz_date <= '${ST9}'
+    and (
+      case
+        when product_id = 'pl00282' and biz_date > '2019-02-22' then false
+        else true
+      end
+    )
+   ${hive_param_str}
+    group by
+    loan_terms,product_id
+)loan_apply_acc
+on loan_apply_day.loan_terms=loan_apply_acc.loan_terms
+and loan_apply_day.loan_apply_date=loan_apply_acc.loan_apply_date
+and loan_apply_day.product_id=loan_apply_acc.product_id
+
 ;
