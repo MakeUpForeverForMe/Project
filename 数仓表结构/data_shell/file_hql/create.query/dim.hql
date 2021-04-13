@@ -127,9 +127,9 @@ CREATE TABLE IF NOT EXISTS `dim.data_conf`(
   `col_id`                        string         COMMENT '关联编号',
   `col_name`                      string         COMMENT '字段名称',
   `col_val`                       string         COMMENT '字段内容',
-  `col_COMMENT`                   string         COMMENT '字段注释',
-  `CREATE_user`                   string         COMMENT '创建用户',
-  `CREATE_time`                   timestamp      COMMENT '创建时间',
+  `col_comment`                   string         COMMENT '字段注释',
+  `create_user`                   string         COMMENT '创建用户',
+  `create_time`                   timestamp      COMMENT '创建时间',
   `update_user`                   string         COMMENT '更新用户',
   `update_time`                   timestamp      COMMENT '更新时间'
 ) COMMENT '配置信息'
@@ -274,10 +274,9 @@ CREATE TABLE IF NOT EXISTS `dim.project_due_bill_no`(
   `due_bill_no`                   string         COMMENT '借据编号',
   `related_project_id`            string         COMMENT '债转前项目编号',
   `related_date`                  string         COMMENT '债转发生日期',
-  `partition_id`                  string         COMMENT '数据分区编号',
-  `import_id`                     string         COMMENT '导入Id'
+  `partition_id`                  string         COMMENT '数据分区编号'
 ) COMMENT '项目借据映射'
-PARTITIONED BY (`project_id` string COMMENT '项目编号')
+PARTITIONED BY (`project_id` string COMMENT '项目编号',`import_id` string COMMENT '导入Id')
 ROW FORMAT DELIMITED FIELDS TERMINATED BY ','
 STORED AS TEXTFILE;
 

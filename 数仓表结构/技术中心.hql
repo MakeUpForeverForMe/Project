@@ -14567,4 +14567,98 @@ select distinct project_id from dim.bag_info order by project_id;
 select distinct project_id from dim.bag_due_bill_no order by project_id;
 
 
-sh $data_manage -s ${s_date} -e ${e_date} -f $dm_eagle_hql/dm_eagle.abs_overdue_rate_day.hql -k bag_id='' -a $yuheng &
+
+
+select distinct product_code from stage.ecas_loan where d_date = '2021-04-10';
+
+
+
+select distinct
+  project_id,
+  size(split(due_bill_no,'_')) as due_bill_no_size
+from dim.bag_due_bill_no;
+
+
+
+select
+  project_id,
+  related_project_id,
+  partition_id,
+  size(split(due_bill_no,'_')) as due_bill_no_size,
+  count(1) as cnt,
+  count(distinct due_bill_no) as cct,
+  count(1) - count(distinct due_bill_no) as cnt_diff
+from dim.project_due_bill_no
+group by project_id,related_project_id,partition_id,size(split(due_bill_no,'_'))
+order by project_id,related_project_id,partition_id;
+
+
+
+select * from ods.loan_info_abs where project_id = 'CL202011090089' limit 10;
+
+
+
+select * from ods.loan_info where product_id = '001802' and due_bill_no = '1120070408514963542686' order by s_d_date;
+
+
+
+
+select * from stage.abs_t_related_assets limit 10;
+
+select * from stage.asset_10_t_asset_check where project_id = 'CL202104020104' limit 10;
+
+
+select * from ods.t_10_basic_asset_stage where project_id = 'CL202011090089' and serial_number = '1000000004' limit 10;
+
+select * from ods.t_10_basic_asset where project_id = 'CL202011090089' and serial_number = '1000000004' limit 10;
+
+select * from ods.loan_lending_abs where project_id = 'CL202011090089' and due_bill_no = '1000000004' limit 10;
+
+
+
+
+select max(e_d_date) from ods.loan_info_abs;
+
+select *
+from stage.asset_01_t_loan_contract_info
+where 1 > 0
+  and is_empty(map_from_str(extra_info)['贷款合同编号'],contract_code) = '1000000004'
+;
+
+
+
+
+select * from dim.data_conf where col_type = 'ac';
+
+select
+  max(if(col_name = 'biz_name',          col_val,null)) as biz_name,
+  max(if(col_name = 'biz_name_en',       col_val,null)) as biz_name_en,
+  max(if(col_name = 'capital_id',        col_val,null)) as capital_id,
+  max(if(col_name = 'capital_name',      col_val,null)) as capital_name,
+  max(if(col_name = 'capital_name_en',   col_val,null)) as capital_name_en,
+  max(if(col_name = 'channel_id',        col_val,null)) as channel_id,
+  max(if(col_name = 'channel_name',      col_val,null)) as channel_name,
+  max(if(col_name = 'channel_name_en',   col_val,null)) as channel_name_en,
+  max(if(col_name = 'trust_id',          col_val,null)) as trust_id,
+  max(if(col_name = 'trust_name',        col_val,null)) as trust_name,
+  max(if(col_name = 'trust_name_en',     col_val,null)) as trust_name_en,
+  max(if(col_name = 'project_id',        col_val,null)) as project_id,
+  max(if(col_name = 'project_name',      col_val,null)) as project_name,
+  max(if(col_name = 'project_name_en',   col_val,null)) as project_name_en,
+  max(if(col_name = 'project_amount',    col_val,null)) as project_amount,
+  max(if(col_name = 'product_id',        col_val,null)) as product_id,
+  max(if(col_name = 'product_name',      col_val,null)) as product_name,
+  max(if(col_name = 'product_name_en',   col_val,null)) as product_name_en,
+  max(if(col_name = 'product_id_vt',     col_val,null)) as product_id_vt,
+  max(if(col_name = 'product_name_vt',   col_val,null)) as product_name_vt,
+  max(if(col_name = 'product_name_en_vt',col_val,null)) as product_name_en_vt
+from dim.data_conf
+where col_type = 'ac'
+group by col_id
+order by project_id,product_id;
+
+
+
+
+
+order by project_id,product_id;

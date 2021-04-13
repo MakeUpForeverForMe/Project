@@ -1586,9 +1586,15 @@ STORED as PARQUET;
 -- 项目表关联表
 -- DROP TABLE IF EXISTS `stage.abs_t_related_assets`;
 CREATE EXTERNAL TABLE IF NOT EXISTS `stage.abs_t_related_assets`(
+  `id`                                                int           COMMENT '主键id',
+  `import_id`                                         int           COMMENT '导入id',
+  `serial_number`                                     string        COMMENT '借据号',
   `project_id`                                        string        COMMENT '项目编号',
+  `related_serial_number`                             string        COMMENT '关联借据号',
   `related_project_id`                                string        COMMENT '关联项目编号',
-  `related_status`                                    decimal(10,0) COMMENT '关联状态（1：正常，2：解除关联）'
+  `related_status`                                    int           COMMENT '关联状态（1：正常，2：解除关联）',
+  `create_time`                                       string        COMMENT '创建时间',
+  `update_time`                                       string        COMMENT '更新时间'
 ) COMMENT '项目表关联表'
 STORED as PARQUET;
 

@@ -142,10 +142,9 @@ join (
   where 1 > 0
     and is_empty(map_from_str(extra_info)['项目编号'],project_id) not in (
       '001601',           -- 汇通
-      'DIDI201908161538', -- 滴滴
       'WS0005200001',     -- 瓜子
       'CL202012280092',   -- 汇通国银
-      'CL202102010097',   -- 汇通国银
+      'DIDI201908161538', -- 滴滴
       ''
     )
 ) as borrowerinfo

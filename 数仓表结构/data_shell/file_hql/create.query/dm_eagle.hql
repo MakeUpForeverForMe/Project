@@ -1383,7 +1383,7 @@ PARTITIONED BY (`bag_id` string COMMENT '包编号')
 STORED AS PARQUET;
 
 
--- 现金流分析（项目、所以包、包）
+-- 现金流分析（项目、所有包、包）
 -- drop table if exists `dm_eagle.abs_asset_information_cash_flow_bag_day`;
 create table if not exists `dm_eagle.abs_asset_information_cash_flow_bag_day`(
   `bag_date`                                      string         COMMENT '封包日期',
@@ -1423,7 +1423,7 @@ create table if not exists `dm_eagle.abs_asset_information_cash_flow_bag_day`(
   `pmml_paid_interest`                            decimal(30,10) COMMENT '预测实收利息',
 
   `collect_date`                                  string         COMMENT '统计日期'
-) COMMENT '现金流分析（项目、所以包、包）'
+) COMMENT '现金流分析（项目、所有包、包）'
 PARTITIONED BY (`biz_date` string COMMENT '观察日期',`project_id` string COMMENT '项目编号',`bag_id` string COMMENT '包编号（包编号、default_project、default_all_bag）')
 STORED AS PARQUET;
 

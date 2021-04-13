@@ -7,6 +7,8 @@
 | beeline -n hadoop -u "jdbc:hive2://10.80.0.46:2181,10.80.0.255:2181,10.80.1.113:2181/;serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=hiveserver2" --color=true --hiveconf hive.resultset.use.unique.column.names=false | --hiveconf spark.app.name=HiveSpark --hiveconf mapred.job.name=HiveMR |
 | beeline -n hadoop -u "jdbc:hive2://10.83.1.9:7001" --color=true --hiveconf hive.resultset.use.unique.column.names=false                                                                                                   | --hiveconf spark.app.name=HiveSpark --hiveconf mapred.job.name=HiveMR |
 | hive --hiveconf hive.cli.print.current.db=true --hiveconf hive.cli.print.header=true --hiveconf hive.resultset.use.unique.column.names=false                                                                              | --hiveconf spark.app.name=HiveSpark --hiveconf mapred.job.name=HiveMR |
+| impala-shell -u hadoop -i 10.80.1.13:27001                                                                                                                                                                                | emr 普通版                                                            |
+| impala-shell -u hadoop -i 10.80.2.51:21050 --protocol=hs2                                                                                                                                                                 | emr clb版                                                             |
 
 
 |   系统  |  服务 |                    ip或网址                    |  用户 |      密码      | 备注 |

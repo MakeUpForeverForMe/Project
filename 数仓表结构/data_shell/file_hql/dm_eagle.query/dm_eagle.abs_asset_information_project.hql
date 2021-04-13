@@ -54,7 +54,7 @@ select
   sum(bag_due.package_remain_principal * (loan.account_age)) / sum(bag_due.package_remain_principal)                         as aging_avg_weighted,
   max(lending.contract_term - loan.account_age)                                                                              as remain_period_max,
   min(lending.contract_term - loan.account_age)                                                                              as remain_period_min,
-  sum(lending.contract_term - loan.account_age) / sum(loan.due_bill_no)                                                      as remain_period_avg,
+  sum(lending.contract_term - loan.account_age) / count(loan.due_bill_no)                                  as remain_period_avg,
   sum(bag_due.package_remain_principal * (lending.contract_term - loan.account_age)) / sum(bag_due.package_remain_principal) as remain_period_avg_weighted,
   max(lending.loan_init_interest_rate)                                                                                       as interest_rate_max,
   min(lending.loan_init_interest_rate)                                                                                       as interest_rate_min,

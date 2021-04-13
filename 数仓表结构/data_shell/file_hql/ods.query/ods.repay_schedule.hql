@@ -29,7 +29,15 @@ set hive.support.quoted.identifiers=None;
 -- 代称后
 -- set hivevar:db_suffix=_cps;
 
+set hivevar:product_id=;
 
+-- set hivevar:product_id=and product_id not in (
+--   '001801','001802','001803','001804',
+--   '001901','001902','001903','001904','001905','001906','001907',
+--   '002001','002002','002003','002004','002005','002006','002007',
+--   '002401','002402',
+--   ''
+-- );
 
 
 insert overwrite table ods${db_suffix}.repay_schedule partition(is_settled = 'no',product_id)
@@ -39,5 +47,7 @@ select
   nvl(lead(biz_date) over(partition by product_id,due_bill_no,loan_term order by biz_date),'3000-12-31') as e_d_date,
   product_id
 from ods${db_suffix}.repay_schedule_inter
+where 1 > 0
+  ${product_id}
 -- limit 10
 ;

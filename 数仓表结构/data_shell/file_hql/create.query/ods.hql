@@ -352,6 +352,7 @@ CREATE TABLE IF NOT EXISTS `ods${db_suffix}.loan_lending`(
   `cycle_day`                                         decimal(2,0)   COMMENT '账单日',
   `loan_type`                                         string         COMMENT '分期类型（英文原值）（MCEP：等额本金，MCEI：等额本息，R：消费转分期，C：现金分期，B：账单分期，P：POS分期，M：大额分期（专项分期），MCAT：随借随还，STAIR：阶梯还款，Z：默认值）',
   `loan_type_cn`                                      string         COMMENT '分期类型（汉语解释）',
+  `loan_original_principal`                           decimal(20,5)  COMMENT '初始放款本金',
   `contract_daily_interest_rate_basis`                decimal(3,0)   COMMENT '日利率计算基础',
   `interest_rate_type`                                string         COMMENT '利率类型',
   `loan_init_interest_rate`                           decimal(25,10) COMMENT '利息利率',
@@ -425,8 +426,7 @@ CREATE TABLE IF NOT EXISTS `ods${db_suffix}.loan_info_inter`(
   `update_time`                                       string         COMMENT '更新时间'
 ) COMMENT '借据信息增量表'
 PARTITIONED BY (`biz_date` string COMMENT '增量日期',`product_id` string COMMENT '产品编号')
-STORED AS PARQUET
-location '/user/hadoop/warehouse/ods${db_suffix}.db/loan_info_inter';
+STORED AS PARQUET;
 
 
 -- 借据信息表
@@ -540,8 +540,7 @@ CREATE TABLE IF NOT EXISTS `ods${db_suffix}.repay_schedule_inter`(
   `update_time`                                       string         COMMENT '更新时间'
 ) COMMENT '还款计划增量表'
 PARTITIONED BY (`biz_date` string COMMENT '增量日期',`product_id` string COMMENT '产品编号')
-STORED AS PARQUET
-location '/user/hadoop/warehouse/ods${db_suffix}.db/repay_schedule_inter';
+STORED AS PARQUET;
 
 
 -- 还款计划表
@@ -1053,8 +1052,6 @@ CREATE VIEW IF NOT EXISTS `ods.loan_info_abs`(
   `overdue_terms_max`                  COMMENT '历史单次最长逾期期数',
   `overdue_principal_accumulate`       COMMENT '累计逾期本金',
   `overdue_principal_max`              COMMENT '历史最大逾期本金',
-  --`create_time`                        COMMENT '创建时间',
-  --`update_time`                        COMMENT '更新时间',
   `s_d_date`                           COMMENT 'ods层起始日期',
   `e_d_date`                           COMMENT 'ods层结束日期',
   `is_settled`                         COMMENT '是否已结清',
@@ -1114,11 +1111,9 @@ CREATE VIEW IF NOT EXISTS `ods.loan_info_abs`(
   t1.overdue_terms_max            as overdue_terms_max,
   t1.overdue_principal_accumulate as overdue_principal_accumulate,
   t1.overdue_principal_max        as overdue_principal_max,
-  --t1.create_time                  as create_time,
-  --t1.update_time                  as update_time,
   t1.s_d_date                     as s_d_date,
-  if(t1.paid_out_date is null,if(t1.e_d_date = '3000-12-31',to_date(date_sub(current_timestamp(),1)),t1.e_d_date),t1.paid_out_date) as e_d_date,
-  -- t1.e_d_date                     as e_d_date,
+  -- if(t1.paid_out_date is null,if(t1.e_d_date = '3000-12-31',to_date(date_sub(current_timestamp(),1)),t1.e_d_date),t1.paid_out_date) as e_d_date,
+  t1.e_d_date                     as e_d_date,
   t1.is_settled                   as is_settled,
   t1.product_id                   as product_id,
   t2.project_id                   as project_id
@@ -1568,17 +1563,17 @@ create table IF NOT EXISTS `ods.t_10_basic_asset_stage`(
   `data_source`                                       int            COMMENT '数据来源 1:startLink,2:excelImport',
   `address`                                           string         COMMENT '居住地址',
   `mortgage_rates`                                    decimal(20,4)  COMMENT '抵押率(%)'
-)
-stored as parquet;
+) COMMENT '基础资产缓冲表'
+STORED AS PARQUET;
 
 
 
 
 
---DROP view IF EXISTS ods.t_10_basic_asset;
 -- impala创建视图中文乱码问题 : 到mysql元数据库中执行如下语句.然后重建视图
 -- alter table TBLS modify column VIEW_EXPANDED_TEXT mediumtext character set utf8;
 -- alter table TBLS modify column VIEW_ORIGINAL_TEXT mediumtext character set utf8;
+-- DROP VIEW IF EXISTS ods.t_10_basic_asset;
 CREATE VIEW IF NOT EXISTS ods.t_10_basic_asset(
   `id`                                 COMMENT '主键id',
   `import_id`                          COMMENT '导入记录编号',
@@ -1664,105 +1659,111 @@ CREATE VIEW IF NOT EXISTS ods.t_10_basic_asset(
   `address`                            COMMENT '居住地址',
   `mortgage_rates`                     COMMENT '抵押率(%)'
 ) COMMENT '资产对账信息表-文件十' AS SELECT
-  id,
-  import_id,
-  project_id,
-  asset_bag_id,
-  asset_type,
+  stage.id,
+  stage.import_id,
+  stage.project_id,
+  bag_snapshot.asset_bag_id,
+  stage.asset_type,
   stage.serial_number as serial_number,
-  contract_code,
-  contract_amount,
-  interest_rate_type,
-  contract_interest_rate,
-  base_interest_rate,
-  fixed_interest_rate,
-  fixed_interest_diff,
-  interest_rate_ajustment,
-  loan_issue_date,
-  loan_expiry_date,
-  frist_repayment_date,
-  repayment_type,
-  repayment_frequency,
-  loan_repay_date,
-  tail_amount,
-  tail_amount_rate,
-  consume_use,
-  guarantee_type,
-  extract_date,
-  extract_date_principal_amount,
-  loan_cur_interest_rate,
-  borrower_type,
-  borrower_name,
-  document_type,
-  document_num,
-  borrower_rating,
-  borrower_industry,
-  phone_num,
-  sex,
-  birthday,
-  age,
-  province,
-  city,
-  marital_status,
-  country,
-  annual_income,
-  income_debt_rate,
-  education_level,
-  period_exp,
-  account_age,
-  residual_maturity_con,
-  residual_maturity_ext,
-  package_principal_balance,
-  statistics_date,
-  extract_interest_date,
-  curr_over_days,
-  remain_counts,
-  remain_amounts,
-  remain_interest,
-  remain_other_amounts,
-  periods,
-  period_amounts,
-  bus_product_id,
-  bus_product_name,
-  shoufu_amount,
-  selling_price,
-  contract_daily_interest_rate,
-  repay_plan_cal_rule,
-  contract_daily_interest_rate_count,
-  total_investment_amount,
-  contract_month_interest_rate,
-  status_change_log,
-  package_filter_id,
-  virtual_asset_bag_id,
-  package_remain_principal,
-  package_remain_periods,
-  cast(case
-  when bag_status = '已封包'   then 2
-  when bag_status = '已发行'   then 3
-  else 1 end as int) as status,
-  wind_control_status,
-  wind_control_status_pool,
-  cheat_level,
-  score_range,
-  score_level,
-  create_time,
-  update_time,
-  data_source,
-  address,
-  mortgage_rates
+  stage.contract_code,
+  stage.contract_amount,
+  stage.interest_rate_type,
+  stage.contract_interest_rate,
+  stage.base_interest_rate,
+  stage.fixed_interest_rate,
+  stage.fixed_interest_diff,
+  stage.interest_rate_ajustment,
+  stage.loan_issue_date,
+  stage.loan_expiry_date,
+  stage.frist_repayment_date,
+  stage.repayment_type,
+  stage.repayment_frequency,
+  stage.loan_repay_date,
+  stage.tail_amount,
+  stage.tail_amount_rate,
+  stage.consume_use,
+  stage.guarantee_type,
+  stage.extract_date,
+  stage.extract_date_principal_amount,
+  stage.loan_cur_interest_rate,
+  stage.borrower_type,
+  stage.borrower_name,
+  stage.document_type,
+  stage.document_num,
+  stage.borrower_rating,
+  stage.borrower_industry,
+  stage.phone_num,
+  stage.sex,
+  stage.birthday,
+  stage.age,
+  stage.province,
+  stage.city,
+  stage.marital_status,
+  stage.country,
+  stage.annual_income,
+  stage.income_debt_rate,
+  stage.education_level,
+  stage.period_exp,
+  stage.account_age,
+  stage.residual_maturity_con,
+  stage.residual_maturity_ext,
+  bag_snapshot.package_principal_balance,
+  stage.statistics_date,
+  stage.extract_interest_date,
+  stage.curr_over_days,
+  stage.remain_counts,
+  stage.remain_amounts,
+  stage.remain_interest,
+  stage.remain_other_amounts,
+  stage.periods,
+  stage.period_amounts,
+  stage.bus_product_id,
+  stage.bus_product_name,
+  stage.shoufu_amount,
+  stage.selling_price,
+  stage.contract_daily_interest_rate,
+  stage.repay_plan_cal_rule,
+  stage.contract_daily_interest_rate_count,
+  stage.total_investment_amount,
+  stage.contract_month_interest_rate,
+  stage.status_change_log,
+  stage.package_filter_id,
+  stage.virtual_asset_bag_id,
+  bag_snapshot.package_remain_principal,
+  bag_snapshot.package_remain_periods,
+  cast(
+    case
+      when bag_snapshot.bag_status = '已封包'   then 2
+      when bag_snapshot.bag_status = '已发行'   then 3
+      else 1
+    end as int
+  ) as status,
+  stage.wind_control_status,
+  stage.wind_control_status_pool,
+  stage.cheat_level,
+  stage.score_range,
+  stage.score_level,
+  stage.create_time,
+  stage.update_time,
+  stage.data_source,
+  stage.address,
+  stage.mortgage_rates
 from (
   select * from ods.t_10_basic_asset_stage
-) stage
+) as stage
 left join (
   select
+    bag_due.project_id                  as project_id,
     bag_due.due_bill_no                 as due_bill_no,
     bag_info.bag_id                     as asset_bag_id,
     bag_info.bag_status                 as bag_status,
     bag_info.bag_remain_principal       as package_principal_balance,
     package_remain_principal            as package_remain_principal,
     package_remain_periods              as package_remain_periods
-  from dim.bag_due_bill_no bag_due
-  inner join dim.bag_info bag_info
-  on bag_due.bag_id = bag_info.bag_id
-) bag_snapshot
-on stage.serial_number = bag_snapshot.due_bill_no;
+  from dim.bag_due_bill_no as bag_due
+  inner join dim.bag_info as bag_info
+  on  bag_due.project_id = bag_info.project_id
+  and bag_due.bag_id     = bag_info.bag_id
+) as bag_snapshot
+on  stage.project_id    = bag_snapshot.project_id
+and stage.serial_number = bag_snapshot.due_bill_no;

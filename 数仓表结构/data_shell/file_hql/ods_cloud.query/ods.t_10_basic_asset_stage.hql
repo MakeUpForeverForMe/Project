@@ -31,7 +31,7 @@ select
   project_info.asset_type                             as asset_type,
   loan_info.due_bill_no                               as serial_number,
   lending.contract_no                                 as contract_code,
-  loan_info.loan_init_principal                         as contract_amount,
+  loan_info.loan_init_principal                       as contract_amount,
   lending.interest_rate_type                          as interest_rate_type,
   lending.loan_init_interest_rate                     as contract_interest_rate,
   0                                                   as base_interest_rate,
@@ -106,24 +106,26 @@ select
   lending.mortgage_rate                               as mortgage_rates
 from (
   select * from ods.loan_info_abs
-  where e_d_date = '2021-03-30'
-) loan_info
-left join ods.loan_lending_abs lending
-on loan_info.due_bill_no = lending.due_bill_no
-inner join dim.project_info project_info
+  where e_d_date = '3000-12-31'
+) as loan_info
+inner join dim.project_info as project_info
 on loan_info.project_id = project_info.project_id
-inner join dim.project_due_bill_no pro_due
-on loan_info.due_bill_no = pro_due.due_bill_no
+inner join ods.customer_info_abs as cust
+on  loan_info.project_id  = cust.project_id
+and loan_info.due_bill_no = cust.due_bill_no
+left join ods.loan_lending_abs as lending
+on  loan_info.project_id  = lending.project_id
+and loan_info.due_bill_no = lending.due_bill_no
 left join (
   select
+    project_id,
     due_bill_no,
     min(should_repay_date) as first_repay_date
   from ods.repay_schedule_abs
-  group by due_bill_no
-) first_repay
-on loan_info.due_bill_no = first_repay.due_bill_no
-inner join ods.customer_info_abs cust
-on loan_info.due_bill_no = cust.due_bill_no
+  group by project_id,due_bill_no
+) as first_repay
+on  loan_info.project_id  = first_repay.project_id
+and loan_info.due_bill_no = first_repay.due_bill_no
 left join (
   select
     due_bill_no,
@@ -137,8 +139,9 @@ left join (
   where source_table in ('t_asset_wind_control_history')
     and map_key in ('wind_control_status','wind_control_status_pool','cheat_level','score_range','score_level')
   group by due_bill_no,product_id
-) risk
-on loan_info.due_bill_no = risk.due_bill_no
+) as risk
+on  loan_info.project_id  = risk.product_id
+and loan_info.due_bill_no = risk.due_bill_no
 group by
   loan_info.due_bill_no,
   loan_info.project_id,

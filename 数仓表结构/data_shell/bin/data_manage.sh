@@ -31,7 +31,7 @@ execute_hql(){
     [[ $flag == false ]] && echo -e "$(date +'%F %T') 执行日期为：$manage_s_date 的数据任务 $app_name ${param_db_tb[1]} 执行失败，重试第 $(($n + 1)) 次（默认重试次数为： $manage_retry_num） $([[ $n == $manage_retry_num ]] && echo '跳过')"
     [[ $flag == false && -n $manage_mail_file && $n == $manage_retry_num ]] && {
       # echo \
-      $mail $manage_mail_file '数据 4.0 任务失败' "$(echo -e "
+      $mail $manage_mail_file 'data_manage 执行任务失败' "$(echo -e "
         \n发送时间为： $(date +'%F %T')
         \n执行日期为： $manage_s_date
         \n执行文件为： $manage_hql

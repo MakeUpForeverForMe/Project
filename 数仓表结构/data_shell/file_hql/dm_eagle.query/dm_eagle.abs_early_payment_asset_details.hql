@@ -1,30 +1,24 @@
-set hive.exec.input.listing.max.threads=50;
-set tez.grouping.min-size=50000000;
-set tez.grouping.max-size=50000000;
-set hive.exec.reducers.max=500;
-
--- 设置 Container 大小
-set hive.tez.container.size=4096;
-set tez.am.resource.memory.mb=4096;
--- 合并小文件
-set hive.merge.tezfiles=true;
-set hive.merge.size.per.task=64000000;      -- 64M
-set hive.merge.smallfiles.avgsize=64000000; -- 64M
--- 设置动态分区
+set hive.execution.engine=spark;
+set spark.executor.memory=4g;
+set spark.executor.memoryOverhead=4g;
+set spark.shuffle.memoryFraction=0.6;         -- shuffle操作的内存占比
+set spark.maxRemoteBlockSizeFetchToMem=200m;
+set hive.auto.convert.join=false;             -- 关闭自动 MapJoin
+set hive.mapjoin.optimized.hashtable=false;
+set hive.mapjoin.followby.gby.localtask.max.memory.usage=0.9;
 set hive.exec.dynamic.partition=true;
 set hive.exec.dynamic.partition.mode=nonstrict;
-set hive.exec.max.dynamic.partitions=200000;
-set hive.exec.max.dynamic.partitions.pernode=50000;
--- 禁用 Hive 矢量执行
+set hive.exec.max.dynamic.partitions=30000;
+set hive.exec.max.dynamic.partitions.pernode=10000;
 set hive.vectorized.execution.enabled=false;
-set hive.vectorized.execution.reduce.enabled=false;
-set hive.vectorized.execution.reduce.groupby.enabled=false;
-
-set hive.auto.convert.join=false;                    -- 关闭自动 MapJoin
-set hive.auto.convert.join.noconditionaltask=false;  -- 关闭自动 MapJoin
 
 
-set hivevar:ST9=2020-10-15;
+
+
+set hivevar:ST9=2021-04-01;
+
+
+
 
 with loan_settle_info as (
   select
@@ -67,13 +61,11 @@ select
   sum(if(repay_detail.bnp_type = 'Interest',repay_detail.repay_amount,0))  as early_payment_interest,
   sum(if(repay_detail.bnp_type = 'TXNFee',repay_detail.repay_amount,0))    as early_payment_fee,
   '${ST9}'                                                                 as biz_date,
-  bag_info.project_id                                                      as project_id,
+  bag_due.project_id                                                       as project_id,
   'default_all_bag'                                                        as bag_id
 from dim.bag_due_bill_no as bag_due
-inner join dim.bag_info as bag_info
-on bag_due.bag_id = bag_info.bag_id
 inner join loan_settle_info as loan_settle
-on  bag_info.project_id = loan_settle.project_id
+on  bag_due.project_id  = loan_settle.project_id
 and bag_due.due_bill_no = loan_settle.due_bill_no
 inner join (
   select
@@ -100,7 +92,7 @@ on  loan_settle.project_id      = repay_detail.project_id
 and loan_settle.due_bill_no     = repay_detail.due_bill_no
 and loan_settle.pre_settle_date = repay_detail.biz_date
 group by
-  bag_info.project_id,
+  bag_due.project_id,
   loan_settle.due_bill_no,
   loan_settle.contract_no,
   loan_before_settle.remain_principal,
@@ -117,13 +109,11 @@ select
   sum(if(repay_detail.bnp_type = 'Interest',repay_detail.repay_amount,0))  as early_payment_interest,
   sum(if(repay_detail.bnp_type = 'TXNFee',repay_detail.repay_amount,0))    as early_payment_fee,
   '${ST9}'                                                                 as biz_date,
-  bag_info.project_id                                                      as project_id,
+  bag_due.project_id                                                       as project_id,
   bag_due.bag_id                                                           as bag_id
 from dim.bag_due_bill_no as bag_due
-inner join dim.bag_info as bag_info
-on bag_due.bag_id = bag_info.bag_id
 inner join loan_settle_info as loan_settle
-on  bag_info.project_id = loan_settle.project_id
+on  bag_due.project_id = loan_settle.project_id
 and bag_due.due_bill_no = loan_settle.due_bill_no
 inner join (
   select
@@ -150,7 +140,7 @@ on  loan_settle.project_id      = repay_detail.project_id
 and loan_settle.due_bill_no     = repay_detail.due_bill_no
 and loan_settle.pre_settle_date = repay_detail.biz_date
 group by
-  bag_info.project_id,
+  bag_due.project_id,
   bag_due.bag_id,
   loan_settle.due_bill_no,
   loan_settle.contract_no,

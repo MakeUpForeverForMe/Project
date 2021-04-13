@@ -26,6 +26,15 @@ set hive.vectorized.execution.reduce.groupby.enabled=false;
 -- 代称后
 -- set hivevar:db_suffix=_cps;
 
+set hivevar:product_id=;
+
+-- set hivevar:product_id=and product_id not in (
+--   '001801','001802','001803','001804',
+--   '001901','001902','001903','001904','001905','001906','001907',
+--   '002001','002002','002003','002004','002005','002006','002007',
+--   '002401','002402',
+--   ''
+-- );
 
 insert overwrite table ods${db_suffix}.loan_info partition(is_settled = 'no',product_id)
 select
@@ -87,7 +96,11 @@ select
   biz_date as s_d_date,
   nvl(lead(biz_date)                                     over(partition by product_id,due_bill_no order by biz_date),'3000-12-31') as e_d_date,
   product_id
-from ods${db_suffix}.loan_info_inter
+from (
+  select * from ods${db_suffix}.loan_info_inter
+  where 1 > 0
+    ${product_id}
+) as loan_info
 left join (
   select
     dpd_product_id,
@@ -97,12 +110,14 @@ left join (
     nvl(lag(dpd_dpd_days_count) over(partition by dpd_product_id,dpd_due_bill_no order by dpd_overdue_date_start),0) as dpd_dpd_days_count
   from (
     select
-      product_id                                                                                            as dpd_product_id,
-      due_bill_no                                                                                           as dpd_due_bill_no,
-      nvl(overdue_date_start,'1970-01-01')                                                                  as dpd_overdue_date_start,
-      nvl(lead(overdue_date_start) over(partition by due_bill_no order by overdue_date_start),'3000-12-31') as dpd_overdue_date_next,
-      sum(max(overdue_days)) over(partition by due_bill_no order by overdue_date_start)                     as dpd_dpd_days_count
+      product_id                                                                                                       as dpd_product_id,
+      due_bill_no                                                                                                      as dpd_due_bill_no,
+      nvl(overdue_date_start,'1970-01-01')                                                                             as dpd_overdue_date_start,
+      nvl(lead(overdue_date_start) over(partition by product_id,due_bill_no order by overdue_date_start),'3000-12-31') as dpd_overdue_date_next,
+      sum(max(overdue_days))       over(partition by product_id,due_bill_no order by overdue_date_start)               as dpd_dpd_days_count
     from ods${db_suffix}.loan_info_inter
+    where 1 > 0
+      ${product_id}
     group by product_id,due_bill_no,overdue_date_start
   ) as tmp
 ) as dpd_days_count

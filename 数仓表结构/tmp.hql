@@ -332,56 +332,15 @@ ALTER TABLE dw_new_cps.dw_loan_base_stat_overdue_num_day_hst RENAME TO dw_new_cp
 -- drop table dw_new_cps.del_dw_loan_base_stat_overdue_num_day_bak_20201028;
 
 
-invalidate metadata dim_new.project_due_bill_no;
-invalidate metadata ods_new_s.loan_info_cloud;
-invalidate metadata ods_new_s.cust_loan_mapping;
-invalidate metadata ods_new_s.customer_info_cloud;
-invalidate metadata ods_new_s.guaranty_info;
-invalidate metadata ods_new_s.loan_lending_cloud;
-invalidate metadata ods_new_s.repay_detail_cloud;
-invalidate metadata ods_new_s.order_info_cloud;
-invalidate metadata ods_new_s.repay_schedule_inter;
+invalidate metadata dim.project_due_bill_no;
 
-invalidate metadata ods_new_s.repay_schedule_abs;
-invalidate metadata ods_new_s.t_05_repaymentplan;
-invalidate metadata ods_new_s.t_10_basic_asset;
-invalidate metadata ods_new_s.t_07_actualrepayinfo;
+invalidate metadata stage.abs_t_related_assets;
 
-invalidate metadata ods_new_s.loan_info_abs;
-invalidate metadata ods_new_s.customer_info_cloud;
-
-
-invalidate metadata ods_new_s.guaranty_info;
-invalidate metadata ods_new_s.guaranty_info_abs;
-
-
-invalidate metadata ods_new_s.enterprise_info;
-invalidate metadata ods_new_s.enterprise_info_abs;
-
-
-invalidate metadata ods_new_s.loan_apply;
-
-
-invalidate metadata ods_new_s.risk_control;
-
-
-invalidate metadata dm_eagle.assets_distribution;
-
-invalidate metadata dm_eagle.eagle_credit_loan_approval_amount_sum_day;
-
-
-
-invalidate metadata stage.t_12_enterpriseinfo;
-
-invalidate metadata dim_new.dim_idno;
-invalidate metadata dim_new.biz_conf;
-invalidate metadata dim_new.dim_car_brand;
-
-
-
-invalidate metadata dm_eagle.abs_asset_information_cash_flow_bag_snapshot;
-
-invalidate metadata dm_eagle.abs_overdue_rate_details_day;
+invalidate metadata ods.loan_info;
+invalidate metadata ods.loan_info_abs;
+invalidate metadata ods.loan_lending;
+invalidate metadata ods.t_10_basic_asset_stage;
+invalidate metadata ods.t_10_basic_asset;
 
 
 
@@ -1067,25 +1026,131 @@ select distinct
   project_name,
   t_project.project_id,
   case project_type
-  when '1' then '存量'
-  when '2' then '增量'
-  else project_type end as type,
-  t_related_assets.project_id,
+  when 1 then '存量'
+  when 2 then '增量'
+  else null end as type,
+  t_related_assets.project_id as related_project_id,
   case data_source
-  when '1' then '接口导入'
-  when '2' then 'Excel导入'
-  else data_source end as data_source,
+  when 1 then '接口导入'
+  when 2 then 'Excel导入'
+  else null end as data_source,
   case
-  when t_related_assets.project_id is not null then '核心'
-  when t_project.project_id in ('001601','WS0005200001','DIDI201908161538','PL201907050063') then '核心'
-  else '校验平台' end as project_from,
+    when t_project.project_id in (
+      '001601',
+      'WS0005200001',
+      'CL202104010103',
+      'CL202011090089',
+      'CL202007020086',
+      'CL202003230083',
+      'CL202011090088',
+      'CL202012160091',
+      'CL202103160101',
+      'CL202011090090',
+      'CL202101220094',
+      'CL202012280092',
+      'CL202102010097',
+      'CL202102240099',
+      'CL202102240100',
+      'CL202103260102',
+      'DIDI201908161538'
+    ) then '核心'
+    when t_project.project_id in (
+      'CL201905240054',
+      'CL201912100072',
+      'PL201905080051',
+      'CL201912260074',
+      'CL201905310055',
+      'CL202003200082',
+      'CL201906040057',
+      'CL201906040058',
+      'CL201905220053',
+      'CL201912170073',
+      'PL201908210066',
+      'PL201904110050',
+      'CL201906050059',
+      'CL201906040056'
+    ) then '星云'
+    when t_project.project_id in (
+      '001503',
+      '001505',
+      '001504'
+    ) then '校验平台(老老核心)'
+    else '校验平台'
+  end as project_from,
   project_begin_date as begin_date,
-  project_end_date   as end_date
-from stage.t_project
-left join (select distinct project_id,related_project_id from stage.t_related_assets) as t_related_assets
+  project_end_date   as end_date,
+  case t_project.project_id
+    when 'DIDI201908161538' then 1
+    when 'WS0005200001'     then 2
+    when '001601'           then 3
+    when 'CL202104010103'   then 4
+    when 'CL202011090089'   then 5
+    when 'CL202007020086'   then 6
+    when 'CL202003230083'   then 7
+    when 'CL202011090088'   then 8
+    when 'CL202012160091'   then 9
+    when 'CL202103160101'   then 10
+    when 'CL202011090090'   then 11
+    when 'CL202101220094'   then 12
+    when 'CL202012280092'   then 13
+    when 'CL202102010097'   then 14
+    when 'CL202102240099'   then 15
+    when 'CL202102240100'   then 16
+    when 'CL202103260102'   then 17
+    when 'cl00297'          then 18
+    when 'cl00306'          then 19
+    when 'cl00309'          then 20
+    when 'CL201911130070'   then 21
+    when 'CL202002240081'   then 22
+    when 'CL202104020104'   then 23
+    when 'CL202104010103'   then 24
+    when 'cl00333'          then 25
+    when 'PL202101200093'   then 26
+    when 'CL202104010103'   then 27
+    when 'cl00326'          then 28
+    when 'CL201912100072'   then 29
+    when 'PL201905080051'   then 30
+    when 'CL201912260074'   then 31
+    when 'CL201905310055'   then 32
+    when 'CL202003200082'   then 33
+    when 'CL201906040057'   then 34
+    when 'CL201906040058'   then 35
+    when 'CL201905220053'   then 36
+    when 'CL201912170073'   then 37
+    when 'PL201908210066'   then 38
+    when 'PL201904110050'   then 39
+    when 'CL201906050059'   then 40
+    when 'CL201906040056'   then 41
+    when 'cl00265'          then 42
+    when 'cl00187'          then 43
+    when 'cl00185'          then 44
+    when 'cl00186'          then 45
+    when 'cl00199'          then 46
+    when 'cl00217'          then 47
+    when 'cl00229'          then 48
+    when 'cl00243'          then 49
+    when 'cl00232'          then 50
+    when 'cl00233'          then 51
+    when 'CL202101260095'   then 52
+    when 'CL202102050098'   then 53
+    when 'CL202104080105'   then 54
+    when '001503'           then 55
+    when '001505'           then 56
+    when '001504'           then 57
+    when 'pl00282'          then 58
+    when 'CL201905240054'   then 59
+    else 999
+  end as asc_id
+from stage.abs_t_project as t_project
+left join (select distinct project_id,related_project_id from stage.abs_t_related_assets) as t_related_assets
 on t_project.project_id = t_related_assets.related_project_id
-where t_project.project_id not in ('PL202102010096')
-order by project_full_name;
+where t_project.project_id not in (
+  'PL202102010096', -- 1-1-1-1年第1期
+  'PL201907050063', -- WY-中航-消费分期-2019年第1期
+  'PL201908220067', -- 东亚中国-银登-车位分期-2019年第1期-te
+  ''
+)
+order by asc_id;
 
 
 
@@ -1103,243 +1168,12 @@ order by project_full_name;
 
 
 
-invalidate metadata dim.biz_conf;
-
-
-
-
-insert overwrite table dim.data_conf
-select
-  col_type               as col_type,
-  uuid                   as col_id,
-  split(map_key,'~~')[0] as col_name,
-  map_val                as col_val,
-  split(map_key,'~~')[1] as col_comment,
-  'ximing.wei'           as create_user,
-  current_timestamp()    as create_time,
-  'ximing.wei'           as update_user,
-  current_timestamp()    as update_time
-from (
-  select 'ac' as col_type,uuid() as uuid,* from dim.biz_conf
-  where is_empty(product_name_en) is not null
-) as biz_conf
-lateral view explode(map(
-  concat_ws('~~','biz_name',          '业务名称（中文）'),      biz_name,
-  concat_ws('~~','biz_name_en',       '业务名称（英文）'),      biz_name_en,
-  concat_ws('~~','capital_id',        '资金方编号'),            capital_id,
-  concat_ws('~~','capital_name',      '资金方名称（中文）'),    capital_name,
-  concat_ws('~~','capital_name_en',   '资金方名称（英文）'),    capital_name_en,
-  concat_ws('~~','channel_id',        '渠道方编号'),            channel_id,
-  concat_ws('~~','channel_name',      '渠道方名称（中文）'),    channel_name,
-  concat_ws('~~','channel_name_en',   '渠道方名称（英文）'),    channel_name_en,
-  concat_ws('~~','trust_id',          '信托计划编号'),          trust_id,
-  concat_ws('~~','trust_name',        '信托计划名称（中文）'),  trust_name,
-  concat_ws('~~','trust_name_en',     '信托计划名称（英文）'),  trust_name_en,
-  concat_ws('~~','project_id',        '项目编号'),              project_id,
-  concat_ws('~~','project_name',      '项目名称（中文）'),      project_name,
-  concat_ws('~~','project_name_en',   '项目名称（英文）'),      project_name_en,
-  concat_ws('~~','project_amount',    '项目初始金额'),          project_amount,
-  concat_ws('~~','product_id',        '产品编号'),              product_id,
-  concat_ws('~~','product_name',      '产品名称（中文）'),      product_name,
-  concat_ws('~~','product_name_en',   '产品名称（英文）'),      product_name_en,
-  concat_ws('~~','product_id_vt',     '产品编号（虚拟）'),      product_id_vt,
-  concat_ws('~~','product_name_vt',   '产品名称（中文、虚拟）'),product_name_vt,
-  concat_ws('~~','product_name_en_vt','产品名称（英文、虚拟）'),product_name_en_vt
-)) a as map_key,map_val
-where 1 > 0
-  and is_empty(map_val) is not null
--- limit 50
-;
-
-
-insert into table dim.data_conf
-select
-  col_type               as col_type,
-  uuid                   as col_id,
-  split(map_key,'~~')[0] as col_name,
-  map_val                as col_val,
-  split(map_key,'~~')[1] as col_comment,
-  'ximing.wei'           as create_user,
-  current_timestamp()    as create_time,
-  'ximing.wei'           as update_user,
-  current_timestamp()    as update_time
-from (
-  select 'ai' as col_type,uuid() as uuid,'GMXT01' as capital_id,'国民信托' as capital_name,'WS0006200001' as project_id,'乐信-国民一期' as project_name,'GIC' as investor_id,'GIC' as investor_name,'378000000' as investment_funds,'2020-06-23' as investment_start_date,'2021-09-28' as investment_maturity_date,'360' as annualized_days,'7'    as coupon_rate,'优先级' as share_type,'80'  as share_proportion,'1' as coupon_formula,'2020-06-23' as coupon_formula_effective_date,'2021-09-28' as coupon_formula_expire_date,'算尾不算头' as int_calc_rules union all
-  select 'ai' as col_type,uuid() as uuid,'GMXT01' as capital_id,'国民信托' as capital_name,'WS0006200001' as project_id,'乐信-国民一期' as project_name,'GIC' as investor_id,'GIC' as investor_name,'378000000' as investment_funds,'2020-06-23' as investment_start_date,'2021-09-28' as investment_maturity_date,'360' as annualized_days,'11.5' as coupon_rate,'夹层'   as share_type,'10'  as share_proportion,'1' as coupon_formula,'2020-06-23' as coupon_formula_effective_date,'2021-09-28' as coupon_formula_expire_date,'算尾不算头' as int_calc_rules union all
-  select 'ai' as col_type,uuid() as uuid,'ZTXT01' as capital_id,'中铁信托' as capital_name,'WS0009200001' as project_id,'乐信-中铁一期' as project_name,'GIC' as investor_id,'GIC' as investor_name,'61600000'  as investment_funds,'2020-09-08' as investment_start_date,'2022-03-28' as investment_maturity_date,'360' as annualized_days,'7'    as coupon_rate,'优先级' as share_type,'80'  as share_proportion,'1' as coupon_formula,'2020-09-08' as coupon_formula_effective_date,'2022-03-28' as coupon_formula_expire_date,'算头不算尾' as int_calc_rules union all
-  select 'ai' as col_type,uuid() as uuid,'ZTXT01' as capital_id,'中铁信托' as capital_name,'WS0009200001' as project_id,'乐信-中铁一期' as project_name,'GIC' as investor_id,'GIC' as investor_name,'61600000'  as investment_funds,'2020-09-08' as investment_start_date,'2022-03-28' as investment_maturity_date,'360' as annualized_days,'12.5' as coupon_rate,'夹层'   as share_type,'8'   as share_proportion,'1' as coupon_formula,'2020-09-08' as coupon_formula_effective_date,'2022-03-28' as coupon_formula_expire_date,'算头不算尾' as int_calc_rules union all
-  select 'ai' as col_type,uuid() as uuid,'GMXT01' as capital_id,'国民信托' as capital_name,'WS0006200002' as project_id,'乐信-国民二期' as project_name,'GIC' as investor_id,'GIC' as investor_name,'123200000' as investment_funds,'2020-09-08' as investment_start_date,'2022-03-28' as investment_maturity_date,'360' as annualized_days,'7'    as coupon_rate,'优先级' as share_type,'80'  as share_proportion,'1' as coupon_formula,'2020-09-08' as coupon_formula_effective_date,'2022-03-28' as coupon_formula_expire_date,'算头不算尾' as int_calc_rules union all
-  select 'ai' as col_type,uuid() as uuid,'GMXT01' as capital_id,'国民信托' as capital_name,'WS0006200002' as project_id,'乐信-国民二期' as project_name,'GIC' as investor_id,'GIC' as investor_name,'123200000' as investment_funds,'2020-09-08' as investment_start_date,'2022-03-28' as investment_maturity_date,'360' as annualized_days,'12.5' as coupon_rate,'夹层'   as share_type,'8'   as share_proportion,'1' as coupon_formula,'2020-09-08' as coupon_formula_effective_date,'2022-03-28' as coupon_formula_expire_date,'算头不算尾' as int_calc_rules union all
-  select 'ai' as col_type,uuid() as uuid,'GMXT01' as capital_id,'国民信托' as capital_name,'WS0006200002' as project_id,'乐信-国民二期' as project_name,'GIC' as investor_id,'GIC' as investor_name,'184800000' as investment_funds,'2020-10-23' as investment_start_date,'2022-03-28' as investment_maturity_date,'360' as annualized_days,'7'    as coupon_rate,'优先级' as share_type,'80'  as share_proportion,'1' as coupon_formula,'2020-10-23' as coupon_formula_effective_date,'2022-03-28' as coupon_formula_expire_date,'算头不算尾' as int_calc_rules union all
-  select 'ai' as col_type,uuid() as uuid,'GMXT01' as capital_id,'国民信托' as capital_name,'WS0006200002' as project_id,'乐信-国民二期' as project_name,'GIC' as investor_id,'GIC' as investor_name,'184800000' as investment_funds,'2020-10-23' as investment_start_date,'2022-03-28' as investment_maturity_date,'360' as annualized_days,'12.5' as coupon_rate,'夹层'   as share_type,'8'   as share_proportion,'1' as coupon_formula,'2020-10-23' as coupon_formula_effective_date,'2022-03-28' as coupon_formula_expire_date,'算头不算尾' as int_calc_rules
-) as biz_conf
-lateral view explode(map(
-  concat_ws('~~','capital_id',                    '资金方编号'),      capital_id,
-  concat_ws('~~','capital_name',                  '资金方名称'),      capital_name,
-  concat_ws('~~','project_id',                    '项目编号'),        project_id,
-  concat_ws('~~','project_name',                  '项目名称'),        project_name,
-  concat_ws('~~','investor_id',                   '投资人编号'),      investor_id,
-  concat_ws('~~','investor_name',                 '投资人名称'),      investor_name,
-  concat_ws('~~','investment_funds',              '投资资金（元）'),  investment_funds,
-  concat_ws('~~','investment_start_date',         '投资起始日期'),    investment_start_date,
-  concat_ws('~~','investment_maturity_date',      '投资到期日期'),    investment_maturity_date,
-  concat_ws('~~','annualized_days',               '年化天数（天）'),  annualized_days,
-  concat_ws('~~','coupon_rate',                   '收益率（%）'),     coupon_rate,
-  concat_ws('~~','share_type',                    '份额类型'),        share_type,
-  concat_ws('~~','share_proportion',              '份额占比（%）'),   share_proportion,
-  concat_ws('~~','coupon_formula',                '收益公式'),        coupon_formula,
-  concat_ws('~~','coupon_formula_effective_date', '收益公式生效日期'),coupon_formula_effective_date,
-  concat_ws('~~','coupon_formula_expire_date',    '收益公式失效日期'),coupon_formula_expire_date,
-  concat_ws('~~','int_calc_rules',                '计息规则'),        int_calc_rules
-)) a as map_key,map_val
-where 1 > 0
-  and is_empty(map_val) is not null
-limit 200
-;
-
-
-insert into table dim.data_conf
-select
-  col_type               as col_type,
-  uuid                   as col_id,
-  split(map_key,'~~')[0] as col_name,
-  map_val                as col_val,
-  split(map_key,'~~')[1] as col_comment,
-  'ximing.wei'           as create_user,
-  current_timestamp()    as create_time,
-  'ximing.wei'           as update_user,
-  current_timestamp()    as update_time
-from (
-  select 'pp' as col_type,uuid() as uuid,'HTZG01' as capital_id,'华泰资管' as capital_name,'0010'    as channel_id,'上海易鑫' as channel_name,'PL201905080051'   as project_id,'上海易鑫-华泰资管-车分期-2019年第1期'            as project_name union all
-  select 'pp' as col_type,uuid() as uuid,'HTZG01' as capital_id,'华泰资管' as capital_name,'0010'    as channel_id,'上海易鑫' as channel_name,'CL201912260074'   as project_id,'上海易鑫-华泰资管-车分期-2019年第1期-循环'       as project_name union all
-  select 'pp' as col_type,uuid() as uuid,'HTZG01' as capital_id,'华泰资管' as capital_name,'0010'    as channel_id,'上海易鑫' as channel_name,'CL201905310055'   as project_id,'上海易鑫-华泰资管-车分期-2019年第2期'            as project_name union all
-  select 'pp' as col_type,uuid() as uuid,'HTZG01' as capital_id,'华泰资管' as capital_name,'0010'    as channel_id,'上海易鑫' as channel_name,'CL202003200082'   as project_id,'上海易鑫-华泰资管-车分期-2019年第2期-循环'       as project_name union all
-  select 'pp' as col_type,uuid() as uuid,'GYZL01' as capital_id,'国银租赁' as capital_name,'0010'    as channel_id,'上海易鑫' as channel_name,'CL201906040057'   as project_id,'上海易鑫-国银租赁-车分期-2018年第1期'            as project_name union all
-  select 'pp' as col_type,uuid() as uuid,'GYZL01' as capital_id,'国银租赁' as capital_name,'0010'    as channel_id,'上海易鑫' as channel_name,'CL201906040058'   as project_id,'上海易鑫-国银租赁-车分期-2019年第1期'            as project_name union all
-  select 'pp' as col_type,uuid() as uuid,'JGSM01' as capital_id,'机构私募' as capital_name,'0010'    as channel_id,'上海易鑫' as channel_name,'CL201905220053'   as project_id,'上海易鑫-菁享1号-车分期-2019年第1期'             as project_name union all
-  select 'pp' as col_type,uuid() as uuid,'JGSM01' as capital_id,'机构私募' as capital_name,'0010'    as channel_id,'上海易鑫' as channel_name,'CL201912170073'   as project_id,'上海易鑫-菁享1号-车分期-2019年第1期-循环'        as project_name union all
-  select 'pp' as col_type,uuid() as uuid,'YD01'   as capital_id,'银登'     as capital_name,'abs0006' as channel_id,'东亚银行' as channel_name,'PL201908210066'   as project_id,'东亚-银登-车位分期-2019年第1期-实际'             as project_name union all
-  select 'pp' as col_type,uuid() as uuid,'YD01'   as capital_id,'银登'     as capital_name,'abs0006' as channel_id,'东亚银行' as channel_name,'PL201908220067'   as project_id,'东亚中国-银登-车位分期-2019年第1期-te'           as project_name union all
-  select 'pp' as col_type,uuid() as uuid,'JGSM01' as capital_id,'机构私募' as capital_name,'abs0006' as channel_id,'东亚银行' as channel_name,'PL201904110050'   as project_id,'东亚银行-机构-车位分期-2019年第1期'              as project_name union all
-  select 'pp' as col_type,uuid() as uuid,'GYZL01' as capital_id,'国银租赁' as capital_name,'abs0001' as channel_id,'天津恒通' as channel_name,'CL201906040056'   as project_id,'天津恒通-国银租赁-车抵贷-2018年第1期'            as project_name union all
-  select 'pp' as col_type,uuid() as uuid,'JGSM01' as capital_id,'机构私募' as capital_name,'abs0001' as channel_id,'天津恒通' as channel_name,'cl00265'          as project_id,'天津恒通-机构私募-车抵贷-2019年第1期'            as project_name union all
-  select 'pp' as col_type,uuid() as uuid,'LCT01'  as capital_id,'理财通'   as capital_name,'abs0001' as channel_id,'天津恒通' as channel_name,'cl00187'          as project_id,'天津恒通-理财通-车抵贷-2017年第1期'              as project_name union all
-  select 'pp' as col_type,uuid() as uuid,'LCT01'  as capital_id,'理财通'   as capital_name,'abs0001' as channel_id,'天津恒通' as channel_name,'cl00185'          as project_id,'天津恒通-理财通-车抵贷-2017年第2期'              as project_name union all
-  select 'pp' as col_type,uuid() as uuid,'LCT01'  as capital_id,'理财通'   as capital_name,'abs0001' as channel_id,'天津恒通' as channel_name,'cl00186'          as project_id,'天津恒通-理财通-车抵贷-2018年第4期'              as project_name union all
-  select 'pp' as col_type,uuid() as uuid,'LCT01'  as capital_id,'理财通'   as capital_name,'abs0001' as channel_id,'天津恒通' as channel_name,'cl00199'          as project_id,'天津恒通-理财通-车抵贷-2018年第5期'              as project_name union all
-  select 'pp' as col_type,uuid() as uuid,'LCT01'  as capital_id,'理财通'   as capital_name,'abs0001' as channel_id,'天津恒通' as channel_name,'cl00217'          as project_id,'天津恒通-理财通-车抵贷-2018年第6期'              as project_name union all
-  select 'pp' as col_type,uuid() as uuid,'LCT01'  as capital_id,'理财通'   as capital_name,'abs0001' as channel_id,'天津恒通' as channel_name,'cl00229'          as project_id,'天津恒通-理财通-车抵贷-2018年第7期'              as project_name union all
-  select 'pp' as col_type,uuid() as uuid,'LCT01'  as capital_id,'理财通'   as capital_name,'abs0001' as channel_id,'天津恒通' as channel_name,'cl00243'          as project_id,'天津恒通-理财通-车抵贷-2018年第8期'              as project_name union all
-  select 'pp' as col_type,uuid() as uuid,'ZHBL01' as capital_id,'中豪保理' as capital_name,'0003'    as channel_id,'汇通信诚' as channel_name,'CL202003230083'   as project_id,'汇通信诚-中豪保理-车分期-2020年第1期'            as project_name union all
-  select 'pp' as col_type,uuid() as uuid,'HYBL01' as capital_id,'和赢保理' as capital_name,'0003'    as channel_id,'汇通信诚' as channel_name,'CL202011090089'   as project_id,'汇通信诚-和赢保理-应收ABN-2020年第1期'           as project_name union all
-  select 'pp' as col_type,uuid() as uuid,'HYBL01' as capital_id,'和赢保理' as capital_name,'0003'    as channel_id,'汇通信诚' as channel_name,'cl00333'          as project_id,'汇通信诚-和赢保理-车分期-2019年第1期'            as project_name union all
-  select 'pp' as col_type,uuid() as uuid,'HYBL01' as capital_id,'和赢保理' as capital_name,'0003'    as channel_id,'汇通信诚' as channel_name,'CL202007020086'   as project_id,'汇通信诚-和赢保理-车类应收-2020年第1期'          as project_name union all
-  select 'pp' as col_type,uuid() as uuid,'HYBL01' as capital_id,'和赢保理' as capital_name,'0003'    as channel_id,'汇通信诚' as channel_name,'001601'           as project_id,'汇通信诚-和赢保理-车资产-2019年第2期'            as project_name union all
-  select 'pp' as col_type,uuid() as uuid,'GYZL01' as capital_id,'国银租赁' as capital_name,'0003'    as channel_id,'汇通信诚' as channel_name,'CL202012280092'   as project_id,'汇通信诚-国银租赁-新增2.0-2021年第0期-全'        as project_name union all
-  select 'pp' as col_type,uuid() as uuid,'GYZL01' as capital_id,'国银租赁' as capital_name,'0003'    as channel_id,'汇通信诚' as channel_name,'CL202102010097'   as project_id,'汇通信诚-国银租赁-新增2.0-2021年第1期'           as project_name union all
-  select 'pp' as col_type,uuid() as uuid,'GYZL01' as capital_id,'国银租赁' as capital_name,'0003'    as channel_id,'汇通信诚' as channel_name,'CL202102240099'   as project_id,'汇通信诚-国银租赁-新增2.0-2021年第2期'           as project_name union all
-  select 'pp' as col_type,uuid() as uuid,'GYZL01' as capital_id,'国银租赁' as capital_name,'0003'    as channel_id,'汇通信诚' as channel_name,'CL202102240100'   as project_id,'汇通信诚-国银租赁-新增2.0-2021年第3期'           as project_name union all
-  select 'pp' as col_type,uuid() as uuid,'GYZL01' as capital_id,'国银租赁' as capital_name,'0003'    as channel_id,'汇通信诚' as channel_name,'cl00297'          as project_id,'汇通信诚-国银租赁-车分期-2019年第1期'            as project_name union all
-  select 'pp' as col_type,uuid() as uuid,'GYZL01' as capital_id,'国银租赁' as capital_name,'0003'    as channel_id,'汇通信诚' as channel_name,'cl00306'          as project_id,'汇通信诚-国银租赁-车分期-2019年第2期'            as project_name union all
-  select 'pp' as col_type,uuid() as uuid,'GYZL01' as capital_id,'国银租赁' as capital_name,'0003'    as channel_id,'汇通信诚' as channel_name,'cl00309'          as project_id,'汇通信诚-国银租赁-车分期-2019年第3期'            as project_name union all
-  select 'pp' as col_type,uuid() as uuid,'GYZL01' as capital_id,'国银租赁' as capital_name,'0003'    as channel_id,'汇通信诚' as channel_name,'CL201911130070'   as project_id,'汇通信诚-国银租赁-车分期-2019年第4期'            as project_name union all
-  select 'pp' as col_type,uuid() as uuid,'GYZL01' as capital_id,'国银租赁' as capital_name,'0003'    as channel_id,'汇通信诚' as channel_name,'CL202002240081'   as project_id,'汇通信诚-国银租赁-车分期-2020年第1期'            as project_name union all
-  select 'pp' as col_type,uuid() as uuid,'YFYH01' as capital_id,'永丰银行' as capital_name,'0003'    as channel_id,'汇通信诚' as channel_name,'CL202011090088'   as project_id,'汇通信诚-永丰银行-车分期-2020年第1期'            as project_name union all
-  select 'pp' as col_type,uuid() as uuid,'YFYH01' as capital_id,'永丰银行' as capital_name,'0003'    as channel_id,'汇通信诚' as channel_name,'CL202012160091'   as project_id,'汇通信诚-永丰银行-车分期-2020年第2期'            as project_name union all
-  select 'pp' as col_type,uuid() as uuid,'YFYH01' as capital_id,'永丰银行' as capital_name,'0003'    as channel_id,'汇通信诚' as channel_name,'PL202101200093'   as project_id,'汇通信诚-永丰银行-车分期-2020年第2期-新'         as project_name union all
-  select 'pp' as col_type,uuid() as uuid,'YCXT'   as capital_id,'粤财信托' as capital_name,'0003'    as channel_id,'汇通信诚' as channel_name,'cl00326'          as project_id,'汇通信诚-粤财信托-车类资产-2019年第1期'          as project_name union all
-  select 'pp' as col_type,uuid() as uuid,'YCXT'   as capital_id,'粤财信托' as capital_name,'0003'    as channel_id,'汇通信诚' as channel_name,'CL201912100072'   as project_id,'汇通信诚-粤财信托-车类资产-2019年第2期'          as project_name union all
-  select 'pp' as col_type,uuid() as uuid,'ZHXT01' as capital_id,'中航信托' as capital_name,'abs0004' as channel_id,'沣邦租赁' as channel_name,'CL201905240054'   as project_id,'沣邦租赁-华润银行-车分期-2019年第1期'            as project_name union all
-  select 'pp' as col_type,uuid() as uuid,'YNXT01' as capital_id,'云南信托' as capital_name,'10041'   as channel_id,'浦发'     as channel_name,'pl00282'          as project_id,'浦发银行-机构私募-消费贷-2019年第1期'            as project_name union all
-  select 'pp' as col_type,uuid() as uuid,'ZHXT01' as capital_id,'中航信托' as capital_name,'10000'   as channel_id,'滴滴中航' as channel_name,'DIDI201908161538' as project_id,'滴滴-新分享-消费贷-2019年第1期'                  as project_name union all
-  select 'pp' as col_type,uuid() as uuid,'MSJZ01' as capital_id,'民生金租' as capital_name,'0005'    as channel_id,'瓜子'     as channel_name,'WS0005200001'     as project_id,'瓜子租赁-民生金租-车分期-2020年第1期'            as project_name union all
-  select 'pp' as col_type,uuid() as uuid,'YNXT01' as capital_id,'云南信托' as capital_name,'0001'    as channel_id,'盒子支付' as channel_name,'001503'           as project_id,'盒子-新分享-消费贷-2019年第1期'                  as project_name union all
-  select 'pp' as col_type,uuid() as uuid,'YNXT01' as capital_id,'云南信托' as capital_name,'0001'    as channel_id,'盒子支付' as channel_name,'001505'           as project_id,'盒子-新分享-消费贷-2019年第3期'                  as project_name union all
-  select 'pp' as col_type,uuid() as uuid,'YNXT01' as capital_id,'云南信托' as capital_name,'0001'    as channel_id,'盒子支付' as channel_name,'001504'           as project_id,'盒子科技-新分享-消费贷-2019年第2期'              as project_name union all
-  select 'pp' as col_type,uuid() as uuid,'JGSM01' as capital_id,'机构私募' as capital_name,'abs0008' as channel_id,'有车有家' as channel_name,'CL201906050059'   as project_id,'车贷1-公开募集-车贷资产-2019年第1期'             as project_name union all
-  select 'pp' as col_type,uuid() as uuid,'XFX01'  as capital_id,'新分享'   as capital_name,'abs0002' as channel_id,'先锋太盟' as channel_name,'cl00232'          as project_id,'先锋太盟1期资产包1'                              as project_name union all
-  select 'pp' as col_type,uuid() as uuid,'XFX01'  as capital_id,'新分享'   as capital_name,'abs0002' as channel_id,'先锋太盟' as channel_name,'cl00233'          as project_id,'先锋太盟1期资产包2'                              as project_name union all
-  select 'pp' as col_type,uuid() as uuid,'HYBL01' as capital_id,'和赢保理' as capital_name,'0007'    as channel_id,'广汽租赁' as channel_name,'CL202101260095'   as project_id,'广汽租赁-和赢保理-汽车租赁资产-2021年第1期-全量' as project_name union all
-  select 'pp' as col_type,uuid() as uuid,'HYBL01' as capital_id,'和赢保理' as capital_name,'0007'    as channel_id,'广汽租赁' as channel_name,'CL202102050098'   as project_id,'广汽租赁-和赢保理-汽车租赁资产-2021年第1期-拟入' as project_name
-) as biz_conf
-lateral view explode(map(
-  concat_ws('~~','capital_id',  '资金方编号'),capital_id,
-  concat_ws('~~','capital_name','资金方名称'),capital_name,
-  concat_ws('~~','channel_id',  '渠道方编号'),channel_id,
-  concat_ws('~~','channel_name','渠道方名称'),channel_name,
-  concat_ws('~~','project_id',  '项目编号'),  project_id,
-  concat_ws('~~','project_name','项目名称'),  project_name
-)) a as map_key,map_val
-where 1 > 0
-  and is_empty(map_val) is not null
-limit 500
-;
-
-
-
-insert overwrite table dim.data_conf
-select * from dim.data_conf
-where 1 > 0
-  -- and col_type != 'pp'
-  and col_type not in ('ap','ab')
-;
 
 
 
 
 
-set hive.exec.input.listing.max.threads=50;
-set tez.grouping.min-size=50000000;
-set tez.grouping.max-size=50000000;
-set hive.exec.reducers.max=500;
 
--- 设置 Container 大小
-set hive.tez.container.size=4096;
-set tez.am.resource.memory.mb=4096;
--- 合并小文件
-set hive.merge.tezfiles=true;
-set hive.merge.size.per.task=64000000;      -- 64M
-set hive.merge.smallfiles.avgsize=64000000; -- 64M
--- 设置动态分区
-set hive.exec.dynamic.partition=true;
-set hive.exec.dynamic.partition.mode=nonstrict;
-set hive.exec.max.dynamic.partitions=200000;
-set hive.exec.max.dynamic.partitions.pernode=50000;
--- 禁用 Hive 矢量执行
-set hive.vectorized.execution.enabled=false;
-set hive.vectorized.execution.reduce.enabled=false;
-set hive.vectorized.execution.reduce.groupby.enabled=false;
-
-set hive.auto.convert.join=false;                    -- 关闭自动 MapJoin
-set hive.auto.convert.join.noconditionaltask=false;  -- 关闭自动 MapJoin
-
-
-ALTER TABLE dm_eagle.abs_overdue_rate_day RENAME TO dm_eagle.del_abs_overdue_rate_day;
-
-insert overwrite table dm_eagle.abs_overdue_rate_day partition(biz_date,project_id,bag_id)
-select
-  is_allbag,
-  dpd,
-  remain_principal,
-  overdue_remain_principal,
-  overdue_remain_principal_new,
-  overdue_remain_principal_once,
-  bag_due_num,
-  overdue_num,
-  overdue_num_new,
-  overdue_num_once,
-  bag_due_person_num,
-  overdue_person_num,
-  overdue_person_num_new,
-  overdue_person_num_once,
-  biz_date,
-  project_id,
-  bag_id
-from dm_eagle.del_abs_overdue_rate_day;
-
-
-drop table dm_eagle.del_abs_overdue_rate_day;
-ALTER TABLE dm_eagle.abs_overdue_rate_day RENAME TO dm_eagle.del_abs_overdue_rate_day;
 
 
 

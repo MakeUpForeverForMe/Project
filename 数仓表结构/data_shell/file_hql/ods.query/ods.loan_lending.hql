@@ -21,23 +21,29 @@ set hive.vectorized.execution.reduce.enabled=false;
 set hive.vectorized.execution.reduce.groupby.enabled=false;
 
 
---set hivevar:db_suffix=;set hivevar:tb_suffix=_asset;
- --set hivevar:db_suffix=_cps;set hivevar:tb_suffix=;
- --set hivevar:db_suffix=;set hivevar:tb_suffix=;
+-- set hivevar:ST9=2021-04-11;
 
---set hivevar:ST9=2021-03-28;
- --set hivevar:product_id=
- --'001801','001802','001803','001804',
- --'001901','001902','001903','001904','001905','001906','001907',
- --'002001','002002','002003','002004','002005','002006','002007',
- --'002401','002402',
- --''
- --;
- --set hivevar:product_id=
- --'001601','001602','001603','001701',
- --'001702','DIDI201908161538','002201','002202','002203','002204'
- --''
- --;
+-- 乐信代偿前
+-- set hivevar:db_suffix=;set hivevar:tb_suffix=_asset;
+-- 乐信代偿后
+-- set hivevar:db_suffix=_cps;set hivevar:tb_suffix=;
+-- 乐信产品编号
+-- set hivevar:product_id=
+--   '001801','001802','001803','001804',
+--   '001901','001902','001903','001904','001905','001906','001907',
+--   '002001','002002','002003','002004','002005','002006','002007',
+--   '002401','002402',
+--   ''
+-- ;
+
+-- -- 其他数据，不分代偿
+-- set hivevar:db_suffix=;set hivevar:tb_suffix=;
+-- -- 其他产品编号
+-- set hivevar:product_id=
+--   '001601','001602','001603','001701',
+--   '001702','DIDI201908161538','002201','002202','002203','002204'
+--   ''
+-- ;
 
 insert overwrite table ods${db_suffix}.loan_lending partition(product_id)
 select
@@ -74,22 +80,22 @@ select
   lending.product_id                            as product_id
 from (
   select
-    apply_no                        as apply_no,
-    contract_no                     as contract_no,
+    apply_no                          as apply_no,
+    is_empty(contract_no,due_bill_no) as contract_no,
     if(
       dayofmonth(loan_expire_date) - dayofmonth(active_date) > 27,
       (year(loan_expire_date) - year(active_date)) * 12 + month(loan_expire_date) - month(active_date) + 1,
       (year(loan_expire_date) - year(active_date)) * 12 + month(loan_expire_date) - month(active_date)
-    )                               as contract_term,
-    due_bill_no                     as due_bill_no,
-    '信用担保'                      as guarantee_type,
-    purpose                         as loan_usage,
-    active_date                     as loan_issue_date,
-    loan_expire_date                as loan_expiry_date,
-    active_date                     as loan_active_date,
-    loan_expire_date                as loan_expire_date,
-    cast(cycle_day as decimal(2,0)) as cycle_day,
-    loan_type                       as loan_type,
+    )                                 as contract_term,
+    due_bill_no                       as due_bill_no,
+    '信用担保'                        as guarantee_type,
+    purpose                           as loan_usage,
+    active_date                       as loan_issue_date,
+    loan_expire_date                  as loan_expiry_date,
+    active_date                       as loan_active_date,
+    loan_expire_date                  as loan_expire_date,
+    cast(cycle_day as decimal(2,0))   as cycle_day,
+    loan_type                         as loan_type,
     case loan_type
       when 'R'     then '消费转分期'
       when 'C'     then '现金分期'
@@ -101,20 +107,21 @@ from (
       when 'MCEI'  then '等额本息'
       when 'STAIR' then '阶梯还款'
       else loan_type
-    end                             as loan_type_cn,
-    '固定利率'                      as interest_rate_type,
-    interest_rate                   as loan_init_interest_rate,
-    term_fee_rate                   as loan_init_term_fee_rate,
-    svc_fee_rate                    as loan_init_svc_fee_rate,
-    penalty_rate                    as loan_init_penalty_rate,
-    active_date                     as biz_date,
-    product_code                    as product_id
+    end                               as loan_type_cn,
+    '固定利率'                        as interest_rate_type,
+    interest_rate                     as loan_init_interest_rate,
+    term_fee_rate                     as loan_init_term_fee_rate,
+    svc_fee_rate                      as loan_init_svc_fee_rate,
+    penalty_rate                      as loan_init_penalty_rate,
+    active_date                       as biz_date,
+    product_code                      as product_id
   from stage.ecas_loan${tb_suffix}
   where 1 > 0
     and d_date = '${ST9}'
     and product_code in (${product_id})
 ) as lending
 left join (
+  -- 汇通
   select distinct
     get_json_object(standard_req_msg,'$.product.product_no')                              as product_id,
     map_from_str(standard_req_msg)['apply_no']                                            as due_bill_no,
@@ -123,6 +130,7 @@ left join (
   where 1 > 0
     and sta_service_method_name = 'setupCustCredit'
   union all
+  -- 瓜子
   select distinct
     get_json_object(original_msg,'$.data.product.productNo') as product_id,
     get_json_object(original_msg,'$.data.applyNo')           as due_bill_no,

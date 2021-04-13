@@ -840,7 +840,7 @@ create table if not exists `abs_asset_information_cash_flow_bag_snapshot`(
 ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
--- 现金流分析（项目、所以包、包）
+-- 现金流分析（项目、所有包、包）
 -- drop table if exists `abs_asset_information_cash_flow_bag_day`;
 create table if not exists `abs_asset_information_cash_flow_bag_day`(
   `bag_date`                                      varchar(255)   COMMENT '封包日期',
@@ -884,7 +884,7 @@ create table if not exists `abs_asset_information_cash_flow_bag_day`(
   `biz_date`                                      varchar(255)   COMMENT '观察日期',
   `project_id`                                    varchar(255)   COMMENT '项目编号',
   `bag_id`                                        varchar(255)   COMMENT '包编号（包编号、default_project、default_all_bag）'
-) COMMENT '现金流分析（项目、所以包、包）'
+) COMMENT '现金流分析（项目、所有包、包）'
 ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 

@@ -97,10 +97,10 @@ from (
     is_empty(map_from_str(extra_info)['还款方式'],repay_type)                                    as loan_type_cn,
     is_empty(map_from_str(extra_info)['日利率计算基础'])                                         as contract_daily_interest_rate_basis,
     is_empty(map_from_str(extra_info)['利率类型'],interest_rate_type)                            as interest_rate_type,
-    is_empty(loan_interest_rate,is_empty(map_from_str(extra_info)['贷款年利率(%)'],0))           as loan_init_interest_rate,
-    is_empty(map_from_str(extra_info)['手续费利率'],0)                                           as loan_init_term_fee_rate,
+    is_empty(loan_interest_rate,is_empty(map_from_str(extra_info)['贷款年利率(%)'],0)) / 100     as loan_init_interest_rate,
+    is_empty(map_from_str(extra_info)['手续费利率'],0) / 100                                     as loan_init_term_fee_rate,
     0                                                                                            as loan_init_svc_fee_rate,
-    is_empty(map_from_str(extra_info)['贷款罚息利率(%)'],is_empty(loan_penalty_rate,0))          as loan_init_penalty_rate,
+    is_empty(map_from_str(extra_info)['贷款罚息利率(%)'],is_empty(loan_penalty_rate,0)) / 100    as loan_init_penalty_rate,
     is_empty(map_from_str(extra_info)['尾付款金额'])                                             as tail_amount,
     is_empty(map_from_str(extra_info)['尾付比例'])                                               as tail_amount_rate,
     is_empty(map_from_str(extra_info)['产品编号'])                                               as bus_product_id,
@@ -111,10 +111,9 @@ from (
   where 1 > 0
     and is_empty(map_from_str(extra_info)['项目编号'],project_id) not in (
       '001601',           -- 汇通
-      'DIDI201908161538', -- 滴滴
       'WS0005200001',     -- 瓜子
       'CL202012280092',   -- 汇通国银
-      'CL202102010097',   -- 汇通国银
+      'DIDI201908161538', -- 滴滴
       ''
     )
 ) as tmp

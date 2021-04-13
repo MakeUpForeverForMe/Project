@@ -55,10 +55,9 @@ from stage.asset_06_t_asset_pay_flow
 where 1 > 0
   and is_empty(map_from_str(extra_info)['项目编号'],project_id) not in (
     '001601',           -- 汇通
-    'DIDI201908161538', -- 滴滴
     'WS0005200001',     -- 瓜子
     'CL202012280092',   -- 汇通国银
-    'CL202102010097',   -- 汇通国银
+    'DIDI201908161538', -- 滴滴
     ''
   )
   and is_empty(datefmt(map_from_str(extra_info)['交易时间'],'','yyyy-MM-dd'),datefmt(trade_time,'','yyyy-MM-dd')) = '${ST9}'

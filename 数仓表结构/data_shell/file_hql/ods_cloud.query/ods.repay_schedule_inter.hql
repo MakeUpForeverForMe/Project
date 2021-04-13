@@ -86,10 +86,9 @@ set hive.vectorized.execution.reduce.groupby.enabled=false;
 --     and effective_date <= '2020-11-30'
 --     and project_id not in (
 --       '001601',           -- 汇通
---       'DIDI201908161538', -- 滴滴
 --       'WS0005200001',     -- 瓜子
 --       'CL202012280092',   -- 汇通国银
---       'CL202102010097',   -- 汇通国银
+--       'DIDI201908161538', -- 滴滴
 --       ''
 --     )
 -- ) as abs_05
@@ -176,10 +175,9 @@ set hive.vectorized.execution.reduce.groupby.enabled=false;
 --     and d_date = '2020-12-01'
 --     and is_empty(map_from_str(extra_info)['项目编号'],project_id) not in (
 --       '001601',           -- 汇通
---       'DIDI201908161538', -- 滴滴
 --       'WS0005200001',     -- 瓜子
 --       'CL202012280092',   -- 汇通国银
---       'CL202102010097',   -- 汇通国银
+--       'DIDI201908161538', -- 滴滴
 --       ''
 --     )
 -- ) as asset_05
@@ -199,10 +197,9 @@ set hive.vectorized.execution.reduce.groupby.enabled=false;
 --     and effective_date <= '2020-11-30'
 --     and project_id not in (
 --       '001601',           -- 汇通
---       'DIDI201908161538', -- 滴滴
 --       'WS0005200001',     -- 瓜子
 --       'CL202012280092',   -- 汇通国银
---       'CL202102010097',   -- 汇通国银
+--       'DIDI201908161538', -- 滴滴
 --       ''
 --     )
 -- ) as abs_05
@@ -312,10 +309,9 @@ from (
     and d_date = '${ST9}'
     and is_empty(map_from_str(extra_info)['项目编号'],project_id) not in (
       '001601',           -- 汇通
-      'DIDI201908161538', -- 滴滴
       'WS0005200001',     -- 瓜子
       'CL202012280092',   -- 汇通国银
-      'CL202102010097',   -- 汇通国银
+      'DIDI201908161538', -- 滴滴
       ''
     )
 ) as asset_05_today
@@ -339,10 +335,9 @@ left join (
     and d_date = date_sub('${ST9}',1)
     and is_empty(map_from_str(extra_info)['项目编号'],project_id) not in (
       '001601',           -- 汇通
-      'DIDI201908161538', -- 滴滴
       'WS0005200001',     -- 瓜子
       'CL202012280092',   -- 汇通国银
-      'CL202102010097',   -- 汇通国银
+      'DIDI201908161538', -- 滴滴
       ''
     )
 ) as asset_05_yesterday

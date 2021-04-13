@@ -97,10 +97,9 @@ join (
   from stage.asset_03_t_contact_person_info
   where project_id not in (
     '001601',           -- 汇通
-    'DIDI201908161538', -- 滴滴
     'WS0005200001',     -- 瓜子
     'CL202012280092',   -- 汇通国银
-    'CL202102010097',   -- 汇通国银
+    'DIDI201908161538', -- 滴滴
     ''
   )
 ) as linkman_info
