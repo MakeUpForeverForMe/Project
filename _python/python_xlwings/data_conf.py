@@ -8,7 +8,8 @@
 import xlwings
 
 file_path = "D:\\Users\\ximing.wei\\Desktop\\手动维护表.xlsx"
-biz_conf = 'biz_conf 表'
+# biz_sheet, row_start, col_s, col_e = ('biz_conf 表', 3, 'a', 'u')
+biz_sheet, row_start, col_s, col_e = ('星云项目', 2, 'a', 'm')
 
 excel = xlwings.Book(file_path)
 
@@ -23,7 +24,7 @@ app.screen_updating = True  # 关掉屏幕刷新。默认为 True。关闭它也
 sheets = excel.sheets
 
 """ 引用 工作表 """
-sheet = sheets[biz_conf]
+sheet = sheets[biz_sheet]
 
 """ 获取 最大 行数 """
 rows = sheet.used_range.last_cell.row
@@ -32,13 +33,13 @@ rows = sheet.used_range.last_cell.row
 sheet_range = sheet.range
 
 """ 字段名 """
-columns: list = sheet_range('a3:u3').value
+columns: list = sheet_range(f'{col_s}{row_start}:{col_e}{row_start}').value
 
 # print(columns, len(columns), rows)
 
 sql_list = []
-for i in range(4, rows + 1):
-    values: list = sheet_range(f'a{i}:u{i}').value
+for i in range(row_start + 1, rows + 1):
+    values: list = sheet_range(f'{col_s}{i}:{col_e}{i}').value
     line_list = []
     for j in range(len(columns)):
         value = str(values[j]) if values[j] is not None else 'null'
@@ -53,7 +54,7 @@ print(sql)
 """ 保存 Excel 文档 """
 # excel.save()
 """ 关闭 Excel 文档 """
-excel.close()
+# excel.close()
 """ 退出 应用程序 """
-app.quit()
+# app.quit()
 # app.kill()

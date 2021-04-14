@@ -66,6 +66,7 @@ tables['dm_eagle_cps.eagle_should_repay_repaid_amount_day']=$dm_eagle_dm_eagle_c
 #tables['dm_eagle_cps.eagle_should_repay_repaid_amount_day_hst']=$dm_eagle_dm_eagle_cps
 #tables['dm_eagle_cps.eagle_should_repay_repaid_amount_day_hst']=$dm_eagle_dm_eagle_cps
 
+
 # 星云 ABS 导出
 #tables['dm_eagle.abs_overdue_rate_day']=$dm_eagle_uabs_core
 #tables['dm_eagle.abs_asset_information_bag']=$dm_eagle_uabs_core

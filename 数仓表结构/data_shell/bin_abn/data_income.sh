@@ -21,28 +21,28 @@ echo -e "${date_s_aa:=$(date +'%F %T')} 进件任务  开始 当前脚本进程I
 
 # ods 层 及 dw 层
 
-sh $data_manage -s ${s_date} -e ${e_date} -f $ods_new_s_hql/ods_new_s.customer_info.hql -a $rd &
-sh $data_manage -s ${s_date} -e ${e_date} -f $ods_new_s_hql/ods_new_s.credit_apply.hql -a $rd &
-sh $data_manage -s ${s_date} -e ${e_date} -f $dim_new_hql/dim_new.dim_encrypt_info.hql -a $rd &
+sh $data_manage -s ${s_date} -e ${e_date} -f $ods_new_s_hql/ods.customer_info.hql -a $rd &
+sh $data_manage -s ${s_date} -e ${e_date} -f $ods_new_s_hql/ods.credit_apply.hql -a $rd &
+sh $data_manage -s ${s_date} -e ${e_date} -f $dim_new_hql/dim.dim_encrypt_info.hql -a $rd &
 
 
 wait_jobs
 
-sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw_new.dw_credit_apply_stat_day.hql -i $param_dir/dw_new.param.hql -a $rd &
-sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw_new.dw_credit_ret_msg_day.hql -i $param_dir/dw_new.param.hql -a $rd &
-sh $data_manage -s ${s_date} -e ${e_date} -f $ods_new_s_hql/ods_new_s.loan_apply.hql -a $rd &
+sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw.dw_credit_apply_stat_day.hql -i $param_dir/dw_new.param.hql -a $rd &
+sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw.dw_credit_ret_msg_day.hql -i $param_dir/dw_new.param.hql -a $rd &
+sh $data_manage -s ${s_date} -e ${e_date} -f $ods_new_s_hql/ods.loan_apply.hql -a $rd &
 
 # sh $data_manage -s ${s_date} -e ${e_date} -f $ods_new_s_hql/ods_new_s.user_info.hql -a $rd &
 
 wait_jobs
 
 
-sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw_new.dw_credit_approval_stat_day.hql -i $param_dir/dw_new.param.hql -a $rd &
-sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw_new.dw_loan_apply_stat_day.hql -i $param_dir/dw_new.param.hql -a $rd &
-sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw_new.dw_loan_approval_stat_day.hql -i $param_dir/dw_new.param.hql -a $rd &
-sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw_new.dw_loan_ret_msg_day.hql -i $param_dir/dw_new.param.hql -a $rd &
+sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw.dw_credit_approval_stat_day.hql -i $param_dir/dw_new.param.hql -a $rd &
+sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw.dw_loan_apply_stat_day.hql -i $param_dir/dw_new.param.hql -a $rd &
+sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw.dw_loan_approval_stat_day.hql -i $param_dir/dw_new.param.hql -a $rd &
+sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw.dw_loan_ret_msg_day.hql -i $param_dir/dw_new.param.hql -a $rd &
 
-sh $data_manage -s ${e_date} -e ${e_date} -f $ods_new_s_hql/ods_new_s.user_label.hql -a $rd &
+sh $data_manage -s ${e_date} -e ${e_date} -f $ods_new_s_hql/ods.user_label.hql -a $rd &
 
 wait_jobs
 
@@ -70,19 +70,19 @@ for db_tb in ${!tables[@]};do
     export_file="$file_export/${db_tb}.tsv"
     mysql="$($mysql_cmd ${tables[$db_tb]})"
 
-    export_file_from_hive "select * from ${db_tb};" &>> $log
-    import_file_to_mysql &>> $log
+   # export_file_from_hive "select * from ${db_tb};" &>> $log
+   # import_file_to_mysql &>> $log
   } &
-  p_opera 5 &>> $log
+ # p_opera 5 &>> $log
   # break
 done
 
 wait_jobs
 
-echo -e "${date_e_aa:=$(date +'%F %T')} 进件任务  结束 当前脚本进程ID为：$(pid)    用时：${during_time:=$(during "$date_e_aa" "$date_s_aa")}\n\n" &>> $log
+echo -e "${date_e_aa:=$(date +'%F %T')} EMR 进件任务  结束 当前脚本进程ID为：$(pid)    用时：${during_time:=$(during "$date_e_aa" "$date_s_aa")}\n\n" &>> $log
 
 
-$mail $pm_rd '数据 4.0 进件任务 结束' "
+$mail $pm_rd 'EMR 数据 4.0 进件任务 结束' "
   执行开始日期： $s_date
   执行结束日期： $e_date
   操作开始时间： $date_s_aa

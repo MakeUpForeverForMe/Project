@@ -21,7 +21,7 @@ set hive.vectorized.execution.reduce.enabled=false;
 set hive.vectorized.execution.reduce.groupby.enabled=false;
 
 
--- set hivevar:ST9=2021-04-11;
+set hivevar:ST9=2021-04-12;
 
 -- 乐信代偿前
 -- set hivevar:db_suffix=;set hivevar:tb_suffix=_asset;
@@ -40,8 +40,10 @@ set hive.vectorized.execution.reduce.groupby.enabled=false;
 -- set hivevar:db_suffix=;set hivevar:tb_suffix=;
 -- -- 其他产品编号
 -- set hivevar:product_id=
---   '001601','001602','001603','001701',
---   '001702','DIDI201908161538','002201','002202','002203','002204'
+--   'DIDI201908161538',
+--   '001701','001702',
+--   '001601','001602','001603',
+--   '002201','002202','002203',
 --   ''
 -- ;
 
@@ -77,6 +79,7 @@ select
   null                                          as bus_product_name,
   0                                             as mortgage_rate,
   lending.biz_date                              as biz_date,
+  lending.loan_init_principal                   as loan_original_principal,
   lending.product_id                            as product_id
 from (
   select
@@ -108,6 +111,8 @@ from (
       when 'STAIR' then '阶梯还款'
       else loan_type
     end                               as loan_type_cn,
+    loan_init_term                    as loan_init_term,
+    loan_init_prin                    as loan_init_principal,
     '固定利率'                        as interest_rate_type,
     interest_rate                     as loan_init_interest_rate,
     term_fee_rate                     as loan_init_term_fee_rate,

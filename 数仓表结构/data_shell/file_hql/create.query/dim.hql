@@ -74,7 +74,7 @@ ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
 -- DROP DATABASE IF EXISTS dim;
-CREATE DATABASE IF NOT EXISTS dim COMMENT '维度数据层' location 'cosn://bigdata-center-prod-1253824322/user/hadoop/warehouse/dim.db';
+CREATE DATABASE IF NOT EXISTS dim COMMENT '维度数据层';
 
 
 
@@ -141,7 +141,7 @@ STORED AS PARQUET;
 -- 数据库主键 idno_addr
 -- 业务主键 idno_addr
 -- DROP TABLE IF EXISTS `dim.dim_idno`;
-CREATE EXTERNAL TABLE IF NOT EXISTS `dim.dim_idno`(
+CREATE TABLE IF NOT EXISTS `dim.dim_idno`(
   `idno_addr`                     string         COMMENT '身份证前6位编码',
   `idno_area`                     string         COMMENT '身份证大区（编码）',
   `idno_area_cn`                  string         COMMENT '身份证大区（解释）（华北地区、东北地区、华东地区、中南地区、西南地区、西北地区、港澳台地区）',
@@ -152,19 +152,17 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `dim.dim_idno`(
   `idno_county`                   string         COMMENT '身份证县级（编码）',
   `idno_county_cn`                string         COMMENT '身份证县级（解释）（区县）'
 ) COMMENT '身份证地区'
-STORED AS PARQUET
-location 'cosn://bigdata-center-prod-1253824322/user/hadoop/warehouse/dim.db/dim_idno';
+STORED AS PARQUET;
 
 
 -- 加密信息表
 -- DROP TABLE IF EXISTS `dim.dim_encrypt_info`;
-CREATE EXTERNAL TABLE IF NOT EXISTS `dim.dim_encrypt_info`(
+CREATE TABLE IF NOT EXISTS `dim.dim_encrypt_info`(
   `dim_type`                      string         COMMENT '数据类型',
   `dim_encrypt`                   string         COMMENT '加密字段',
   `dim_decrypt`                   string         COMMENT '明文字段'
 ) COMMENT '加密信息表'
-STORED AS PARQUET
-location 'cosn://bigdata-center-prod-1253824322/user/hadoop/warehouse/dim.db/dim_encrypt_info';
+STORED AS PARQUET;
 
 
 -- 日期维度表

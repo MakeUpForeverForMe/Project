@@ -11,37 +11,37 @@ case $(ifconfig | grep -Po 'inet[ ]\K[^ ]+' | grep -v '127') in
   (10.83.* ) mysql_host='10.83.16.43' mysql_port='3306' mysql_user='root' mysql_pass='zU!ykpx3EG)$$1e6' mysql_db='ueagle-dev' ;;
 esac
 
-echo '上传 HDFS 文件 开始'
-$hdfs -put -f $biz_conf_file $biz_conf_hdfs
-echo '上传 HDFS 文件 结束'
-
 temp_file=$(mktemp -t biz_conf.XXXXXX) || exit 1
 
 echo '拉取 biz_conf 数据 开始'
 $beeline --showHeader=false --outputformat=tsv2 -e '
-select
-  biz_name,
-  biz_name_en,
-  capital_id,
-  capital_name,
-  capital_name_en,
-  channel_id,
-  channel_name,
-  channel_name_en,
-  trust_id,
-  trust_name,
-  trust_name_en,
-  project_id,
-  project_name,
-  project_name_en,
-  project_amount,
-  product_id,
-  product_name,
-  product_name_en,
-  product_id_vt,
-  product_name_vt,
-  product_name_en_vt
-from dim_new.biz_conf
+select * from (
+  select
+    max(if(col_name = "biz_name",          col_val,null)) as biz_name,
+    max(if(col_name = "biz_name_en",       col_val,null)) as biz_name_en,
+    max(if(col_name = "capital_id",        col_val,null)) as capital_id,
+    max(if(col_name = "capital_name",      col_val,null)) as capital_name,
+    max(if(col_name = "capital_name_en",   col_val,null)) as capital_name_en,
+    max(if(col_name = "channel_id",        col_val,null)) as channel_id,
+    max(if(col_name = "channel_name",      col_val,null)) as channel_name,
+    max(if(col_name = "channel_name_en",   col_val,null)) as channel_name_en,
+    max(if(col_name = "trust_id",          col_val,null)) as trust_id,
+    max(if(col_name = "trust_name",        col_val,null)) as trust_name,
+    max(if(col_name = "trust_name_en",     col_val,null)) as trust_name_en,
+    max(if(col_name = "project_id",        col_val,null)) as project_id,
+    max(if(col_name = "project_name",      col_val,null)) as project_name,
+    max(if(col_name = "project_name_en",   col_val,null)) as project_name_en,
+    max(if(col_name = "project_amount",    col_val,null)) as project_amount,
+    max(if(col_name = "product_id",        col_val,null)) as product_id,
+    max(if(col_name = "product_name",      col_val,null)) as product_name,
+    max(if(col_name = "product_name_en",   col_val,null)) as product_name_en,
+    max(if(col_name = "product_id_vt",     col_val,null)) as product_id_vt,
+    max(if(col_name = "product_name_vt",   col_val,null)) as product_name_vt,
+    max(if(col_name = "product_name_en_vt",col_val,null)) as product_name_en_vt
+  from dim.data_conf
+  where col_type = "ac"
+  group by col_id
+) as tmp
 where 1 > 0
   and is_empty(product_id_vt) is not null
   and is_empty(project_id)    is not null

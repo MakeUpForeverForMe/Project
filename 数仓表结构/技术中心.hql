@@ -14630,35 +14630,37 @@ where 1 > 0
 
 select * from dim.data_conf where col_type = 'ac';
 
-select
-  max(if(col_name = 'biz_name',          col_val,null)) as biz_name,
-  max(if(col_name = 'biz_name_en',       col_val,null)) as biz_name_en,
-  max(if(col_name = 'capital_id',        col_val,null)) as capital_id,
-  max(if(col_name = 'capital_name',      col_val,null)) as capital_name,
-  max(if(col_name = 'capital_name_en',   col_val,null)) as capital_name_en,
-  max(if(col_name = 'channel_id',        col_val,null)) as channel_id,
-  max(if(col_name = 'channel_name',      col_val,null)) as channel_name,
-  max(if(col_name = 'channel_name_en',   col_val,null)) as channel_name_en,
-  max(if(col_name = 'trust_id',          col_val,null)) as trust_id,
-  max(if(col_name = 'trust_name',        col_val,null)) as trust_name,
-  max(if(col_name = 'trust_name_en',     col_val,null)) as trust_name_en,
-  max(if(col_name = 'project_id',        col_val,null)) as project_id,
-  max(if(col_name = 'project_name',      col_val,null)) as project_name,
-  max(if(col_name = 'project_name_en',   col_val,null)) as project_name_en,
-  max(if(col_name = 'project_amount',    col_val,null)) as project_amount,
-  max(if(col_name = 'product_id',        col_val,null)) as product_id,
-  max(if(col_name = 'product_name',      col_val,null)) as product_name,
-  max(if(col_name = 'product_name_en',   col_val,null)) as product_name_en,
-  max(if(col_name = 'product_id_vt',     col_val,null)) as product_id_vt,
-  max(if(col_name = 'product_name_vt',   col_val,null)) as product_name_vt,
-  max(if(col_name = 'product_name_en_vt',col_val,null)) as product_name_en_vt
-from dim.data_conf
-where col_type = 'ac'
-group by col_id
-order by project_id,product_id;
 
 
 
 
 
 order by project_id,product_id;
+
+
+
+select * from ods.t_05_repaymentplan limit 10;
+
+
+
+
+select distinct product_code
+from stage.ecas_loan
+where 1 > 0
+  and d_date = '2021-04-12'
+  and p_type = 'htgy'
+;
+
+
+
+explain
+select * from dm_eagle.abs_asset_distribution_day
+where 1 > 0
+  and biz_date like '%2017%'
+  -- and biz_date = '2017-06-05'
+;
+
+
+
+
+

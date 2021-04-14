@@ -8,8 +8,8 @@ CREATE DATABASE IF NOT EXISTS `dm_eagle_cps` COMMENT 'dm_eagle层数据（代偿
 
 -- 资金相关
 -- 无在途版-乐信资产变动信息(代偿版)(还款本金取T-2)
--- drop table if exists `dm_eagle.eagle_asset_change_comp_t1`;
-create table if not exists `dm_eagle.eagle_asset_change_comp_t1`(
+-- DROP TABLE IF EXISTS `dm_eagle.eagle_asset_change_comp_t1`;
+CREATE TABLE IF NOT EXISTS `dm_eagle.eagle_asset_change_comp_t1`(
   `capital_id`                                    string         COMMENT '资金方编号',
   `channel_id`                                    string         COMMENT '渠道方编号',
   `project_id`                                    string         COMMENT '项目编号',
@@ -19,13 +19,13 @@ create table if not exists `dm_eagle.eagle_asset_change_comp_t1`(
   `repay_other_sum_daily`                         decimal(25,5)  COMMENT '前一日资产还款息费',
   `today_remain_sum`                              decimal(25,5)  COMMENT '日终资产余额'
 ) COMMENT '资产变动信息(代偿版)'
-partitioned by (`biz_date` string COMMENT '观察日期')
-stored as parquet;
+PARTITIONED BY(`biz_date` string COMMENT '观察日期')
+STORED AS PARQUET;
 
 
 -- 无在途版-乐信资产变动信息(剔除代偿版)(还款本金取T-2)
--- drop table if exists `dm_eagle.eagle_asset_change_t1`;
-create table if not exists `dm_eagle.eagle_asset_change_t1`(
+-- DROP TABLE IF EXISTS `dm_eagle.eagle_asset_change_t1`;
+CREATE TABLE IF NOT EXISTS `dm_eagle.eagle_asset_change_t1`(
   `capital_id`                                    string         COMMENT '资金方编号',
   `channel_id`                                    string         COMMENT '渠道方编号',
   `project_id`                                    string         COMMENT '项目编号',
@@ -35,13 +35,13 @@ create table if not exists `dm_eagle.eagle_asset_change_t1`(
   `repay_other_sum_daily`                         decimal(25,5)  COMMENT '前一日资产还款息费',
   `today_remain_sum`                              decimal(25,5)  COMMENT '日终资产余额'
 ) COMMENT '资产变动信息(剔除代偿版)'
-partitioned by (`biz_date` string COMMENT '观察日期')
-stored as parquet;
+PARTITIONED BY(`biz_date` string COMMENT '观察日期')
+STORED AS PARQUET;
 
 
 -- 有在途版-非乐信资产变动信息(代偿版)
--- drop table if exists `dm_eagle.eagle_asset_change_comp`;
-create table if not exists `dm_eagle.eagle_asset_change_comp`(
+-- DROP TABLE IF EXISTS `dm_eagle.eagle_asset_change_comp`;
+CREATE TABLE IF NOT EXISTS `dm_eagle.eagle_asset_change_comp`(
   `capital_id`                                    string         COMMENT '资金方编号',
   `channel_id`                                    string         COMMENT '渠道方编号',
   `project_id`                                    string         COMMENT '项目编号',
@@ -51,13 +51,13 @@ create table if not exists `dm_eagle.eagle_asset_change_comp`(
   `repay_other_sum_daily`                         decimal(25,5)  COMMENT '当日资产还款息费',
   `today_remain_sum`                              decimal(25,5)  COMMENT '日终资产余额'
 ) COMMENT '资产变动信息(代偿版)'
-partitioned by (`biz_date` string COMMENT '观察日期')
-stored as parquet;
+PARTITIONED BY(`biz_date` string COMMENT '观察日期')
+STORED AS PARQUET;
 
 
 -- 有在途版-非乐信资产变动信息(剔除代偿版)
--- drop table if exists `dm_eagle.eagle_asset_change`;
-create table if not exists `dm_eagle.eagle_asset_change`(
+-- DROP TABLE IF EXISTS `dm_eagle.eagle_asset_change`;
+CREATE TABLE IF NOT EXISTS `dm_eagle.eagle_asset_change`(
   `capital_id`                                    string         COMMENT '资金方编号',
   `channel_id`                                    string         COMMENT '渠道方编号',
   `project_id`                                    string         COMMENT '项目编号',
@@ -67,12 +67,12 @@ create table if not exists `dm_eagle.eagle_asset_change`(
   `repay_other_sum_daily`                         decimal(25,5)  COMMENT '当日资产还款息费',
   `today_remain_sum`                              decimal(25,5)  COMMENT '日终资产余额'
 ) COMMENT '资产变动信息(剔除代偿版)'
-partitioned by (`biz_date` string COMMENT '观察日期')
-stored as parquet;
+PARTITIONED BY(`biz_date` string COMMENT '观察日期')
+STORED AS PARQUET;
 
 
 -- 在途资金-代偿版
--- drop table if exists `dm_eagle.eagle_unreach_funds`;
+-- DROP TABLE IF EXISTS `dm_eagle.eagle_unreach_funds`;
 create external table if not exists `dm.eagle_unreach_funds`(
   `capital_id`                                    string         COMMENT '资金方编号',
   `channel_id`                                    string         COMMENT '渠道方编号',
@@ -82,14 +82,14 @@ create external table if not exists `dm.eagle_unreach_funds`(
   `repay_sum_daily`                               decimal(15,4)  COMMENT '当日新增在途金额',
   `trade_today_bal`                               decimal(15,4)  COMMENT '当日终在途金额'
 ) COMMENT '在途资金-代偿版'
-partitioned by (`biz_date` string COMMENT '观察日期')
-stored as parquet
+PARTITIONED BY(`biz_date` string COMMENT '观察日期')
+STORED AS PARQUET
 location 'cosn://bigdatacenter-sit-1253824322/user/hadoop/warehouse/dm.db/eagle_unreach_funds';
 
 
 -- 拓展信息-到账信息(代偿版)
--- drop table if exists `dm_eagle.eagle_asset_comp_info`;
-create table if not exists `dm_eagle.eagle_asset_comp_info`(
+-- DROP TABLE IF EXISTS `dm_eagle.eagle_asset_comp_info`;
+CREATE TABLE IF NOT EXISTS `dm_eagle.eagle_asset_comp_info`(
   `capital_id`                                    string         COMMENT '资金方编号',
   `channel_id`                                    string         COMMENT '渠道方编号',
   `project_id`                                    string         COMMENT '项目编号',
@@ -98,12 +98,12 @@ create table if not exists `dm_eagle.eagle_asset_comp_info`(
   `amount_type`                                   string         COMMENT '金额类型:1-本金2-利息3-罚息4-费用',
   `amount`                                        decimal(25,5)  COMMENT '金额'
 ) COMMENT '拓展信息-到账信息(代偿版)'
-partitioned by (`biz_date` string COMMENT '观察日期')
-stored as parquet;
+PARTITIONED BY(`biz_date` string COMMENT '观察日期')
+STORED AS PARQUET;
 
 
 -- 当日费用支出-代偿版
--- drop table if exists `dm_eagle.eagle_acct_cost`;
+-- DROP TABLE IF EXISTS `dm_eagle.eagle_acct_cost`;
 create  external table if not exists `dm.eagle_acct_cost`(
   `capital_id`                                    string         COMMENT '资金方编号',
   `channel_id`                                    string         COMMENT '渠道方编号',
@@ -112,15 +112,15 @@ create  external table if not exists `dm.eagle_acct_cost`(
   `fee_type`                                      string         COMMENT '费用类型：1-账户费用2-扣划手续费3-其他4-税费支持',
   `amount`                                        decimal(15,4)  COMMENT '对应项的类型及金额'
 ) COMMENT '当日费用支出-代偿版'
-partitioned by (`biz_date` string COMMENT '观察日期')
-stored as parquet
+PARTITIONED BY(`biz_date` string COMMENT '观察日期')
+STORED AS PARQUET
 location 'cosn://bigdatacenter-sit-1253824322/user/hadoop/warehouse/dm.db/eagle_acct_cost';
 
 
 
 -- 资金相关
 -- 资金账户信息
--- drop table if exists `dm_eagle.eagle_funds`;
+-- DROP TABLE IF EXISTS `dm_eagle.eagle_funds`;
 create external table if not exists `dm.eagle_funds`(
   `capital_id`                                    string         COMMENT '资金方编号',
   `channel_id`                                    string         COMMENT '渠道方编号',
@@ -133,13 +133,13 @@ create external table if not exists `dm.eagle_funds`(
   `invest_cash`                                   decimal(15,4)  COMMENT '当日投资兑付金额',
   `trade_today_bal`                               decimal(15,4)  COMMENT 'T日余额'
 ) COMMENT '资金账户信息'
-partitioned by (`biz_date` string COMMENT '观察日期')
-stored as parquet
+PARTITIONED BY(`biz_date` string COMMENT '观察日期')
+STORED AS PARQUET
 location 'cosn://bigdatacenter-sit-1253824322/user/hadoop/warehouse/dm.db/eagle_funds';
 
 
 -- 回款明细
--- drop table if exists `dm_eagle.eagle_repayment_detail`;
+-- DROP TABLE IF EXISTS `dm_eagle.eagle_repayment_detail`;
 create external table if not exists `dm.eagle_repayment_detail`(
   `capital_id`                                    string         COMMENT '资金方编号',
   `channel_id`                                    string         COMMENT '渠道方编号',
@@ -148,8 +148,8 @@ create external table if not exists `dm.eagle_repayment_detail`(
   `repay_type`                                    string         COMMENT '费用类型：1-客户还款2-代偿回款3-回购回款4-退票回款',
   `amount`                                        decimal(15,4)  COMMENT '对应项的金额'
 ) COMMENT '回款明细'
-partitioned by (`biz_date` string COMMENT '观察日期')
-stored as parquet
+PARTITIONED BY(`biz_date` string COMMENT '观察日期')
+STORED AS PARQUET
 location 'cosn://bigdatacenter-sit-1253824322/user/hadoop/warehouse/dm.db/eagle_repayment_detail';
 
 
@@ -158,8 +158,8 @@ location 'cosn://bigdatacenter-sit-1253824322/user/hadoop/warehouse/dm.db/eagle_
 
 -- 额度通过率分析
 -- 分区字段 biz_date
--- drop table if exists `dm_eagle.eagle_credit_loan_approval_rate_day`;
-create table if not exists `dm_eagle.eagle_credit_loan_approval_rate_day`(
+-- DROP TABLE IF EXISTS `dm_eagle.eagle_credit_loan_approval_rate_day`;
+CREATE TABLE IF NOT EXISTS `dm_eagle.eagle_credit_loan_approval_rate_day`(
   `capital_id`                                    string         COMMENT '资金方编号',
   `channel_id`                                    string         COMMENT '渠道方编号',
   `project_id`                                    string         COMMENT '项目编号',
@@ -194,14 +194,14 @@ create table if not exists `dm_eagle.eagle_credit_loan_approval_rate_day`(
   `loan_approval_num_person_accumulate`           decimal(12,0)  COMMENT '累计用信通过人数',
   `loan_approval_person_rate`                     decimal(30,10) COMMENT '用信通过人数通过率（用信通过人数/用信申请人数×100%）'
 ) COMMENT '额度通过率分析'
-partitioned by (`biz_date` string COMMENT '授信、用信申请日期',`product_id` string COMMENT '产品编号')
-stored as parquet;
+PARTITIONED BY(`biz_date` string COMMENT '授信、用信申请日期',`product_id` string COMMENT '产品编号')
+STORED AS PARQUET;
 
 
 -- 额度统计
 -- 分区字段 biz_date
--- drop table if exists `dm_eagle.eagle_credit_loan_approval_amount_sum_day`;
-create table if not exists `dm_eagle.eagle_credit_loan_approval_amount_sum_day`(
+-- DROP TABLE IF EXISTS `dm_eagle.eagle_credit_loan_approval_amount_sum_day`;
+CREATE TABLE IF NOT EXISTS `dm_eagle.eagle_credit_loan_approval_amount_sum_day`(
   `capital_id`                                    string         COMMENT '资金方编号',
   `channel_id`                                    string         COMMENT '渠道方编号',
   `project_id`                                    string         COMMENT '项目编号',
@@ -231,15 +231,15 @@ create table if not exists `dm_eagle.eagle_credit_loan_approval_amount_sum_day`(
   `loan_approval_num_person_dod_ratio`            decimal(30,10) COMMENT '用信通过人数环比',
   `loan_approval_num_person_num_avg`              decimal(25,5)  COMMENT '用信通过人均（用信通过金额/用信通过人数）'
 ) COMMENT '额度统计'
-partitioned by (`biz_date` string COMMENT '授信、用信通过日期',`product_id` string COMMENT '产品编号')
-stored as parquet;
+PARTITIONED BY(`biz_date` string COMMENT '授信、用信通过日期',`product_id` string COMMENT '产品编号')
+STORED AS PARQUET;
 
 
 -- 进件分析
 -- 动支率
 -- 分区字段 biz_date
--- drop table if exists `dm_eagle.eagle_credit_loan_approval_amount_rate_day`;
-create table if not exists `dm_eagle.eagle_credit_loan_approval_amount_rate_day`(
+-- DROP TABLE IF EXISTS `dm_eagle.eagle_credit_loan_approval_amount_rate_day`;
+CREATE TABLE IF NOT EXISTS `dm_eagle.eagle_credit_loan_approval_amount_rate_day`(
   `capital_id`                                    string         COMMENT '资金方编号',
   `channel_id`                                    string         COMMENT '渠道方编号',
   `project_id`                                    string         COMMENT '项目编号',
@@ -247,14 +247,14 @@ create table if not exists `dm_eagle.eagle_credit_loan_approval_amount_rate_day`
   `loan_approval_amount`                          decimal(25,5)  COMMENT '用信通过金额（T+3内）',
   `credit_loan_approval_amount_rate`              decimal(30,10) COMMENT '动支率（用信通过金额/授信通过金额×100%）'
 ) COMMENT '动支率'
-partitioned by (`biz_date` string COMMENT '授信通过日期',`product_id` string COMMENT '产品编号')
-stored as parquet;
+PARTITIONED BY(`biz_date` string COMMENT '授信通过日期',`product_id` string COMMENT '产品编号')
+STORED AS PARQUET;
 
 
 -- 拒绝原因分布
 -- 分区字段 biz_date
--- drop table if exists `dm_eagle.eagle_ret_msg_day`;
-create table if not exists `dm_eagle.eagle_ret_msg_day`(
+-- DROP TABLE IF EXISTS `dm_eagle.eagle_ret_msg_day`;
+CREATE TABLE IF NOT EXISTS `dm_eagle.eagle_ret_msg_day`(
   `capital_id`                                    string         COMMENT '资金方编号',
   `channel_id`                                    string         COMMENT '渠道方编号',
   `project_id`                                    string         COMMENT '项目编号',
@@ -264,12 +264,12 @@ create table if not exists `dm_eagle.eagle_ret_msg_day`(
   `ret_msg_num`                                   decimal(12,0)  COMMENT '拒绝原因笔数',
   `ret_msg_rate`                                  decimal(12,0)  COMMENT '拒绝原因占比（各个拒绝原因笔数/总的拒绝笔数）'
 ) COMMENT '拒绝原因分布'
-partitioned by (`biz_date` string COMMENT '风控处理日期',`product_id` string COMMENT '产品编号')
-stored as parquet;
+PARTITIONED BY(`biz_date` string COMMENT '风控处理日期',`product_id` string COMMENT '产品编号')
+STORED AS PARQUET;
 
 
--- drop table if exists `dm_eagle.assets_distribution`;
-create table if not exists `dm_eagle.assets_distribution`(
+-- DROP TABLE IF EXISTS `dm_eagle.assets_distribution`;
+CREATE TABLE IF NOT EXISTS `dm_eagle.assets_distribution`(
   `capital_id`                                    string         COMMENT '资金方编号',
   `channel_id`                                    string         COMMENT '渠道方编号',
   `project_id`                                    string         COMMENT '项目编号',
@@ -348,8 +348,8 @@ create table if not exists `dm_eagle.assets_distribution`(
   `multimedia_preference`                         decimal(5,0)   COMMENT '视频偏好综合指数',
   `social_preference`                             decimal(5,0)   COMMENT '交友偏好综合指数'
 ) COMMENT 'dm客群分布维度表'
-partitioned by (`product_id` string COMMENT '产品编号')
-stored as parquet;
+PARTITIONED BY(`product_id` string COMMENT '产品编号')
+STORED AS PARQUET;
 
 
 
@@ -362,8 +362,8 @@ set hivevar:db_suffix=_cps;
 
 
 -- 标题头信息
--- drop table if exists `dm_eagle${db_suffix}.eagle_title_info`;
-create table if not exists `dm_eagle${db_suffix}.eagle_title_info`(
+-- DROP TABLE IF EXISTS `dm_eagle${db_suffix}.eagle_title_info`;
+CREATE TABLE IF NOT EXISTS `dm_eagle${db_suffix}.eagle_title_info`(
   `capital_id`                                    string         COMMENT '资金方编号',
   `channel_id`                                    string         COMMENT '渠道方编号',
   `project_id`                                    string         COMMENT '项目编号',
@@ -374,14 +374,14 @@ create table if not exists `dm_eagle${db_suffix}.eagle_title_info`(
   `loan_terms_list`                               string         COMMENT '期数范围（结构：[3,6,9]）',
   `create_date`                                   string         COMMENT '插入日期'
 ) COMMENT '标题头信息'
-stored as parquet;
+STORED AS PARQUET;
 
 
 -- 应还实还
 -- 应还实还对比
 -- 分区字段 biz_date
--- drop table if exists `dm_eagle${db_suffix}.eagle_should_repay_repaid_amount_day`;
-create table if not exists `dm_eagle${db_suffix}.eagle_should_repay_repaid_amount_day`(
+-- DROP TABLE IF EXISTS `dm_eagle${db_suffix}.eagle_should_repay_repaid_amount_day`;
+CREATE TABLE IF NOT EXISTS `dm_eagle${db_suffix}.eagle_should_repay_repaid_amount_day`(
   `capital_id`                                    string         COMMENT '资金方编号',
   `channel_id`                                    string         COMMENT '渠道方编号',
   `loan_terms`                                    decimal(3,0)   COMMENT '贷款期数',
@@ -389,15 +389,15 @@ create table if not exists `dm_eagle${db_suffix}.eagle_should_repay_repaid_amoun
   `should_repay_amount_actual`                    decimal(25,5)  COMMENT '实际应还金额',
   `repaid_amount`                                 decimal(25,5)  COMMENT '实还金额'
 ) COMMENT '应还实还对比'
-partitioned by (`biz_date` string COMMENT '放款日期',`project_id` string COMMENT '项目编号')
-stored as parquet;
+PARTITIONED BY(`biz_date` string COMMENT '放款日期',`project_id` string COMMENT '项目编号')
+STORED AS PARQUET;
 
 
 -- 放款规模
 -- 放款规模
 -- 分区字段 biz_date
--- drop table if exists `dm_eagle${db_suffix}.eagle_loan_amount_day`;
-create table if not exists `dm_eagle${db_suffix}.eagle_loan_amount_day`(
+-- DROP TABLE IF EXISTS `dm_eagle${db_suffix}.eagle_loan_amount_day`;
+CREATE TABLE IF NOT EXISTS `dm_eagle${db_suffix}.eagle_loan_amount_day`(
   `capital_id`                                    string         COMMENT '资金方编号',
   `channel_id`                                    string         COMMENT '渠道方编号',
   `project_id`                                    string         COMMENT '项目编号',
@@ -405,14 +405,14 @@ create table if not exists `dm_eagle${db_suffix}.eagle_loan_amount_day`(
   `loan_amount`                                   decimal(25,5)  COMMENT '放款本金',
   `loan_amount_accumulate`                        decimal(25,5)  COMMENT '累计放款本金'
 ) COMMENT '放款规模'
-partitioned by (`biz_date` string COMMENT '放款日期',`product_id` string COMMENT '产品编号')
-stored as parquet;
+PARTITIONED BY(`biz_date` string COMMENT '放款日期',`product_id` string COMMENT '产品编号')
+STORED AS PARQUET;
 
 
 -- 资产规模
 -- 分区字段 biz_date
--- drop table if exists `dm_eagle${db_suffix}.eagle_asset_scale_principal_day`;
-create table if not exists `dm_eagle${db_suffix}.eagle_asset_scale_principal_day`(
+-- DROP TABLE IF EXISTS `dm_eagle${db_suffix}.eagle_asset_scale_principal_day`;
+CREATE TABLE IF NOT EXISTS `dm_eagle${db_suffix}.eagle_asset_scale_principal_day`(
   `capital_id`                                    string         COMMENT '资金方编号',
   `channel_id`                                    string         COMMENT '渠道方编号',
   `project_id`                                    string         COMMENT '项目编号',
@@ -423,14 +423,14 @@ create table if not exists `dm_eagle${db_suffix}.eagle_asset_scale_principal_day
   `overdue_principal_rate`                        decimal(30,10) COMMENT '逾期本金占比（逾期本金/本金余额×100%）',
   `unposted_principal_rate`                       decimal(30,10) COMMENT '未出账本金占比（未出账本金/本金余额×100%）'
 ) COMMENT '资产规模'
-partitioned by (`biz_date` string COMMENT '观察日期',`product_id` string COMMENT '产品编号')
-stored as parquet;
+PARTITIONED BY(`biz_date` string COMMENT '观察日期',`product_id` string COMMENT '产品编号')
+STORED AS PARQUET;
 
 
 -- 回款规模
 -- 分区字段 biz_date
--- drop table if exists `dm_eagle${db_suffix}.eagle_asset_scale_repaid_day`;
-create table if not exists `dm_eagle${db_suffix}.eagle_asset_scale_repaid_day`(
+-- DROP TABLE IF EXISTS `dm_eagle${db_suffix}.eagle_asset_scale_repaid_day`;
+CREATE TABLE IF NOT EXISTS `dm_eagle${db_suffix}.eagle_asset_scale_repaid_day`(
   `capital_id`                                    string         COMMENT '资金方编号',
   `channel_id`                                    string         COMMENT '渠道方编号',
   `project_id`                                    string         COMMENT '项目编号',
@@ -452,14 +452,14 @@ create table if not exists `dm_eagle${db_suffix}.eagle_asset_scale_repaid_day`(
   `repay_principal_rate`                          decimal(30,10) COMMENT '当日实还本金占比（当日实还本金/当日实还金额×100%）',
   `repay_interest_svc_fee_rate`                   decimal(30,10) COMMENT '当日实还费息占比（当日实还费息/当日实还金额×100%）'
 ) COMMENT '回款规模'
-partitioned by (`biz_date` string COMMENT '还款日期',`product_id` string COMMENT '产品编号')
-stored as parquet;
+PARTITIONED BY(`biz_date` string COMMENT '还款日期',`product_id` string COMMENT '产品编号')
+STORED AS PARQUET;
 
 
 -- 逾期率表现（曾有取第一次的剩余本金）
 -- 分区字段 biz_date
--- drop table if exists `dm_eagle${db_suffix}.eagle_overdue_rate_month`;
-create table if not exists `dm_eagle${db_suffix}.eagle_overdue_rate_month`(
+-- DROP TABLE IF EXISTS `dm_eagle${db_suffix}.eagle_overdue_rate_month`;
+CREATE TABLE IF NOT EXISTS `dm_eagle${db_suffix}.eagle_overdue_rate_month`(
   `capital_id`                                    string         COMMENT '资金方编号',
   `channel_id`                                    string         COMMENT '渠道方编号',
   `project_id`                                    string         COMMENT '项目编号',
@@ -476,14 +476,14 @@ create table if not exists `dm_eagle${db_suffix}.eagle_overdue_rate_month`(
   `overdue_remain_principal_once`                 decimal(25,5)  COMMENT '曾有逾期借据本金余额（取第一次）',
   `overdue_rate_once`                             decimal(30,10) COMMENT '曾有逾期借据逾期率表现（曾有逾期借据本金余额/放款本金×100%）'
 ) COMMENT '逾期率表现'
-partitioned by (`biz_date` string COMMENT '观察日期',`product_id` string COMMENT '产品编号')
-stored as parquet;
+PARTITIONED BY(`biz_date` string COMMENT '观察日期',`product_id` string COMMENT '产品编号')
+STORED AS PARQUET;
 
 
 -- 递延逾期率（全部放款月、产品级）
 -- 分区字段 biz_date
--- drop table if exists `dm_eagle${db_suffix}.eagle_deferred_overdue_rate_full_month_product_day`;
-create table if not exists `dm_eagle${db_suffix}.eagle_deferred_overdue_rate_full_month_product_day`(
+-- DROP TABLE IF EXISTS `dm_eagle${db_suffix}.eagle_deferred_overdue_rate_full_month_product_day`;
+CREATE TABLE IF NOT EXISTS `dm_eagle${db_suffix}.eagle_deferred_overdue_rate_full_month_product_day`(
   `capital_id`                                    string         COMMENT '资金方编号',
   `channel_id`                                    string         COMMENT '渠道方编号',
   `project_id`                                    string         COMMENT '项目编号',
@@ -494,14 +494,14 @@ create table if not exists `dm_eagle${db_suffix}.eagle_deferred_overdue_rate_ful
   `overdue_rate_overdue_principal`                decimal(30,10) COMMENT '逾期借据递延逾期率（逾期本金）（逾期借据逾期本金/递延放款本金×100%）',
   `overdue_rate_remain_principal`                 decimal(30,10) COMMENT '逾期借据递延逾期率（本金余额）（逾期借据本金余额/递延放款本金×100%）'
 ) COMMENT '递延逾期率（全部放款月、产品级）'
-partitioned by (`biz_date` string COMMENT '观察日期',`product_id` string COMMENT '产品编号')
-stored as parquet;
+PARTITIONED BY(`biz_date` string COMMENT '观察日期',`product_id` string COMMENT '产品编号')
+STORED AS PARQUET;
 
 
 -- 递延逾期率（单个放款月、产品级）
 -- 分区字段 biz_date
--- drop table if exists `dm_eagle${db_suffix}.eagle_deferred_overdue_rate_sigle_month_product_day`;
-create table if not exists `dm_eagle${db_suffix}.eagle_deferred_overdue_rate_sigle_month_product_day`(
+-- DROP TABLE IF EXISTS `dm_eagle${db_suffix}.eagle_deferred_overdue_rate_sigle_month_product_day`;
+CREATE TABLE IF NOT EXISTS `dm_eagle${db_suffix}.eagle_deferred_overdue_rate_sigle_month_product_day`(
   `capital_id`                                    string         COMMENT '资金方编号',
   `channel_id`                                    string         COMMENT '渠道方编号',
   `project_id`                                    string         COMMENT '项目编号',
@@ -513,14 +513,14 @@ create table if not exists `dm_eagle${db_suffix}.eagle_deferred_overdue_rate_sig
   `overdue_rate_overdue_principal`                decimal(30,10) COMMENT '逾期借据递延逾期率（逾期本金）（逾期借据逾期本金/递延放款本金×100%）',
   `overdue_rate_remain_principal`                 decimal(30,10) COMMENT '逾期借据递延逾期率（本金余额）（逾期借据本金余额/递延放款本金×100%）'
 ) COMMENT '递延逾期率（单个放款月、产品级）'
-partitioned by (`biz_date` string COMMENT '观察日期',`product_id` string COMMENT '产品编号')
-stored as parquet;
+PARTITIONED BY(`biz_date` string COMMENT '观察日期',`product_id` string COMMENT '产品编号')
+STORED AS PARQUET;
 
 
 -- 首期流入率（取进展日30天的逾期数据）
 -- 分区字段 biz_date
--- drop table if exists `dm_eagle${db_suffix}.eagle_inflow_rate_first_term_day`;
-create table if not exists `dm_eagle${db_suffix}.eagle_inflow_rate_first_term_day`(
+-- DROP TABLE IF EXISTS `dm_eagle${db_suffix}.eagle_inflow_rate_first_term_day`;
+CREATE TABLE IF NOT EXISTS `dm_eagle${db_suffix}.eagle_inflow_rate_first_term_day`(
   `capital_id`                                    string         COMMENT '资金方编号',
   `channel_id`                                    string         COMMENT '渠道方编号',
   `project_id`                                    string         COMMENT '项目编号',
@@ -536,15 +536,15 @@ create table if not exists `dm_eagle${db_suffix}.eagle_inflow_rate_first_term_da
   `overdue_remain_principal`                      decimal(25,5)  COMMENT '逾期借据本金余额',
   `remain_principal_inflow_rate`                  decimal(30,10) COMMENT '首期流入率（逾期借据本金余额）（逾期借据本金余额/放款本金×100%）'
 ) COMMENT '首期流入率（取进展日30天的逾期数据）'
-partitioned by (`biz_date` string COMMENT '观察日期',`product_id` string COMMENT '产品编号')
-stored as parquet;
+PARTITIONED BY(`biz_date` string COMMENT '观察日期',`product_id` string COMMENT '产品编号')
+STORED AS PARQUET;
 
 
 
 -- 逾期流入率（取进展日30天的逾期数据）
 -- 分区字段 biz_date
--- drop table if exists `dm_eagle${db_suffix}.eagle_inflow_rate_day`;
-create table if not exists `dm_eagle${db_suffix}.eagle_inflow_rate_day`(
+-- DROP TABLE IF EXISTS `dm_eagle${db_suffix}.eagle_inflow_rate_day`;
+CREATE TABLE IF NOT EXISTS `dm_eagle${db_suffix}.eagle_inflow_rate_day`(
   `capital_id`                                    string         COMMENT '资金方编号',
   `channel_id`                                    string         COMMENT '渠道方编号',
   `project_id`                                    string         COMMENT '项目编号',
@@ -563,14 +563,14 @@ create table if not exists `dm_eagle${db_suffix}.eagle_inflow_rate_day`(
   `overdue_principal_inflow_rate`                 decimal(30,10) COMMENT '逾期借据逾期本金逾期率（逾期借据逾期本金/应还日为T，T-1为C的T-1日实际应还本金×100%）',
   `remain_principal_inflow_rate`                  decimal(30,10) COMMENT '逾期借据本金余额逾期率（逾期借据本金余额/应还日为T，T-1为C的T-1日实际本金余额×100%）'
 ) COMMENT '逾期流入率（取进展日30天的逾期数据）'
-partitioned by (`biz_date` string COMMENT '观察日期',`product_id` string COMMENT '产品编号')
-stored as parquet;
+PARTITIONED BY(`biz_date` string COMMENT '观察日期',`product_id` string COMMENT '产品编号')
+STORED AS PARQUET;
 
 
 -- 迁徙率（12个月）
 -- 分区字段 biz_month
--- drop table if exists `dm_eagle${db_suffix}.eagle_migration_rate_month`;
-create table if not exists `dm_eagle${db_suffix}.eagle_migration_rate_month`(
+-- DROP TABLE IF EXISTS `dm_eagle${db_suffix}.eagle_migration_rate_month`;
+CREATE TABLE IF NOT EXISTS `dm_eagle${db_suffix}.eagle_migration_rate_month`(
   `capital_id`                                    string         COMMENT '资金方编号',
   `channel_id`                                    string         COMMENT '渠道方编号',
   `project_id`                                    string         COMMENT '项目编号',
@@ -585,8 +585,8 @@ create table if not exists `dm_eagle${db_suffix}.eagle_migration_rate_month`(
   -- `remain_principal_t`                            decimal(25,5) COMMENT '本月末本金余额',
   -- `migration_rate`                                decimal(30,10) COMMENT '月迁徙率（MOB3的M1—M2迁徙率：MOB3月末状态为M2本金余额/MOB2月末状态为M1本金余额×100%）'
 ) COMMENT '迁徙率（12个月）'
-partitioned by (`biz_month` string COMMENT '观察月',`product_id` string COMMENT '产品编号')
-stored as parquet;
+PARTITIONED BY(`biz_month` string COMMENT '观察月',`product_id` string COMMENT '产品编号')
+STORED AS PARQUET;
 
 
 
@@ -661,7 +661,7 @@ CREATE TABLE IF NOT EXISTS `dm_eagle${db_suffix}.eagle_loan_info`(
   `overdue_principal_accumulate`                  decimal(25,5)  COMMENT '累计逾期本金',
   `overdue_principal_max`                         decimal(25,5)  COMMENT '历史最大逾期本金'
 ) COMMENT '借据信息表'
-PARTITIONED BY (`biz_date` string COMMENT '观察日期',`product_id` string COMMENT '产品编号')
+PARTITIONED BY(`biz_date` string COMMENT '观察日期',`product_id` string COMMENT '产品编号')
 STORED AS PARQUET;
 
 
@@ -703,7 +703,7 @@ CREATE TABLE IF NOT EXISTS `dm_eagle${db_suffix}.eagle_repay_schedule`(
   `s_d_date`                                      string         COMMENT 'ods层起始日期',
   `e_d_date`                                      string         COMMENT 'ods层结束日期'
 ) COMMENT '还款计划表'
-PARTITIONED BY (`product_id` string COMMENT '产品编号')
+PARTITIONED BY(`product_id` string COMMENT '产品编号')
 STORED AS PARQUET
 TBLPROPERTIES('parquet.compression'='SNAPPY');
 
@@ -728,7 +728,7 @@ CREATE TABLE IF NOT EXISTS `dm_eagle${db_suffix}.eagle_repay_detail`(
   `create_time`                                   timestamp      COMMENT '创建时间',
   `update_time`                                   timestamp      COMMENT '更新时间'
 ) COMMENT '实还明细表'
-PARTITIONED BY (`biz_date` string COMMENT '实还日期',`product_id` string COMMENT '产品编号')
+PARTITIONED BY(`biz_date` string COMMENT '实还日期',`product_id` string COMMENT '产品编号')
 STORED AS PARQUET;
 
 
@@ -781,7 +781,7 @@ CREATE TABLE IF NOT EXISTS `dm_eagle${db_suffix}.eagle_order_info`(
   `create_time`                                   timestamp      COMMENT '创建时间',
   `update_time`                                   timestamp      COMMENT '更新时间'
 ) COMMENT '订单流水表'
-PARTITIONED BY (`biz_date` string COMMENT '交易日期',`product_id` string COMMENT '产品编号')
+PARTITIONED BY(`biz_date` string COMMENT '交易日期',`product_id` string COMMENT '产品编号')
 STORED AS PARQUET;
 
 
@@ -802,7 +802,7 @@ CREATE TABLE IF NOT EXISTS `dm_eagle${db_suffix}.eagle_repayment_record_day`(
   `remain_principal`                              decimal(25,5)  COMMENT '本金余额',
   `paid_out_type`                                 string         COMMENT '账户状态'
 ) COMMENT '还款记录'
-PARTITIONED BY (`biz_date` string COMMENT '实还日期',`product_id` string COMMENT '产品编号')
+PARTITIONED BY(`biz_date` string COMMENT '实还日期',`product_id` string COMMENT '产品编号')
 STORED AS PARQUET;
 
 
@@ -826,8 +826,8 @@ STORED AS PARQUET;
 -- 运营平台报表建表语句
 -- 5张明细表
 -- 借据台账-明细 （取最新的数据）
--- drop table if exists `dm_eagle.operation_loan_ledger_detail`;
-create table if not exists `dm_eagle.operation_loan_ledger_detail`(
+-- DROP TABLE IF EXISTS `dm_eagle.operation_loan_ledger_detail`;
+CREATE TABLE IF NOT EXISTS `dm_eagle.operation_loan_ledger_detail`(
   `channel_id`                                    string         COMMENT '渠道编号',
   `project_id`                                    string         COMMENT '项目编号',
   `contract_no`                                   string         COMMENT '合同编号',
@@ -864,13 +864,13 @@ create table if not exists `dm_eagle.operation_loan_ledger_detail`(
   `paid_penalty`                                  decimal(25,5)  COMMENT '已还罚息',
   `execution_date`                                string         COMMENT '跑批日期'
 ) COMMENT '借据台账-明细'
-PARTITIONED BY (product_id string COMMENT '产品编号')
+PARTITIONED BY(product_id string COMMENT '产品编号')
 STORED AS PARQUET;
 
 
 -- 应还款明细报表
--- drop table if exists `dm_eagle.operation_should_repay_detail`;
-create table if not exists `dm_eagle.operation_should_repay_detail`(
+-- DROP TABLE IF EXISTS `dm_eagle.operation_should_repay_detail`;
+CREATE TABLE IF NOT EXISTS `dm_eagle.operation_should_repay_detail`(
   `channel_id`                                    string         COMMENT '合同渠道方',
   `project_id`                                    string         COMMENT '项目名称',
   `contract_no`                                   string         COMMENT '合同编号',
@@ -887,13 +887,13 @@ create table if not exists `dm_eagle.operation_should_repay_detail`(
   `should_repay_penalty`                          decimal(25,5)  COMMENT '应还罚息',
   `execution_date`                                string         COMMENT '跑批日期'
 ) COMMENT '应还款明细报表'
-PARTITIONED BY (product_id string COMMENT '产品编号')
+PARTITIONED BY(product_id string COMMENT '产品编号')
 STORED AS PARQUET;
 
 
 -- 日还款明细报表
--- drop table if exists `dm_eagle.operation_daily_repay_detail`;
-create table if not exists `dm_eagle.operation_daily_repay_detail`(
+-- DROP TABLE IF EXISTS `dm_eagle.operation_daily_repay_detail`;
+CREATE TABLE IF NOT EXISTS `dm_eagle.operation_daily_repay_detail`(
   `channel_id`                                    string         COMMENT '合同渠道方',
   `project_id`                                    string         COMMENT '项目名称',
   `contract_no`                                   string         COMMENT '合同编号',
@@ -919,13 +919,13 @@ create table if not exists `dm_eagle.operation_daily_repay_detail`(
   `paid_penalty`                                  decimal(25,5)  COMMENT '还款罚息',
   `execution_date`                                string         COMMENT '跑批日期'
 ) COMMENT '日还款明细报表'
-PARTITIONED BY (product_id string COMMENT '产品编号')
+PARTITIONED BY(product_id string COMMENT '产品编号')
 STORED AS PARQUET;
 
 
 --运营报表实还明细临时表
--- drop table if exists `dm_eagle.operation_daily_repay_detail_temp`;
-create table if not exists `dm_eagle.operation_daily_repay_detail_temp`(
+-- DROP TABLE IF EXISTS `dm_eagle.operation_daily_repay_detail_temp`;
+CREATE TABLE IF NOT EXISTS `dm_eagle.operation_daily_repay_detail_temp`(
   `channel_id`                                    string         COMMENT '合同渠道方',
   `project_id`                                    string         COMMENT '项目名称',
   `contract_no`                                   string         COMMENT '合同编号',
@@ -956,8 +956,8 @@ STORED AS PARQUET;
 
 
 -- 逾期明细报表  Overdue details
--- drop table if exists `dm_eagle.operation_overdue_datail`;
-create table if not exists `dm_eagle.operation_overdue_datail`(
+-- DROP TABLE IF EXISTS `dm_eagle.operation_overdue_datail`;
+CREATE TABLE IF NOT EXISTS `dm_eagle.operation_overdue_datail`(
   `channel_id`                                    string         COMMENT '合作渠道方',
   `project_id`                                    string         COMMENT '项目名称',
   `due_bill_no`                                   string         COMMENT '借据编号',
@@ -982,11 +982,12 @@ create table if not exists `dm_eagle.operation_overdue_datail`(
   `remain_interest`                               decimal(25,5)  COMMENT '剩余未还利息',
   `remain_fee`                                    decimal(25,5)  COMMENT '剩余未还费用',
   `remain_penalty_interest`                       decimal(25,5)  COMMENT '剩余未还罚息'
-) COMMENT '逾期明细报表' PARTITIONED BY (product_id string COMMENT '产品编号',snapshot_day string COMMENT '快照日')
+) COMMENT '逾期明细报表'
+PARTITIONED BY(product_id string COMMENT '产品编号',snapshot_day string COMMENT '快照日')
 STORED AS PARQUET;
 
--- drop table if exists `dm_eagle.operation_overdue_base_datail`;
-create table if not exists `dm_eagle.operation_overdue_base_datail`(
+-- DROP TABLE IF EXISTS `dm_eagle.operation_overdue_base_datail`;
+CREATE TABLE IF NOT EXISTS `dm_eagle.operation_overdue_base_datail`(
   `channel_id`                                    string         COMMENT '合作渠道方',
   `project_id`                                    string         COMMENT '项目id',
   `product_name`                                  string         COMMENT '产品名称',
@@ -1019,13 +1020,14 @@ create table if not exists `dm_eagle.operation_overdue_base_datail`(
   `remain_fee_cps`                                decimal(25,5)  COMMENT '剩余未还费用(代偿后)',
   `remain_penalty_interest_cps`                   decimal(25,5)  COMMENT '剩余未还罚息(代偿后)',
   `is_buy_back`                                   string         COMMENT '是否回购:Y - 是 N - 否'
-) COMMENT '逾期底层报表(场景方数据)' PARTITIONED BY (product_id string COMMENT '产品编号',snapshot_day string COMMENT '快照日')
+) COMMENT '逾期底层报表(场景方数据)'
+PARTITIONED BY(product_id string COMMENT '产品编号',snapshot_day string COMMENT '快照日')
 STORED AS PARQUET;
 
 
 -- 退车退票明细表
--- drop table if exists `dm_eagle.operation_return_ticket_detail`;
-create table if not exists `dm_eagle.operation_return_ticket_detail`(
+-- DROP TABLE IF EXISTS `dm_eagle.operation_return_ticket_detail`;
+CREATE TABLE IF NOT EXISTS `dm_eagle.operation_return_ticket_detail`(
   `channel_id`                                    string         COMMENT '合同渠道方',
   `project_id`                                    string         COMMENT '项目名称',
   `due_bill_no`                                   string         COMMENT '借据编号',
@@ -1042,14 +1044,14 @@ create table if not exists `dm_eagle.operation_return_ticket_detail`(
   `loan_usage`                                    string         COMMENT '退票/退车状态',
   `execution_date`                                string         COMMENT '跑批日期'
 ) COMMENT '退车退票明细表'
-PARTITIONED BY (product_id string COMMENT '产品编号')
+PARTITIONED BY(product_id string COMMENT '产品编号')
 STORED AS PARQUET;
 
 
 -- 汇总表#
 -- 产品管理报表
--- drop table if exists `dm_eagle.operation_product_management_report_agg`;
-create table if not exists `dm_eagle.operation_product_management_report_agg`(
+-- DROP TABLE IF EXISTS `dm_eagle.operation_product_management_report_agg`;
+CREATE TABLE IF NOT EXISTS `dm_eagle.operation_product_management_report_agg`(
   `channel_id`                                    string         COMMENT '合作渠道方',
   `project_id`                                    string         COMMENT '项目名称',
   `loan_num_count`                                decimal(12,0)  COMMENT '累计放款笔数',
@@ -1070,13 +1072,13 @@ create table if not exists `dm_eagle.operation_product_management_report_agg`(
   `current_overdue_fee`                           decimal(25,5)  COMMENT '当前逾期费用',
   `current_overdue_penalty`                       decimal(25,5)  COMMENT '当前逾期罚息'
 ) COMMENT '产品管理报表'
-PARTITIONED BY (`biz_date` string COMMENT '观察日期',`product_id` string COMMENT '产品编号')
+PARTITIONED BY(`biz_date` string COMMENT '观察日期',`product_id` string COMMENT '产品编号')
 STORED AS PARQUET;
 
 
 -- 放款日报
--- drop table if exists `dm_eagle.operation_lending_daily_agg`;
-create table if not exists `dm_eagle.operation_lending_daily_agg` (
+-- DROP TABLE IF EXISTS `dm_eagle.operation_lending_daily_agg`;
+CREATE TABLE IF NOT EXISTS `dm_eagle.operation_lending_daily_agg` (
   `channel_id`                                    string         COMMENT '合作渠道方',
   `project_id`                                    string         COMMENT '项目名称',
   `biz_date`                                      string         COMMENT '放款日期',
@@ -1086,13 +1088,13 @@ create table if not exists `dm_eagle.operation_lending_daily_agg` (
   `loan_principal_count`                          decimal(25,5)  COMMENT '累计放款金额',
   `execution_date`                                string         COMMENT '跑批日期'
 ) COMMENT '放款日报'
-PARTITIONED BY (`product_id` string COMMENT '产品编号')
+PARTITIONED BY(`product_id` string COMMENT '产品编号')
 STORED AS PARQUET;
 
 
 -- 应还日报表
--- drop table if exists `dm_eagle.operation_should_repay_day_agg`;
-create table if not exists `dm_eagle.operation_should_repay_day_agg`(
+-- DROP TABLE IF EXISTS `dm_eagle.operation_should_repay_day_agg`;
+CREATE TABLE IF NOT EXISTS `dm_eagle.operation_should_repay_day_agg`(
   `channel_id`                                    string         COMMENT '合同渠道方',
   `project_id`                                    string         COMMENT '项目名称',
   `should_repay_date`                             string         COMMENT '应还日期',
@@ -1107,13 +1109,13 @@ create table if not exists `dm_eagle.operation_should_repay_day_agg`(
   `should_repay_fee_unpaid`                       decimal(25,5)  COMMENT '应还费用(未结清)',
   `should_repay_penalty_unpaid`                   decimal(25,5)  COMMENT '应还罚息(未结清)'
 ) COMMENT '应还日报表'
-PARTITIONED BY (`biz_date` string COMMENT '观察日期',`product_id` string COMMENT '产品编号')
+PARTITIONED BY(`biz_date` string COMMENT '观察日期',`product_id` string COMMENT '产品编号')
 STORED AS PARQUET;
 
 
 -- 还款日报
--- drop table if exists `dm_eagle.operation_daily_repay_agg`;
-create table if not exists `dm_eagle.operation_daily_repay_agg`(
+-- DROP TABLE IF EXISTS `dm_eagle.operation_daily_repay_agg`;
+CREATE TABLE IF NOT EXISTS `dm_eagle.operation_daily_repay_agg`(
   `channel_id`                                    string         COMMENT '合同渠道方',
   `project_id`                                    string         COMMENT '项目名称',
   `biz_date`                                      string         COMMENT '实还日期',
@@ -1127,13 +1129,13 @@ create table if not exists `dm_eagle.operation_daily_repay_agg`(
   `paid_penalty`                                  decimal(25,5)  COMMENT '还款罚息',
   `execution_date`                                string         COMMENT '跑批日期'
 ) COMMENT '还款日报'
-PARTITIONED BY (`product_id` string COMMENT '产品编号')
+PARTITIONED BY(`product_id` string COMMENT '产品编号')
 STORED AS PARQUET;
 
 
 -- 退票报表
--- drop table if exists `dm_eagle.operation_return_ticket_agg`;
-create table if not exists `dm_eagle.operation_return_ticket_agg`(
+-- DROP TABLE IF EXISTS `dm_eagle.operation_return_ticket_agg`;
+CREATE TABLE IF NOT EXISTS `dm_eagle.operation_return_ticket_agg`(
   `channel_id`                                    string         COMMENT '合同渠道方',
   `project_id`                                    string         COMMENT '项目名称',
   `txn_date`                                      string         COMMENT '发生日期',
@@ -1142,7 +1144,7 @@ create table if not exists `dm_eagle.operation_return_ticket_agg`(
   `refund_amount_accumul`                         decimal(25,5)  COMMENT '累计退票/退车金额',
   `refund_num_accumul`                            decimal(12,0)  COMMENT '累计退票/退车笔数'
 ) COMMENT '退票报表'
-PARTITIONED BY (`product_id` string COMMENT '产品编号')
+PARTITIONED BY(`product_id` string COMMENT '产品编号')
 STORED AS PARQUET;
 
 
@@ -1164,8 +1166,8 @@ STORED AS PARQUET;
 -- ABS系统
 
 -- 资产总体信息（项目——所有包）
--- drop table if exists `dm_eagle.abs_asset_information_project`;
-create table if not exists `dm_eagle.abs_asset_information_project`(
+-- DROP TABLE IF EXISTS `dm_eagle.abs_asset_information_project`;
+CREATE TABLE IF NOT EXISTS `dm_eagle.abs_asset_information_project`(
   -- basicAssetInformationVo
   `asset_count`                                   decimal(12,0)  COMMENT '资产数量',
   `customer_count`                                decimal(12,0)  COMMENT '借款人数量',
@@ -1227,13 +1229,13 @@ create table if not exists `dm_eagle.abs_asset_information_project`(
   `pledged_asset_rate_avg_weighted`               decimal(30,10) COMMENT '加权平均抵押率', -- basicAssetInformationVo 中也要
   `is_allbag`                                     string         COMMENT '是否是所有包(y: 是 , n : 否)'
 ) COMMENT '资产总体信息（项目——所有包）'
-PARTITIONED BY (`biz_date` string COMMENT '观察日期',`project_id` string COMMENT '项目编号')
+PARTITIONED BY(`biz_date` string COMMENT '观察日期',`project_id` string COMMENT '项目编号')
 STORED AS PARQUET;
 
 
 -- 资产总体信息（包）
--- drop table if exists `dm_eagle.abs_asset_information_bag`;
-create table if not exists `dm_eagle.abs_asset_information_bag`(
+-- DROP TABLE IF EXISTS `dm_eagle.abs_asset_information_bag`;
+CREATE TABLE IF NOT EXISTS `dm_eagle.abs_asset_information_bag`(
   `project_id`                                    string         COMMENT '项目编号',
   -- basicAssetInformationVo
   `asset_count`                                   decimal(12,0)  COMMENT '资产数量',
@@ -1295,13 +1297,13 @@ create table if not exists `dm_eagle.abs_asset_information_bag`(
   `pawn_value`                                    decimal(30,10) COMMENT '抵押初始评估价值',
   `pledged_asset_rate_avg_weighted`               decimal(30,10) COMMENT '加权平均抵押率' -- basicAssetInformationVo 中也要
 ) COMMENT '资产总体信息（包）'
-PARTITIONED BY (`biz_date` string COMMENT '观察日期',`bag_id` string COMMENT '包编号')
+PARTITIONED BY(`biz_date` string COMMENT '观察日期',`bag_id` string COMMENT '包编号')
 STORED AS PARQUET;
 
 
 -- 资产总体信息（包、封包时）
--- drop table if exists `dm_eagle.abs_asset_information_bag_snapshot`;
-create table if not exists `dm_eagle.abs_asset_information_bag_snapshot`(
+-- DROP TABLE IF EXISTS `dm_eagle.abs_asset_information_bag_snapshot`;
+CREATE TABLE IF NOT EXISTS `dm_eagle.abs_asset_information_bag_snapshot`(
   `project_id`                                    string         COMMENT '项目编号',
   -- basicAssetInformationVo
   `asset_count`                                   decimal(12,0)  COMMENT '资产数量',
@@ -1363,13 +1365,13 @@ create table if not exists `dm_eagle.abs_asset_information_bag_snapshot`(
   `pawn_value`                                    decimal(30,10) COMMENT '抵押初始评估价值',
   `pledged_asset_rate_avg_weighted`               decimal(30,10) COMMENT '加权平均抵押率' -- basicAssetInformationVo 中也要
 ) COMMENT '资产总体信息（包、封包时）'
-PARTITIONED BY (`biz_date` string COMMENT '观察日期',`bag_id` string COMMENT '包编号')
+PARTITIONED BY(`biz_date` string COMMENT '观察日期',`bag_id` string COMMENT '包编号')
 STORED AS PARQUET;
 
 
 -- 现金流分析（包、封包时）
--- drop table if exists `dm_eagle.abs_asset_information_cash_flow_bag_snapshot`;
-create table if not exists `dm_eagle.abs_asset_information_cash_flow_bag_snapshot`(
+-- DROP TABLE IF EXISTS `dm_eagle.abs_asset_information_cash_flow_bag_snapshot`;
+CREATE TABLE IF NOT EXISTS `dm_eagle.abs_asset_information_cash_flow_bag_snapshot`(
   `project_id`                                    string         COMMENT '项目编号',
   `should_repay_date`                             string         COMMENT '应还日期',
   `remain_principal_term_begin`                   decimal(30,10) COMMENT '期初本金余额',
@@ -1379,13 +1381,13 @@ create table if not exists `dm_eagle.abs_asset_information_cash_flow_bag_snapsho
   `should_repay_interest`                         decimal(30,10) COMMENT '应还利息',
   `should_repay_cost`                             decimal(30,10) COMMENT '应还费用'
 ) COMMENT '现金流分析（包、封包时）'
-PARTITIONED BY (`bag_id` string COMMENT '包编号')
+PARTITIONED BY(`bag_id` string COMMENT '包编号')
 STORED AS PARQUET;
 
 
 -- 现金流分析（项目、所有包、包）
--- drop table if exists `dm_eagle.abs_asset_information_cash_flow_bag_day`;
-create table if not exists `dm_eagle.abs_asset_information_cash_flow_bag_day`(
+-- DROP TABLE IF EXISTS `dm_eagle.abs_asset_information_cash_flow_bag_day`;
+CREATE TABLE IF NOT EXISTS `dm_eagle.abs_asset_information_cash_flow_bag_day`(
   `bag_date`                                      string         COMMENT '封包日期',
   `data_extraction_day`                           string         COMMENT '最新数据提取日',
 
@@ -1424,13 +1426,13 @@ create table if not exists `dm_eagle.abs_asset_information_cash_flow_bag_day`(
 
   `collect_date`                                  string         COMMENT '统计日期'
 ) COMMENT '现金流分析（项目、所有包、包）'
-PARTITIONED BY (`biz_date` string COMMENT '观察日期',`project_id` string COMMENT '项目编号',`bag_id` string COMMENT '包编号（包编号、default_project、default_all_bag）')
+PARTITIONED BY(`biz_date` string COMMENT '观察日期',`project_id` string COMMENT '项目编号',`bag_id` string COMMENT '包编号（包编号、default_project、default_all_bag）')
 STORED AS PARQUET;
 
 
 -- 现金流分析（包）
--- drop table if exists `dm_eagle.abs_asset_information_cash_flow_bag_day_old`;
-create table if not exists `dm_eagle.abs_asset_information_cash_flow_bag_day_old`(
+-- DROP TABLE IF EXISTS `dm_eagle.abs_asset_information_cash_flow_bag_day_old`;
+CREATE TABLE IF NOT EXISTS `dm_eagle.abs_asset_information_cash_flow_bag_day_old`(
   `project_id`                                    string         COMMENT '项目编号',
   `bag_date`                                      string         COMMENT '封包日期',
   `data_extraction_day`                           string         COMMENT '最新数据提取日',
@@ -1462,13 +1464,13 @@ create table if not exists `dm_eagle.abs_asset_information_cash_flow_bag_day_old
 
   `biz_date`                                      string         COMMENT '观察日期（应还日/实还日）'
 ) COMMENT '现金流分析（包）'
-PARTITIONED BY (`bag_id` string COMMENT '包编号')
+PARTITIONED BY(`bag_id` string COMMENT '包编号')
 STORED AS PARQUET;
 
 
 -- abs分布表（项目——所有包）
--- drop table if exists `dm_eagle.abs_asset_distribution_day`;
-create table if not exists `dm_eagle.abs_asset_distribution_day`(
+-- DROP TABLE IF EXISTS `dm_eagle.abs_asset_distribution_day`;
+CREATE TABLE IF NOT EXISTS `dm_eagle.abs_asset_distribution_day`(
   `is_allbag`                                     string         COMMENT '是否是所有包(y: 是 , n : 否)',
   `asset_tab_name`                                decimal(4,0)   COMMENT '分布标签名称（1：未偿本金余额分布，2：资产利率分布，3：资产合同期限分布，4：资产剩余期限分布，5：资产已还期数分布，6：账龄分布，7：合同剩余期限分布（账龄相关），8：还款方式分布，9：借款人年龄分布，10：借款人行业分布，11：借款人年收入分布，12：借款人风控结果分布，13：借款人信用等级分布，14：借款人反欺诈等级分布，15：借款人资产等级分布，16：借款人地区分布，17：抵押率分布，18：车辆品牌分布，19：新旧车辆分布）',
   `asset_name`                                    string         COMMENT '分布项名称',
@@ -1479,13 +1481,13 @@ create table if not exists `dm_eagle.abs_asset_distribution_day`(
   `loan_numratio`                                 decimal(30,10) COMMENT '借据笔数占比（分布项借据笔数/借据笔数）',
   `remain_principal_loan_num_avg`                 decimal(25,5)  COMMENT '平均每笔余额（本金余额/借据笔数）'
 ) COMMENT 'abs分布表（项目——所有包）'
-PARTITIONED BY (`biz_date` string COMMENT '观察日期',`project_id` string COMMENT '项目编号')
+PARTITIONED BY(`biz_date` string COMMENT '观察日期',`project_id` string COMMENT '项目编号')
 STORED AS PARQUET;
 
 
 -- abs分布表（包）
--- drop table if exists `dm_eagle.abs_asset_distribution_bag_day`;
-create table if not exists `dm_eagle.abs_asset_distribution_bag_day`(
+-- DROP TABLE IF EXISTS `dm_eagle.abs_asset_distribution_bag_day`;
+CREATE TABLE IF NOT EXISTS `dm_eagle.abs_asset_distribution_bag_day`(
   `project_id`                                    string         COMMENT '项目编号',
   `asset_tab_name`                                decimal(4,0)   COMMENT '分布标签名称（1：未偿本金余额分布，2：资产利率分布，3：资产合同期限分布，4：资产剩余期限分布，5：资产已还期数分布，6：账龄分布，7：合同剩余期限分布（账龄相关），8：还款方式分布，9：借款人年龄分布，10：借款人行业分布，11：借款人年收入分布，12：借款人风控结果分布，13：借款人信用等级分布，14：借款人反欺诈等级分布，15：借款人资产等级分布，16：借款人地区分布，17：抵押率分布，18：车辆品牌分布，19：新旧车辆分布）',
   `asset_name`                                    string         COMMENT '分布项名称',
@@ -1496,13 +1498,13 @@ create table if not exists `dm_eagle.abs_asset_distribution_bag_day`(
   `loan_numratio`                                 decimal(30,10) COMMENT '借据笔数占比（分布项借据笔数/借据笔数）',
   `remain_principal_loan_num_avg`                 decimal(25,5)  COMMENT '平均每笔余额（本金余额/借据笔数）'
 ) COMMENT 'abs分布表（包）'
-PARTITIONED BY (`biz_date` string COMMENT '观察日期',`bag_id` string COMMENT '包编号')
+PARTITIONED BY(`biz_date` string COMMENT '观察日期',`bag_id` string COMMENT '包编号')
 STORED AS PARQUET;
 
 
 -- abs分布表（包、封包时）
--- drop table if exists `dm_eagle.abs_asset_distribution_snapshot_day`;
-create table if not exists `dm_eagle.abs_asset_distribution_bag_snapshot_day`(
+-- DROP TABLE IF EXISTS `dm_eagle.abs_asset_distribution_snapshot_day`;
+CREATE TABLE IF NOT EXISTS `dm_eagle.abs_asset_distribution_bag_snapshot_day`(
   `project_id`                                    string         COMMENT '项目编号',
   `asset_tab_name`                                decimal(4,0)   COMMENT '分布标签名称（1：未偿本金余额分布，2：资产利率分布，3：资产合同期限分布，4：资产剩余期限分布，5：资产已还期数分布，6：账龄分布，7：合同剩余期限分布（账龄相关），8：还款方式分布，9：借款人年龄分布，10：借款人行业分布，11：借款人年收入分布，12：借款人风控结果分布，13：借款人信用等级分布，14：借款人反欺诈等级分布，15：借款人资产等级分布，16：借款人地区分布，17：抵押率分布，18：车辆品牌分布，19：新旧车辆分布）',
   `asset_name`                                    string         COMMENT '分布项名称',
@@ -1513,7 +1515,7 @@ create table if not exists `dm_eagle.abs_asset_distribution_bag_snapshot_day`(
   `loan_numratio`                                 decimal(30,10) COMMENT '借据笔数占比（分布项借据笔数/借据笔数）',
   `remain_principal_loan_num_avg`                 decimal(25,5)  COMMENT '平均每笔余额（本金余额/借据笔数）'
 ) COMMENT 'abs分布表（包、封包时）'
-PARTITIONED BY (`biz_date` string COMMENT '观察日期',`bag_id` string COMMENT '包编号')
+PARTITIONED BY(`biz_date` string COMMENT '观察日期',`bag_id` string COMMENT '包编号')
 STORED AS PARQUET;
 
 
@@ -1539,8 +1541,8 @@ CREATE TABLE IF NOT EXISTS `dm_eagle.abs_overdue_rate_day`(
   `overdue_person_num_new`                        decimal(20,0)  COMMENT '新增逾期借据人数',
   `overdue_person_num_once`                       decimal(20,0)  COMMENT '累计逾期借据人数'
 ) COMMENT '逾期情况监控（各阶段本金余额/封包时本金余额）'
-partitioned by (`biz_date` string COMMENT '观察日期',`project_id` string COMMENT '项目编号',`bag_id` string COMMENT '包编号')
-stored as parquet;
+PARTITIONED BY(`biz_date` string COMMENT '观察日期',`project_id` string COMMENT '项目编号',`bag_id` string COMMENT '包编号')
+STORED AS PARQUET;
 
 
 -- 逾期情况监控
@@ -1563,7 +1565,7 @@ CREATE TABLE IF NOT EXISTS `dm_eagle.abs_overdue_rate_details_day`(
   `overdue_interest`                              decimal(25,5)  COMMENT '当前逾期利息（元）',
   `overdue_cost`                                  decimal(25,5)  COMMENT '当前逾期费用（元）'
 ) COMMENT '逾期情况详情（借据详情）'
-PARTITIONED BY (`biz_date` string COMMENT '快照日',`project_id` string COMMENT '项目编号',`bag_id` string COMMENT '包编号')
+PARTITIONED BY(`biz_date` string COMMENT '快照日',`project_id` string COMMENT '项目编号',`bag_id` string COMMENT '包编号')
 STORED AS PARQUET;
 
 

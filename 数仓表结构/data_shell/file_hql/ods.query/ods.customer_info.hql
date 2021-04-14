@@ -678,3 +678,124 @@ from (
 ) as tmp
 -- limit 1
 ;
+
+
+--新核心 乐信云信
+msck repair table stage.lx_kafka_credit_msg;
+insert overwrite table ods_sic.customer_info partition(product_id)
+select distinct *
+from
+(select
+  reqdata[ "applyNo" ] as apply_id,
+  reqdata[ "applyNo" ] as due_bill_no,
+  concat_ws('_',b.channel_id,sha256(reqdata[ "idNo" ],'idNumber',1),sha256(reqdata[ "custName" ],'userName',1)) as cust_id,
+  sha256(reqdata[ "idNo" ],'idNumber',1) as user_hash_no,
+  ''                                     as outer_cust_id,
+  case reqdata["idType"]
+  when '0' then '身份证'
+  when '1' then '户口簿'
+  when '2' then '护照'
+  when '3' then '军官证'
+  when '4' then '士兵证'
+  when '5' then '港澳居民来往内地通行证'
+  when '6' then '台湾同胞来往内地通行证'
+  when '7' then '临时身份证'
+  when '8' then '外国人居留证'
+  when '9' then '警官证'
+  when 'A' then '香港身份证'
+  when 'B' then '澳门身份证'
+  when 'C' then '台湾身份证'
+  when 'X' then '其他证件'
+  else is_empty(reqdata["idType"]) end as idcard_type,
+  sha256(reqdata[ "idNo" ],'idNumber',1)     as idcard_no,
+  sha256(reqdata[ "custName" ],'userName',1) as name,
+  sha256(reqdata[ "phoneNo" ],'phone',1)     as mobie,
+  ''                                         as card_phone,
+  is_empty(
+    case reqdata[ "sex" ]
+    when '1' then '男' when '2' then '女' else null end,
+    sex_idno(reqdata[ "idNo" ]))             as sex,
+  is_empty(
+    datefmt(reqdata[ "birth" ],'yyyyMMdd','yyyy-MM-dd'),
+    datefmt(substring(reqdata[ "idNo" ],7,8),'yyyyMMdd','yyyy-MM-dd')
+  ) as birthday,
+  floor(datediff(reqdata[ "loanDate" ],is_empty(
+    datefmt(reqdata[ "birth" ],'yyyyMMdd','yyyy-MM-dd'),
+    datefmt(substring(reqdata[ "idNo" ],7,8),'yyyyMMdd','yyyy-MM-dd')
+  )))                          as age,
+  case reqdata[ "marriage" ]
+  when '10' then '未婚'
+  when '20' then '已婚'
+  when '21' then '初婚'
+  when '22' then '再婚'
+  when '23' then '复婚'
+  when '30' then '丧偶'
+  when '40' then '离婚'
+  when '90' then '未说明的婚姻状况'
+  else is_empty(reqdata[ "marriage" ])
+  end                                                 as marriage_status,
+  case resdata[ "edu" ]
+  when '10' then '研究生'
+  when '20' then '大学本科（简称“大学”）'
+  when '30' then '大学专科和专科学校（简称“大专”）'
+  when '40' then '中等专业学校或中等技术学校'
+  when '50' then '技术学校'
+  when '60' then '高中'
+  when '70' then '初中'
+  when '80' then '小学'
+  when '90' then '文盲或半文盲'
+  when '99' then '未知'
+  else is_empty(resdata[ "edu" ])
+  end                                            as education,
+  case
+  when resdata[ "edu" ] = '10' then '硕士及以上'
+  when resdata[ "edu" ] = '20' then '大学本科'
+  when resdata[ "edu" ] in ('30','40','50','60','70','80','90') then '大专及以下'
+  when resdata[ "edu" ] = '99' then '未知'
+  else is_empty(resdata[ "edu" ])
+  end                                                         as education_ws,
+  concat(c.idno_province_cn,c.idno_city_cn,c.idno_county_cn) as idcard_address,
+  c.idno_area_cn as idcard_area,
+  c.idno_province_cn as idcard_province,
+  c.idno_city_cn as idcard_city,
+  c.idno_county_cn as idcard_county,
+  null as idcard_township,
+  ''   as resident_address,
+  null                                                                                                       as resident_area,
+  null                                                                                                       as resident_province,
+  null                                                                                                       as resident_city,
+  null                                                                                                       as resident_county,
+  null                                                                                                       as resident_township,
+  ''                               as job_type,
+  ''                                                                                                         as job_year,
+  0                                                                                                          as income_month,
+  0                                                                                                          as income_year,
+  case reqdata[ "custType" ]
+  when '01' then '农户'
+  when '02' then '工薪（包括白领、蓝领）'
+  when '03' then '个体工商户'
+  when '04' then '学生'
+  when '99' then '其他'
+  else is_empty(reqdata[ "custType" ])
+  end                                                                                                        as cutomer_type,
+  '' as cust_rating,
+  reqdata[ "proCode" ] as product_id
+from (
+  select * from stage.lx_kafka_credit_msg where batch_date between date_sub('${ST9}',2) and '${ST9}' and p_type='WS0013200001' ) as a
+left join (
+  select
+    product_id as dim_product_id,
+    channel_id
+  from dim_new.biz_conf
+) as b
+on a.reqdata[ "proCode" ] = b.dim_product_id
+left join (
+  select distinct
+    idno_addr,
+    idno_area_cn,
+    idno_province_cn,
+    idno_city_cn,
+    idno_county_cn
+  from dim_new.dim_idno
+) as c
+on substring(a.reqdata[ "idNo" ],1,6) = c.idno_addr) as tmp;

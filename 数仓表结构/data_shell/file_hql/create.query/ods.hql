@@ -352,7 +352,6 @@ CREATE TABLE IF NOT EXISTS `ods${db_suffix}.loan_lending`(
   `cycle_day`                                         decimal(2,0)   COMMENT '账单日',
   `loan_type`                                         string         COMMENT '分期类型（英文原值）（MCEP：等额本金，MCEI：等额本息，R：消费转分期，C：现金分期，B：账单分期，P：POS分期，M：大额分期（专项分期），MCAT：随借随还，STAIR：阶梯还款，Z：默认值）',
   `loan_type_cn`                                      string         COMMENT '分期类型（汉语解释）',
-  `loan_original_principal`                           decimal(20,5)  COMMENT '初始放款本金',
   `contract_daily_interest_rate_basis`                decimal(3,0)   COMMENT '日利率计算基础',
   `interest_rate_type`                                string         COMMENT '利率类型',
   `loan_init_interest_rate`                           decimal(25,10) COMMENT '利息利率',
@@ -364,7 +363,8 @@ CREATE TABLE IF NOT EXISTS `ods${db_suffix}.loan_lending`(
   `bus_product_id`                                    string         COMMENT '产品方案编号',
   `bus_product_name`                                  string         COMMENT '产品方案名称',
   `mortgage_rate`                                     decimal(20,5)  COMMENT '抵押率',
-  `biz_date`                                          string         COMMENT '放款日期'
+  `biz_date`                                          string         COMMENT '放款日期',
+  `loan_original_principal`                           decimal(20,5)  COMMENT '初始放款本金'
 ) COMMENT '放款表'
 PARTITIONED BY (`product_id` string COMMENT '产品编号')
 STORED AS PARQUET;
@@ -1169,6 +1169,7 @@ CREATE ViEW IF NOT EXISTS `ods.repay_schedule_abs`(
   `s_d_date`                           COMMENT '数据生效日期',
   `e_d_date`                           COMMENT '数据失效日期',
   `is_settled`                         COMMENT '是否已结清',
+  `data_source`                        COMMENT '数据来源（1：startLink，2：excelImport，3：systemgenerated）',
   `import_id`                          COMMENT '导入Id',
   `product_id`                         COMMENT '产品编号',
   `project_id`                         COMMENT '项目编号'
@@ -1217,13 +1218,21 @@ CREATE ViEW IF NOT EXISTS `ods.repay_schedule_abs`(
   t1.s_d_date                  as s_d_date,
   t1.e_d_date                  as e_d_date,
   t1.is_settled                as is_settled,
+  t3.data_source               as data_source,
   t2.import_id                 as import_id,
   t1.product_id                as product_id,
   t2.project_id                as project_id
 from ods.repay_schedule as t1
 join dim.project_due_bill_no as t2
 on  t1.product_id  = t2.partition_id
-and t1.due_bill_no = t2.due_bill_no;
+and t1.due_bill_no = t2.due_bill_no
+join (
+  select
+    project_id as dim_project_id,
+    data_source
+  from dim.project_info
+) as t3
+on t3.dim_project_id = t2.project_id;
 
 
 -- DROP VIEW IF EXISTS `ods.repay_detail_abs`;
@@ -1364,19 +1373,7 @@ CREATE VIEW IF NOT EXISTS `ods.t_05_repaymentplan`(
   data_source                                                                                 as data_source,
   s_d_date                                                                                    as s_d_date,
   e_d_date                                                                                    as e_d_date
-from (
-  select
-    project_id as dim_project_id,
-    data_source
-  from dim.project_info
-) as project_info
-join (
-  select
-    *
-  from ods.repay_schedule_abs
-  --where effective_date = s_d_date
-) as repay_schedule_abs
-on dim_project_id = project_id;
+from ods.repay_schedule_abs;
 
 
 -- DROP VIEW IF EXISTS `ods.t_07_actualrepayinfo`;
@@ -1657,7 +1654,9 @@ CREATE VIEW IF NOT EXISTS ods.t_10_basic_asset(
   `update_time`                        COMMENT '修改时间',
   `data_source`                        COMMENT '数据来源 1:startLink,2:excelImport',
   `address`                            COMMENT '居住地址',
-  `mortgage_rates`                     COMMENT '抵押率(%)'
+  `mortgage_rates`                     COMMENT '抵押率(%)',
+  `bag_date`                           COMMENT '封包日期',
+  `insert_date`                        COMMENT '封包操作日期'
 ) COMMENT '资产对账信息表-文件十' AS SELECT
   stage.id,
   stage.import_id,
@@ -1747,19 +1746,23 @@ CREATE VIEW IF NOT EXISTS ods.t_10_basic_asset(
   stage.update_time,
   stage.data_source,
   stage.address,
-  stage.mortgage_rates
+  stage.mortgage_rates,
+  bag_snapshot.bag_date,
+  bag_snapshot.insert_date
 from (
   select * from ods.t_10_basic_asset_stage
 ) as stage
 left join (
   select
-    bag_due.project_id                  as project_id,
-    bag_due.due_bill_no                 as due_bill_no,
-    bag_info.bag_id                     as asset_bag_id,
-    bag_info.bag_status                 as bag_status,
-    bag_info.bag_remain_principal       as package_principal_balance,
-    package_remain_principal            as package_remain_principal,
-    package_remain_periods              as package_remain_periods
+    bag_due.project_id               as project_id,
+    bag_due.due_bill_no              as due_bill_no,
+    bag_info.bag_id                  as asset_bag_id,
+    bag_info.bag_status              as bag_status,
+    bag_info.bag_date                as bag_date,
+    bag_info.insert_date             as insert_date,
+    bag_info.bag_remain_principal    as package_principal_balance,
+    bag_due.package_remain_principal as package_remain_principal,
+    bag_due.package_remain_periods   as package_remain_periods
   from dim.bag_due_bill_no as bag_due
   inner join dim.bag_info as bag_info
   on  bag_due.project_id = bag_info.project_id

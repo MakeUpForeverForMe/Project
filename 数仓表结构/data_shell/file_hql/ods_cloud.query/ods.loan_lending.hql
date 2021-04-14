@@ -53,6 +53,7 @@ select distinct
   bus_product_name,
   mortgage_rate,
   is_empty(loan_active_date,loan_issue_date) as biz_date,
+  loan_init_principal as loan_original_principal,
   case product_id
   when 'Cl00333' then 'cl00333'
   else product_id end as product_id
@@ -96,6 +97,8 @@ from (
     else is_empty(map_from_str(extra_info)['还款方式'],repay_type) end                           as loan_type,
     is_empty(map_from_str(extra_info)['还款方式'],repay_type)                                    as loan_type_cn,
     is_empty(map_from_str(extra_info)['日利率计算基础'])                                         as contract_daily_interest_rate_basis,
+    is_empty(map_from_str(extra_info)['总期数'],periods)                                         as loan_init_term,
+    is_empty(map_from_str(extra_info)['贷款总金额(元)'],is_empty(loan_total_amount,0))           as loan_init_principal,
     is_empty(map_from_str(extra_info)['利率类型'],interest_rate_type)                            as interest_rate_type,
     is_empty(loan_interest_rate,is_empty(map_from_str(extra_info)['贷款年利率(%)'],0)) / 100     as loan_init_interest_rate,
     is_empty(map_from_str(extra_info)['手续费利率'],0) / 100                                     as loan_init_term_fee_rate,

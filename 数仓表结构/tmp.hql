@@ -335,10 +335,16 @@ ALTER TABLE dw_new_cps.dw_loan_base_stat_overdue_num_day_hst RENAME TO dw_new_cp
 invalidate metadata dim.project_due_bill_no;
 
 invalidate metadata stage.abs_t_related_assets;
+invalidate metadata stage.ecas_loan;
 
-invalidate metadata ods.loan_info;
-invalidate metadata ods.loan_info_abs;
 invalidate metadata ods.loan_lending;
+invalidate metadata ods.loan_info;
+invalidate metadata ods.repay_schedule;
+
+invalidate metadata ods.loan_info_abs;
+invalidate metadata ods.repay_schedule_abs;
+invalidate metadata ods.t_05_repaymentplan;
+
 invalidate metadata ods.t_10_basic_asset_stage;
 invalidate metadata ods.t_10_basic_asset;
 
@@ -1021,136 +1027,6 @@ from dim_new.bag_info
 
 
 
-select distinct
-  project_full_name as full_name,
-  project_name,
-  t_project.project_id,
-  case project_type
-  when 1 then '存量'
-  when 2 then '增量'
-  else null end as type,
-  t_related_assets.project_id as related_project_id,
-  case data_source
-  when 1 then '接口导入'
-  when 2 then 'Excel导入'
-  else null end as data_source,
-  case
-    when t_project.project_id in (
-      '001601',
-      'WS0005200001',
-      'CL202104010103',
-      'CL202011090089',
-      'CL202007020086',
-      'CL202003230083',
-      'CL202011090088',
-      'CL202012160091',
-      'CL202103160101',
-      'CL202011090090',
-      'CL202101220094',
-      'CL202012280092',
-      'CL202102010097',
-      'CL202102240099',
-      'CL202102240100',
-      'CL202103260102',
-      'DIDI201908161538'
-    ) then '核心'
-    when t_project.project_id in (
-      'CL201905240054',
-      'CL201912100072',
-      'PL201905080051',
-      'CL201912260074',
-      'CL201905310055',
-      'CL202003200082',
-      'CL201906040057',
-      'CL201906040058',
-      'CL201905220053',
-      'CL201912170073',
-      'PL201908210066',
-      'PL201904110050',
-      'CL201906050059',
-      'CL201906040056'
-    ) then '星云'
-    when t_project.project_id in (
-      '001503',
-      '001505',
-      '001504'
-    ) then '校验平台(老老核心)'
-    else '校验平台'
-  end as project_from,
-  project_begin_date as begin_date,
-  project_end_date   as end_date,
-  case t_project.project_id
-    when 'DIDI201908161538' then 1
-    when 'WS0005200001'     then 2
-    when '001601'           then 3
-    when 'CL202104010103'   then 4
-    when 'CL202011090089'   then 5
-    when 'CL202007020086'   then 6
-    when 'CL202003230083'   then 7
-    when 'CL202011090088'   then 8
-    when 'CL202012160091'   then 9
-    when 'CL202103160101'   then 10
-    when 'CL202011090090'   then 11
-    when 'CL202101220094'   then 12
-    when 'CL202012280092'   then 13
-    when 'CL202102010097'   then 14
-    when 'CL202102240099'   then 15
-    when 'CL202102240100'   then 16
-    when 'CL202103260102'   then 17
-    when 'cl00297'          then 18
-    when 'cl00306'          then 19
-    when 'cl00309'          then 20
-    when 'CL201911130070'   then 21
-    when 'CL202002240081'   then 22
-    when 'CL202104020104'   then 23
-    when 'CL202104010103'   then 24
-    when 'cl00333'          then 25
-    when 'PL202101200093'   then 26
-    when 'CL202104010103'   then 27
-    when 'cl00326'          then 28
-    when 'CL201912100072'   then 29
-    when 'PL201905080051'   then 30
-    when 'CL201912260074'   then 31
-    when 'CL201905310055'   then 32
-    when 'CL202003200082'   then 33
-    when 'CL201906040057'   then 34
-    when 'CL201906040058'   then 35
-    when 'CL201905220053'   then 36
-    when 'CL201912170073'   then 37
-    when 'PL201908210066'   then 38
-    when 'PL201904110050'   then 39
-    when 'CL201906050059'   then 40
-    when 'CL201906040056'   then 41
-    when 'cl00265'          then 42
-    when 'cl00187'          then 43
-    when 'cl00185'          then 44
-    when 'cl00186'          then 45
-    when 'cl00199'          then 46
-    when 'cl00217'          then 47
-    when 'cl00229'          then 48
-    when 'cl00243'          then 49
-    when 'cl00232'          then 50
-    when 'cl00233'          then 51
-    when 'CL202101260095'   then 52
-    when 'CL202102050098'   then 53
-    when 'CL202104080105'   then 54
-    when '001503'           then 55
-    when '001505'           then 56
-    when '001504'           then 57
-    when 'pl00282'          then 58
-    when 'CL201905240054'   then 59
-    else 999
-  end as asc_id
-from stage.abs_t_project as t_project
-left join (select distinct project_id,related_project_id from stage.abs_t_related_assets) as t_related_assets
-on t_project.project_id = t_related_assets.related_project_id
-where t_project.project_id not in (
-  'PL202102010096', -- 1-1-1-1年第1期
-  'PL201907050063', -- WY-中航-消费分期-2019年第1期
-  'PL201908220067', -- 东亚中国-银登-车位分期-2019年第1期-te
-  ''
-)
-order by asc_id;
 
 
 
