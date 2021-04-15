@@ -22,15 +22,16 @@ sqoop_import(){
 }
 
 ########### 抽数 #############
-#           增量             #
-#           全量             #
-#           全量分区         #
+#         增量全表           #
+#         增量分区           #
+#         全量全表           #
+#         全量分区           #
 ##############################
 
 
 [[ -z $1 ]] && {
   echo -e '  请输入参数。参数为要使用的环境配置脚本，即：
-  \033[33msqoop_sync_conf_pro.sh\033[0m 或 \033[33msqoop_sync_conf_sit.sh\033[0m'
+  \033[33m sqoop_sync_conf_pro.sh \033[0m 或 \033[33m sqoop_sync_conf_sit.sh \033[0m'
   exit 1
 }
 

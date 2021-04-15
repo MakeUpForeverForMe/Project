@@ -49,7 +49,7 @@ import os
 base_dir = os.path.abspath(os.path.join(os.getcwd(), "."))
 
 """ 获取 App """
-# app = xw.App(add_book=False)  # visible决定App是否可见（对象不存在时设置为True），add_book 参数为是否生成一个新的工作表,默认True
+# app = xw.App(add_book=False)  # visible 决定App是否可见（对象不存在时设置为True），add_book 参数为是否生成一个新的工作表,默认True
 
 """ 获取 文档 """
 # excel = app.books.open(f'{base_dir}/python_xlwings.xlsx')

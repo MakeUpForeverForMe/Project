@@ -186,6 +186,17 @@ from (
       when product_code = '001801' and due_bill_no = '1120060511174298184833' and d_date in ('2020-06-05','2020-06-06','2020-06-14') then 1
       when product_code = '001801' and due_bill_no = '1120060511312194364430' and d_date in ('2020-06-05','2020-06-06','2020-06-14') then 1
       when product_code = '001801' and due_bill_no = '1120060511315016692632' and d_date in ('2020-06-05','2020-06-06','2020-06-14') then 1
+      when product_code = '001801' and due_bill_no = '1120060602322140630323' and d_date between '2020-06-06' and to_date(current_timestamp()) then 1
+      when product_code = '001801' and due_bill_no = '1120060602332594205233' and d_date between '2020-06-06' and to_date(current_timestamp()) then 1
+      when product_code = '001801' and due_bill_no = '1120060602543338694112' and d_date between '2020-06-06' and to_date(current_timestamp()) then 1
+      when product_code = '001801' and due_bill_no = '1120060602323631368511' and d_date between '2020-06-06' and to_date(current_timestamp()) then 1
+      when product_code = '001801' and due_bill_no = '1120060602324557511307' and d_date between '2020-06-06' and to_date(current_timestamp()) then 1
+      when product_code = '001801' and due_bill_no = '1120060511173419906330' and d_date between '2020-06-06' and to_date(current_timestamp()) then 1
+      when product_code = '001801' and due_bill_no = '1120060511325696044931' and d_date between '2020-06-06' and to_date(current_timestamp()) then 1
+      when product_code = '001801' and due_bill_no = '1120060510300944421982' and d_date between '2020-06-06' and to_date(current_timestamp()) then 1
+      when product_code = '001801' and due_bill_no = '1120060511131974539713' and d_date between '2020-06-06' and to_date(current_timestamp()) then 1
+      when product_code = '001801' and due_bill_no = '1120060510300559326682' and d_date between '2020-06-06' and to_date(current_timestamp()) then 1
+      when product_code = '001801' and due_bill_no = '1120060511184385512833' and d_date between '2020-06-06' and to_date(current_timestamp()) then 1
       else repay_term end               as loan_term_repaid,
       case
       when product_code = '001802' and due_bill_no = '1120060318015544273567' and d_date in ('2020-06-05','2020-06-06','2020-06-14') then 0
@@ -212,6 +223,17 @@ from (
       when product_code = '001801' and due_bill_no = '1120060511174298184833' and d_date in ('2020-06-05','2020-06-06','2020-06-14') then 0
       when product_code = '001801' and due_bill_no = '1120060511312194364430' and d_date in ('2020-06-05','2020-06-06','2020-06-14') then 0
       when product_code = '001801' and due_bill_no = '1120060511315016692632' and d_date in ('2020-06-05','2020-06-06','2020-06-14') then 0
+      when product_code = '001801' and due_bill_no = '1120060602322140630323' and d_date between '2020-06-06' and to_date(current_timestamp()) then 0
+      when product_code = '001801' and due_bill_no = '1120060602332594205233' and d_date between '2020-06-06' and to_date(current_timestamp()) then 0
+      when product_code = '001801' and due_bill_no = '1120060602543338694112' and d_date between '2020-06-06' and to_date(current_timestamp()) then 0
+      when product_code = '001801' and due_bill_no = '1120060602323631368511' and d_date between '2020-06-06' and to_date(current_timestamp()) then 0
+      when product_code = '001801' and due_bill_no = '1120060602324557511307' and d_date between '2020-06-06' and to_date(current_timestamp()) then 0
+      when product_code = '001801' and due_bill_no = '1120060511173419906330' and d_date between '2020-06-06' and to_date(current_timestamp()) then 0
+      when product_code = '001801' and due_bill_no = '1120060511325696044931' and d_date between '2020-06-06' and to_date(current_timestamp()) then 0
+      when product_code = '001801' and due_bill_no = '1120060510300944421982' and d_date between '2020-06-06' and to_date(current_timestamp()) then 0
+      when product_code = '001801' and due_bill_no = '1120060511131974539713' and d_date between '2020-06-06' and to_date(current_timestamp()) then 0
+      when product_code = '001801' and due_bill_no = '1120060510300559326682' and d_date between '2020-06-06' and to_date(current_timestamp()) then 0
+      when product_code = '001801' and due_bill_no = '1120060511184385512833' and d_date between '2020-06-06' and to_date(current_timestamp()) then 0
       else remain_term end              as loan_term_remain,
       case
       when product_code = '001802' and due_bill_no = '1120060318015544273567' and d_date in ('2020-06-05','2020-06-06','2020-06-14') then 'F'
@@ -238,6 +260,17 @@ from (
       when product_code = '001801' and due_bill_no = '1120060511174298184833' and d_date in ('2020-06-05','2020-06-06','2020-06-14') then 'F'
       when product_code = '001801' and due_bill_no = '1120060511312194364430' and d_date in ('2020-06-05','2020-06-06','2020-06-14') then 'F'
       when product_code = '001801' and due_bill_no = '1120060511315016692632' and d_date in ('2020-06-05','2020-06-06','2020-06-14') then 'F'
+      when product_code = '001801' and due_bill_no = '1120060602322140630323' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'F'
+      when product_code = '001801' and due_bill_no = '1120060602332594205233' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'F'
+      when product_code = '001801' and due_bill_no = '1120060602543338694112' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'F'
+      when product_code = '001801' and due_bill_no = '1120060602323631368511' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'F'
+      when product_code = '001801' and due_bill_no = '1120060602324557511307' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'F'
+      when product_code = '001801' and due_bill_no = '1120060511173419906330' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'F'
+      when product_code = '001801' and due_bill_no = '1120060511325696044931' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'F'
+      when product_code = '001801' and due_bill_no = '1120060510300944421982' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'F'
+      when product_code = '001801' and due_bill_no = '1120060511131974539713' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'F'
+      when product_code = '001801' and due_bill_no = '1120060510300559326682' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'F'
+      when product_code = '001801' and due_bill_no = '1120060511184385512833' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'F'
       else loan_status end              as loan_status,
       case
         case
@@ -265,6 +298,17 @@ from (
         when product_code = '001801' and due_bill_no = '1120060511174298184833' and d_date in ('2020-06-05','2020-06-06','2020-06-14') then 'F'
         when product_code = '001801' and due_bill_no = '1120060511312194364430' and d_date in ('2020-06-05','2020-06-06','2020-06-14') then 'F'
         when product_code = '001801' and due_bill_no = '1120060511315016692632' and d_date in ('2020-06-05','2020-06-06','2020-06-14') then 'F'
+      when product_code = '001801' and due_bill_no = '1120060602322140630323' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'F'
+      when product_code = '001801' and due_bill_no = '1120060602332594205233' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'F'
+      when product_code = '001801' and due_bill_no = '1120060602543338694112' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'F'
+      when product_code = '001801' and due_bill_no = '1120060602323631368511' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'F'
+      when product_code = '001801' and due_bill_no = '1120060602324557511307' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'F'
+      when product_code = '001801' and due_bill_no = '1120060511173419906330' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'F'
+      when product_code = '001801' and due_bill_no = '1120060511325696044931' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'F'
+      when product_code = '001801' and due_bill_no = '1120060510300944421982' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'F'
+      when product_code = '001801' and due_bill_no = '1120060511131974539713' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'F'
+      when product_code = '001801' and due_bill_no = '1120060510300559326682' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'F'
+      when product_code = '001801' and due_bill_no = '1120060511184385512833' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'F'
         else loan_status end
       when 'N' then '正常'
       when 'O' then '逾期'
@@ -295,21 +339,55 @@ from (
         when product_code = '001801' and due_bill_no = '1120060511174298184833' and d_date in ('2020-06-05','2020-06-06','2020-06-14') then 'F'
         when product_code = '001801' and due_bill_no = '1120060511312194364430' and d_date in ('2020-06-05','2020-06-06','2020-06-14') then 'F'
         when product_code = '001801' and due_bill_no = '1120060511315016692632' and d_date in ('2020-06-05','2020-06-06','2020-06-14') then 'F'
+      when product_code = '001801' and due_bill_no = '1120060602322140630323' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'F'
+      when product_code = '001801' and due_bill_no = '1120060602332594205233' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'F'
+      when product_code = '001801' and due_bill_no = '1120060602543338694112' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'F'
+      when product_code = '001801' and due_bill_no = '1120060602323631368511' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'F'
+      when product_code = '001801' and due_bill_no = '1120060602324557511307' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'F'
+      when product_code = '001801' and due_bill_no = '1120060511173419906330' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'F'
+      when product_code = '001801' and due_bill_no = '1120060511325696044931' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'F'
+      when product_code = '001801' and due_bill_no = '1120060510300944421982' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'F'
+      when product_code = '001801' and due_bill_no = '1120060511131974539713' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'F'
+      when product_code = '001801' and due_bill_no = '1120060510300559326682' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'F'
+      when product_code = '001801' and due_bill_no = '1120060511184385512833' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'F'
         else loan_status end
       end                               as loan_status_cn,
       terminal_reason_cd                as loan_out_reason,
-      loan_settle_reason                as paid_out_type,
-      case loan_settle_reason
-      when 'NORMAL_SETTLE'  then '正常结清'
-      when 'OVERDUE_SETTLE' then '逾期结清'
-      when 'PRE_SETTLE'     then '提前结清'
-      when 'REFUND'         then '退车'
-      when 'REDEMPTION'     then '赎回'
-      when 'BANK_REF'       then '退票结清'
-      when 'BUY_BACK'       then '资产回购'
-      when 'CAPITAL_VERI'   then '资产核销'
-      when 'DISPOSAL'       then '处置结束'
-      when 'OVER_COMP'      then '逾期代偿'
+      case
+      when product_code = '001801' and due_bill_no = '1120060602322140630323' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'PRE_SETTLE'
+      when product_code = '001801' and due_bill_no = '1120060602332594205233' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'PRE_SETTLE'
+      when product_code = '001801' and due_bill_no = '1120060602543338694112' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'PRE_SETTLE'
+      when product_code = '001801' and due_bill_no = '1120060602323631368511' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'PRE_SETTLE'
+      when product_code = '001801' and due_bill_no = '1120060602324557511307' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'PRE_SETTLE'
+      when product_code = '001801' and due_bill_no = '1120060511173419906330' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'PRE_SETTLE'
+      when product_code = '001801' and due_bill_no = '1120060511325696044931' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'PRE_SETTLE'
+      when product_code = '001801' and due_bill_no = '1120060510300944421982' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'PRE_SETTLE'
+      when product_code = '001801' and due_bill_no = '1120060511131974539713' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'PRE_SETTLE'
+      when product_code = '001801' and due_bill_no = '1120060510300559326682' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'PRE_SETTLE'
+      when product_code = '001801' and due_bill_no = '1120060511184385512833' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'PRE_SETTLE'
+      else loan_settle_reason  end      as paid_out_type,
+      case
+      when product_code = '001801' and due_bill_no = '1120060602322140630323' and d_date between '2020-06-06' and to_date(current_timestamp()) then '提前结清'
+      when product_code = '001801' and due_bill_no = '1120060602332594205233' and d_date between '2020-06-06' and to_date(current_timestamp()) then '提前结清'
+      when product_code = '001801' and due_bill_no = '1120060602543338694112' and d_date between '2020-06-06' and to_date(current_timestamp()) then '提前结清'
+      when product_code = '001801' and due_bill_no = '1120060602323631368511' and d_date between '2020-06-06' and to_date(current_timestamp()) then '提前结清'
+      when product_code = '001801' and due_bill_no = '1120060602324557511307' and d_date between '2020-06-06' and to_date(current_timestamp()) then '提前结清'
+      when product_code = '001801' and due_bill_no = '1120060511173419906330' and d_date between '2020-06-06' and to_date(current_timestamp()) then '提前结清'
+      when product_code = '001801' and due_bill_no = '1120060511325696044931' and d_date between '2020-06-06' and to_date(current_timestamp()) then '提前结清'
+      when product_code = '001801' and due_bill_no = '1120060510300944421982' and d_date between '2020-06-06' and to_date(current_timestamp()) then '提前结清'
+      when product_code = '001801' and due_bill_no = '1120060511131974539713' and d_date between '2020-06-06' and to_date(current_timestamp()) then '提前结清'
+      when product_code = '001801' and due_bill_no = '1120060510300559326682' and d_date between '2020-06-06' and to_date(current_timestamp()) then '提前结清'
+      when product_code = '001801' and due_bill_no = '1120060511184385512833' and d_date between '2020-06-06' and to_date(current_timestamp()) then '提前结清'
+      when loan_settle_reason = 'NORMAL_SETTLE'  then '正常结清'
+      when loan_settle_reason = 'OVERDUE_SETTLE' then '逾期结清'
+      when loan_settle_reason = 'PRE_SETTLE'     then '提前结清'
+      when loan_settle_reason = 'REFUND'         then '退车'
+      when loan_settle_reason = 'REDEMPTION'     then '赎回'
+      when loan_settle_reason = 'BANK_REF'       then '退票结清'
+      when loan_settle_reason = 'BUY_BACK'       then '资产回购'
+      when loan_settle_reason = 'CAPITAL_VERI'   then '资产核销'
+      when loan_settle_reason = 'DISPOSAL'       then '处置结束'
+      when loan_settle_reason = 'OVER_COMP'      then '逾期代偿'
       else loan_settle_reason end as paid_out_type_cn,
       case
       when product_code = '001802' and due_bill_no = '1120060318015544273567' and d_date in ('2020-06-05','2020-06-06','2020-06-14') then '2020-06-03'
@@ -336,6 +414,17 @@ from (
       when product_code = '001801' and due_bill_no = '1120060511174298184833' and d_date in ('2020-06-05','2020-06-06','2020-06-14') then '2020-06-05'
       when product_code = '001801' and due_bill_no = '1120060511312194364430' and d_date in ('2020-06-05','2020-06-06','2020-06-14') then '2020-06-05'
       when product_code = '001801' and due_bill_no = '1120060511315016692632' and d_date in ('2020-06-05','2020-06-06','2020-06-14') then '2020-06-05'
+      when product_code = '001801' and due_bill_no = '1120060602322140630323' and d_date between '2020-06-06' and to_date(current_timestamp()) then '2020-06-06'
+      when product_code = '001801' and due_bill_no = '1120060602332594205233' and d_date between '2020-06-06' and to_date(current_timestamp()) then '2020-06-06'
+      when product_code = '001801' and due_bill_no = '1120060602543338694112' and d_date between '2020-06-06' and to_date(current_timestamp()) then '2020-06-06'
+      when product_code = '001801' and due_bill_no = '1120060602323631368511' and d_date between '2020-06-06' and to_date(current_timestamp()) then '2020-06-06'
+      when product_code = '001801' and due_bill_no = '1120060602324557511307' and d_date between '2020-06-06' and to_date(current_timestamp()) then '2020-06-06'
+      when product_code = '001801' and due_bill_no = '1120060511173419906330' and d_date between '2020-06-06' and to_date(current_timestamp()) then '2020-06-06'
+      when product_code = '001801' and due_bill_no = '1120060511325696044931' and d_date between '2020-06-06' and to_date(current_timestamp()) then '2020-06-06'
+      when product_code = '001801' and due_bill_no = '1120060510300944421982' and d_date between '2020-06-06' and to_date(current_timestamp()) then '2020-06-06'
+      when product_code = '001801' and due_bill_no = '1120060511131974539713' and d_date between '2020-06-06' and to_date(current_timestamp()) then '2020-06-06'
+      when product_code = '001801' and due_bill_no = '1120060510300559326682' and d_date between '2020-06-06' and to_date(current_timestamp()) then '2020-06-06'
+      when product_code = '001801' and due_bill_no = '1120060511184385512833' and d_date between '2020-06-06' and to_date(current_timestamp()) then '2020-06-06'
       else paid_out_date end            as paid_out_date,
       terminal_date                     as terminal_date,
       loan_init_prin                    as loan_init_principal,
@@ -534,6 +623,17 @@ left join (
       when product_code = '001801' and due_bill_no = '1120060511174298184833' and d_date in ('2020-06-05','2020-06-06','2020-06-14') then 1
       when product_code = '001801' and due_bill_no = '1120060511312194364430' and d_date in ('2020-06-05','2020-06-06','2020-06-14') then 1
       when product_code = '001801' and due_bill_no = '1120060511315016692632' and d_date in ('2020-06-05','2020-06-06','2020-06-14') then 1
+      when product_code = '001801' and due_bill_no = '1120060602322140630323' and d_date between '2020-06-06' and to_date(current_timestamp()) then 1
+      when product_code = '001801' and due_bill_no = '1120060602332594205233' and d_date between '2020-06-06' and to_date(current_timestamp()) then 1
+      when product_code = '001801' and due_bill_no = '1120060602543338694112' and d_date between '2020-06-06' and to_date(current_timestamp()) then 1
+      when product_code = '001801' and due_bill_no = '1120060602323631368511' and d_date between '2020-06-06' and to_date(current_timestamp()) then 1
+      when product_code = '001801' and due_bill_no = '1120060602324557511307' and d_date between '2020-06-06' and to_date(current_timestamp()) then 1
+      when product_code = '001801' and due_bill_no = '1120060511173419906330' and d_date between '2020-06-06' and to_date(current_timestamp()) then 1
+      when product_code = '001801' and due_bill_no = '1120060511325696044931' and d_date between '2020-06-06' and to_date(current_timestamp()) then 1
+      when product_code = '001801' and due_bill_no = '1120060510300944421982' and d_date between '2020-06-06' and to_date(current_timestamp()) then 1
+      when product_code = '001801' and due_bill_no = '1120060511131974539713' and d_date between '2020-06-06' and to_date(current_timestamp()) then 1
+      when product_code = '001801' and due_bill_no = '1120060510300559326682' and d_date between '2020-06-06' and to_date(current_timestamp()) then 1
+      when product_code = '001801' and due_bill_no = '1120060511184385512833' and d_date between '2020-06-06' and to_date(current_timestamp()) then 1
       else repay_term end               as loan_term_repaid,
       case
       when product_code = '001802' and due_bill_no = '1120060318015544273567' and d_date in ('2020-06-05','2020-06-06','2020-06-14') then 0
@@ -560,6 +660,17 @@ left join (
       when product_code = '001801' and due_bill_no = '1120060511174298184833' and d_date in ('2020-06-05','2020-06-06','2020-06-14') then 0
       when product_code = '001801' and due_bill_no = '1120060511312194364430' and d_date in ('2020-06-05','2020-06-06','2020-06-14') then 0
       when product_code = '001801' and due_bill_no = '1120060511315016692632' and d_date in ('2020-06-05','2020-06-06','2020-06-14') then 0
+      when product_code = '001801' and due_bill_no = '1120060602322140630323' and d_date between '2020-06-06' and to_date(current_timestamp()) then 0
+      when product_code = '001801' and due_bill_no = '1120060602332594205233' and d_date between '2020-06-06' and to_date(current_timestamp()) then 0
+      when product_code = '001801' and due_bill_no = '1120060602543338694112' and d_date between '2020-06-06' and to_date(current_timestamp()) then 0
+      when product_code = '001801' and due_bill_no = '1120060602323631368511' and d_date between '2020-06-06' and to_date(current_timestamp()) then 0
+      when product_code = '001801' and due_bill_no = '1120060602324557511307' and d_date between '2020-06-06' and to_date(current_timestamp()) then 0
+      when product_code = '001801' and due_bill_no = '1120060511173419906330' and d_date between '2020-06-06' and to_date(current_timestamp()) then 0
+      when product_code = '001801' and due_bill_no = '1120060511325696044931' and d_date between '2020-06-06' and to_date(current_timestamp()) then 0
+      when product_code = '001801' and due_bill_no = '1120060510300944421982' and d_date between '2020-06-06' and to_date(current_timestamp()) then 0
+      when product_code = '001801' and due_bill_no = '1120060511131974539713' and d_date between '2020-06-06' and to_date(current_timestamp()) then 0
+      when product_code = '001801' and due_bill_no = '1120060510300559326682' and d_date between '2020-06-06' and to_date(current_timestamp()) then 0
+      when product_code = '001801' and due_bill_no = '1120060511184385512833' and d_date between '2020-06-06' and to_date(current_timestamp()) then 0
       else remain_term end              as loan_term_remain,
       case
       when product_code = '001802' and due_bill_no = '1120060318015544273567' and d_date in ('2020-06-05','2020-06-06','2020-06-14') then 'F'
@@ -586,9 +697,32 @@ left join (
       when product_code = '001801' and due_bill_no = '1120060511174298184833' and d_date in ('2020-06-05','2020-06-06','2020-06-14') then 'F'
       when product_code = '001801' and due_bill_no = '1120060511312194364430' and d_date in ('2020-06-05','2020-06-06','2020-06-14') then 'F'
       when product_code = '001801' and due_bill_no = '1120060511315016692632' and d_date in ('2020-06-05','2020-06-06','2020-06-14') then 'F'
+      when product_code = '001801' and due_bill_no = '1120060602322140630323' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'F'
+      when product_code = '001801' and due_bill_no = '1120060602332594205233' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'F'
+      when product_code = '001801' and due_bill_no = '1120060602543338694112' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'F'
+      when product_code = '001801' and due_bill_no = '1120060602323631368511' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'F'
+      when product_code = '001801' and due_bill_no = '1120060602324557511307' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'F'
+      when product_code = '001801' and due_bill_no = '1120060511173419906330' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'F'
+      when product_code = '001801' and due_bill_no = '1120060511325696044931' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'F'
+      when product_code = '001801' and due_bill_no = '1120060510300944421982' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'F'
+      when product_code = '001801' and due_bill_no = '1120060511131974539713' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'F'
+      when product_code = '001801' and due_bill_no = '1120060510300559326682' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'F'
+      when product_code = '001801' and due_bill_no = '1120060511184385512833' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'F'
       else loan_status end              as loan_status,
       terminal_reason_cd                as loan_out_reason,
-      loan_settle_reason                as paid_out_type,
+      case
+      when product_code = '001801' and due_bill_no = '1120060602322140630323' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'PRE_SETTLE'
+      when product_code = '001801' and due_bill_no = '1120060602332594205233' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'PRE_SETTLE'
+      when product_code = '001801' and due_bill_no = '1120060602543338694112' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'PRE_SETTLE'
+      when product_code = '001801' and due_bill_no = '1120060602323631368511' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'PRE_SETTLE'
+      when product_code = '001801' and due_bill_no = '1120060602324557511307' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'PRE_SETTLE'
+      when product_code = '001801' and due_bill_no = '1120060511173419906330' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'PRE_SETTLE'
+      when product_code = '001801' and due_bill_no = '1120060511325696044931' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'PRE_SETTLE'
+      when product_code = '001801' and due_bill_no = '1120060510300944421982' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'PRE_SETTLE'
+      when product_code = '001801' and due_bill_no = '1120060511131974539713' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'PRE_SETTLE'
+      when product_code = '001801' and due_bill_no = '1120060510300559326682' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'PRE_SETTLE'
+      when product_code = '001801' and due_bill_no = '1120060511184385512833' and d_date between '2020-06-06' and to_date(current_timestamp()) then 'PRE_SETTLE'
+      else loan_settle_reason end       as paid_out_type,
       case
       when product_code = '001802' and due_bill_no = '1120060318015544273567' and d_date in ('2020-06-05','2020-06-06','2020-06-14') then '2020-06-03'
       when product_code = '001801' and due_bill_no = '1120060216004289090275' and d_date in ('2020-06-05','2020-06-06','2020-06-14') then '2020-06-03'
@@ -614,6 +748,17 @@ left join (
       when product_code = '001801' and due_bill_no = '1120060511174298184833' and d_date in ('2020-06-05','2020-06-06','2020-06-14') then '2020-06-05'
       when product_code = '001801' and due_bill_no = '1120060511312194364430' and d_date in ('2020-06-05','2020-06-06','2020-06-14') then '2020-06-05'
       when product_code = '001801' and due_bill_no = '1120060511315016692632' and d_date in ('2020-06-05','2020-06-06','2020-06-14') then '2020-06-05'
+      when product_code = '001801' and due_bill_no = '1120060602322140630323' and d_date between '2020-06-06' and to_date(current_timestamp()) then '2020-06-06'
+      when product_code = '001801' and due_bill_no = '1120060602332594205233' and d_date between '2020-06-06' and to_date(current_timestamp()) then '2020-06-06'
+      when product_code = '001801' and due_bill_no = '1120060602543338694112' and d_date between '2020-06-06' and to_date(current_timestamp()) then '2020-06-06'
+      when product_code = '001801' and due_bill_no = '1120060602323631368511' and d_date between '2020-06-06' and to_date(current_timestamp()) then '2020-06-06'
+      when product_code = '001801' and due_bill_no = '1120060602324557511307' and d_date between '2020-06-06' and to_date(current_timestamp()) then '2020-06-06'
+      when product_code = '001801' and due_bill_no = '1120060511173419906330' and d_date between '2020-06-06' and to_date(current_timestamp()) then '2020-06-06'
+      when product_code = '001801' and due_bill_no = '1120060511325696044931' and d_date between '2020-06-06' and to_date(current_timestamp()) then '2020-06-06'
+      when product_code = '001801' and due_bill_no = '1120060510300944421982' and d_date between '2020-06-06' and to_date(current_timestamp()) then '2020-06-06'
+      when product_code = '001801' and due_bill_no = '1120060511131974539713' and d_date between '2020-06-06' and to_date(current_timestamp()) then '2020-06-06'
+      when product_code = '001801' and due_bill_no = '1120060510300559326682' and d_date between '2020-06-06' and to_date(current_timestamp()) then '2020-06-06'
+      when product_code = '001801' and due_bill_no = '1120060511184385512833' and d_date between '2020-06-06' and to_date(current_timestamp()) then '2020-06-06'
       else paid_out_date end            as paid_out_date,
       terminal_date                     as terminal_date,
       loan_init_prin                    as loan_init_principal,

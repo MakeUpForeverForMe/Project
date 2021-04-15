@@ -260,17 +260,17 @@ project_total_bag_bill as (
 -- 插入数据
 insert overwrite table dm_eagle.abs_asset_distribution_day partition(biz_date,project_id)
 select
-  'y'                                                                   as is_allbag,
-  asset_tab_name                                                        as asset_tab_name,
-  asset_name                                                            as asset_name,
-  asset_name_order                                                      as asset_name_order,
-  sum(remain_principal)                                                 as remain_principal,
-  sum(remain_principal)/max(project_total.total_remain_principal) * 100 as remain_principal_ratio,
-  count(bag.due_bill_no)                                                as loan_num,
-  count(bag.due_bill_no)/max(project_total.total_bill) * 100            as loan_numratio,
-  sum(remain_principal)/count(bag.due_bill_no)                          as remain_principal_loan_num_avg,
-  '${ST9}'                                                              as biz_date,
-  baginfo.project_id                                                    as project_id
+  'y'                                                             as is_allbag,
+  asset_tab_name                                                  as asset_tab_name,
+  asset_name                                                      as asset_name,
+  asset_name_order                                                as asset_name_order,
+  sum(remain_principal)                                           as remain_principal,
+  sum(remain_principal)/max(project_total.total_remain_principal) as remain_principal_ratio,
+  count(bag.due_bill_no)                                          as loan_num,
+  count(bag.due_bill_no)/max(project_total.total_bill)            as loan_numratio,
+  sum(remain_principal)/count(bag.due_bill_no)                    as remain_principal_loan_num_avg,
+  '${ST9}'                                                        as biz_date,
+  baginfo.project_id                                              as project_id
 from dim.bag_due_bill_no as bag
 inner join (
   select

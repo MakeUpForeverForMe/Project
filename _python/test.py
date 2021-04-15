@@ -42,14 +42,9 @@
 # ss = '    '
 # print(ss.replace(' ', 'a'))
 
-
-# import os
-
-''' 获取当前目录 '''
+""" 获取当前目录 """
 # base_dir = os.path.abspath(os.path.join(os.getcwd(), "."))
 # print(f'{base_dir}')
-import os
-import re
 
 ''' 获取目录下的所有子文件及子文件夹 '''
 # for dirs in os.walk(base_dir):
@@ -73,9 +68,6 @@ import re
 # df = pd.DataFrame(np.random.rand(10, 4), columns=['a', 'b', 'c', 'd'])
 # xw.view(df)
 
-
-# -*- coding:UTF-8 -*-
-# import sqlparse
 
 # sql = "CREATE TABLE IF NOT EXISTS `dim_new.dim_encrypt_info`(\
 # `dim_type`                      string        COMMENT '数据类型',\
@@ -142,3 +134,11 @@ import re
 # text_list = os.popen(cmd).readlines()
 # os.system('pwd')
 # print(text_list)
+print(ord('a'))
+print(ord('m'))
+
+print(len('打怪者'), len('abc'))  # 3 3
+print(len(u'打怪者'), len(u'abc'))  # 3 3
+print(len(u'打怪者'.encode('gbk')), len(u'abc'.encode('gbk')))  # 6 3
+print(len(u'打怪者'.encode()), len(u'abc'.encode()))  # 9 3
+print(len(u'打怪者'.encode('utf-8')), len(u'abc'.encode('utf-8')))  # 9 3

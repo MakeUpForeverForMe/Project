@@ -174,15 +174,6 @@ STORED AS TEXTFILE;
 
 
 
-CREATE TABLE IF NOT EXISTS `dim.funds_flow_date_conf`(
-  `business_date`     string COMMENT '',
-  `process_date`      string COMMENT '',
-  `last_process_date` string COMMENT ''
-) COMMENT ''
-STORED AS TEXTFILE;
-
-
-
 
 
 

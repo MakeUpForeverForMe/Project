@@ -14627,8 +14627,15 @@ where 1 > 0
 
 
 
-
-select * from dim.data_conf where col_type = 'ac';
+select
+  col_type,
+  col_id,
+  col_name,
+  col_val
+from dim.data_conf
+TABLESAMPLE (10 ROWS)
+where col_type = 'ac'
+;
 
 
 
