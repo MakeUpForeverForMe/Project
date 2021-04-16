@@ -14660,12 +14660,120 @@ where 1 > 0
 
 
 
-explain
-select * from dm_eagle.abs_asset_distribution_day
+-- explain
+-- select * from dm_eagle.abs_asset_distribution_day
+select biz_date,count(1) from dm_eagle.abs_overdue_rate_day
 where 1 > 0
-  and biz_date like '%2017%'
+  -- and biz_date like '%2017%'
   -- and biz_date = '2017-06-05'
+group by biz_date
+limit 10
 ;
+
+
+
+
+select * from ods.t_10_basic_asset where project_id = 'CL202011090089' limit 10;
+
+
+select * from dm_eagle.abs_early_payment_asset_statistic where project_id = 'CL202011090089' limit 10;
+
+
+
+
+
+select * from ods.t_05_repaymentplan where project_id = 'CL202011090089' and serial_number = '1000000002' limit 10;
+
+select * from ods.t_05_repaymentplan where project_id = 'CL202102050098' and serial_number = 'GALC-HL-1705040105' limit 10;
+
+select * from ods.repay_schedule_abs where project_id = 'CL202102050098' and due_bill_no = 'GALC-HL-1705040105' and loan_term = 13 limit 10;
+
+
+
+select *
+from stage.asset_05_t_repayment_schedule
+where 1 > 0
+  and d_date = '2021-04-14'
+  and is_empty(map_from_str(extra_info)['项目编号'],project_id) = 'CL202101260095'
+  and is_empty(map_from_str(extra_info)['借据号'],asset_id) = 'GALC-HL-1705040105'
+order by d_date
+limit 10
+;
+
+
+
+select *
+from stage.asset_05_t_repayment_schedule
+where 1 > 0
+  and d_date = '2021-04-14'
+  and is_empty(map_from_str(extra_info)['项目编号'],project_id) is null
+limit 10
+;
+
+
+
+select distinct
+  is_empty(map_from_str(extra_info)['项目编号'],project_id)
+from stage.asset_05_t_repayment_schedule
+where 1 > 0
+  and d_date = '2021-04-14'
+;
+
+
+
+select distinct product_id from ods.repay_schedule_inter;
+
+
+select distinct product_id from ods.repay_schedule_inter;
+
+select distinct project_id from stage.abs_05_t_repaymentplan_history;
+
+select distinct product_code from stage.ecas_repay_schedule where d_date = '2021-04-14';
+
+
+
+
+MSCK REPAIR TABLE stage.asset_05_t_repayment_schedule;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -92,7 +92,7 @@ where '${ST9}' between s_d_date and date_sub(e_d_date,1)
   and loan_status <> 'F'
 ) as loan
 left join ods.loan_lending_abs as lending
-on loan.due_bill_no = lending.due_bill_no
+on loan.due_bill_no = lending.due_bill_no and loan.project_id = lending.project_id
 left join ods.customer_info_abs as cust
 on loan.due_bill_no = cust.due_bill_no
 left join (
@@ -103,7 +103,7 @@ select
 from ods.guaranty_info_abs
 group by due_bill_no
 ) as guaranty
-on loan.due_bill_no = guaranty.due_bill_no
+on loan.due_bill_no = guaranty.due_bill_no and loan.project_id = guaranty.project_id
 inner join dim.bag_due_bill_no as bag_due
 on loan.due_bill_no = bag_due.due_bill_no
 inner join dim.bag_info as bag_info
@@ -180,7 +180,7 @@ from (
     and loan_status <> 'F'
 ) as loan
 left join ods.loan_lending_abs as lending
-on loan.due_bill_no = lending.due_bill_no
+on loan.due_bill_no = lending.due_bill_no and loan.project_id = lending.project_id
 left join ods.customer_info_abs as cust
 on loan.due_bill_no = cust.due_bill_no
 left join (
@@ -191,7 +191,7 @@ select
 from ods.guaranty_info_abs
 group by due_bill_no
 ) as guaranty
-on loan.due_bill_no = guaranty.due_bill_no
+on loan.due_bill_no = guaranty.due_bill_no and loan.project_id = guaranty.project_id
 left join dim.bag_due_bill_no as bag_due
 on loan.due_bill_no = bag_due.due_bill_no
 left join dim.bag_info as bag_info

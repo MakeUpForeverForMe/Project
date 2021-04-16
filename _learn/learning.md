@@ -1560,7 +1560,6 @@ set hive.support.quoted.identifiers=None;                                       
 select `(a|b)?+.+` from test_map;                                                  -- 过滤掉 id 字段的其他所有字段
 
 set hive.exec.rowoffset=true;                                                      -- 需要使用 隐藏字段 ROW__OFFSET__INSIDE__BLOCK 时，设置（隐藏字段 INPUT__FILE__NAME、BLOCK__OFFSET__INSIDE__FILE、ROW__OFFSET__INSIDE__BLOCK）
-
 set hive.groupby.orderby.position.alias=true;                                      -- 设置 Hive 可以使用 group by 1,2,3
 set hive.resultset.use.unique.column.names=false;                                  -- 设置 Hive 查询结果不显示库名
 set hive.cli.print.current.db=true;                                                -- 设置 Hive 显示库名称 hive (default)>

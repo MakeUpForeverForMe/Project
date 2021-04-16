@@ -8,6 +8,17 @@
 import xlwings
 
 
+def len_str(string):
+    len_zh = 0
+    len_en = 0
+    for s in string:
+        if '\u4e00' <= s <= '\u9fff':
+            len_zh += 1
+        else:
+            len_en += 1
+    return len_zh, len_en
+
+
 class ExcelWings:
     def __init__(self, excel_name):
         """ 初始化 Excel """
@@ -48,14 +59,15 @@ class ExcelWings:
 
 file_path = "D:\\Users\\ximing.wei\\Desktop\\手动维护表.xlsx"
 sheets = [
-    # ('biz_conf 表', 3, 'a', 'u'),
-    ('星云项目', 2, 'a', 'm')
+    # ('biz_conf 表', 3, 'a', 'u', 'ac'),
+    ('星云项目', 2, 'b', 'm', 'pp'),
+    # ('投资人信息表', 3, 'a', 'q', 'ai'),
 ]
 
 excel = ExcelWings(file_path)
 sheet_range_value = excel.object_sheet_range_value
 
-for biz_sheet, row_start, col_s, col_e in sheets:
+for biz_sheet, row_start, col_s, col_e, col_type in sheets:
     excel.object_sheet(biz_sheet)
     col_list = []
     map_key_first = 0
@@ -65,33 +77,34 @@ for biz_sheet, row_start, col_s, col_e in sheets:
         col_id = chr(asc_w)
         col_map = {}
 
-        range_value = sheet_range_value(f'{col_id}{row_start}')
-        col_map[map_key_first] = (range_value, len(range_value))
-
         for row_num in range(row_start + 1, excel.object_sheet_row() + 1):
-            value = sheet_range_value(f'{col_id}{row_num}')
-            value = value if value else 'null'
-            # col_map[row_num] = (value, len(value.encode('utf-8')))
-            col_map[row_num] = (value, len(value.encode('gbk')))
+            col_val = str(sheet_range_value(f'{col_id}{row_num}'))
+            col_val = col_val if col_val else 'null'
+            col_map[row_num] = (col_val, len_str(col_val))
 
-        col_map[map_key_len] = max(col_map.values(), key=lambda map_tup: map_tup[1])[1]
+        col_map[map_key_len] = max(col_map.values(), key=lambda map_tup: map_tup[1][0] * 2 + map_tup[1][1])[1]
+
+        col_first = sheet_range_value(f'{col_id}{row_start}')
+        col_map[map_key_first] = (col_first, len_str(col_first))
 
         col_list.append(col_map)
-
-    # print(type(map_keys), map_keys)
-    # exit()
 
     sql_list = []
     for map_key in range(row_start + 1, excel.object_sheet_row() + 1):
         line_list = []
         for map_line in col_list:
-            line_list.append(
-                f"""%-{map_line[map_key_len] + 2}s as {map_line[map_key_first][0]}""" % (
-                        '\'' + map_line[map_key][0] + '\''
-                )
-            )
-        sql_list.append('select ' + ','.join(line_list))
-    sql = ' union all\n'.join(sql_list)
+            column = map_line[map_key][0]
+
+            col_len_zh = map_line[map_key][1][0]
+            col_len_en = map_line[map_key][1][1]
+
+            len_zh_max = map_line[map_key_len][0]
+            len_en_max = map_line[map_key_len][1]
+            col_len = col_len_zh + col_len_en + (len_zh_max - col_len_zh) * 2 + (len_en_max - col_len_en)
+
+            line_list.append(f"""%-{col_len + 2}s as {map_line[map_key_first][0]}""" % ('\'' + column + '\''))
+        sql_list.append(f"""select '{col_type}' as col_type,uuid() as uuid,""" + ','.join(line_list))
+    sql = ' union all\n'.join(sql_list) + ';'
 
     print(sql, '\n')
 

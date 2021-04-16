@@ -448,7 +448,7 @@ TBLPROPERTIES (
 
 select
   db_name,
-  db_desc,
+  db_comm,
   tb_type,
   tb_name,
   tb_comm,
@@ -460,7 +460,7 @@ select
 from (
   select
     db.name           as db_name,
-    db.desc           as db_desc,
+    db.desc           as db_comm,
     tb.tbl_type       as tb_type,
     tb.tbl_name       as tb_name,
     tbl_param.comment as tb_comm,
@@ -468,7 +468,7 @@ from (
     col.type_name     as col_type,
     col.comment       as col_comm,
     col.integer_idx   as col_index,
-    '0'               as col
+    0                 as col
   from (
     select
       db_id,
@@ -522,7 +522,7 @@ from (
   union all
   select
     db.name           as db_name,
-    db.desc           as db_desc,
+    db.desc           as db_comm,
     tb.tbl_type       as tb_type,
     tb.tbl_name       as tb_name,
     tbl_param.comment as tb_comm,
@@ -530,7 +530,7 @@ from (
     part.pkey_type    as col_type,
     part.pkey_comment as col_comm,
     part.integer_idx  as col_index,
-    '1'               as col
+    1                 as col
   from (
     select
       db_id,

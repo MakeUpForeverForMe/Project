@@ -1068,6 +1068,7 @@ show partitions dw.dw_loan_apply_stat_day partition(product_id = 'pl00282');
 
 
 
+invalidate metadata dim.biz_conf;
 
 
 

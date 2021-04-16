@@ -29,7 +29,7 @@ set hive.vectorized.execution.reduce.groupby.enabled=false;
 
 insert overwrite table dm_eagle.abs_asset_information_bag${snapshot} partition(biz_date,bag_id)
 select
-  bag_due.project_id                                                                                       as project_id,
+  loan.project_id                                                                                          as project_id,
   count(loan.due_bill_no)                                                                                  as asset_count,
   count(distinct cust.user_hash_no)                                                                        as customer_count,
   sum(loan.remain_principal)                                                                               as remain_principal,
@@ -106,7 +106,7 @@ on bag_due.due_bill_no = loan.due_bill_no
 inner join dim.bag_info as bag_info
 on bag_due.bag_id = bag_info.bag_id
 left join ods.loan_lending_abs as lending
-on loan.due_bill_no = lending.due_bill_no
+on loan.due_bill_no = lending.due_bill_no and loan.project_id = lending.project_id
 left join ods.customer_info_abs as cust
 on loan.due_bill_no = cust.due_bill_no
 left join (
@@ -117,7 +117,7 @@ left join (
   from ods.guaranty_info_abs
   group by due_bill_no
 ) guaranty
-on loan.due_bill_no = guaranty.due_bill_no
-group by bag_due.bag_id,bag_due.project_id,bag_info.bag_date
+on loan.due_bill_no = guaranty.due_bill_no and loan.project_id = guaranty.project_id
+group by bag_due.bag_id,loan.project_id,bag_info.bag_date
 -- limit 10
 ;

@@ -74,7 +74,7 @@ tbl_comm = cursor.fetchone()[0]  # cursor.fetchone() 返回 tuple 类型数据�
 col_rows = cursor.execute(sql_col, (database, tablname))
 # cursor.fetchall() 返回 List 格式数据。每一行为 Tuple 数据
 # a 字段名，b 字段类型，c 字段注释
-data_all = [((a, len(a)), (case(b), len(case(b))), (c, len(c))) for a, b, c in cursor.fetchall()]
+data_all = [((a, len(a)), (case(b), len(case(b))), (c, len(c))) for a, b, c in cursor.fetch()]
 
 col_name = max(data_all, key=lambda tup: tup[0][1])[0][1]
 col_type = max(data_all, key=lambda tup: tup[1][1])[1][1]
