@@ -8,16 +8,10 @@
 import logging
 
 import pymysql
-
-# NOTSET   NOTSET
-# DEBUG    DEBUG
-# INFO     INFO
-# WARNING  WARNING
-# ERROR    ERROR
-# CRITICAL CRITICAL
 import xlwings
 
-logger = logging.Logger("MySqlUtil", level=logging.INFO)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(pathname)s[line:%(lineno)d] - %(levelname)s: %(message)s')
+logger = logging.getLogger("MySqlUtil")
 
 
 def tb_type_enum(table_type):
@@ -54,10 +48,10 @@ class MySqlUtil(object):
 
     def close(self):
         try:
-            if self.cursor is None:
+            if self.cursor is not None:
                 self.cursor.close()
                 logger.info('MySQL 游标 关闭成功！')
-            if self.connection is None:
+            if self.connection is not None:
                 self.connection.close()
                 logger.info('MySQL 连接 关闭成功！')
         except Exception as e:
@@ -70,6 +64,7 @@ class MySqlUtil(object):
             return 0
         try:
             result_num = self.cursor.execute(query, args)
+            logger.info(f'执行语句完成，返回{result_num}行数据！')
         except Exception as e:
             logger.error("MySQL execute  '%s'  '%s'  error, error is %s", query, args, e)
             return 0
@@ -81,48 +76,8 @@ class MySqlUtil(object):
             result = self.cursor.fetchall()
         else:
             result = self.cursor.fetchone()
+        logger.info('抓取数据完成！')
         return result
-
-
-class ExcelWings(object):
-    def __init__(self, excel_name):
-        """ 初始化 Excel """
-        """ 打开 Excel """
-        self.excel = xlwings.Book(excel_name)
-        """ 获取 Excel 程序对象 """
-        self.app = self.excel.app
-        """ 设置 App 对象属性 """
-        self.app.visible = False
-        self.app.display_alerts = False
-        self.app.screen_updating = False
-        """ 初始化相关属性 """
-        self.sheet: xlwings.main.Sheet = None
-
-    def __del__(self):
-        self.close()
-
-    def close(self, excel_book: xlwings.Book = None, excel_app: xlwings.App = None):
-        """ 关闭 Excel 文档 """
-        """ 无参数时，关闭程序初始化进程 """
-        if excel_book is None and excel_app is None:
-            self.excel.close()
-            self.app.quit()
-        if excel_book is not None:
-            excel_book.close()
-        if excel_app is not None:
-            excel_app.quit()
-
-    def object_sheet(self, sheet_name):
-        """ 获取 Sheet 对象 """
-        self.sheet = self.excel.sheets[sheet_name]
-
-    def object_sheet_row(self):
-        """ 获取 Sheet 对象中最大行数 """
-        return self.sheet.used_range.last_cell.row
-
-    def object_sheet_range_value(self, sheet_range: str):
-        """ 获取 Sheet 对象中某区域的值 """
-        return self.sheet.range(sheet_range).value
 
 
 # mysql_host = '10.80.1.104'
@@ -134,27 +89,6 @@ mysql_host = '10.83.16.32'
 mysql_user = 'bgp_admin'
 mysql_pass = '3Mt%JjE#WJIt'
 mysql_db = 'metastore'
-
-db_name = 'db_name'
-db_comm = 'db_comm'
-db_set = set()
-
-tb_name = 'tb_name'
-tb_type = 'tb_type'
-tb_comm = 'tb_comm'
-tb_map = {}
-tb_set = set()
-tb_list = {}
-
-col_id = 'col'
-col_index = 'col_index'
-col_name = 'col_name'
-col_type = 'col_type'
-col_comm = 'col_comm'
-col_map = {}
-part_map = {}
-
-dt_map = {}
 
 sql = """
 select
@@ -300,73 +234,103 @@ results = mysql.fetch(sql, ('%%', '%%'))
 
 # print(results)
 
-db_list_index = -1
-tb_list_index = -1
+db_name = 'db_name'
+db_comm = 'db_comm'
+
+tb_name = 'tb_name'
+tb_type = 'tb_type'
+tb_comm = 'tb_comm'
+
+col_id = 'col'
+col_index = 'col_index'
+col_name = 'col_name'
+col_type = 'col_type'
+col_comm = 'col_comm'
+
+db_set = set()
+tb_set = set()
+
+col_map = {}
+par_map = {}
+
+dt_map = {}
+
+db_index = -1
+tb_index = -1
+
 for line in results:
     line = dict(line)
 
     if line[db_name] not in db_set:
-        db_list_index += 1
-        tb_list_index = -1
+        db_index += 1
+        tb_index = -1
 
-        dt_map = {
+        dt_map[db_index] = {
             db_name: line[db_name],
             db_comm: line[db_comm] if line[db_comm] is not None else '',
         }
     db_set.add(line[db_name])
 
     if line[db_name] + line[tb_name] not in tb_set:
-        tb_list_index += 1
+        tb_index += 1
         col_map = {}
-        part_map = {}
+        par_map = {}
 
-        tb_map = {
+        dt_map[db_index][tb_index] = {
             tb_name: line[tb_name],
             tb_type: tb_type_enum(line[tb_type]),
             tb_comm: line[tb_comm] if line[tb_comm] is not None else '',
         }
     tb_set.add(line[db_name] + line[tb_name])
 
-    if line[col_id] == 0:
-        col_map[line[col_index]] = {
-            col_name: line[col_name],
-            col_type: line[col_type],
-            col_comm: line[col_comm] if line[col_comm] is not None else '',
-        }
-        tb_map[0] = col_map
-    elif line[col_id] == 1:
-        part_map[line[col_index]] = {
-            col_name: line[col_name],
-            col_type: line[col_type],
-            col_comm: line[col_comm] if line[col_comm] is not None else '',
-        }
-        tb_map[1] = part_map
+    tb_map = col_map if line[col_id] == 0 else par_map
 
-    tb_list[tb_list_index] = tb_map
-    dt_map[db_list_index] = tb_list
+    tb_map[line[col_index]] = {
+        col_name: line[col_name],
+        col_type: line[col_type],
+        col_comm: line[col_comm] if line[col_comm] is not None else '',
+    }
 
-dt_db_map = {}
-for dt_key, dt_val in dt_map.items():
-    if dt_key == db_name:
-        dt_db_map[db_name] = dt_val
-    elif dt_key == db_comm:
-        dt_db_map[db_comm] = dt_val
-    elif type(dt_key) is int:
-        for tb_key, tb_val in dt_val.items():
-            print(dt_key, dt_db_map, tb_key, tb_val)
+    dt_map[db_index][tb_index][line[col_id]] = tb_map
 
 # print(dt_map)
 
 
-file_path = "D:\\Users\\ximing.wei\\Desktop\\手动维护表.xlsx"
-sheets = [
-    # ('biz_conf 表', 3, 'a', 'u', 'ac'),
-    ('星云项目', 2, 'b', 'm', 'pp'),
-    # ('投资人信息表', 3, 'a', 'q', 'ai'),
-]
+file_path = "D:\\Users\\ximing.wei\\Desktop\\数仓 表设计.xlsx"
+after = '字段规范与解释'
+""" 打开 Excel """
+excel = xlwings.Book(file_path)
+""" 获取 Excel 程序对象 """
+app = excel.app
+""" 设置 App 对象属性 """
+app.visible = False
+app.display_alerts = False
+app.screen_updating = False
 
-excel = ExcelWings(file_path)
-sheet_range_value = excel.object_sheet_range_value
+sheet_names = [sheet.name for sheet in excel.sheets]
+
+for dt_val in dt_map.values():
+    tb_count = len(dt_val.keys()) - 2
+
+    if dt_val[db_name] in sheet_names:
+        excel.sheets[dt_val[db_name]].delete()
+    excel.sheets.add(dt_val[db_name], after=after)
+
+    sheet = excel.sheets[dt_val[db_name]]
+
+    sheet['A1'].value = f'{dt_val[db_name]} {dt_val[db_comm]}'
+
+    """ 合并 单元格 """
+    sheet['A1:I1'].api.merge()
+
+    # if dt_val[db_name] == db_name:
+    # elif dt_key == db_comm:
+    #     pass
+    # elif type(dt_key) is int:
+    #     for tb_key, tb_val in dt_val.items():
+    #         print(dt_key, tb_key, tb_val)
 
 """ 关闭 Excel 文档 """
+excel.save()
 excel.close()
+app.quit()
