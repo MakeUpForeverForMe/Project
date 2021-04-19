@@ -217,29 +217,36 @@ STORED AS PARQUET;
 
 -- DROP TABLE IF EXISTS `dw${db_suffix}.dw_loan_base_stat_repay_detail_day`;
 CREATE TABLE IF NOT EXISTS `dw${db_suffix}.dw_loan_base_stat_repay_detail_day`(
-  `loan_terms`                            decimal(3,0)   COMMENT '贷款期数',
+  `loan_terms`                            decimal(3,0)  COMMENT '贷款期数',
+  `loan_active_date`                      string        COMMENT '放款日',
 
-  `repaid_num`                            decimal(20,0)  COMMENT '实还借据数',
-  `repaid_num_count`                      decimal(20,0)  COMMENT '累计实还借据数',
+  `repaid_num`                            decimal(11,0) COMMENT '实还借据数',
+  `repaid_num_count`                      decimal(11,0) COMMENT '累计实还借据数',
 
-  `repaid_amount`                         decimal(25,5)  COMMENT '实还金额（实还本金+实还息费）',
-  `repaid_principal`                      decimal(25,5)  COMMENT '实还本金',
-  `repaid_interest_penalty_svc_fee`       decimal(25,5)  COMMENT '实还息费（实还利息+实还费用+实还罚金）',
-  `repaid_interest`                       decimal(25,5)  COMMENT '实还利息',
-  `repaid_repay_svc_term`                 decimal(25,5)  COMMENT '实还费用（实还手续费+实还服务费）',
-  `repaid_repay_term_fee`                 decimal(25,5)  COMMENT '实还手续费',
-  `repaid_repay_svc_fee`                  decimal(25,5)  COMMENT '实还服务费',
-  `repaid_penalty`                        decimal(25,5)  COMMENT '实还罚金',
-  `repaid_amount_count`                   decimal(25,5)  COMMENT '累计回款金额（累计回款本金+累计回款息费）',
-  `repaid_principal_count`                decimal(25,5)  COMMENT '累计回款本金',
-  `repaid_interest_penalty_svc_fee_count` decimal(25,5)  COMMENT '累计回款息费（累计回款利息+累计回款费用+累计回款罚金）',
-  `repaid_interest_count`                 decimal(25,5)  COMMENT '累计回款利息',
-  `repaid_repay_svc_term_count`           decimal(25,5)  COMMENT '累计回款费用（累计回款手续费+累计回款服务费）',
-  `repaid_repay_term_fee_count`           decimal(25,5)  COMMENT '累计回款手续费',
-  `repaid_repay_svc_fee_count`            decimal(25,5)  COMMENT '累计回款服务费',
-  `repaid_penalty_count`                  decimal(25,5)  COMMENT '累计回款罚金'
+  `repaid_amount`                         decimal(15,4) COMMENT '实还金额（实还本金+实还息费）',
+  `repaid_principal`                      decimal(15,4) COMMENT '实还本金',
+  `repaid_interest_penalty_svc_fee`       decimal(15,4) COMMENT '实还息费（实还利息+实还费用+实还罚金）',
+  `repaid_interest`                       decimal(15,4) COMMENT '实还利息',
+  `repaid_repay_svc_term`                 decimal(15,4) COMMENT '实还费用（实还手续费+实还服务费）',
+  `repaid_repay_term_fee`                 decimal(15,4) COMMENT '实还手续费',
+  `repaid_repay_svc_fee`                  decimal(15,4) COMMENT '实还服务费',
+  `repaid_penalty`                        decimal(15,4) COMMENT '实还罚金',
+  `repaid_amount_count`                   decimal(15,4) COMMENT '累计回款金额（累计回款本金+累计回款息费）',
+  `repaid_principal_count`                decimal(15,4) COMMENT '累计回款本金',
+  `repaid_interest_penalty_svc_fee_count` decimal(15,4) COMMENT '累计回款息费（累计回款利息+累计回款费用+累计回款罚金）',
+  `repaid_interest_count`                 decimal(15,4) COMMENT '累计回款利息',
+  `repaid_repay_svc_term_count`           decimal(15,4) COMMENT '累计回款费用（累计回款手续费+累计回款服务费）',
+  `repaid_repay_term_fee_count`           decimal(15,4) COMMENT '累计回款手续费',
+  `repaid_repay_svc_fee_count`            decimal(15,4) COMMENT '累计回款服务费',
+  `repaid_penalty_count`                  decimal(15,4) COMMENT '累计回款罚金',
+
+  `settle_num`                           decimal(15,0) COMMENT '当日结清借据数',
+  `settle_count`                         decimal(15,0) COMMENT '累计结清借据数',
+  `settle_loan_days`                     decimal(15,0) COMMENT '当天结清借据总用信天数(从放款到结清天数)',
+  `settle_loan_days_count`               decimal(15,0) COMMENT '累计用信天数(从放款到结清天数)',
+  `prepay_principal`                     decimal(15,4) COMMENT '当日提前还款金额'
 ) COMMENT '实还统计 - 日级'
-PARTITIONED BY (`biz_date` string COMMENT '实还日期',`product_id` string COMMENT '产品编号')
+PARTITIONED BY (`biz_date` string COMMENT '实还日期',`product_id` string COMMENT '产品编号')  
 STORED AS PARQUET;
 
 

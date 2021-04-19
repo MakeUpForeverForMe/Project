@@ -1373,7 +1373,8 @@ CREATE VIEW IF NOT EXISTS `ods.t_05_repaymentplan`(
   data_source                                                                                 as data_source,
   s_d_date                                                                                    as s_d_date,
   e_d_date                                                                                    as e_d_date
-from ods.repay_schedule_abs;
+from ods.repay_schedule_abs
+where effective_date between s_d_date and date_sub(e_d_date,1);
 
 
 -- DROP VIEW IF EXISTS `ods.t_07_actualrepayinfo`;

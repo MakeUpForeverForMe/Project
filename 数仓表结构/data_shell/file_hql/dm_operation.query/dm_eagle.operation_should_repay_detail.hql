@@ -27,7 +27,7 @@ set hive.input.format=org.apache.hadoop.hive.ql.io.CombineHiveInputFormat;
 --   ,contract_no              string            COMMENT '合同编号'
 --   ,due_bill_no              string            COMMENT '借据编号'
 --   ,loan_active_date         string            COMMENT '借据生效日'
---   ,customer_name            string            COMMENT '客户姓名'  
+--   ,customer_name            string            COMMENT '客户姓名'
 --   ,loan_init_term           decimal(3,0)      COMMENT '总期数'
 --   ,should_repay_date        string            COMMENT '应还日期'
 --   ,loan_term                decimal(3,0)      COMMENT '期次'
@@ -40,21 +40,21 @@ set hive.input.format=org.apache.hadoop.hive.ql.io.CombineHiveInputFormat;
 --) COMMENT '应还款明细报表'
 --PARTITIONED BY (product_id string COMMENT '产品编号')
 --STORED AS PARQUET;
-with due_bill_no_name as 
+with due_bill_no_name as
 (
 select
 a.due_bill_no
 ,b.dim_decrypt
 from(
 select
-distinct 
+distinct
 due_bill_no
-,cust_id 
-from 
-ods.loan_apply) a
+,cust_id
+from
+ods${suffix}.loan_apply) a
 left join
 (
-select 
+select
  cust_id,
  name,
  dim_decrypt
@@ -64,14 +64,14 @@ distinct
 cust_id,
 name
 from
-ods.customer_info) c
+ods${suffix}.customer_info) c
 left join
-(select  
+(select
    dim_encrypt
-  ,dim_decrypt  
-  from dim.dim_encrypt_info
+  ,dim_decrypt
+  from dim_new.dim_encrypt_info
   where dim_type = 'userName'
-group by  
+group by
 dim_encrypt
 ,dim_decrypt) d
 on c.name = d.dim_encrypt
@@ -80,115 +80,76 @@ on a.cust_id = b.cust_id
 )
 
 
-insert overwrite table dm_eagle.operation_should_repay_detail partition(product_id)                       
-SELECT
- distinct                                                                                                    
- t3.channel_id                                                                                        --'合作渠道方'
-,t3.project_id                                                                                        --'项目名称'
-,t2.contract_no                                                                                       --'合同编号'
-,t1.due_bill_no                                                                                       --'借据编号'
-,t1.loan_active_date                                                                                  --'借据生效日'
-,t4.dim_decrypt AS customer_name                                                                      --'客户姓名'  
-,t1.loan_init_term                                                                                    --'总期数'
-,t1.should_repay_date                                                                                 --'应还日期'
-,t1.loan_term                                                                                         --'期次'
-,t1.should_repay_amount                                                                               --'应还金额'
-,t1.should_repay_principal                                                                            --'应还本金'
-,t1.should_repay_interest                                                                             --'应还利息'
-,( nvl ( t1.should_repay_term_fee, 0 ) + nvl ( t1.should_repay_svc_fee, 0 ) ) AS should_repay_fee     --'应还费用'
-,t1.should_repay_penalty                                                                              --'应还罚息'
-,current_date() AS execution_date                                                                     --'跑批日期'
-,t1.product_id                                                                                        --'产品名称'
-FROM 
-(
-SELECT 
-*
-FROM ods_cps.repay_schedule
-WHERE '${ST9}' BETWEEN s_d_date AND date_sub(e_d_date, 1)
-) t1
-LEFT JOIN 
-(select 
-due_bill_no, 
-contract_no
-from 
-ods_cps.loan_lending
-) t2
-ON t1.due_bill_no = t2.due_bill_no
- JOIN 
-(select distinct
-         channel_id,
-         project_id,
-         product_id
-         from (
-           select
-             max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
-             max(if(col_name = 'project_id',   col_val,null)) as project_id,
-             max(if(col_name = 'product_id',   col_val,null)) as product_id
-           from dim.data_conf
-           where col_type = 'ac'
-           group by col_id
-       )tmp
-where project_id in ('WS0009200001','WS0006200001','WS0006200002','WS0006200003')
-) t3
-ON t1.product_id = t3.product_id
-LEFT JOIN 
-due_bill_no_name t4
-ON t1.due_bill_no = t4.due_bill_no
-union all
+insert overwrite table dm_eagle${suffix}.operation_should_repay_detail partition(product_id)
 SELECT
  distinct
- t3.channel_id                                                                                        --'合作渠道方'
-,t3.project_id                                                                                        --'项目名称'
-,t2.contract_no                                                                                       --'合同编号'
-,t1.due_bill_no                                                                                       --'借据编号'
-,t1.loan_active_date                                                                                  --'借据生效日'
-,t4.dim_decrypt AS customer_name                                                                      --'客户姓名'
-,t1.loan_init_term                                                                                    --'总期数'
-,t1.should_repay_date                                                                                 --'应还日期'
-,t1.loan_term                                                                                         --'期次'
-,t1.should_repay_amount                                                                               --'应还金额'
-,t1.should_repay_principal                                                                            --'应还本金'
-,t1.should_repay_interest                                                                             --'应还利息'
-,( nvl ( t1.should_repay_term_fee, 0 ) + nvl ( t1.should_repay_svc_fee, 0 ) ) AS should_repay_fee     --'应还费用'
-,t1.should_repay_penalty                                                                              --'应还罚息'
-,current_date() AS execution_date                                                                     --'跑批日期'
-,t1.product_id                                                                                        --'产品名称'
+t3.channel_id                                                                                       ,--'合作渠道方'
+t3.project_id                                                                                       ,--'项目名称'
+t2.contract_no                                                                                      ,--'合同编号'
+t1.due_bill_no                                                                                      ,--'借据编号'
+t1.loan_active_date                                                                                 ,--'借据生效日'
+t4.dim_decrypt AS customer_name                                                                     ,--'客户姓名'
+t1.loan_init_term                                                                                   ,--'总期数'
+t1.should_repay_date                                                                                ,--'应还日期'
+t1.loan_term                                                                                        ,--'期次'
+t1.should_repay_amount - t1.paid_amount - t1.reduce_amount                      as remain_amount    ,--'剩余金额'
+t1.should_repay_principal  - t1.paid_principal  - t1.reduce_principal           as remain_principal ,--'剩余本金'
+t1.should_repay_interest - t1.paid_interest - t1.reduce_interest                as remain_interest  ,--'剩余利息'
+t1.should_repay_term_fee + t1.should_repay_svc_fee - t1.paid_term_fee - t1.paid_svc_fee - t1.reduce_term_fee - t1.reduce_svc_fee as remain_fee, --'剩余费用'
+t1.should_repay_penalty - t1.paid_penalty - t1.reduce_penalty                   as remain_penalty   ,--'剩余罚息'
+t1.should_repay_amount                                                                              ,--'应还金额'
+t1.should_repay_principal                                                                           ,--'应还本金'
+t1.should_repay_interest                                                                            ,--'应还利息'
+( nvl ( t1.should_repay_term_fee, 0 ) + nvl ( t1.should_repay_svc_fee, 0 ) )    as should_repay_fee ,--'应还费用'
+t1.should_repay_penalty                                                                             ,--'应还罚息'
+t1.paid_amount                                                                                      ,--'已还金额'
+t1.paid_principal                                                                                   ,--'已还本金'
+t1.paid_interest                                                                                    ,--'已还利息'
+( nvl ( t1.paid_term_fee, 0 ) + nvl ( t1.paid_svc_fee, 0 ) )                    as paid_fee         ,--'已还费用'
+t1.paid_penalty                                                                                     ,--'已还罚息'
+t1.reduce_amount                                                                                    ,--'减免金额'
+t1.reduce_principal                                                                                 ,--'减免本金'
+t1.reduce_interest                                                                                  ,--'减免利息'
+( nvl ( t1.reduce_term_fee, 0 ) + nvl ( t1.reduce_svc_fee, 0 ) )                as reduce_fee       ,--'减免费用'
+t1.reduce_penalty                                                                                   ,--'减免罚息'
+current_date() as execution_date                                                                    ,--'跑批日期'
+t1.product_id                                                                                        --'产品名称'
 FROM
 (
-SELECT
-*
-FROM ods.repay_schedule
-WHERE '${ST9}' BETWEEN s_d_date AND date_sub(e_d_date, 1)
+    SELECT
+    *
+    FROM ods_cps${suffix}.repay_schedule
+    WHERE '${ST9}' BETWEEN s_d_date AND date_sub(e_d_date, 1)
 ) t1
 LEFT JOIN
-(select
-due_bill_no,
-contract_no
-from
-ods.loan_lending
+(
+    select
+      due_bill_no,
+      contract_no
+    from
+    ods_cps${suffix}.loan_lending
 ) t2
 ON t1.due_bill_no = t2.due_bill_no
  JOIN
-(select distinct
-         channel_id,
-         project_id,
-         product_id
-         from (
-           select
-             max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
-             max(if(col_name = 'project_id',   col_val,null)) as project_id,
-             max(if(col_name = 'product_id',   col_val,null)) as product_id
-           from dim.data_conf
-           where col_type = 'ac'
-           group by col_id
-       )tmp
-where project_id in ('bd')
+(
+    select
+      distinct
+      channel_id,
+      project_id,
+      product_id
+      from
+      (
+        select
+           max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
+           max(if(col_name = 'project_id',   col_val,null)) as project_id,
+           max(if(col_name = 'product_id',   col_val,null)) as product_id
+         from dim.data_conf
+         where col_type = 'ac'
+         group by col_id
+      ) tmp
+      where  project_id in ('WS0012200001','WS0009200001','WS0006200001','WS0006200002','WS0006200003','WS0013200001')
 ) t3
 ON t1.product_id = t3.product_id
-LEFT JOIN
-due_bill_no_name t4
+LEFT JOIN due_bill_no_name t4
 ON t1.due_bill_no = t4.due_bill_no
 ;
-    
-    
-    

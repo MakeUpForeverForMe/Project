@@ -36,7 +36,7 @@ set hivevar:product_id=;
 --   ''
 -- );
 
---set hivevar:product_id=and product_id in ('001601','001602','001603','002201','002202','002203');
+--set hivevar:product_id=and product_id in ('DIDI201908161538','001601','001602','001603','001701','001702','002201','002202','002203');
 
 
 insert overwrite table ods${db_suffix}.loan_info partition(is_settled = 'no',product_id)

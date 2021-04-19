@@ -20,7 +20,7 @@ set hive.vectorized.execution.enabled=false;
 set hive.vectorized.execution.reduce.enabled=false;
 set hive.vectorized.execution.reduce.groupby.enabled=false;
 
--- set hivevar:ST9=2020-10-01;
+-- set hivevar:ST9=2021-04-14;
 
 with
 -- 项目级
@@ -163,7 +163,9 @@ bill_info as (
       loan_term_repaid,
       account_age
     from ods.loan_info_abs
-    where '${ST9}' between s_d_date and date_sub(e_d_date,1)
+    where 1 > 0
+      and '${ST9}' between s_d_date and date_sub(e_d_date,1)
+      and loan_status <> 'F'
   ) as loan_info
   left join (
     select
@@ -174,7 +176,6 @@ bill_info as (
       contract_term,
       nvl(mortgage_rate,0)  as mortgage_rate
     from ods.loan_lending_abs
-    where biz_date <= '${ST9}'
   ) as loan_leading
   on  loan_info.due_bill_no = loan_leading.due_bill_no
   and loan_info.project_id  = loan_leading.project_id
@@ -230,7 +231,6 @@ bill_info as (
 ),
 
 -- 汇总数据
-
 -- 项目下的所有借据
 project_total_bill as (
   select
@@ -244,17 +244,23 @@ project_total_bill as (
 -- 项目下所有有包的借据
 project_total_bag_bill as (
   select
-    baginfo.project_id,
-    sum(remain_principal)  as total_remain_principal,
-    count(bag.due_bill_no) as total_bill
-  from dim.bag_due_bill_no as bag
-  inner join bill_info
-  on bag.due_bill_no = bill_info.due_bill_no
+    bill_info.project_id,
+    sum(remain_principal)        as total_remain_principal,
+    count(bill_info.due_bill_no) as total_bill
+  from (
+    select * from dim.bag_due_bill_no
+    where 1 > 0
+      -- ${bag_id}
+  ) as bag_due
+  inner join  bill_info
+  on  bag_due.project_id  = bill_info.project_id
+  and bag_due.due_bill_no = bill_info.due_bill_no
   inner join dim.bag_info as baginfo
-  on bag.bag_id = baginfo.bag_id
+  on bag_due.bag_id = baginfo.bag_id
   where baginfo.bag_date <= '${ST9}'
-  group by baginfo.project_id
+  group by bill_info.project_id
 )
+
 
 
 -- 插入数据
@@ -265,10 +271,10 @@ select
   asset_name                                                      as asset_name,
   asset_name_order                                                as asset_name_order,
   sum(remain_principal)                                           as remain_principal,
-  sum(remain_principal)/max(project_total.total_remain_principal) as remain_principal_ratio,
+  sum(remain_principal) / max(project_total.total_remain_principal) as remain_principal_ratio,
   count(bag.due_bill_no)                                          as loan_num,
-  count(bag.due_bill_no)/max(project_total.total_bill)            as loan_numratio,
-  sum(remain_principal)/count(bag.due_bill_no)                    as remain_principal_loan_num_avg,
+  count(bag.due_bill_no) / max(project_total.total_bill)            as loan_numratio,
+  sum(remain_principal) / count(bag.due_bill_no)                    as remain_principal_loan_num_avg,
   '${ST9}'                                                        as biz_date,
   baginfo.project_id                                              as project_id
 from dim.bag_due_bill_no as bag
@@ -320,9 +326,11 @@ inner join (
     car_type_distribution
   )) mode_info as part_info
 ) as tmp
-on bag.due_bill_no = tmp.due_bill_no
+on  bag.project_id  = tmp.project_id
+and bag.due_bill_no = tmp.due_bill_no
 inner join dim.bag_info as baginfo
-on bag.bag_id = baginfo.bag_id
+on  bag.project_id = baginfo.project_id
+and bag.bag_id     = baginfo.bag_id
 inner join project_total_bag_bill as project_total
 on baginfo.project_id = project_total.project_id
 where 1 > 0
@@ -388,7 +396,7 @@ from (
     car_brand_distribution,
     -- 车辆类型
     car_type_distribution
-  ))mode_info as part_info
+  )) mode_info as part_info
 ) as tmp
 inner join project_total_bill as project_total
 on tmp.project_id = project_total.project_id

@@ -31,7 +31,7 @@ set hive.input.format=org.apache.hadoop.hive.ql.io.CombineHiveInputFormat;
 --) COMMENT '退票报表'
 --PARTITIONED BY (`product_id` string COMMENT '产品编号')
 --STORED AS PARQUET;
-insert overwrite table dm_eagle.operation_return_ticket_agg partition(product_id)
+insert overwrite table dm_eagle${suffix}.operation_return_ticket_agg partition(product_id)
 select
      channel_id                                                                                                        --'合同渠道方 '
     ,project_id                                                                                                        --'项目名称'
@@ -42,26 +42,27 @@ select
     ,refund_num_accumul                                                                                                --'累计退票 /退车笔数 '
     ,current_date() as execution_date                                                                                  --'跑批日期'
     ,product_id                                                                                                        --'产品编号'
-from                            
-(SELECT
-     channel_id                                                                                                        
-    ,project_id                                                                                                        
-    ,txn_date                                                                                                          
-    ,refund_amount                                                                                                     
-    ,refund_num                                                                                                        
-    ,sum(refund_amount) over(partition by project_id, channel_id,product_id order by txn_date)as refund_amount_accumul 
-    ,sum(refund_num) over(partition by project_id, channel_id,product_id order by txn_date)   as refund_num_accumul                                                                               
-    ,product_id                                                                                                        
 from
 (
-select
+  SELECT
+     channel_id
+    ,project_id
+    ,txn_date
+    ,refund_amount
+    ,refund_num
+    ,sum(refund_amount) over(partition by project_id, channel_id,product_id order by txn_date)as refund_amount_accumul
+    ,sum(refund_num) over(partition by project_id, channel_id,product_id order by txn_date)   as refund_num_accumul
+    ,product_id
+from
+(
+  select
     t3.product_id
     ,t3.channel_id
     ,t3.project_id
     ,t3.txn_date
     ,count(t3.due_bill_no) as  refund_num
     ,sum(t3.success_amt)   as  refund_amount
-from
+  from
     (
         select
             t1.due_bill_no
@@ -72,39 +73,32 @@ from
             ,t2.project_id
         from
         (
-                SELECT
-                    product_id,
-                    due_bill_no,
-                    txn_date,
-                    success_amt
-                    FROM ods_cps.order_info
-                WHERE
-                    loan_usage = 'T'
-                union all
-                SELECT
-                    product_id,
-                    due_bill_no,
-                    txn_date,
-                    success_amt
-                    FROM ods.order_info
-                WHERE
-                    loan_usage = 'T' and product_id in ('bd_product')
+            select
+                product_id,
+                due_bill_no,
+                txn_date,
+                success_amt
+            from ods_cps${suffix}.order_info
+            where product_id <> '002501' and loan_usage = 'T'
         ) t1
         left join
         (
-                select distinct
-                 channel_id,
-                 project_id,
-                 product_id
-                 from (
-                   select
-                     max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
-                     max(if(col_name = 'project_id',   col_val,null)) as project_id,
-                     max(if(col_name = 'product_id',   col_val,null)) as product_id
-                   from dim.data_conf
-                   where col_type = 'ac'
-                   group by col_id
-               )tmp
+            select
+              distinct
+              channel_id,
+              project_id,
+              product_id
+              from
+              (
+                select
+                   max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
+                   max(if(col_name = 'project_id',   col_val,null)) as project_id,
+                   max(if(col_name = 'product_id',   col_val,null)) as product_id
+                 from dim.data_conf
+                 where col_type = 'ac'
+                 group by col_id
+              ) tmp
+              where  project_id in ('WS0012200001','WS0009200001','WS0006200001','WS0006200002','WS0006200003','WS0013200001')
         ) t2
         ON t1.product_id = t2.product_id
     ) t3

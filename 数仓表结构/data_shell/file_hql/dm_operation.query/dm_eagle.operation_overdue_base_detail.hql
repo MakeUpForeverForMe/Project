@@ -1,9 +1,12 @@
-set mapred.job.name=dm_eagle.operation_overdue_base_detail;
-set hive.execution.engine=mr;
-set mapreduce.map.memory.mb=2048;
-set mapreduce.reduce.memory.mb=2048;
-set hive.exec.parallel=true;
-set hive.exec.parallel.thread.number=10;
+-- set mapred.job.name=dm_eagle.operation_overdue_base_detail;
+-- set hive.execution.engine=mr;
+-- set mapreduce.map.memory.mb=2048;
+-- set mapreduce.reduce.memory.mb=2048;
+-- set hive.exec.parallel=true;
+-- set hive.exec.parallel.thread.number=10;
+set spark.app.name=dm_eagle.operation_overdue_base_detail;
+set spark.executor.memory=4g;
+set spark.executor.memoryOverhead=4g;
 set hive.exec.dynamic.partition=true;
 set hive.exec.dynamic.partition.mode=nonstrict;
 set hive.auto.convert.join=true;
@@ -16,9 +19,9 @@ set hive.merge.smallfiles.avgsize=1024000000;
 set mapred.max.split.size=256000000;
 set mapred.min.split.size.per.node=100000000;
 set mapred.min.split.size.per.rack=100000000;
-set hive.input.format=org.apache.hadoop.hive.ql.io.CombineHiveInputFormat;
+-- set hive.input.format=org.apache.hadoop.hive.ql.io.CombineHiveInputFormat;
 
-insert overwrite table dm_eagle.operation_overdue_base_detail partition (product_id,snapshot_day)
+insert overwrite table dm_eagle${suffix}.operation_overdue_base_detail partition (product_id,snapshot_day)
 select
     biz.channel_id                                                          as channel_id,
     biz.project_id                                                          as project_id,
@@ -60,13 +63,13 @@ select
     remain_principal                                                        as remain_principal,
     remain_interest                                                         as remain_interest,
     (nvl(remain_svc_fee, 0) + nvl(remain_term_fee,0))                       as remain_fee,
-    0                                                                       as remain_penalty_interest,
+    remain_othamounts                                                       as remain_penalty_interest,
     remain_amount_cps                                                       as remain_amount_cps,
     remain_principal_cps                                                    as remain_principal_cps,
     remain_interest_cps                                                     as remain_interest_cps,
     (nvl(remain_svc_fee_cps, 0) + nvl(remain_term_fee_cps,0))               as remain_fee_cps,
-    0                                                                       as remain_penalty_interest_cps,
-    if(loan.paid_out_type = 'BUY_BACK','Y','N')                             as is_buy_back,
+    remain_othamounts_cps                                                   as remain_penalty_interest_cps,
+    if(buy_back_count > 0,'Y','N')                                          as is_buy_back,
     loan.product_id                                                         as product_id,
     '${ST9}'                                                                as snapshot_day
 from
@@ -76,37 +79,46 @@ from
         overdue_date_first,overdue_date_start,overdue_terms_count,
         overdue_term,overdue_principal,overdue_interest,
         overdue_svc_fee,overdue_term_fee,overdue_penalty,overdue_mult_amt,
-        remain_amount,remain_principal,remain_interest,remain_svc_fee,remain_term_fee
-    from ods.loan_info where '${ST9}' between s_d_date and date_sub(e_d_date,1)
+        remain_amount,remain_principal,remain_interest,remain_svc_fee,remain_term_fee,remain_othAmounts
+    from ods${suffix}.loan_info where '${ST9}' between s_d_date and date_sub(e_d_date,1)
     and overdue_days > 0
 ) loan
 inner join
-(select distinct
-         channel_id,
-         project_id,
-         product_id,
-         product_name,
-         project_name
-         from (
-           select
-             max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
-             max(if(col_name = 'project_id',   col_val,null)) as project_id,
-             max(if(col_name = 'product_id',   col_val,null)) as product_id,
-             max(if(col_name = 'product_name',   col_val,null)) as product_name,
-             max(if(col_name = 'project_name',   col_val,null)) as project_name
-           from dim.data_conf
-           where col_type = 'ac'
-           group by col_id
-        )tmp where project_id in ('WS0009200001','WS0006200001','WS0006200002',
-'WS0006200003','bd')) biz
+(
+    select
+      distinct
+      channel_id,
+      project_id,
+      product_id
+      from
+      (
+        select
+           max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
+           max(if(col_name = 'project_id',   col_val,null)) as project_id,
+           max(if(col_name = 'product_id',   col_val,null)) as product_id
+         from dim.data_conf
+         where col_type = 'ac'
+         group by col_id
+      ) tmp
+      where  project_id in ('WS0012200001','WS0009200001','WS0006200001','WS0006200002','WS0006200003','WS0013200001')
+) biz
 on loan.product_id = biz.product_id
-left join ods_new_s.loan_lending lending
+left join ods${suffix}.loan_lending lending
 on loan.due_bill_no = lending.due_bill_no
 left join
 (
     select
         due_bill_no as due_bill_no_cps,remain_amount as remain_amount_cps,remain_principal as remain_principal_cps
-        ,remain_interest as remain_interest_cps,remain_svc_fee as remain_svc_fee_cps,remain_term_fee as remain_term_fee_cps
-    from ods_cps.loan_info where '${ST9}' between s_d_date and date_sub(e_d_date,1)
+        ,remain_interest as remain_interest_cps,remain_svc_fee as remain_svc_fee_cps,remain_term_fee as
+        remain_term_fee_cps,remain_othamounts as remain_othamounts_cps
+    from ods_cps${suffix}.loan_info where '${ST9}' between s_d_date and date_sub(e_d_date,1)
 ) loan_cps
-on loan.due_bill_no = loan_cps.due_bill_no_cps;
+on loan.due_bill_no = loan_cps.due_bill_no_cps
+left join
+(
+    select due_bill_no as due_bill_no_schedule,count(if(paid_out_type='BUY_BACK',1,null)) as buy_back_count
+    from ods_cps${suffix}.repay_schedule where '${ST9}' between s_d_date and date_sub(e_d_date,1)
+    group by due_bill_no
+) repay_schedule
+on loan.due_bill_no = repay_schedule.due_bill_no_schedule
+;

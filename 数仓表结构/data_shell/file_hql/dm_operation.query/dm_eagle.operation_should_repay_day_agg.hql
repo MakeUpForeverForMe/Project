@@ -36,65 +36,80 @@ set hive.input.format=org.apache.hadoop.hive.ql.io.CombineHiveInputFormat;
 --) COMMENT '应还日报表'
 --PARTITIONED BY (`biz_date` string COMMENT '观察日期',`product_id` string COMMENT '产品编号')
 --STORED AS PARQUET;
-insert overwrite table dm_eagle.operation_should_repay_day_agg partition(biz_date,product_id)
+insert overwrite table dm_eagle${suffix}.operation_should_repay_day_agg partition(biz_date,product_id)
 select
- t2.channel_id                                                                                                                                         --'合同渠道方' 
-,t2.project_id                                                                                                                                         --'项目名称' 
-,t1.should_repay_date                                                                                                                                  --'应还日期' 
-,sum(if('${ST9}'<=should_repay_date, nvl(t1.should_repay_amount,                                      0),0)) as should_repay_amount                    --'应还金额' 
-,sum(if('${ST9}'<=should_repay_date, nvl(t1.should_repay_principal,                                   0),0)) as should_repay_principal                 --'应还本金' 
-,sum(if('${ST9}'<=should_repay_date, nvl(t1.should_repay_interest,                                    0),0)) as should_repay_interest                  --'应还利息' 
-,sum(if('${ST9}'<=should_repay_date, nvl(t1.should_repay_term_fee, 0) + nvl( t1.should_repay_svc_fee, 0),0)) as should_repay_fee                       --'应还费用' 
-,sum(if('${ST9}'<=should_repay_date, nvl(t1.should_repay_penalty,                                     0),0)) as should_repay_penalty                   --'应还罚息' 
-,sum(if('${ST9}'<=should_repay_date and is_settled != 'F', nvl(t1.should_repay_amount,                0),0)) as should_repay_amount_unpaid             --'应还金额(未结清)' 
-,sum(if('${ST9}'<=should_repay_date and is_settled != 'F', nvl(t1.should_repay_principal,             0),0)) as should_repay_principal_unpaid          --'应还本金(未结清)' 
-,sum(if('${ST9}'<=should_repay_date and is_settled != 'F', nvl(t1.should_repay_interest,              0),0)) as should_repay_interest_unpaid           --'应还利息(未结清)' 
-,sum(if('${ST9}'<=should_repay_date and is_settled != 'F', nvl(t1.should_repay_term_fee, 0)                                                     
-                                                                + nvl( t1.should_repay_svc_fee,       0),0)) as should_repay_fee_unpaid                --'应还费用(未结清)' 
-,sum(if('${ST9}'<=should_repay_date and is_settled != 'F', nvl(t1.should_repay_penalty,       0),0)) as should_repay_penalty_unpaid                    --'应还罚息(未结清)' 
-,'${ST9}' as biz_date                                                                                                                                  --'观察日' 
-,t1.product_id                                                                                                                                         --'产品编号' 
+ t2.channel_id                                                                                        ,--'合同渠道方'
+ t2.project_id                                                                                        ,--'项目名称'
+ t1.should_repay_date                                                                                 ,--'应还日期'
+ sum(if('${ST9}'<=should_repay_date,t1.should_repay_amount - t1.paid_amount - t1.reduce_amount,0)) as should_repay_amount,--'应还金额'
+ sum(if('${ST9}'<=should_repay_date,t1.should_repay_principal - t1.paid_principal -t1.reduce_principal,0)) as should_repay_principal,--'应还本金'
+ sum(if('${ST9}'<=should_repay_date,t1.should_repay_interest - t1.paid_interest -t1.reduce_interest,0)) as should_repay_interest,--'应还利息'
+ sum(if('${ST9}'<=should_repay_date,t1.should_repay_term_fee +  t1.should_repay_svc_fee - t1.paid_term_fee - t1.paid_svc_fee - t1.reduce_term_fee - t1.reduce_svc_fee,0)) as should_repay_fee,--'应还费用'
+ sum(if('${ST9}'<=should_repay_date,t1.should_repay_penalty - t1.paid_penalty - t1.reduce_penalty,0)) as should_repay_penalty, --'应还罚息'
+ sum(if('${ST9}'<=should_repay_date and is_settled != 'F',t1.should_repay_amount - t1.paid_amount - t1.reduce_amount,0)) as should_repay_amount_unpaid,--'应还金额(未结清)'
+ sum(if('${ST9}'<=should_repay_date and is_settled != 'F',t1.should_repay_principal - t1.paid_principal -t1.reduce_principal,0)) as should_repay_principal_unpaid,--'应还本金(未结清)'
+ sum(if('${ST9}'<=should_repay_date and is_settled != 'F',t1.should_repay_interest - t1.paid_interest - t1.reduce_interest,0)) as should_repay_interest_unpaid,--'应还利息(未结清)'
+ sum(if('${ST9}'<=should_repay_date and is_settled != 'F',t1.should_repay_term_fee +  t1.should_repay_svc_fee - t1.paid_term_fee - t1.paid_svc_fee - t1.reduce_term_fee - t1.reduce_svc_fee,0)) as should_repay_fee_unpaid,--'应还费用(未结清)'
+ sum(if('${ST9}'<=should_repay_date,t1.should_repay_penalty - t1.paid_penalty - t1.reduce_penalty,0)) as should_repay_penalty_unpaid, --'应还罚息(未结清)'
+ '${ST9}' as biz_date                                                                                 ,--'观察日'
+ t1.product_id                                                                                         --'产品编号'
 from
 (
-SELECT
-    product_id,
-    due_bill_no,
-    should_repay_date,
-    should_repay_amount,
-    should_repay_principal,
-    should_repay_interest,
-    should_repay_term_fee,
-    should_repay_svc_fee,
-    should_repay_penalty,
-    if(schedule_status = 'F','F','N') AS is_settled     
-FROM
-    ods_cps.repay_schedule
-WHERE
-    '${ST9}' BETWEEN s_d_date 
-    AND date_sub( e_d_date, 1 )
-    and '${ST9}' <= should_repay_date
-    ) t1 
-    join
+    SELECT
+        product_id,
+        due_bill_no,
+        should_repay_date,
+        should_repay_amount,
+        should_repay_principal,
+        should_repay_interest,
+        should_repay_term_fee,
+        should_repay_svc_fee,
+        should_repay_penalty,
+        paid_amount,
+        paid_principal,
+        paid_interest,
+        paid_term_fee,
+        paid_svc_fee,
+        paid_penalty,
+        reduce_amount,
+        reduce_principal,
+        reduce_interest,
+        reduce_term_fee,
+        reduce_svc_fee,
+        reduce_penalty,
+        if(schedule_status = 'F','F','N') AS is_settled
+    FROM
+        ods_cps${suffix}.repay_schedule
+    WHERE
+        '${ST9}' BETWEEN s_d_date
+        AND date_sub( e_d_date, 1 )
+        and '${ST9}' <= should_repay_date
+        and '${ST9}' >= loan_active_date
+        and schedule_status <> 'F'
+) t1
+join
 (
-    select distinct
-         channel_id,
-         project_id,
-         product_id
-         from (
-           select
-             max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
-             max(if(col_name = 'project_id',   col_val,null)) as project_id,
-             max(if(col_name = 'product_id',   col_val,null)) as product_id
-           from dim.data_conf
-           where col_type = 'ac'
-           group by col_id
-       )tmp
-    where 
-    project_id in ('WS0009200001','WS0006200001','WS0006200002','WS0006200003')) t2
-    on t1.product_id = t2.product_id
-    group by
-     t1.product_id
-    ,t2.channel_id
-    ,t2.project_id
-    ,t1.should_repay_date
-    ;
+    select
+      distinct
+      channel_id,
+      project_id,
+      product_id
+      from
+      (
+        select
+           max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
+           max(if(col_name = 'project_id',   col_val,null)) as project_id,
+           max(if(col_name = 'product_id',   col_val,null)) as product_id
+         from dim.data_conf
+         where col_type = 'ac'
+         group by col_id
+      ) tmp
+      where  project_id in ('WS0012200001','WS0009200001','WS0006200001','WS0006200002','WS0006200003','WS0013200001')
+) t2
+on t1.product_id = t2.product_id
+group by
+ t1.product_id
+,t2.channel_id
+,t2.project_id
+,t1.should_repay_date
+;

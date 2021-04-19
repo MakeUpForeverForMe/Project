@@ -25,16 +25,28 @@ execute_hql(){
   local flag=false n=0
   while [[ $flag == false && $n -le ${manage_retry_num:=5} ]]; do
     query_cmd="$beeline_cmd -f $manage_hql"
-    # echo $query_cmd
-    eval $query_cmd
-    flag=$([[ $? == 0 ]] && echo true || echo false)
-    [[ $flag == false ]] && echo -e "$(date +'%F %T') 执行日期为：$manage_s_date 的数据任务 $app_name ${param_db_tb[1]} 执行失败，重试第 $(($n + 1)) 次（默认重试次数为： $manage_retry_num） $([[ $n == $manage_retry_num ]] && echo '跳过')"
+    beeline_log_tmp_file=$(mktemp -t ${manage_job_name}$app_name-${manage_s_date}.XXXXXX) || exit 1
+
+    echo 'yarn_application_id in beeline_log_tmp_file is'$beeline_log_tmp_file
+
+    echo $query_cmd
+    eval $query_cmd 2>&1 | tee $beeline_log_tmp_file
+
+    flag=$([[ ${PIPESTATUS[0]} == 0 ]] && echo true || echo false)
+
+    yarn_application_id=$(grep -Po 'App id \Kapplication[_\d]+[^)]' $beeline_log_tmp_file)
+    echo 'yarn_application_id is '$yarn_application_id
+
+    [[ -n $beeline_log_tmp_file ]] && trap $(rm -f $beeline_log_tmp_file) 1 2 9 15 19 20
+
+    [[ $flag == false ]] && echo -e "$(date +'%F %T') 执行日期为：$manage_s_date 的数据任务 $app_name ${param_db_tb[1]} $yarn_application_id 执行失败，重试第 $(($n + 1)) 次（默认重试次数为： $manage_retry_num） $([[ $n == $manage_retry_num ]] && echo '跳过')"
     [[ $flag == false && -n $manage_mail_file && $n == $manage_retry_num ]] && {
       # echo \
       $mail $manage_mail_file 'data_manage 执行任务失败' "$(echo -e "
         \n发送时间为： $(date +'%F %T')
         \n执行日期为： $manage_s_date
         \n执行文件为： $manage_hql
+        \n执行yarnId： $yarn_application_id
         \n执行语句为： $query_cmd
         \n配置文件为： $manage_param
         \n    内容为：
@@ -195,9 +207,10 @@ while [[ "$(date -d "$manage_s_date" +%s)" -le "$(date -d "${manage_e_date:=$2}"
   unset date_in_s date_in_e
   {
     [[ $manage_type == 'hive' ]] && {
+      # --hiveconf hive.session.id='${manage_job_name}$app_name-${manage_s_date}-$(date +%N)' \ # 不能添加，会导致日志不全，没有yarn的applicationID
       beeline_cmd="$cmd_beeline \
-      --hiveconf mapred.job.name='${manage_job_name}$app_name-${manage_s_date}' \
-      --hiveconf spark.app.name='${manage_job_name}$app_name-${manage_s_date}' \
+      --hiveconf mapred.job.name='${manage_job_name}$app_name-${manage_s_date}-$(date +%N)' \
+      --hiveconf spark.app.name='${manage_job_name}$app_name-${manage_s_date}-$(date +%N)' \
       --hivevar ST9=${manage_s_date}"
     } || {
       beeline_cmd="$cmd_beeline \
@@ -206,7 +219,7 @@ while [[ "$(date -d "$manage_s_date" +%s)" -le "$(date -d "${manage_e_date:=$2}"
 
     echo -e "${date_in_s:=$(date +'%F %T')} 开始日期为：$manage_s_date 的数据任务 $app_name ${param_db_tb[1]} 执行开始 当前脚本进程ID为：$(pid)"                                              &>> $manage_log
     execute_hql                                                                                                                                                                               &>> $manage_log
-    echo -e "${date_in_e:=$(date +'%F %T')} 结束日期为：$manage_s_date 的数据任务 $app_name ${param_db_tb[1]} 执行结束 当前脚本进程ID为：$(pid)  用时：$(during "$date_in_e" "$date_in_s")\n" &>> $manage_log
+    echo -e "${date_in_e:=$(date +'%F %T')} 结束日期为：$manage_s_date 的数据任务 $app_name ${param_db_tb[1]} $yarn_application_id 执行结束 当前脚本进程ID为：$(pid)  用时：$(during "$date_in_e" "$date_in_s")\n" &>> $manage_log
   } &
   p_opera ${manage_parallel_num:-1}                                                                                                                                                           &>> $manage_log
   [[ $manage_s_date == $manage_e_date ]] && wait_jobs

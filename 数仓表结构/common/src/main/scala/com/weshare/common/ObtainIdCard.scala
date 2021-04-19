@@ -17,7 +17,7 @@ object ObtainIdCard {
   private val log: Logger = LoggerFactory.getLogger("IdCard")
 
   def main(args: Array[String]): Unit = {
-    val idno="511925200012245560"
+    val idno="340829199602114415"
     log.info("<--调用接口请求返回身份证信息-->")
     val url:URL=new URL(s"http://api.k780.com:88/?app=idcard.get&idcard=${idno}&appkey=10003&sign=b59bc3ef6191eb9f747dd4e83c99f2a4&format=json")
     val stream = url.openStream()

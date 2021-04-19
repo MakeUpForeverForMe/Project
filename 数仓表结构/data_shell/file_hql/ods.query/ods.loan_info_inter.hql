@@ -93,7 +93,7 @@ from (
     if(
       (ecas_loan.paid_out_date = ecas_loan.loan_active_date and ecas_loan.loan_term = 1) or ecas_loan.paid_out_date is null or '${ST9}' <= ecas_loan.paid_out_date,
       repay_schedule.should_repay_date,
-      null
+      if(ecas_loan.loan_status = 'F',settled_repay_schedule.should_repay_date,null)
     ) as should_repay_date,
     ecas_loan.loan_term_repaid,
     ecas_loan.loan_term_remain,
@@ -501,6 +501,19 @@ from (
   left join (
     select
       due_bill_no,
+      max(pmt_due_date) as should_repay_date,
+      product_code      as product_id
+    from stage.ecas_repay_schedule${tb_suffix}
+    where 1 > 0
+      and d_date = '${ST9}'                               -- 取快照日当天的所有还款计划数据
+      and curr_term > 0                                   -- 过滤掉汇通的第 0 期的情况
+      and product_code in (${product_id})
+    group by due_bill_no,product_code
+  ) settled_repay_schedule                                -- 结清借据会取最大应还日
+  on ecas_loan.due_bill_no = settled_repay_schedule.due_bill_no
+  left join (
+    select
+      due_bill_no,
       min(curr_term)    as loan_term2,
       min(pmt_due_date) as should_repay_date,
       product_code      as product_id
@@ -563,7 +576,7 @@ left join (
     if(
       (ecas_loan.paid_out_date = ecas_loan.loan_active_date and ecas_loan.loan_term = 1) or ecas_loan.paid_out_date is null or '${ST9}' <= ecas_loan.paid_out_date,
       repay_schedule.should_repay_date,
-      null
+      if(ecas_loan.loan_status = 'F',settled_repay_schedule.should_repay_date,null)
     ) as should_repay_date,
     ecas_loan.loan_term_repaid,
     ecas_loan.loan_term_remain,
@@ -823,6 +836,19 @@ left join (
     group by due_bill_no,d_date
   ) as repay_detail
   on ecas_loan.due_bill_no = repay_detail.due_bill_no
+  left join (
+    select
+      due_bill_no,
+      max(pmt_due_date) as should_repay_date,
+      product_code      as product_id
+    from stage.ecas_repay_schedule${tb_suffix}
+    where 1 > 0
+      and d_date = '${ST9}'                               -- 取快照日当天的所有还款计划数据
+      and curr_term > 0                                   -- 过滤掉汇通的第 0 期的情况
+      and product_code in (${product_id})
+    group by due_bill_no,product_code
+  ) settled_repay_schedule
+  on ecas_loan.due_bill_no = settled_repay_schedule.due_bill_no
   left join (
     select
       due_bill_no,

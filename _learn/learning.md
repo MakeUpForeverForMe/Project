@@ -1204,8 +1204,8 @@ users = 魏喜明<664651151@qq.com>,魏喜明<ximing.wei@weshareholdings.com>
 -- 查看分区
 show partitions ods_wefix.t_ad_query_water_json;
 
-DROP DATABASE IF EXISTS database cascade;      -- 级联删除，即：删除数据库的同时删除库中的表
-DROP DATABASE IF EXISTS database restrict;     -- 限制删除，即：删除数据库时有限制，需要先删除库中的表
+-- DROP DATABASE IF EXISTS database cascade;      -- 级联删除，即：删除数据库的同时删除库中的表
+-- DROP DATABASE IF EXISTS database restrict;     -- 限制删除，即：删除数据库时有限制，需要先删除库中的表
 CREATE DATABASE IF NOT EXISTS dm_report_asset; -- 创建数据库
 -- 删除表
 DROP TABLE IF EXISTS test;
@@ -1216,6 +1216,8 @@ CREATE TEMPORARY TABLE IF NOT EXISTS test(
 ) COMMENT '测试表'
 ;
 
+-- 修改数据库配置
+ALTER DATABASE db_hive SET dbproperties('createtime'='20170830');
 -- 表重命名
 ALTER TABLE test RENAME TO tet;
 -- 修改表注释
@@ -1232,6 +1234,8 @@ ALTER TABLE test REPLACE COLUMNS (id int COMMENT 'id', name string COMMENT '名�
 ALTER TABLE test ADD IF NOT EXISTS PARTITION (year_month='201911',day_of_month='29');
 -- 删除分区
 ALTER TABLE test DROP IF EXISTS PARTITION (year_month = '201911',day_of_month = 8);
+-- 修改 location
+ALTER TABLE stage.ecas_msg_log SET location 'cosn://bigdata-center-prod-1253824322/user/hadoop/warehouse/stage.db/ecas_msg_log';
 -- 修复分区
 MSCK REPAIR TABLE table_name;
 -- 赋权
@@ -1367,9 +1371,6 @@ ALTER TABLE table_name CHANGE old_field_name new_field_name field_type;
 
 -- 删除字段
 ALTER TABLE table_name DROP field_name;
-
--- 修改 location
-alter table stage.ecas_msg_log set location 'cosn://bigdata-center-prod-1253824322/user/hadoop/warehouse/stage.db/ecas_msg_log';
 
 -- 查看数据库建立语句：
 SHOW CREATE DATABASE db_name;

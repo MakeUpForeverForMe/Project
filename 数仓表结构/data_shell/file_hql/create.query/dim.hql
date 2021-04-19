@@ -181,7 +181,7 @@ STORED AS TEXTFILE;
 
 -- 静态逾期表
 -- DROP TABLE IF EXISTS `dim.dim_static_overdue_bill`;
-CREATE EXTERNAL TABLE IF NOT EXISTS `dim.dim_static_overdue_bill`(
+CREATE TABLE IF NOT EXISTS `dim.dim_static_overdue_bill`(
   `product_id`                    string         COMMENT '产品编号',
   `due_bill_no`                   string         COMMENT '借据编号',
   `loan_term`                     decimal(3,0)   COMMENT '当前期数',
@@ -199,14 +199,12 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `dim.dim_static_overdue_bill`(
   `loan_status`                   string         COMMENT '借据状态，不更新（N：正常，O：逾期，F：已还清）'
 ) COMMENT '借据静态逾期表，只记录第一次逾期31天、61天、91天的数据，只统计代偿前'
 PARTITIONED BY (`biz_date` string COMMENT '观察日期',`prj_type` string COMMENT '项目类别：DD、HT、LXGM、LXZT')
-STORED AS PARQUET
-location 'cosn://bigdata-center-prod-1253824322/user/hadoop/warehouse/dim.db/dim_static_overdue_bill'
-;
+STORED AS PARQUET;
 
 
 ---汇通服务报告资产包
 -- DROP TABLE IF EXISTS `dim.dim_ht_bag_asset`;
-CREATE EXTERNAL TABLE IF NOT EXISTS `dim.dim_ht_bag_asset`(
+CREATE TABLE IF NOT EXISTS `dim.dim_ht_bag_asset`(
   `project_id`                    string         COMMENT '项目ID',
   `due_bill_no`                   string         COMMENT '借据号',
   `asset_date`                    string         COMMENT '借据入包日期',
@@ -215,9 +213,7 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `dim.dim_ht_bag_asset`(
   `total_bag_remain_interest`     decimal(15,4)  COMMENT '借据入包时剩余利息'
 ) COMMENT 'dim 汇通资产包信息'
 PARTITIONED BY (`biz_date` string COMMENT '封包日期')
-STORED AS PARQUET
-location 'cosn://bigdata-center-prod-1253824322/user/hadoop/warehouse/dim.db/dim_ht_bag_asset'
-;
+STORED AS PARQUET;
 
 
 

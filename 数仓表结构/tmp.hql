@@ -332,7 +332,18 @@ ALTER TABLE dw_new_cps.dw_loan_base_stat_overdue_num_day_hst RENAME TO dw_new_cp
 -- drop table dw_new_cps.del_dw_loan_base_stat_overdue_num_day_bak_20201028;
 
 
+
+invalidate metadata dim.data_conf;
+invalidate metadata dim.dim_idno;
+invalidate metadata dim.dim_encrypt_info;
+invalidate metadata dim.dim_date;
+invalidate metadata dim.dim_static_overdue_bill;
+invalidate metadata dim.dim_ht_bag_asset;
+invalidate metadata dim.project_info;
 invalidate metadata dim.project_due_bill_no;
+invalidate metadata dim.bag_info;
+invalidate metadata dim.bag_due_bill_no;
+
 
 invalidate metadata stage.abs_t_related_assets;
 invalidate metadata stage.ecas_loan;
@@ -347,6 +358,11 @@ invalidate metadata ods.t_05_repaymentplan;
 
 invalidate metadata ods.t_10_basic_asset_stage;
 invalidate metadata ods.t_10_basic_asset;
+
+
+
+
+invalidate metadata dm_eagle.abs_asset_information_bag_snapshot;
 
 
 
@@ -391,9 +407,7 @@ ALTER TABLE dm_eagle.abs_overdue_rate_day RENAME TO dm_eagle.del_abs_overdue_rat
 
 
 
-show partitions ${dw_db_tb}
--- partition(product_id = 'DIDI201908161538')
-;
+show partitions ${dw_db_tb} partition(product_id = 'DIDI201908161538');
 
 alter table ${dw_db_tb} drop if exists partition(product_id = '001601');
 alter table ${dw_db_tb} drop if exists partition(product_id = '001602');
@@ -1055,6 +1069,7 @@ from dim_new.bag_info
 
 
 
+show partitions dm_eagle.abs_asset_information_bag_snapshot partition(project_id = 'CL202011090089');
 
 
 show partitions dw.dw_credit_apply_stat_day partition(product_id = 'pl00282');
@@ -1119,9 +1134,11 @@ set hivevar:ST9=2020-12-01;
 set hivevar:ST9=2021-02-01;
 
 
+set hivevar:ST9=2021-04-14;
 
 
-set hive.exec.input.listing.max.threads=50;
+
+set hive.exec.input.listing.max.threads=50; -- 最大1024
 set tez.grouping.min-size=15000000;
 set tez.grouping.max-size=15000000;
 set hive.exec.reducers.max=500;
@@ -1129,6 +1146,7 @@ set hive.exec.reducers.max=500;
 set hive.execution.engine=mr;
 set mapreduce.map.memory.mb=4096;
 set mapreduce.reduce.memory.mb=4096;
+
 set mapreduce.map.java.opts=-Xmx4096m;
 set mapreduce.reduce.java.opts=-Xmx4096m;
 set yarn.app.mapreduce.am.resource.mb=5192;

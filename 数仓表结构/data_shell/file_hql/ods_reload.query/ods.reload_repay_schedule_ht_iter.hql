@@ -18,8 +18,8 @@ set hivevar:db_suffix=;
 set hivevar:tb_suffix=;
 set hivevar:p_types='ddht','htgy';
 set hivevar:product_id_list='001601','001602','001603','002201','002202','002203';
---set hivevar:ST9=2021-03-29;
---set hivevar:d_date=2021-03-29;
+--set hivevar:ST9=2020-10-07;
+--set hivevar:d_date=2020-10-07;
 
 with repay_hst_repair as (
 select
@@ -222,7 +222,7 @@ repay_schedule.due_bill_no,
                     case when tmp.due_bill_no="1000000381" and tmp.d_date >='2020-08-17' then new_schedule.reduce_mult_amt else tmp.reduce_mult_amt end as reduce_mult_amt,
                     tmp.create_time,tmp.create_user,tmp.lst_upd_time,tmp.lst_upd_user,
                     case
-                         when tmp.due_bill_no="1000000223" and tmp.d_date >='2020-10-07' and tmp.curr_term=10 then '2020-10-07'
+                         when tmp.due_bill_no="1000000223" and tmp.d_date >='2020-11-07' and tmp.curr_term=10 then '2020-11-07'
                          when tmp.due_bill_no="1000000720" and tmp.d_date >='2020-10-16' and tmp.curr_term=3 then '2020-10-16'
                          when tmp.due_bill_no="1000000060" and tmp.d_date >='2020-10-04' and tmp.curr_term=10 then '2020-10-04'
                         when tmp.due_bill_no="1000000381" and tmp.d_date >='2020-08-17' then '2020-08-17'
@@ -277,7 +277,7 @@ repay_schedule.due_bill_no,
                         concat(tmp.due_bill_no,'::',cast(tmp.curr_term as string)) as due_bill_no_curr_term,
                         tmp.d_date,
                         case
-                             when tmp.due_bill_no="1000000223" and tmp.d_date >='2020-10-07' and tmp.curr_term=10 then '2020-10-07'
+                             when tmp.due_bill_no="1000000223" and tmp.d_date >='2020-11-07' and tmp.curr_term=10 then '2020-11-07'
                              when tmp.due_bill_no="1000000720" and tmp.d_date >='2020-10-16' and tmp.curr_term=3 then '2020-10-16'
                              when tmp.due_bill_no="1000000060" and tmp.d_date >='2020-10-04' and tmp.curr_term=10 then '2020-10-04'
                             when  tmp.due_bill_no="1000000381" and tmp.d_date >='2020-08-17' then '2020-08-17'
@@ -357,7 +357,7 @@ repay_schedule.due_bill_no,
                     when date_sub('${ST9}',1) >= pmt_due_date and curr_term!=0  then 'O'
                     else schedule_status end                                                                 as schedule_status,
             case
-                 when due_bill_no="1000000223" and d_date >='2020-10-07' and curr_term=10 then '2020-10-07'
+                 when due_bill_no="1000000223" and d_date >='2020-11-07' and curr_term=10 then '2020-11-07'
                  when due_bill_no="1000000720" and d_date >='2020-10-16' and curr_term=3 then '2020-10-16'
                  when due_bill_no="1000000060" and d_date >='2020-10-04' and curr_term=10 then '2020-10-04'
                 when  due_bill_no='1000000381' and d_date >='2020-08-17' then '2020-08-17'
@@ -419,7 +419,7 @@ repay_schedule.due_bill_no,
                     case when tmp.due_bill_no="1000000381" and tmp.d_date >='2020-08-17' then new_schedule.reduce_mult_amt else tmp.reduce_mult_amt end as reduce_mult_amt,
                     tmp.create_time,tmp.create_user,tmp.lst_upd_time,tmp.lst_upd_user,
                     case
-                         when tmp.due_bill_no="1000000223" and tmp.d_date >='2020-10-07' and tmp.curr_term=10 then '2020-10-07'
+                         when tmp.due_bill_no="1000000223" and tmp.d_date >='2020-11-07' and tmp.curr_term=10 then '2020-11-07'
                          when tmp.due_bill_no="1000000720" and tmp.d_date >='2020-10-16' and tmp.curr_term=3 then '2020-10-16'
                          when tmp.due_bill_no="1000000060" and tmp.d_date >='2020-10-04' and tmp.curr_term=10 then '2020-10-04'
                          when tmp.due_bill_no="1000000381" and tmp.d_date >='2020-08-17' then '2020-08-17'
@@ -474,7 +474,7 @@ repay_schedule.due_bill_no,
                         concat(tmp.due_bill_no,'::',cast(tmp.curr_term as string)) as due_bill_no_curr_term,
                         tmp.d_date,
                         case
-                             when tmp.due_bill_no="1000000223" and tmp.d_date >='2020-10-07' and tmp.curr_term=10 then '2020-10-07'
+                             when tmp.due_bill_no="1000000223" and tmp.d_date >='2020-11-07' and tmp.curr_term=10 then '2020-11-07'
                              when tmp.due_bill_no="1000000720" and tmp.d_date >='2020-10-16' and tmp.curr_term=3 then '2020-10-16'
                              when tmp.due_bill_no="1000000060" and tmp.d_date >='2020-10-04' and tmp.curr_term=10 then '2020-10-04'
                             when  tmp.due_bill_no='1000000381' and tmp.d_date >='2020-08-17' then '2020-08-17'

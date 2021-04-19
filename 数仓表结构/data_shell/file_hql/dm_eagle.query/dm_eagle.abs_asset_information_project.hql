@@ -87,27 +87,30 @@ select
   '${ST9}'                                                                                                                   as biz_date,
   loan.project_id                                                                                                            as project_id
 from (
-select * from ods.loan_info_abs
-where '${ST9}' between s_d_date and date_sub(e_d_date,1)
-  and loan_status <> 'F'
+  select * from ods.loan_info_abs
+  where '${ST9}' between s_d_date and date_sub(e_d_date,1)
+    and loan_status <> 'F'
 ) as loan
 left join ods.loan_lending_abs as lending
-on loan.due_bill_no = lending.due_bill_no and loan.project_id = lending.project_id
+on  loan.project_id  = lending.project_id
+and loan.due_bill_no = lending.due_bill_no
 left join ods.customer_info_abs as cust
-on loan.due_bill_no = cust.due_bill_no
+on  loan.project_id  = cust.project_id
+and loan.due_bill_no = cust.due_bill_no
 left join (
-select
-  due_bill_no,
-  sum(pawn_value) as pawn_value,
-  max(guarantee_type) as guarantee_type
-from ods.guaranty_info_abs
-group by due_bill_no
+  select
+    project_id,
+    due_bill_no,
+    sum(pawn_value)     as pawn_value,
+    max(guarantee_type) as guarantee_type
+  from ods.guaranty_info_abs
+  group by project_id,due_bill_no
 ) as guaranty
-on loan.due_bill_no = guaranty.due_bill_no and loan.project_id = guaranty.project_id
+on  loan.project_id  = guaranty.project_id
+and loan.due_bill_no = guaranty.due_bill_no
 inner join dim.bag_due_bill_no as bag_due
-on loan.due_bill_no = bag_due.due_bill_no
-inner join dim.bag_info as bag_info
-on bag_due.bag_id = bag_info.bag_id
+on  loan.project_id  = bag_due.project_id
+and loan.due_bill_no = bag_due.due_bill_no
 group by loan.project_id
 union all
 select
@@ -180,22 +183,25 @@ from (
     and loan_status <> 'F'
 ) as loan
 left join ods.loan_lending_abs as lending
-on loan.due_bill_no = lending.due_bill_no and loan.project_id = lending.project_id
+on  loan.project_id  = lending.project_id
+and loan.due_bill_no = lending.due_bill_no
 left join ods.customer_info_abs as cust
-on loan.due_bill_no = cust.due_bill_no
+on  loan.project_id  = cust.project_id
+and loan.due_bill_no = cust.due_bill_no
 left join (
-select
-  due_bill_no,
-  sum(pawn_value) as pawn_value,
-  max(guarantee_type) as guarantee_type
-from ods.guaranty_info_abs
-group by due_bill_no
+  select
+    project_id,
+    due_bill_no,
+    sum(pawn_value)     as pawn_value,
+    max(guarantee_type) as guarantee_type
+  from ods.guaranty_info_abs
+  group by project_id,due_bill_no
 ) as guaranty
-on loan.due_bill_no = guaranty.due_bill_no and loan.project_id = guaranty.project_id
+on  loan.project_id  = guaranty.project_id
+and loan.due_bill_no = guaranty.due_bill_no
 left join dim.bag_due_bill_no as bag_due
-on loan.due_bill_no = bag_due.due_bill_no
-left join dim.bag_info as bag_info
-on bag_due.bag_id = bag_info.bag_id
+on  loan.project_id  = bag_due.project_id
+and loan.due_bill_no = bag_due.due_bill_no
 group by loan.project_id
 -- limit 10
 ;

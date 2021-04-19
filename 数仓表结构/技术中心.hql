@@ -14684,7 +14684,7 @@ select * from dm_eagle.abs_early_payment_asset_statistic where project_id = 'CL2
 
 select * from ods.t_05_repaymentplan where project_id = 'CL202011090089' and serial_number = '1000000002' limit 10;
 
-select * from ods.t_05_repaymentplan where project_id = 'CL202102050098' and serial_number = 'GALC-HL-1705040105' limit 10;
+select * from ods.t_05_repaymentplan where project_id = 'CL202102050098' and serial_number = 'GALC-HL-1705040105' and period = 13 limit 10;
 
 select * from ods.repay_schedule_abs where project_id = 'CL202102050098' and due_bill_no = 'GALC-HL-1705040105' and loan_term = 13 limit 10;
 
@@ -14740,6 +14740,7 @@ MSCK REPAIR TABLE stage.asset_05_t_repayment_schedule;
 
 
 
+select * from dim.project_due_bill_no where project_id = 'CL202104080105' and due_bill_no = 'GALC-HL-1705040105';
 
 
 
@@ -14750,6 +14751,40 @@ MSCK REPAIR TABLE stage.asset_05_t_repayment_schedule;
 
 
 
+MSCK REPAIR TABLE dim.bag_due_bill_no;
+select * from dim.bag_due_bill_no limit 10;
+
+
+
+
+select * from ods.t_05_repaymentplan where project_id = 'CL202102050098' and serial_number = 'GALC-HL-1705040105' and period = 13 limit 10;
+
+select * from ods.repay_schedule_abs where project_id = 'CL202102050098' and due_bill_no = 'GALC-HL-1705040105' and loan_term = 13 limit 10;
+
+select * from ods.repay_schedule_inter where product_id = 'CL202101260095' and due_bill_no = 'GALC-HL-1705040105' and loan_term = 13 limit 10;
+
+
+select
+  case is_empty(map_from_str(extra_info)['项目编号'],project_id)
+    when 'Cl00333' then 'cl00333'
+    else is_empty(map_from_str(extra_info)['项目编号'],project_id)
+  end                                                                as project_id,
+  is_empty(map_from_str(extra_info)['借据号'],asset_id)              as due_bill_no,
+  is_empty(map_from_str(extra_info)['期次'],period)                  as loan_term,
+  is_empty(map_from_str(extra_info)['应还款日'],repay_date)          as should_repay_date,
+  is_empty(map_from_str(extra_info)['应还本金(元)'],repay_principal) as should_repay_principal,
+  is_empty(map_from_str(extra_info)['应还利息(元)'],repay_interest)  as should_repay_interest,
+  is_empty(map_from_str(extra_info)['应还费用(元)'],repay_fee)       as should_repay_term_fee,
+  is_empty(map_from_str(extra_info)['应还罚息(元)'],repay_penalty)   as should_repay_penalty,
+  is_empty(map_from_str(extra_info)['生效日期'],execute_date)        as effective_date,
+  d_date
+from stage.asset_05_t_repayment_schedule
+where 1 > 0
+  and d_date between '2021-01-01' and '2021-04-05'
+  and is_empty(map_from_str(extra_info)['项目编号'],project_id) = 'CL202101260095'
+  and is_empty(map_from_str(extra_info)['借据号'],asset_id) = 'GALC-HL-1705040105'
+  and is_empty(map_from_str(extra_info)['期次'],period) = '13'
+;
 
 
 
@@ -14757,25 +14792,93 @@ MSCK REPAIR TABLE stage.asset_05_t_repayment_schedule;
 
 
 
+63 4129.22000 + 203 2262.55000 + 74 9076.65000 = 341 5468.42000
+
+1 4656 7089.55000 + 46 3603.10000 + 4622 2180.09000 + 7675 5580.21000 = 2 7000 8452.95
+
+1998 + 1292 + 2 + 678 = 3970
+
+
+
+
+select count(distinct bag_due.due_bill_no)
+from (
+  select * from dim.bag_due_bill_no
+  where project_id = 'CL202011090089'
+) as bag_due
+inner join (
+  select * from ods.loan_info_abs
+  where project_id = 'CL202011090089'
+    and '2021-04-14' between s_d_date and date_sub(e_d_date,1)
+    and loan_status <> 'F'
+) as loan_info
+on  bag_due.project_id  = loan_info.project_id
+and bag_due.due_bill_no = loan_info.due_bill_no
+;
+
+
++-----------------+----------------+-----------------+----------------+-------------------+
+|  project_id_a   | due_bill_no_a  |  project_id_b   | due_bill_no_b  | remain_principal  |
++-----------------+----------------+-----------------+----------------+-------------------+
+| CL202011090089  | 1000002025     | CL202011090089  | 1000002025     | 101772.81000      |
+| CL202011090089  | 1000002179     | CL202011090089  | 1000002179     | 119049.71000      |
+| CL202011090089  | 1000003236     | CL202011090089  | 1000003236     | 32175.00000       |
+| CL202011090089  | 1000003817     | CL202011090089  | 1000003817     | 86640.00000       |
+| CL202011090089  | 1000001567     | CL202011090089  | 1000001567     | 43171.87000       |
+| CL202011090089  | 1000000505     | CL202011090089  | 1000000505     | 40258.10000       |
+| CL202011090089  | 1000003261     | CL202011090089  | 1000003261     | 40162.06000       |
+| CL202011090089  | 1000005130     | CL202011090089  | 1000005130     | 51999.98000       |
+| CL202011090089  | 1000003297     | CL202011090089  | 1000003297     | 68685.44000       |
+| CL202011090089  | 1000002291     | CL202011090089  | 1000002291     | 88070.93000       |
+| CL202011090089  | 1000003890     | CL202011090089  | 1000003890     | 37909.82000       |
+| CL202011090089  | 1000001553     | CL202011090089  | 1000001553     | 105001.09000      |
+| CL202011090089  | 1000000217     | CL202011090089  | 1000000217     | 62237.52000       |
+| CL202011090089  | 1000000518     | CL202011090089  | 1000000518     | 50842.47000       |
++-----------------+----------------+-----------------+----------------+-------------------+
+
+
+select * from dim.bag_due_bill_no
+where project_id = 'CL202011090089'
+limit 100
+;
+
+1000004054
+
+
+
+select count(distinct due_bill_no) from dim.bag_due_bill_no
+where 1 > 0
+  and project_id = 'CL202011090089';
 
 
 
 
 
 
+select
+  due_bill_no,
+  overdue_principal
+from ods_new_s.loan_info
+where product_id = '001601'
+and '2021-04-14' between s_d_date and date_sub(e_d_date,1)
+and loan_status = 'O'
+limit 20
+;
 
 
 
 
 
 
+select
+  due_bill_no,
+  overdue_prin
+from ods.ecas_loan
+where product_code = '001601'
+and '2021-04-14' = d_date
+and loan_status = 'O'
+limit 20
+;
 
 
-
-
-
-
-
-
-
-
+CRITICAL

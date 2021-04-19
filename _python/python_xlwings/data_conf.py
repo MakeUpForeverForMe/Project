@@ -19,7 +19,7 @@ def len_str(string):
     return len_zh, len_en
 
 
-class ExcelWings:
+class ExcelWings(object):
     def __init__(self, excel_name):
         """ 初始化 Excel """
         """ 打开 Excel """

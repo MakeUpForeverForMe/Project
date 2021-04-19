@@ -23,11 +23,10 @@ set hive.vectorized.execution.reduce.groupby.enabled=false;
 
 
 -- set hivevar:ST9=2020-01-01;
--- set hivevar:snapshot=;
 -- set hivevar:bag_id=;
 
 
-insert overwrite table dm_eagle.abs_asset_information_bag${snapshot} partition(biz_date,bag_id)
+insert overwrite table dm_eagle.abs_asset_information_bag partition(biz_date,bag_id)
 select
   loan.project_id                                                                                          as project_id,
   count(loan.due_bill_no)                                                                                  as asset_count,
@@ -91,7 +90,7 @@ select
       )
     ) / sum(if(guaranty.guarantee_type = '抵押担保',loan.remain_principal,0))
   )                                                                                                        as pledged_asset_rate_avg_weighted,
-  if('${snapshot}' = '_snapshot',bag_info.bag_date,'${ST9}')                                               as biz_date,
+  '${ST9}'                                                                                                 as biz_date,
   bag_due.bag_id                                                                                           as bag_id
 from (
   select * from dim.bag_due_bill_no ${bag_id}
@@ -102,22 +101,25 @@ inner join (
     and '${ST9}' between s_d_date and date_sub(e_d_date,1)
     and loan_status <> 'F'
 ) as loan
-on bag_due.due_bill_no = loan.due_bill_no
-inner join dim.bag_info as bag_info
-on bag_due.bag_id = bag_info.bag_id
+on  bag_due.project_id  = loan.project_id
+and bag_due.due_bill_no = loan.due_bill_no
 left join ods.loan_lending_abs as lending
-on loan.due_bill_no = lending.due_bill_no and loan.project_id = lending.project_id
+on  bag_due.project_id  = lending.project_id
+and bag_due.due_bill_no = lending.due_bill_no
 left join ods.customer_info_abs as cust
-on loan.due_bill_no = cust.due_bill_no
+on  bag_due.project_id  = cust.project_id
+and bag_due.due_bill_no = cust.due_bill_no
 left join (
   select
+    project_id,
     due_bill_no,
     sum(pawn_value) as pawn_value,
     max(guarantee_type) as guarantee_type
   from ods.guaranty_info_abs
-  group by due_bill_no
-) guaranty
-on loan.due_bill_no = guaranty.due_bill_no and loan.project_id = guaranty.project_id
-group by bag_due.bag_id,loan.project_id,bag_info.bag_date
+  group by project_id,due_bill_no
+) as guaranty
+on  bag_due.project_id  = guaranty.project_id
+and bag_due.due_bill_no = guaranty.due_bill_no
+group by bag_due.bag_id,loan.project_id
 -- limit 10
 ;

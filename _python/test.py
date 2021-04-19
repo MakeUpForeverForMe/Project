@@ -134,11 +134,27 @@
 # text_list = os.popen(cmd).readlines()
 # os.system('pwd')
 # print(text_list)
-print(ord('a'))
-print(ord('m'))
 
-print(len('打怪者'), len('abc'))  # 3 3
-print(len(u'打怪者'), len(u'abc'))  # 3 3
-print(len(u'打怪者'.encode('gbk')), len(u'abc'.encode('gbk')))  # 6 3
-print(len(u'打怪者'.encode()), len(u'abc'.encode()))  # 9 3
-print(len(u'打怪者'.encode('utf-8')), len(u'abc'.encode('utf-8')))  # 9 3
+
+# """ 测试字符串长度 """
+# print(ord('a'))
+# print(ord('m'))
+#
+# print(len('打怪者'), len('abc'))  # 3 3
+# print(len(u'打怪者'), len(u'abc'))  # 3 3
+# print(len(u'打怪者'.encode('gbk')), len(u'abc'.encode('gbk')))  # 6 3
+# print(len(u'打怪者'.encode()), len(u'abc'.encode()))  # 9 3
+# print(len(u'打怪者'.encode('utf-8')), len(u'abc'.encode('utf-8')))  # 9 3
+
+import logging
+
+logging.basicConfig(
+    format='%(asctime)s [%(levelname)s] - %(pathname)s[line:%(lineno)d] - : %(message)s',
+    level=logging.DEBUG
+)
+
+logging.debug('debug级别，最低级别，一般开发人员用来打印一些调试信息')
+logging.info('info级别，正常输出信息，一般用来打印一些正常的操作')
+logging.warning('waring级别，一般用来打印警信息')
+logging.error('error级别，一般用来打印一些错误信息')
+logging.critical('critical 级别，一般用来打印一些致命的错误信息,等级最高')
