@@ -136,10 +136,13 @@
 # print(text_list)
 
 
-# """ 测试字符串长度 """
-# print(ord('a'))
-# print(ord('m'))
-#
+""" 获取字符串 Unicode 码 """
+print(ord('a'))
+print(ord('m'))
+
+""" 测试字符串长度 """
+
+
 # print(len('打怪者'), len('abc'))  # 3 3
 # print(len(u'打怪者'), len(u'abc'))  # 3 3
 # print(len(u'打怪者'.encode('gbk')), len(u'abc'.encode('gbk')))  # 6 3
@@ -158,3 +161,16 @@
 # logging.warning('waring级别，一般用来打印警信息')
 # logging.error('error级别，一般用来打印一些错误信息')
 # logging.critical('critical 级别，一般用来打印一些致命的错误信息,等级最高')
+
+# print(str(15))
+
+
+def rgb2hex(r: int, g: int, b: int):
+    return int('%2x%2x%02x' % (b, g, r), 16)
+
+
+print(rgb2hex(5, 99, 193))
+
+col_width = (5, 99, 193)
+for i, width in enumerate(col_width):
+    print(i, width)
