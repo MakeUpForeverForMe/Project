@@ -91,19 +91,27 @@ b2d4 = sheet_range('b2:d4')
 # print(sheet_range('A1:B5').value)
 
 """ 写入 单元格数据 """
+
+
 # a1.value = 'sublime'
+
+
+def rgb2hex(rgb: tuple):
+    return int('%2x%2x%02x' % (rgb[2], rgb[1], rgb[0]), 16)
+
 
 """ 设置 字体 """
 # a1.api.NumberFormat = "0.00"        # 设置单元格的数字格式
 # a1.api.Font.ColorIndex = 3          # 设置字体的颜色，具体颜色索引见最上方
+# a1.api.Font.Color = rgb2hex(5, 99, 193)  # 设置字体颜色
 # a1.api.Font.Bold = True             # 设置为粗体。
 # a1.api.Font.FontStyle = '加粗'      # 设置为粗体
 # a1.api.Font.FontStyle = '倾斜'      # 设置为斜体
-# a1.api.Font.FontStyle = '加粗倾斜'  # 设置为加粗斜体
+# a1.api.Font.FontStyle = '加粗倾斜'   # 设置为加粗斜体
 # a1.api.Font.Underline = 2           # 设置字体 下划线 1：无，2：有
 # a1.api.HorizontalAlignment = -4108  # -4108 水平居中。 -4131 靠左，-4152 靠右
 # a1.api.VerticalAlignment = -4108    # -4108 垂直居中（默认）。 -4160 靠上，-4107 靠下， -4130 自动换行对齐
-# a1.color = 255, 153, 255            # 设置单元格的填充颜色
+# a1.color = (255, 153, 255)          # 设置单元格的填充颜色
 
 """ 操作 单元格 """
 """ 操作 单元格名称 """
