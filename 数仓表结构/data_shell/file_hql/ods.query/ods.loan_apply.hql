@@ -714,7 +714,7 @@ from (
 ;
 
 
---新核心 乐信云信
+-- 新核心 乐信云信
 msck repair table stage.lx_kafka_credit_msg;
 insert overwrite table ods.loan_apply partition(biz_date,product_id)
 select

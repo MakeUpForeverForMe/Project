@@ -40,10 +40,10 @@ select distinct
   marital_status                                                                                    as marriage_status,
   education_level                                                                                   as education,
   case
-  when education_level = '硕士' then '硕士及以上'
-  when education_level = '本科' then '大学本科'
-  when education_level in ('未知',null,'','null','NULL') then '未知'
-  else '大专及以下'
+    when education_level = '硕士' then '硕士及以上'
+    when education_level = '本科' then '大学本科'
+    when education_level in ('未知',null,'','null','NULL') then '未知'
+    else '大专及以下'
   end                                                                                               as education_ws,
   concat(dim_idno.idno_province_cn,dim_idno.idno_city_cn,dim_idno.idno_county_cn)                   as idcard_address,
   dim_idno.idno_area_cn                                                                             as idcard_area,
@@ -58,33 +58,36 @@ select distinct
   null                                                                                              as resident_county,
   null                                                                                              as resident_township,
   case borrower_industry
-  when 'NIL' then '空'
-  when 'A'   then '农、林、牧、渔业'
-  when 'B'   then '采矿业'
-  when 'C'   then '制造业'
-  when 'D'   then '电力、热力、燃气及水生产和供应业'
-  when 'E'   then '建筑业'
-  when 'F'   then '批发和零售业'
-  when 'G'   then '交通运输、仓储和邮政业'
-  when 'H'   then '住宿和餐饮业'
-  when 'I'   then '信息传输、软件和信息技术服务业'
-  when 'J'   then '金融业'
-  when 'K'   then '房地产业'
-  when 'L'   then '租赁和商务服务业'
-  when 'M'   then '科学研究和技术服务业'
-  when 'N'   then '水利、环境和公共设施管理业'
-  when 'O'   then '居民服务、修理和其他服务业'
-  when 'P'   then '教育'
-  when 'Q'   then '卫生和社会工作'
-  when 'R'   then '文化、体育和娱乐业'
-  when 'S'   then '公共管理、社会保障和社会组织'
-  when 'T'   then '国际组织'
-  when 'Z'   then '其他'
-  else '未知' end                                                                                   as job_type,
+    when 'NIL'  then '空'
+    when 'NULL' then '空'
+    when 'A'    then '农、林、牧、渔业'
+    when 'B'    then '采掘业'
+    when 'C'    then '制造业'
+    when 'D'    then '电力、燃气及水的生产和供应业'
+    when 'E'    then '建筑业'
+    when 'F'    then '交通运输、仓储和邮政业'
+    when 'G'    then '信息传输、计算机服务和软件业'
+    when 'H'    then '批发和零售业'
+    when 'I'    then '住宿和餐饮业'
+    when 'J'    then '金融业'
+    when 'K'    then '房地产业'
+    when 'L'    then '租赁和商务服务业'
+    when 'M'    then '科学研究、技术服务业和地质勘察业'
+    when 'N'    then '水利、环境和公共设施管理业'
+    when 'O'    then '居民服务和其他服务业'
+    when 'P'    then '教育'
+    when 'Q'    then '卫生、社会保障和社会福利业'
+    when 'R'    then '文化、体育和娱乐业'
+    when 'S'    then '公共管理和社会组织'
+    when 'T'    then '国际组织'
+    when 'Z'    then '其他'
+    else borrower_industry
+  end                                                                                               as job_type,
   work_years                                                                                        as job_year,
   annual_income / 12                                                                                as income_month,
   annual_income                                                                                     as income_year,
-  is_empty(customer_type,'个人')                                                                    as customer_type,
+  if(loan_type = '企业','企业',is_empty(customer_type,'未知'))                                      as customer_type,
+  loan_type                                                                                         as loan_type,
   cust_rating                                                                                       as cust_rating,
   project_id                                                                                        as project_id
 from (
@@ -156,6 +159,7 @@ join (
       else is_empty(map_from_str(extra_info)['项目编号'],project_id)
     end                                                       as product_id_contract,
     is_empty(map_from_str(extra_info)['借据号'],asset_id)     as serial_number,
+    is_empty(loan_type,'个人')                                as loan_type,
     is_empty(
       case when length(map_from_str(extra_info)['实际放款时间']) = 19 then to_date(map_from_str(extra_info)['实际放款时间'])
       else is_empty(datefmt(map_from_str(extra_info)['实际放款时间'],'','yyyy-MM-dd')) end,

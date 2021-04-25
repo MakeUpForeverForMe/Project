@@ -580,7 +580,7 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `stage.asset_04_t_guaranty_info`(
   `project_id`                                        string        COMMENT '项目id',
   `agency_id`                                         string        COMMENT '机构编号',
   `asset_id`                                          string        COMMENT '资产借据号',
-  `guaranty_type`                                     string        COMMENT '抵押物类型',
+  `guaranty_type`                                     string        COMMENT '抵押物类型（CAR_MORTGAGE：汽车抵押贷款，HOUSE_MORTGAGE：住房抵押贷款，PERSONAL_CONSUME：个人消费贷款）',
   `guaranty_umber`                                    string        COMMENT '抵押物编号',
   `mortgage_handle_status`                            string        COMMENT '抵押办理状态，0-办理中，1-办理完成，2-尚未办理',
   `mortgage_alignment`                                string        COMMENT '抵押顺位0-第一顺位,2-第二顺位,3-其他',

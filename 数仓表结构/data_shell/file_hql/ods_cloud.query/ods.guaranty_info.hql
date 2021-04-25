@@ -30,7 +30,13 @@ select distinct
   is_empty(map_from_str(extra_info)['抵押顺位'],mortgage_alignment)                 as guaranty_alignment,
   is_empty(map_from_str(extra_info)['车辆性质'])                                    as car_property,
   is_empty(map_from_str(extra_info)['融资方式'])                                    as financing_type,
-  is_empty(map_from_str(extra_info)['担保方式'])                                    as guarantee_type,
+  is_empty(
+    map_from_str(extra_info)['担保方式'],
+    case guaranty_type
+      when 'CAR_MORTGAGE' then '抵押担保'
+      else guaranty_type
+    end
+  )                                                                                 as guarantee_type,
   cast(is_empty(map_from_str(extra_info)['评估价格(元)'],0) as decimal(25,5))       as pawn_value,
   cast(is_empty(map_from_str(extra_info)['车辆销售价格(元)'],0) as decimal(25,5))   as car_sales_price,
   cast(is_empty(map_from_str(extra_info)['新车指导价(元)'],0) as decimal(25,5))     as car_new_price,
@@ -43,7 +49,7 @@ select distinct
   cast(is_empty(map_from_str(extra_info)['一年内车辆过户次数'],0) as decimal(20,0)) as one_year_car_transfer_number,
   cast(is_empty(map_from_str(extra_info)['责信保费用1'],0) as decimal(25,5))        as liability_insurance_cost1,
   cast(is_empty(map_from_str(extra_info)['责信保费用2'],0) as decimal(25,5))        as liability_insurance_cost2,
-  is_empty(map_from_str(extra_info)['车类型'])                                      as car_type,
+  is_empty(map_from_str(extra_info)['车类型'],'未知')                               as car_type,
   sha256(ptrim(map_from_str(extra_info)['车架号']),'frameNumber',1)                 as frame_num,
   sha256(ptrim(map_from_str(extra_info)['发动机号']),'engineNumber',1)              as engine_num,
   is_empty(map_from_str(extra_info)['GPS编号'])                                     as gps_code,

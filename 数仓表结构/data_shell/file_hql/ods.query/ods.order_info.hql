@@ -30,10 +30,6 @@ set hive.vectorized.execution.reduce.groupby.enabled=false;
 -- 乐信代偿后
 -- set hivevar:db_suffix=_cps;set hivevar:tb_suffix=;
 
--- 滴滴汇通瓜子
--- set hivevar:db_suffix=;set hivevar:tb_suffix=;
-
-
 -- 乐信产品编号
 -- set hivevar:product_id=
 --   select distinct product_id
@@ -48,6 +44,10 @@ set hive.vectorized.execution.reduce.groupby.enabled=false;
 --   where channel_id = '0006'
 -- ;
 
+
+
+-- 滴滴汇通瓜子
+-- set hivevar:db_suffix=;set hivevar:tb_suffix=;
 
 -- 滴滴汇通瓜子产品编号
 -- set hivevar:product_id='DIDI201908161538','001601','001602','001603','001701','001702','002201','002202','002203';
@@ -109,7 +109,12 @@ from (
     ecas_order.apply_no,
     ecas_order.due_bill_no,
     ecas_order.term,
-    ecas_order.pay_channel,
+    case ecas_order.pay_channel
+      when 1 then '宝付'
+      when 2 then '通联'
+      when 3 then '其他'
+      else ecas_order.pay_channel
+    end as pay_channel,
     ecas_order.command_type,
     ecas_order.order_status,
     ecas_order.repay_way,

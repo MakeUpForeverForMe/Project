@@ -28,16 +28,36 @@ select distinct
   is_empty(map_from_str(extra_info)['借据号'],asset_id)                                                                          as apply_no,
   is_empty(map_from_str(extra_info)['借据号'],asset_id)                                                                          as due_bill_no,
   null                                                                                                                           as term,
-  is_empty(map_from_str(extra_info)['交易渠道'],trade_channel)                                                                   as pay_channel,
+  case is_empty(map_from_str(extra_info)['交易渠道'],trade_channel)
+    when 1 then '宝付'
+    when 2 then '通联'
+    when 3 then '其他'
+    else is_empty(map_from_str(extra_info)['交易渠道'],trade_channel)
+  end                                                                                                                            as pay_channel,
   null                                                                                                                           as command_type,
-  is_empty(map_from_str(extra_info)['交易状态'],trade_status)                                                                    as order_status,
+  case is_empty(map_from_str(extra_info)['交易状态'],trade_status)
+    when 0 then 'A'
+    when 1 then 'E'
+    when '成功' then 'A'
+    when '失败' then 'E'
+    else is_empty(map_from_str(extra_info)['交易状态'],trade_status)
+  end                                                                                                                            as order_status,
   null                                                                                                                           as repay_way,
   is_empty(map_from_str(extra_info)['订单金额(元)'],order_amount)                                                                as txn_amt,
   null                                                                                                                           as success_amt,
   is_empty(map_from_str(extra_info)['交易币种'],trade_currency)                                                                  as currency,
   case when length(map_from_str(extra_info)['确认还款日期']) = 19 then to_date(map_from_str(extra_info)['确认还款日期'])
   else is_empty(datefmt(map_from_str(extra_info)['确认还款日期'],'','yyyy-MM-dd')) end                                           as business_date,
-  is_empty(map_from_str(extra_info)['交易类型'],trade_type)                                                                      as loan_usage,
+  case is_empty(map_from_str(extra_info)['交易类型'],trade_type)
+    when '回购'     then 'B'
+    when '代偿'     then 'D'
+    when '代扣'     then 'F'
+    when '处置回收' then 'H'
+    when '放款'     then 'L'
+    when '委托转付' then 'Z'
+    when '主动还款' then 'REPAY'
+    else is_empty(map_from_str(extra_info)['交易类型'],trade_type)
+  end                                                                                                                            as loan_usage,
   null                                                                                                                           as purpose,
   sha256(decrypt_aes(is_empty(map_from_str(extra_info)['银行帐号'],bank_account),'tencentabs123456'),'bankCard',1)               as bank_trade_act_no,
   sha256(decrypt_aes(is_empty(map_from_str(extra_info)['姓名'],name),'tencentabs123456'),'userName',1)                           as bank_trade_act_name,
@@ -61,6 +81,5 @@ where 1 > 0
     ''
   )
   and is_empty(datefmt(map_from_str(extra_info)['交易时间'],'','yyyy-MM-dd'),datefmt(trade_time,'','yyyy-MM-dd')) = '${ST9}'
-  -- and is_empty(datefmt(map_from_str(extra_info)['交易时间'],'','yyyy-MM-dd'),datefmt(trade_time,'','yyyy-MM-dd')) like '2017%'
 -- limit 50
 ;

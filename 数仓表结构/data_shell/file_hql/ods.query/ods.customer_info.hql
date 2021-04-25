@@ -211,7 +211,32 @@ from (
     resp_log.resident_city                                                          as resident_city,
     resp_log.resident_county                                                        as resident_county,
     null                                                                            as resident_township,
-    null                                                                            as job_type,
+    case resp_log.job_type
+      when 'NIL'  then '空'
+      when 'NULL' then '空'
+      when 'A'    then '农、林、牧、渔业'
+      when 'B'    then '采掘业'
+      when 'C'    then '制造业'
+      when 'D'    then '电力、燃气及水的生产和供应业'
+      when 'E'    then '建筑业'
+      when 'F'    then '交通运输、仓储和邮政业'
+      when 'G'    then '信息传输、计算机服务和软件业'
+      when 'H'    then '批发和零售业'
+      when 'I'    then '住宿和餐饮业'
+      when 'J'    then '金融业'
+      when 'K'    then '房地产业'
+      when 'L'    then '租赁和商务服务业'
+      when 'M'    then '科学研究、技术服务业和地质勘察业'
+      when 'N'    then '水利、环境和公共设施管理业'
+      when 'O'    then '居民服务和其他服务业'
+      when 'P'    then '教育'
+      when 'Q'    then '卫生、社会保障和社会福利业'
+      when 'R'    then '文化、体育和娱乐业'
+      when 'S'    then '公共管理和社会组织'
+      when 'T'    then '国际组织'
+      when 'Z'    then '其他'
+      else resp_log.job_type
+    end                                                                             as job_type,
     null                                                                            as job_year,
     null                                                                            as income_month,
     null                                                                            as income_year,
@@ -236,6 +261,7 @@ from (
       get_json_object(standard_req_msg,'$.borrower.province')                                              as resident_province,
       get_json_object(standard_req_msg,'$.borrower.city')                                                  as resident_city,
       get_json_object(standard_req_msg,'$.borrower.area')                                                  as resident_county,
+      get_json_object(standard_req_msg,'$.borrower.industry')                                              as job_type,
       substring(get_json_object(standard_req_msg,'$.borrower.id_no'),1,6)                                  as idcard_area,
       get_json_object(standard_req_msg,'$.product.product_no')                                             as product_id
     from stage.nms_interface_resp_log
@@ -409,26 +435,29 @@ from (
     null                                                                                                                  as resident_county,
     null                                                                                                                  as resident_township,
     case get_json_object(msg_log.original_msg,'$.reqContent.jsonReq.content.reqData.workWay')
-      when 'A' then '农、林、牧、渔业'
-      when 'B' then '采掘业'
-      when 'C' then '制造业'
-      when 'D' then '电力、燃气及水的生产和供应业'
-      when 'E' then '建筑业'
-      when 'F' then '交通运输、仓储和邮政业'
-      when 'G' then '信息传输、计算机服务和软件业'
-      when 'H' then '批发和零售业'
-      when 'I' then '住宿和餐饮业'
-      when 'J' then '金融业'
-      when 'K' then '房地产业'
-      when 'L' then '租赁和商务服务业'
-      when 'M' then '科学研究、技术服务业和地质勘察业N-水利、环境和公共设施管理业'
-      when 'O' then '居民服务和其他服务业'
-      when 'P' then '教育'
-      when 'Q' then '卫生、社会保障和社会福利业'
-      when 'R' then '文化、体育和娱乐业'
-      when 'S' then '公共管理和社会组织'
-      when 'T' then '国际组织'
-      when 'Z' then '未知'
+      when 'NIL'  then '空'
+      when 'NULL' then '空'
+      when 'A'    then '农、林、牧、渔业'
+      when 'B'    then '采掘业'
+      when 'C'    then '制造业'
+      when 'D'    then '电力、燃气及水的生产和供应业'
+      when 'E'    then '建筑业'
+      when 'F'    then '交通运输、仓储和邮政业'
+      when 'G'    then '信息传输、计算机服务和软件业'
+      when 'H'    then '批发和零售业'
+      when 'I'    then '住宿和餐饮业'
+      when 'J'    then '金融业'
+      when 'K'    then '房地产业'
+      when 'L'    then '租赁和商务服务业'
+      when 'M'    then '科学研究、技术服务业和地质勘察业'
+      when 'N'    then '水利、环境和公共设施管理业'
+      when 'O'    then '居民服务和其他服务业'
+      when 'P'    then '教育'
+      when 'Q'    then '卫生、社会保障和社会福利业'
+      when 'R'    then '文化、体育和娱乐业'
+      when 'S'    then '公共管理和社会组织'
+      when 'T'    then '国际组织'
+      when 'Z'    then '其他'
       else is_empty(get_json_object(msg_log.original_msg,'$.reqContent.jsonReq.content.reqData.workWay'))
     end                                                                                                                   as job_type,
     cast(is_empty(get_json_object(msg_log.original_msg,'$.reqContent.jsonReq.content.reqData.workYear')) as decimal(2,0)) as job_year,
@@ -578,27 +607,29 @@ from (
     get_json_object(msg_log.original_msg,'$.data.borrower.homeArea')                                                  as resident_county,
     null                                                                                                              as resident_township,
     case get_json_object(msg_log.original_msg,'$.data.borrower.industry')
-      when 'A' then '农、林、牧、渔业'
-      when 'B' then '采掘业'
-      when 'C' then '制造业'
-      when 'D' then '电力、燃气及水的生产和供应业'
-      when 'E' then '建筑业'
-      when 'F' then '交通运输、仓储和邮政业'
-      when 'G' then '信息传输、计算机服务和软件业'
-      when 'H' then '批发和零售业'
-      when 'I' then '住宿和餐饮业'
-      when 'J' then '金融业'
-      when 'K' then '房地产业'
-      when 'L' then '租赁和商务服务业'
-      when 'M' then '科学研究、技术服务业和地质勘察业'
-      when 'N' then '水利、环境和公共设施管理业'
-      when 'O' then '居民服务和其他服务业'
-      when 'P' then '教育'
-      when 'Q' then '卫生、社会保障和社会福利业'
-      when 'R' then '文化、体育和娱乐业'
-      when 'S' then '公共管理和社会组织'
-      when 'T' then '国际组织'
-      when 'Z' then '未知'
+      when 'NIL'  then '空'
+      when 'NULL' then '空'
+      when 'A'    then '农、林、牧、渔业'
+      when 'B'    then '采掘业'
+      when 'C'    then '制造业'
+      when 'D'    then '电力、燃气及水的生产和供应业'
+      when 'E'    then '建筑业'
+      when 'F'    then '交通运输、仓储和邮政业'
+      when 'G'    then '信息传输、计算机服务和软件业'
+      when 'H'    then '批发和零售业'
+      when 'I'    then '住宿和餐饮业'
+      when 'J'    then '金融业'
+      when 'K'    then '房地产业'
+      when 'L'    then '租赁和商务服务业'
+      when 'M'    then '科学研究、技术服务业和地质勘察业'
+      when 'N'    then '水利、环境和公共设施管理业'
+      when 'O'    then '居民服务和其他服务业'
+      when 'P'    then '教育'
+      when 'Q'    then '卫生、社会保障和社会福利业'
+      when 'R'    then '文化、体育和娱乐业'
+      when 'S'    then '公共管理和社会组织'
+      when 'T'    then '国际组织'
+      when 'Z'    then '其他'
       else is_empty(get_json_object(msg_log.original_msg,'$.data.borrower.industry'))
     end                                                                                                               as job_type,
     0                                                                                                                 as job_year,
@@ -680,122 +711,157 @@ from (
 ;
 
 
---新核心 乐信云信
+
+
+
+
+
+
+-- 新核心 乐信云信
 msck repair table stage.lx_kafka_credit_msg;
 insert overwrite table ods_sic.customer_info partition(product_id)
 select distinct *
-from
-(select
-  reqdata[ "applyNo" ] as apply_id,
-  reqdata[ "applyNo" ] as due_bill_no,
-  concat_ws('_',b.channel_id,sha256(reqdata[ "idNo" ],'idNumber',1),sha256(reqdata[ "custName" ],'userName',1)) as cust_id,
-  sha256(reqdata[ "idNo" ],'idNumber',1) as user_hash_no,
-  ''                                     as outer_cust_id,
-  case reqdata["idType"]
-  when '0' then '身份证'
-  when '1' then '户口簿'
-  when '2' then '护照'
-  when '3' then '军官证'
-  when '4' then '士兵证'
-  when '5' then '港澳居民来往内地通行证'
-  when '6' then '台湾同胞来往内地通行证'
-  when '7' then '临时身份证'
-  when '8' then '外国人居留证'
-  when '9' then '警官证'
-  when 'A' then '香港身份证'
-  when 'B' then '澳门身份证'
-  when 'C' then '台湾身份证'
-  when 'X' then '其他证件'
-  else is_empty(reqdata["idType"]) end as idcard_type,
-  sha256(reqdata[ "idNo" ],'idNumber',1)     as idcard_no,
-  sha256(reqdata[ "custName" ],'userName',1) as name,
-  sha256(reqdata[ "phoneNo" ],'phone',1)     as mobie,
-  ''                                         as card_phone,
-  is_empty(
-    case reqdata[ "sex" ]
-    when '1' then '男' when '2' then '女' else null end,
-    sex_idno(reqdata[ "idNo" ]))             as sex,
-  is_empty(
-    datefmt(reqdata[ "birth" ],'yyyyMMdd','yyyy-MM-dd'),
-    datefmt(substring(reqdata[ "idNo" ],7,8),'yyyyMMdd','yyyy-MM-dd')
-  ) as birthday,
-  floor(datediff(reqdata[ "loanDate" ],is_empty(
-    datefmt(reqdata[ "birth" ],'yyyyMMdd','yyyy-MM-dd'),
-    datefmt(substring(reqdata[ "idNo" ],7,8),'yyyyMMdd','yyyy-MM-dd')
-  )))                          as age,
-  case reqdata[ "marriage" ]
-  when '10' then '未婚'
-  when '20' then '已婚'
-  when '21' then '初婚'
-  when '22' then '再婚'
-  when '23' then '复婚'
-  when '30' then '丧偶'
-  when '40' then '离婚'
-  when '90' then '未说明的婚姻状况'
-  else is_empty(reqdata[ "marriage" ])
-  end                                                 as marriage_status,
-  case resdata[ "edu" ]
-  when '10' then '研究生'
-  when '20' then '大学本科（简称“大学”）'
-  when '30' then '大学专科和专科学校（简称“大专”）'
-  when '40' then '中等专业学校或中等技术学校'
-  when '50' then '技术学校'
-  when '60' then '高中'
-  when '70' then '初中'
-  when '80' then '小学'
-  when '90' then '文盲或半文盲'
-  when '99' then '未知'
-  else is_empty(resdata[ "edu" ])
-  end                                            as education,
-  case
-  when resdata[ "edu" ] = '10' then '硕士及以上'
-  when resdata[ "edu" ] = '20' then '大学本科'
-  when resdata[ "edu" ] in ('30','40','50','60','70','80','90') then '大专及以下'
-  when resdata[ "edu" ] = '99' then '未知'
-  else is_empty(resdata[ "edu" ])
-  end                                                         as education_ws,
-  concat(c.idno_province_cn,c.idno_city_cn,c.idno_county_cn) as idcard_address,
-  c.idno_area_cn as idcard_area,
-  c.idno_province_cn as idcard_province,
-  c.idno_city_cn as idcard_city,
-  c.idno_county_cn as idcard_county,
-  null as idcard_township,
-  ''   as resident_address,
-  null                                                                                                       as resident_area,
-  null                                                                                                       as resident_province,
-  null                                                                                                       as resident_city,
-  null                                                                                                       as resident_county,
-  null                                                                                                       as resident_township,
-  ''                               as job_type,
-  ''                                                                                                         as job_year,
-  0                                                                                                          as income_month,
-  0                                                                                                          as income_year,
-  case reqdata[ "custType" ]
-  when '01' then '农户'
-  when '02' then '工薪（包括白领、蓝领）'
-  when '03' then '个体工商户'
-  when '04' then '学生'
-  when '99' then '其他'
-  else is_empty(reqdata[ "custType" ])
-  end                                                                                                        as cutomer_type,
-  '' as cust_rating,
-  reqdata[ "proCode" ] as product_id
 from (
-  select * from stage.lx_kafka_credit_msg where batch_date between date_sub('${ST9}',2) and '${ST9}' and p_type='WS0013200001' ) as a
-left join (
   select
-    product_id as dim_product_id,
-    channel_id
-  from dim_new.biz_conf
-) as b
-on a.reqdata[ "proCode" ] = b.dim_product_id
-left join (
-  select distinct
-    idno_addr,
-    idno_area_cn,
-    idno_province_cn,
-    idno_city_cn,
-    idno_county_cn
-  from dim_new.dim_idno
-) as c
-on substring(a.reqdata[ "idNo" ],1,6) = c.idno_addr) as tmp;
+    msg_log.reqdata["applyNo"]                                                                                                       as apply_id,
+    msg_log.reqdata["applyNo"]                                                                                                       as due_bill_no,
+    concat_ws('_',biz_conf.channel_id,sha256(msg_log.reqdata["idNo"],'idNumber',1),sha256(msg_log.reqdata["custName"],'userName',1)) as cust_id,
+    sha256(msg_log.reqdata["idNo"],'idNumber',1)                                                                                     as user_hash_no,
+    null                                                                                                                             as outer_cust_id,
+    case msg_log.reqdata["idType"]
+      when '0' then '身份证'
+      when '1' then '户口簿'
+      when '2' then '护照'
+      when '3' then '军官证'
+      when '4' then '士兵证'
+      when '5' then '港澳居民来往内地通行证'
+      when '6' then '台湾同胞来往内地通行证'
+      when '7' then '临时身份证'
+      when '8' then '外国人居留证'
+      when '9' then '警官证'
+      when 'A' then '香港身份证'
+      when 'B' then '澳门身份证'
+      when 'C' then '台湾身份证'
+      when 'X' then '其他证件'
+      else is_empty(msg_log.reqdata["idType"])
+    end                                                                                                                              as idcard_type,
+    sha256(msg_log.reqdata["idNo"],'idNumber',1)                                                                                     as idcard_no,
+    sha256(msg_log.reqdata["custName"],'userName',1)                                                                                 as name,
+    sha256(msg_log.reqdata["phoneNo"],'phone',1)                                                                                     as mobie,
+    null                                                                                                                             as card_phone,
+    is_empty(
+      case msg_log.reqdata["sex"]
+        when '1' then '男'
+        when '2' then '女'
+        else null
+      end,
+      sex_idno(msg_log.reqdata["idNo"])
+    )                                                                                                                                as sex,
+    is_empty(
+      datefmt(msg_log.reqdata["birth"],'yyyyMMdd','yyyy-MM-dd'),
+      datefmt(substring(msg_log.reqdata["idNo"],7,8),'yyyyMMdd','yyyy-MM-dd')
+    )                                                                                                                                as birthday,
+    age_birth(
+      msg_log.reqdata["loanDate"],
+      is_empty(
+        datefmt(msg_log.reqdata["birth"],'yyyyMMdd','yyyy-MM-dd'),
+        datefmt(substring(msg_log.reqdata["idNo"],7,8),'yyyyMMdd','yyyy-MM-dd')
+      )
+    )                                                                                                                                as age,
+    case msg_log.reqdata["marriage"]
+      when '10' then '未婚'
+      when '20' then '已婚'
+      when '21' then '初婚'
+      when '22' then '再婚'
+      when '23' then '复婚'
+      when '30' then '丧偶'
+      when '40' then '离婚'
+      when '90' then '未说明的婚姻状况'
+      else is_empty(msg_log.reqdata["marriage"])
+    end                                                                                                                              as marriage_status,
+    case msg_log.resdata["edu"]
+      when '10' then '研究生'
+      when '20' then '大学本科（简称“大学”）'
+      when '30' then '大学专科和专科学校（简称“大专”）'
+      when '40' then '中等专业学校或中等技术学校'
+      when '50' then '技术学校'
+      when '60' then '高中'
+      when '70' then '初中'
+      when '80' then '小学'
+      when '90' then '文盲或半文盲'
+      when '99' then '未知'
+      else is_empty(msg_log.resdata["edu"])
+    end                                                                                                                              as education,
+    case
+      when resdata["edu"] = '10'                                  then '硕士及以上'
+      when resdata["edu"] = '20'                                  then '大学本科'
+      when resdata["edu"] in ('30','40','50','60','70','80','90') then '大专及以下'
+      when resdata["edu"] = '99'                                  then '未知'
+      else is_empty(resdata["edu"])
+    end                                                                                                                              as education_ws,
+    concat(c.idno_province_cn,c.idno_city_cn,c.idno_county_cn)                                                                       as idcard_address,
+    c.idno_area_cn                                                                                                                   as idcard_area,
+    c.idno_province_cn                                                                                                               as idcard_province,
+    c.idno_city_cn                                                                                                                   as idcard_city,
+    c.idno_county_cn                                                                                                                 as idcard_county,
+    null                                                                                                                             as idcard_township,
+    null                                                                                                                             as resident_address,
+    null                                                                                                                             as resident_area,
+    null                                                                                                                             as resident_province,
+    null                                                                                                                             as resident_city,
+    null                                                                                                                             as resident_county,
+    null                                                                                                                             as resident_township,
+    null                                                                                                                             as job_type,
+    null                                                                                                                             as job_year,
+    0                                                                                                                                as income_month,
+    0                                                                                                                                as income_year,
+    case msg_log.reqdata["custType"]
+      when '01' then '农户'
+      when '02' then '工薪（包括白领、蓝领）'
+      when '03' then '个体工商户'
+      when '04' then '学生'
+      when '99' then '其他'
+      else is_empty(msg_log.reqdata["custType"])
+    end                                                                                                                              as cutomer_type,
+    null                                                                                                                             as cust_rating,
+    msg_log.reqdata["proCode"]                                                                                                       as product_id
+  from (
+    select *
+    from stage.lx_kafka_credit_msg
+    where 1 > 0
+      and p_type = 'WS0013200001'
+      and batch_date between date_sub('${ST9}',2) and '${ST9}'
+  ) as msg_log
+  left join (
+    select distinct
+      product_id as dim_product_id,
+      channel_id
+    from (
+      select
+        max(if(col_name = 'product_id',  col_val,null)) as product_id,
+        max(if(col_name = 'channel_id',  col_val,null)) as channel_id
+      from dim.data_conf
+      where col_type = 'ac'
+      group by col_id
+    ) as tmp
+  ) as biz_conf
+  on msg_log.reqdata["proCode"] = biz_conf.dim_product_id
+  left join (
+    select distinct
+      idno_addr,
+      idno_area_cn,
+      idno_province_cn,
+      idno_city_cn,
+      idno_county_cn
+    from dim_new.dim_idno
+  ) as dim_idno
+  on substring(msg_log.reqdata["idNo"],1,6) = dim_idno.idno_addr
+  union all
+  select customer_info.* from ods.customer_info
+  join (
+    select distinct reqdata["proCode"] as product_id
+    from stage.lx_kafka_credit_msg
+    where p_type = 'WS0013200001'
+  ) as product_id_tbl
+  on customer_info.product_id = product_id_tbl.product_id
+) as tmp;

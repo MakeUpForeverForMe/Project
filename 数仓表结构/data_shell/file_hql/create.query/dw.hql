@@ -5,8 +5,8 @@ CREATE DATABASE IF NOT EXISTS `dw` COMMENT 'dw层数据（代偿前）' location
 CREATE DATABASE IF NOT EXISTS `dw_cps` COMMENT 'dw层数据（代偿后）' location 'cosn://bigdata-center-prod-1253824322/user/hadoop/warehouse/dw_cps.db';
 
 
--- drop table if exists `dw.dw_credit_apply_stat_day`;
-create table if not exists `dw.dw_credit_apply_stat_day`(
+-- DROP TABLE IF EXISTS `dw.dw_credit_apply_stat_day`;
+CREATE TABLE IF NOT EXISTS `dw.dw_credit_apply_stat_day`(
   `credit_apply_date`                     string         COMMENT '授信申请日期',
   `credit_apply_num`                      decimal(20,0)  COMMENT '授信申请笔数',
   `credit_apply_num_person`               decimal(20,0)  COMMENT '授信申请人数',
@@ -21,8 +21,8 @@ PARTITIONED BY (`biz_date` string  COMMENT '授信申请日期',`product_id` str
 STORED AS PARQUET;
 
 
--- drop table if exists `dw.dw_loan_apply_stat_day`;
-create table if not exists `dw.dw_loan_apply_stat_day`(
+-- DROP TABLE IF EXISTS `dw.dw_loan_apply_stat_day`;
+CREATE TABLE IF NOT EXISTS `dw.dw_loan_apply_stat_day`(
   `loan_terms`                            decimal(3,0)   COMMENT '贷款期数',
 
   `loan_apply_date`                       string         COMMENT '用信申请日期',
@@ -39,8 +39,8 @@ PARTITIONED BY (`biz_date` string COMMENT '用信申请日期',`product_id` stri
 STORED AS PARQUET;
 
 
--- drop table if exists `dw.dw_credit_approval_stat_day`;
-CREATE TABLE if not exists `dw.dw_credit_approval_stat_day`(
+-- DROP TABLE IF EXISTS `dw.dw_credit_approval_stat_day`;
+CREATE TABLE IF NOT EXISTS `dw.dw_credit_approval_stat_day`(
   `credit_approval_date`                  string         COMMENT '授信通过日期',
   `credit_approval_num`                   decimal(20,0)  COMMENT '授信通过笔数',
   `credit_approval_num_count`             decimal(20,0)  COMMENT '累计授信通过笔数',
@@ -58,8 +58,8 @@ PARTITIONED BY (`biz_date` string  COMMENT '授信通过日期',`product_id` str
 STORED AS PARQUET;
 
 
--- drop table if exists `dw.dw_loan_approval_stat_day`;
-create table if not exists `dw.dw_loan_apply_stat_day`(
+-- DROP TABLE IF EXISTS `dw.dw_loan_approval_stat_day`;
+CREATE TABLE IF NOT EXISTS `dw.dw_loan_apply_stat_day`(
   `loan_terms`                            decimal(3,0)   COMMENT '贷款期数',
 
   `loan_apply_date`                       string         COMMENT '用信申请日期',
@@ -79,8 +79,8 @@ STORED AS PARQUET;
 
 
 
--- drop table if exists `dw.dw_credit_ret_msg_day`;
-create table if not exists `dw.dw_credit_ret_msg_day`(
+-- DROP TABLE IF EXISTS `dw.dw_credit_ret_msg_day`;
+CREATE TABLE IF NOT EXISTS `dw.dw_credit_ret_msg_day`(
   `ret_msg`                               string         COMMENT '拒绝原因',
   `ret_msg_num`                           decimal(20,0)  COMMENT '拒绝原因笔数',
   `ret_msg_rate`                          decimal(30,10) COMMENT '拒绝原因占比'
@@ -89,8 +89,8 @@ PARTITIONED by (`biz_date` string COMMENT '风控处理日期',`product_id` stri
 STORED AS PARQUET;
 
 
--- drop table if exists `dw.dw_loan_ret_msg_day`;
-create table if not exists `dw.dw_loan_ret_msg_day`(
+-- DROP TABLE IF EXISTS `dw.dw_loan_ret_msg_day`;
+CREATE TABLE IF NOT EXISTS `dw.dw_loan_ret_msg_day`(
   `loan_terms`                            decimal(3,0)   COMMENT '贷款期数',
 
   `ret_msg`                               string         COMMENT '拒绝原因',
@@ -246,7 +246,7 @@ CREATE TABLE IF NOT EXISTS `dw${db_suffix}.dw_loan_base_stat_repay_detail_day`(
   `settle_loan_days_count`               decimal(15,0) COMMENT '累计用信天数(从放款到结清天数)',
   `prepay_principal`                     decimal(15,4) COMMENT '当日提前还款金额'
 ) COMMENT '实还统计 - 日级'
-PARTITIONED BY (`biz_date` string COMMENT '实还日期',`product_id` string COMMENT '产品编号')  
+PARTITIONED BY (`biz_date` string COMMENT '实还日期',`product_id` string COMMENT '产品编号')
 STORED AS PARQUET;
 
 
@@ -263,8 +263,8 @@ STORED AS PARQUET;
 
 
 -- 3.0 的时候是这张表  4.0 表移动到了 dim
--- drop table if exists `dw.dw_static_overdue_bill`;
-create table if not exists `dw.dw_static_overdue_bill`(
+-- DROP TABLE IF EXISTS `dw.dw_static_overdue_bill`;
+CREATE TABLE IF NOT EXISTS `dw.dw_static_overdue_bill`(
   `product_id`                            string         COMMENT '产品编号',
   `due_bill_no`                           string         COMMENT '借据编号',
   `loan_term`                             decimal(3,0)   COMMENT '当前期数',
@@ -298,8 +298,8 @@ STORED AS PARQUET;
 
 
 
--- drop table if exists `dw.dw_transaction_blend_record`;
-create table if not exists `dw.dw_transaction_blend_record`(
+-- DROP TABLE IF EXISTS `dw.dw_transaction_blend_record`;
+CREATE TABLE IF NOT EXISTS `dw.dw_transaction_blend_record`(
   `blend_serial_no`                       string         COMMENT '流水勾兑编号',
   `record_type`                           string         COMMENT '记录类型  D:借方 C:贷方 M:手工调整值 F:结果值 G:看管值',
   `loan_amt`                              decimal(18,2)  COMMENT '放款金额',
@@ -335,8 +335,8 @@ PARTITIONED BY (`biz_date` string COMMENT '计算日期')
 STORED AS PARQUET;
 
 
--- drop table if exists `dw.dw_asset_info_day`;
-create table if not exists `dw.dw_asset_info_day`(
+-- DROP TABLE IF EXISTS `dw.dw_asset_info_day`;
+CREATE TABLE IF NOT EXISTS `dw.dw_asset_info_day`(
   `remain_principal`                      decimal(15,2)  COMMENT '日终资产余额',
   `loan_sum_daily`                        decimal(15,2)  COMMENT '放款金额',
   `repay_sum_daily`                       decimal(15,2)  COMMENT '还款总金额',
@@ -359,8 +359,8 @@ PARTITIONED BY (`biz_date` string COMMENT '观察日期',`project_id` string COM
 STORED AS PARQUET;
 
 
--- drop table if exists `dw_cps.dw_asset_info_day`;
-create table if not exists `dw_cps.dw_asset_info_day`(
+-- DROP TABLE IF EXISTS `dw_cps.dw_asset_info_day`;
+CREATE TABLE IF NOT EXISTS `dw_cps.dw_asset_info_day`(
   `remain_principal`                      decimal(15,2)  COMMENT '日终资产余额',
   `loan_sum_daily`                        decimal(15,2)  COMMENT '放款金额',
   `repay_sum_daily`                       decimal(15,2)  COMMENT '还款总金额',
@@ -394,8 +394,8 @@ STORED AS PARQUET;
 
 
 --- 乐信资产服务报告
--- drop table if exists `dw`.`dw_report_cal_day`;
-create  table if not exists `dw.dw_report_cal_day`(
+-- DROP TABLE IF EXISTS `dw.dw_report_cal_day`;
+CREATE TABLE IF NOT EXISTS `dw.dw_report_cal_day`(
   `project_id`                            string         COMMENT '项目id',
   `m2plus_recover_amount`                 decimal(25,5)  COMMENT '当前违约30天+回收金额',
   `m2plus_recover_prin`                   decimal(25,5)  COMMENT '当前违约30天+回收本金',
@@ -476,3 +476,26 @@ PARTITIONED BY (
 stored as parquet
 LOCATION
   'cosn://bigdatacenter-sit-1253824322/user/hadoop/warehouse/dw.db/dw_transaction_blend_record';
+
+
+
+
+
+
+
+
+
+
+
+
+
+-- 星云宽表（借据级）
+-- DROP TABLE IF EXISTS `dw.abs_due_info_day`;
+CREATE TABLE IF NOT EXISTS `dw.abs_due_info_day`(
+  `due_bill_no`                           string         COMMENT '借据编号',
+  `loan_status`                           string         COMMENT '借据状态（英文原值）（N：正常，O：逾期，F：已还清）',
+  `remain_principal`                      decimal(20,0)  COMMENT '剩余本金',
+  `distribution_array`                    array<string>  COMMENT '分布数组',
+) COMMENT '星云宽表（借据级）'
+PARTITIONED BY (`biz_date` string COMMENT '观察日期',`project_id` string COMMENT '项目编号')
+STORED AS PARQUET;
