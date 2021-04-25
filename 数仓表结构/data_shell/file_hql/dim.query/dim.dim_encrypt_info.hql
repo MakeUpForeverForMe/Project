@@ -316,12 +316,12 @@ select
   dim_decrypt
 from (
   select
-    sha256(map_from_str(extra_info)['车架号'],'frame_number',1)    as encrypt_frame_num,
-    sha256(map_from_str(extra_info)['发动机号'],'engine_number',1) as encrypt_engine_num,
-    sha256(map_from_str(extra_info)['车牌号码'],'plateNumber',1)   as encrypt_license_num,
-    map_from_str(extra_info)['车架号']                             as decrypt_frame_num,
-    map_from_str(extra_info)['发动机号']                           as decrypt_engine_num,
-    map_from_str(extra_info)['车牌号码']                           as decrypt_license_num
+    sha256(ptrim(map_from_str(extra_info)['车架号']),'frameNumber',1)    as encrypt_frame_num,
+    sha256(ptrim(map_from_str(extra_info)['发动机号']),'engineNumber',1) as encrypt_engine_num,
+    sha256(ptrim(map_from_str(extra_info)['车牌号码']),'plateNumber',1)  as encrypt_license_num,
+    map_from_str(extra_info)['车架号']                                   as decrypt_frame_num,
+    map_from_str(extra_info)['发动机号']                                 as decrypt_engine_num,
+    map_from_str(extra_info)['车牌号码']                                 as decrypt_license_num
   from stage.asset_04_t_guaranty_info
   where 1 > 0
     and to_date(create_time) = '${ST9}'
@@ -428,54 +428,6 @@ where 1 > 0
 
 
 
-
--- -- 企业信息星云表
--- insert into table dim.dim_encrypt_info
--- select
---   ${case_encrypt} as dim_type,
---   dim_encrypt,
---   dim_decrypt
--- from (
---   select
---     sha256(is_empty(registration_number),'businessNumber',1)                            as encrypt_business_number,     -- 工商注册号
---     sha256(is_empty(organization_code),'organizateCode',1)                              as encrypt_organizate_code,     -- 组织机构代码
---     sha256(is_empty(taxpayer_identification_number),'taxpayerNumber',1)                 as encrypt_taxpayer_number,     -- 纳税人识别号
---     sha256(is_empty(uniform_credit_code),'unifiedCreditCode',1)                         as encrypt_unified_credit_code, -- 统一信用代码
---     sha256(is_empty(registered_address),'address',1)                                    as encrypt_registered_address,  -- 注册地址
---     sha256(decrypt_aes(is_empty(legal_person_name),'tencentabs123456'),'userName',1)    as encrypt_legal_person_name,   -- 法人代表姓名
---     sha256(decrypt_aes(is_empty(legal_person_card_no),'tencentabs123456'),'idNumber',1) as encrypt_id_no,               -- 法人证件号码
---     sha256(decrypt_aes(is_empty(legal_person_phoneno),'tencentabs123456'),'phone',1)    as encrypt_legal_person_phone,  -- 法人手机号码
---     sha256(decrypt_aes(is_empty(enterprise_phoneno),'tencentabs123456'),'phone',1)      as encrypt_phone,               -- 企业联系电话
-
---     is_empty(registration_number)                                                       as decrypt_business_number,     -- 工商注册号
---     is_empty(organization_code)                                                         as decrypt_organizate_code,     -- 组织机构代码
---     is_empty(taxpayer_identification_number)                                            as decrypt_taxpayer_number,     -- 纳税人识别号
---     is_empty(uniform_credit_code)                                                       as decrypt_unified_credit_code, -- 统一信用代码
---     is_empty(registered_address)                                                        as decrypt_registered_address,  -- 注册地址
---     decrypt_aes(is_empty(legal_person_name),'tencentabs123456')                         as decrypt_legal_person_name,   -- 法人代表姓名
---     decrypt_aes(is_empty(legal_person_card_no),'tencentabs123456')                      as decrypt_id_no,               -- 法人证件号码
---     decrypt_aes(is_empty(legal_person_phoneno),'tencentabs123456')                      as decrypt_legal_person_phone,  -- 法人手机号码
---     decrypt_aes(is_empty(enterprise_phoneno),'tencentabs123456')                        as decrypt_phone                -- 企业联系电话
---   from stage.t_12_enterpriseinfo
---   where 1 > 0
---     and to_date(create_time) = '${ST9}'
---     -- and serial_number = '1000002809'
--- ) as log
--- lateral view explode (map(
---   encrypt_business_number,    decrypt_business_number,
---   encrypt_organizate_code,    decrypt_organizate_code,
---   encrypt_taxpayer_number,    decrypt_taxpayer_number,
---   encrypt_unified_credit_code,decrypt_unified_credit_code,
---   encrypt_registered_address, decrypt_registered_address,
---   encrypt_legal_person_name,  decrypt_legal_person_name,
---   encrypt_id_no,              decrypt_id_no,
---   encrypt_legal_person_phone, decrypt_legal_person_phone,
---   encrypt_phone,              decrypt_phone
--- )) tbl_map as dim_encrypt,dim_decrypt
--- where 1 > 0
---   and dim_encrypt is not null
--- -- limit 10
--- ;
 
 
 

@@ -11,19 +11,19 @@ import java.security.NoSuchAlgorithmException;
  * @author wushujia、ximing.wei
  */
 public class EncoderHandler {
-    public static String encodeByMD5(String string) {
+    public static String md5(String string) {
         return encode("MD5", string);
     }
 
-    public static String encodeBySHA1(String string) {
+    public static String sha1(String string) {
         return encode("SHA1", string);
     }
 
-    public static String encodeBySHA256(String string) {
+    public static String sha256(String string) {
         return encode("SHA-256", string);
     }
 
-    public static String encodeBySHA512(String string) {
+    public static String sha512(String string) {
         return encode("SHA-512", string);
     }
 
@@ -33,12 +33,15 @@ public class EncoderHandler {
         try {
             MessageDigest messageDigest = MessageDigest.getInstance(algorithm);
             messageDigest.update(string.getBytes("UTF-8"));
+
             byte[] digests = messageDigest.digest();
             StringBuilder stringBuilder = new StringBuilder(digests.length * 2);
+
             for (byte digest : digests) {
                 stringBuilder.append(HEX_DIGITS[(digest >> 4) & 0x0f]);
                 stringBuilder.append(HEX_DIGITS[digest & 0x0f]);
             }
+
             return stringBuilder.toString();
         } catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
             throw new RuntimeException(e);

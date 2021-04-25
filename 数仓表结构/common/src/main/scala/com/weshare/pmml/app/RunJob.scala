@@ -12,6 +12,7 @@ import org.apache.commons.lang3.StringUtils
 import org.apache.spark.sql.{DataFrame, Dataset, SaveMode, SparkSession, functions}
 import org.dmg.pmml.FieldName
 import org.jpmml.evaluator.ModelEvaluator
+import org.json4s.DefaultFormats
 import org.json4s.jackson.Json
 import org.slf4j.{Logger, LoggerFactory}
 
@@ -125,7 +126,8 @@ object RunJob {
                    |where biz_date='${pmmlParam.batch_date}' and  project_id='${pmmlParam.projectId}'
                    |and
                    |if('${pmmlParam.cycle_key}'='0',
-                   |cycle_key='0' and date_format(paid_out_date,'yyyy-MM')=date_format(add_months('${pmmlParam.batch_date}',cast('1' as int )),'yyyy-MM'),
+                   |cycle_key='0' and (date_format(should_repay_date,'yyyy-MM')=date_format(add_months('${pmmlParam.batch_date}',cast('1' as int )),'yyyy-MM')
+                   | or date_format(paid_out_date,'yyyy-MM')=date_format(add_months('${pmmlParam.batch_date}',cast('1' as int )),'yyyy-MM')),
                    |(cycle_key<='${pmmlParam.cycle_key}')  and
                    |date_format(paid_out_date,'yyyy-MM')=date_format(add_months('${pmmlParam.batch_date}',cast('${pmmlParam.cycle_key}' as int )+1),'yyyy-MM')
                    |)
@@ -338,7 +340,8 @@ object RunJob {
             "paid_amount"->it.getOrElse("should_repay_amount",""),
             "paid_out_type"->"PRE_SETTLE",
             "schedule_status_cn"->"已还清",
-            "paid_out_type_cn"->"提前结清"
+            "paid_out_type_cn"->"提前结清",
+            "range_rate"->Json(DefaultFormats).write(map)
           )
 
         })

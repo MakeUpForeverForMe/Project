@@ -714,8 +714,11 @@ from (
 ;
 
 
+
+
+
 -- 新核心 乐信云信
-msck repair table stage.lx_kafka_credit_msg;
+msck repair table stage.kafka_credit_msg;
 insert overwrite table ods.loan_apply partition(biz_date,product_id)
 select
   `(rn)?+.+`
@@ -725,107 +728,254 @@ from (
     row_number() over(partition by apply_id,product_id order by update_time) as rn
   from (
     select
-      concat_ws('_',biz_conf.channel_id,sha256(loan_apply.reqdata[ "idNo" ],'idNumber',1),sha256(loan_apply.reqdata[ "custName" ],'userName',1)) as cust_id,
-      sha256(loan_apply.reqdata[ "idNo" ],'idNumber',1)       as user_hash_no,
+      concat_ws('_',biz_conf.channel_id,sha256(loan_apply.reqdata["idNo"],'idNumber',1),sha256(loan_apply.reqdata["custName"],'userName',1)) as cust_id,
+      sha256(loan_apply.reqdata["idNo"],'idNumber',1)                                                     as user_hash_no,
       is_empty(
-        datefmt(loan_apply.reqdata[ "birth" ],'yyyyMMdd','yyyy-MM-dd'),
-        datefmt(substring(loan_apply.reqdata[ "idNo" ],7,8),'yyyyMMdd','yyyy-MM-dd')
-      ) as birthday,
+        datefmt(loan_apply.reqdata["birth"],'yyyyMMdd','yyyy-MM-dd'),
+        datefmt(substring(loan_apply.reqdata["idNo"],7,8),'yyyyMMdd','yyyy-MM-dd')
+      )                                                                                                   as birthday,
       age_birth(
         is_empty(
-          datefmt(loan_apply.reqdata[ "birth" ],'yyyyMMdd','yyyy-MM-dd'),
-          datefmt(substring(loan_apply.reqdata[ "idNo" ],7,8),'yyyyMMdd','yyyy-MM-dd')
+          datefmt(loan_apply.reqdata["birth"],'yyyyMMdd','yyyy-MM-dd'),
+          datefmt(substring(loan_apply.reqdata["idNo"],7,8),'yyyyMMdd','yyyy-MM-dd')
         ),
-        to_date(nvl(ecas_loan.active_date,loan_apply.reqdata[ "loanDate" ]))
-      ) as age,
-      loan_apply.reqdata[ "applyNo" ]                         as pre_apply_no,
-      loan_apply.reqdata[ "applyNo" ]                         as apply_id,
-      ecas_loan.due_bill_no                                   as due_bill_no,
-      cast(loan_apply.reqdata[ "loanDate" ] as timestamp)     as loan_apply_time,
-      cast(loan_apply.reqdata[ "pactAmt" ] as decimal(15,4))  as loan_amount_apply,
-      cast(loan_apply.reqdata[ "loanTerm" ] as decimal(3,0))  as loan_terms,
-      loan_apply.reqdata[ "appUse" ]                          as loan_usage,
-      case loan_apply.reqdata[ "appUse" ]
-      when '01' then '企业经营'
-      when '02' then '购置车辆'
-      when '03' then '装修'
-      when '04' then '子女教育(出国留学)'
-      when '05' then '购置古玩字画'
-      when '06' then '股票/期货等金融工具投资'
-      when '07' then '其他消费类'
-      when '08' then '医美消费'
-      else is_empty(loan_apply.reqdata[ "appUse" ])
-      end as loan_usage_cn,
-      loan_apply.reqdata[ "rpyMethod" ] as repay_type,
-      case loan_apply.reqdata[ "rpyMethod" ]
-      when '01' then '等本等息'
-      when '02' then '随借随还'
-      when '03' then '等额本息'
-      when '04' then '等本等费'
-      else is_empty(loan_apply.reqdata[ "rpyMethod" ])
-      end                                                                                                             as repay_type_cn,
-      loan_apply.reqdata[ "lnRate" ] * 12 /100                as interest_rate,
-      cast(nvl(loan_apply.reqdata[ "creditCoef" ],loan_apply.reqdata[ "lnRate" ])as decimal(15,8))*12/100             as credit_coef,
-      0                                                                                                               as penalty_rate,
+        to_date(nvl(ecas_loan.active_date,loan_apply.reqdata["loanDate"]))
+      )                                                                                                   as age,
+      loan_apply.reqdata["applyNo"]                                                                       as pre_apply_no,
+      loan_apply.reqdata["applyNo"]                                                                       as apply_id,
+      loan_contract.due_bill_no                                                                           as due_bill_no,
+      cast(loan_apply.reqdata["loanDate"] as timestamp)                                                   as loan_apply_time,
+      cast(loan_apply.reqdata["pactAmt"] as decimal(15,4))                                                as loan_amount_apply,
+      cast(loan_apply.reqdata["loanTerm"] as decimal(3,0))                                                as loan_terms,
+      loan_apply.reqdata["appUse"]                                                                        as loan_usage,
+      case loan_apply.reqdata["appUse"]
+        when '01' then '企业经营'
+        when '02' then '购置车辆'
+        when '03' then '装修'
+        when '04' then '子女教育(出国留学)'
+        when '05' then '购置古玩字画'
+        when '06' then '股票/期货等金融工具投资'
+        when '07' then '其他消费类'
+        when '08' then '医美消费'
+        else is_empty(loan_apply.reqdata["appUse"])
+      end                                                                                                 as loan_usage_cn,
+      loan_apply.reqdata["rpyMethod"]                                                                     as repay_type,
+      case loan_apply.reqdata["rpyMethod"]
+        when '01' then '等本等息'
+        when '02' then '随借随还'
+        when '03' then '等额本息'
+        when '04' then '等本等费'
+        else is_empty(loan_apply.reqdata["rpyMethod"])
+      end                                                                                                 as repay_type_cn,
+      loan_apply.reqdata["lnRate"] * 12 / 100                                                             as interest_rate,
+      cast(nvl(loan_apply.reqdata["creditCoef"],loan_apply.reqdata["lnRate"])as decimal(15,8)) * 12 / 100 as credit_coef,
+      0                                                                                                   as penalty_rate,
       case
-      when ecas_loan.loan_init_prin is not null then 1
-      when loan_apply.resdata[ "pass" ] = 'Yes' then 4
-      when loan_apply.resdata[ "pass" ] != 'Yes' then 5
-      else 2 end                                                                                                      as apply_status,
+        when loan_contract.loan_init_prin is not null then 1
+        when loan_apply.resdata["pass"] = 'Yes' then 4
+        when loan_apply.resdata["pass"] != 'Yes' then 5
+        else 2
+      end                                                                                                 as apply_status,
       case
-      when ecas_loan.loan_init_prin is not null then '放款成功'
-      when loan_apply.resdata[ "pass" ] = 'Yes' then '用信通过'
-      when loan_apply.resdata[ "pass" ] != 'Yes' then '用信失败'
-      else '放款失败' end                                                                                             as apply_resut_msg,
-      cast(nvl(ecas_loan.active_date,loan_apply.reqdata[ "loanDate" ]) as timestamp) as issue_time,
-      case loan_apply.resdata[ "pass" ]
-      when 'Yes' then cast(loan_apply.reqdata[ "pactAmt" ] as decimal(15,4))
-      else 0 end                                                                                                      as loan_amount_approval,
-      cast(is_empty(ecas_loan.loan_init_prin,0) as decimal(15,4))                                                     as loan_amount,
-      loan_apply.reqdata[ "scoreLevel" ]                      as risk_level,
-      null                                                                                                            as risk_score,
-      loan_apply.ori_request                                                                                          as ori_request,
-      null                                                                                                            as ori_response,
-      loan_apply.create_time                                                                                          as create_time,
-      loan_apply.update_time                                                                                          as update_time,
-      loan_apply.reqdata[ "loanDate" ]                        as biz_date,
-      loan_apply.reqdata[ "proCode" ]                         as product_id
+        when loan_contract.loan_init_prin is not null then '放款成功'
+        when loan_apply.resdata["pass"] = 'Yes' then '用信通过'
+        when loan_apply.resdata["pass"] != 'Yes' then '用信失败'
+        else '放款失败'
+      end                                                                                                 as apply_resut_msg,
+      cast(nvl(loan_contract.active_date,loan_apply.reqdata["loanDate"]) as timestamp)                    as issue_time,
+      case loan_apply.resdata["pass"]
+        when 'Yes' then cast(loan_apply.reqdata["pactAmt"] as decimal(15,4))
+        else 0
+      end                                                                                                 as loan_amount_approval,
+      cast(is_empty(loan_contract.loan_init_prin,0) as decimal(15,4))                                     as loan_amount,
+      loan_apply.reqdata["scoreLevel"]                                                                    as risk_level,
+      null                                                                                                as risk_score,
+      loan_apply.ori_request                                                                              as ori_request,
+      null                                                                                                as ori_response,
+      loan_apply.create_time                                                                              as create_time,
+      loan_apply.update_time                                                                              as update_time,
+      loan_apply.reqdata["loanDate"]                                                                      as biz_date,
+      loan_apply.reqdata["proCode"]                                                                       as product_id
     from (
       select
-        reqdata[ "loanDate" ] as create_time,
-        reqdata[ "loanDate" ] as update_time,
-        reqdata ,
+        reqdata["loanDate"] as create_time,
+        reqdata["loanDate"] as update_time,
+        reqdata,
         resdata,
         concat('{"', concat_ws('","', collect_list(concat_ws('":"', k,v) ) ), '"}') as ori_request
-      from stage.lx_kafka_credit_msg
-        lateral view outer explode(reqdata) kv as k,v
+      from stage.kafka_credit_msg
+      lateral view outer explode(reqdata) kv as k,v
       where batch_date between date_sub('${ST9}',2) and '${ST9}'
-        and p_type ='WS0013200001'
+        and p_type = 'WS0013200001'
         and interfacename = 'WIND_CONTROL_CREDIT'
-        group by reqdata[ "loanDate" ],reqdata,resdata
+      group by reqdata["loanDate"],reqdata,resdata
     ) as loan_apply
     left join (
-    select
+      select
         apply_no,
         due_bill_no,
         contract_amount as loan_init_prin,
         actual_loan_date as active_date
-      from
-(
-      select
-      *,
-row_number() over(partition by due_bill_no order by batch_date desc) rn from stage_sic.loan_contract where d_date<='${ST9}' and p_type ='WS0013200001') a
-where a.rn=1
-    ) as ecas_loan
-    on loan_apply.reqdata[ "applyNo" ] = ecas_loan.apply_no
+      from (
+        select
+          *,
+          row_number() over(partition by due_bill_no order by batch_date desc) as rn
+        from stage.loan_contract
+        where d_date <= '${ST9}'
+          and p_type = 'WS0013200001'
+      ) as tmp
+      where rn = 1
+    ) as loan_contract
+    on  loan_apply.reqdata["proCode"] = loan_contract.project_no
+    and loan_apply.reqdata["applyNo"] = loan_contract.apply_no
     left join (
-      select
+      select distinct
         product_id as dim_product_id,
         channel_id
-      from dim_new.biz_conf
+      from (
+        select
+          max(if(col_name = 'product_id',  col_val,null)) as product_id,
+          max(if(col_name = 'channel_id',  col_val,null)) as channel_id
+        from dim.data_conf
+        where col_type = 'ac'
+        group by col_id
+      ) as tmp
     ) as biz_conf
-    on loan_apply.reqdata[ "proCode" ] = biz_conf.dim_product_id
+    on loan_apply.reqdata["proCode"] = biz_conf.dim_product_id
   ) as tmp
 ) as tmp
-where 1 > 0
-  and rn = 1;
+where rn = 1
+;
+
+
+
+
+
+-- 百度医美
+insert overwrite table ods.loan_apply partition(biz_date,product_id)
+select
+  `(rn)?+.+`
+from (
+  select
+    *,
+    row_number() over(partition by apply_id,product_id order by update_time) as rn
+  from (
+    select
+      concat_ws('_',biz_conf.channel_id,sha256(loan_apply.reqdata["idNo"],'idNumber',1),sha256(loan_apply.reqdata["custName"],'userName',1)) as cust_id,
+      sha256(loan_apply.reqdata["idNo"],'idNumber',1)                                                     as user_hash_no,
+      is_empty(
+        datefmt(loan_apply.reqdata["birth"],'yyyyMMdd','yyyy-MM-dd'),
+        datefmt(substring(loan_apply.reqdata["idNo"],7,8),'yyyyMMdd','yyyy-MM-dd')
+      )                                                                                                   as birthday,
+      age_birth(
+        is_empty(
+          datefmt(loan_apply.reqdata["birth"],'yyyyMMdd','yyyy-MM-dd'),
+          datefmt(substring(loan_apply.reqdata["idNo"],7,8),'yyyyMMdd','yyyy-MM-dd')
+        ),
+        to_date(nvl(loan_contract.active_date,loan_apply.reqdata["loanDate"]))
+      )                                                                                                   as age,
+      loan_apply.reqdata["applyNo"]                                                                       as pre_apply_no,
+      loan_apply.reqdata["applyNo"]                                                                       as apply_id,
+      loan_contract.due_bill_no                                                                           as due_bill_no,
+      cast(loan_apply.reqdata["loanDate"] as timestamp)                                                   as loan_apply_time,
+      cast(loan_apply.reqdata["pactAmt"] as decimal(15,4))                                                as loan_amount_apply,
+      cast(loan_apply.reqdata["loanTerm"] as decimal(3,0))                                                as loan_terms,
+      loan_apply.reqdata["appUse"]                                                                        as loan_usage,
+      case loan_apply.reqdata["appUse"]
+        when '01' then '企业经营'
+        when '02' then '购置车辆'
+        when '03' then '装修'
+        when '04' then '子女教育(出国留学)'
+        when '05' then '购置古玩字画'
+        when '06' then '股票/期货等金融工具投资'
+        when '07' then '其他消费类'
+        when '08' then '医美消费'
+        else is_empty(loan_apply.reqdata["appUse"])
+      end                                                                                                 as loan_usage_cn,
+      loan_apply.reqdata["rpyMethod"]                                                                     as repay_type,
+      case loan_apply.reqdata["rpyMethod"]
+        when '01' then '等本等息'
+        when '02' then '随借随还'
+        when '03' then '等额本息'
+        when '04' then '等本等费'
+        else is_empty(loan_apply.reqdata["rpyMethod"])
+      end                                                                                                 as repay_type_cn,
+      loan_apply.reqdata["lnRate"] * 12 / 100                                                             as interest_rate,
+      cast(nvl(loan_apply.reqdata["creditCoef"],loan_apply.reqdata["lnRate"])as decimal(15,8)) * 12 / 100 as credit_coef,
+      0                                                                                                   as penalty_rate,
+      case
+        when loan_contract.loan_init_prin is not null then 1
+        when loan_apply.resdata["pass"] = 'Yes' then 4
+        when loan_apply.resdata["pass"] != 'Yes' then 5
+        else 2
+      end                                                                                                 as apply_status,
+      case
+        when loan_contract.loan_init_prin is not null then '放款成功'
+        when loan_apply.resdata["pass"] = 'Yes' then '用信通过'
+        when loan_apply.resdata["pass"] != 'Yes' then '用信失败'
+        else '放款失败'
+      end                                                                                                 as apply_resut_msg,
+      cast(nvl(loan_contract.active_date,loan_apply.reqdata["loanDate"]) as timestamp)                    as issue_time,
+      case loan_apply.resdata["pass"]
+        when 'Yes' then cast(loan_apply.reqdata["pactAmt"] as decimal(15,4))
+        else 0
+      end                                                                                                 as loan_amount_approval,
+      cast(is_empty(loan_contract.loan_init_prin,0) as decimal(15,4))                                     as loan_amount,
+      loan_apply.reqdata["scoreLevel"]                                                                    as risk_level,
+      null                                                                                                as risk_score,
+      loan_apply.ori_request                                                                              as ori_request,
+      null                                                                                                as ori_response,
+      loan_apply.create_time                                                                              as create_time,
+      loan_apply.update_time                                                                              as update_time,
+      loan_apply.reqdata["loanDate"]                                                                      as biz_date,
+      loan_apply.reqdata["proCode"]                                                                       as product_id
+    from (
+      select
+        reqdata["loanDate"] as create_time,
+        reqdata["loanDate"] as update_time,
+        reqdata,
+        resdata,
+        concat('{"', concat_ws('","', collect_list(concat_ws('":"', k,v) ) ), '"}') as ori_request
+      from stage.kafka_credit_msg
+        lateral view outer explode(reqdata) kv as k,v
+      where 1 > 0
+        and p_type ='WS0012200001'
+        and batch_date between date_sub('${ST9}',2) and '${ST9}'
+        group by reqdata["loanDate"],reqdata,resdata
+    ) as loan_apply
+    left join (
+      select
+        apply_no,
+        due_bill_no,
+        contract_amount as loan_init_prin,
+        actual_loan_date as active_date
+      from (
+        select
+          *,
+          row_number() over(partition by due_bill_no order by batch_date desc) as rn
+        from stage.loan_contract
+        where d_date <= '${ST9}'
+          and p_type = 'WS0012200001'
+        ) as tmp
+      where rn = 1
+    ) as loan_contract
+    on  loan_apply.reqdata["proCode"] = loan_contract.project_no
+    and loan_apply.reqdata["applyNo"] = loan_contract.apply_no
+    left join (
+      select distinct
+        product_id as dim_product_id,
+        channel_id
+      from (
+        select
+          max(if(col_name = 'product_id',  col_val,null)) as product_id,
+          max(if(col_name = 'channel_id',  col_val,null)) as channel_id
+        from dim.data_conf
+        where col_type = 'ac'
+        group by col_id
+      ) as tmp
+    ) as biz_conf
+    on loan_apply.reqdata["proCode"] = biz_conf.dim_product_id
+  ) as tmp
+) as tmp
+where rn = 1
+;

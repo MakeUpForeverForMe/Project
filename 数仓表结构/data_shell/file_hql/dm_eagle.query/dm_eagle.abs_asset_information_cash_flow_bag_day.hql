@@ -19,10 +19,9 @@ set hive.exec.max.dynamic.partitions.pernode=50000;
 set hive.vectorized.execution.enabled=false;
 set hive.vectorized.execution.reduce.enabled=false;
 set hive.vectorized.execution.reduce.groupby.enabled=false;
-
-
-set hive.auto.convert.join=false;                    -- 关闭自动 MapJoin
-set hive.auto.convert.join.noconditionaltask=false;  -- 关闭自动 MapJoin
+-- 关闭自动 MapJoin
+set hive.auto.convert.join=false;
+set hive.auto.convert.join.noconditionaltask=false;
 
 
 
@@ -340,47 +339,47 @@ and biz_dates.collect_date = repay_detail.biz_date
 -- 项目维度
 union all
 select
-  biz_dates.bag_date                           as bag_date,
+  biz_dates.bag_date                              as bag_date,
   max(repay_detail.biz_date) over(partition by biz_dates.project_id order by biz_dates.collect_date) as data_extraction_day,
 
-  nvl(repay_schedule.should_repay_amount   ,0) as should_repay_amount,
-  nvl(repay_schedule.should_repay_principal,0) as should_repay_principa,
-  nvl(repay_schedule.should_repay_interest ,0) as should_repay_interest,
-  nvl(repay_schedule.should_repay_cost     ,0) as should_repay_cost,
+  nvl(repay_schedule.should_repay_amount   ,0)    as should_repay_amount,
+  nvl(repay_schedule.should_repay_principal,0)    as should_repay_principa,
+  nvl(repay_schedule.should_repay_interest ,0)    as should_repay_interest,
+  nvl(repay_schedule.should_repay_cost     ,0)    as should_repay_cost,
 
-  nvl(repay_detail.paid_amount             ,0) as paid_amount,
-  nvl(repay_detail.paid_principal          ,0) as paid_principal,
-  nvl(repay_detail.paid_interest           ,0) as paid_interest,
-  nvl(repay_detail.paid_cost               ,0) as paid_cost,
+  nvl(repay_detail.paid_amount             ,0)    as paid_amount,
+  nvl(repay_detail.paid_principal          ,0)    as paid_principal,
+  nvl(repay_detail.paid_interest           ,0)    as paid_interest,
+  nvl(repay_detail.paid_cost               ,0)    as paid_cost,
 
-  nvl(repay_detail.overdue_paid_amount     ,0) as overdue_paid_amount,
-  nvl(repay_detail.overdue_paid_principal  ,0) as overdue_paid_principa,
-  nvl(repay_detail.overdue_paid_interest   ,0) as overdue_paid_interest,
-  nvl(repay_detail.overdue_paid_cost       ,0) as overdue_paid_cost,
+  nvl(repay_detail.overdue_paid_amount     ,0)    as overdue_paid_amount,
+  nvl(repay_detail.overdue_paid_principal  ,0)    as overdue_paid_principa,
+  nvl(repay_detail.overdue_paid_interest   ,0)    as overdue_paid_interest,
+  nvl(repay_detail.overdue_paid_cost       ,0)    as overdue_paid_cost,
 
-  nvl(repay_detail.prepayment_amount       ,0) as prepayment_amount,
-  nvl(repay_detail.prepayment_principal    ,0) as prepayment_principal,
-  nvl(repay_detail.prepayment_interest     ,0) as prepayment_interest,
-  nvl(repay_detail.prepayment_cost         ,0) as prepayment_cost,
+  nvl(repay_detail.prepayment_amount       ,0)    as prepayment_amount,
+  nvl(repay_detail.prepayment_principal    ,0)    as prepayment_principal,
+  nvl(repay_detail.prepayment_interest     ,0)    as prepayment_interest,
+  nvl(repay_detail.prepayment_cost         ,0)    as prepayment_cost,
 
-  nvl(repay_detail.normal_paid_amount      ,0) as normal_paid_amount,
-  nvl(repay_detail.normal_paid_principal   ,0) as normal_paid_principal,
-  nvl(repay_detail.normal_paid_interest    ,0) as normal_paid_interest,
-  nvl(repay_detail.normal_paid_cost        ,0) as normal_paid_cost,
+  nvl(repay_detail.normal_paid_amount      ,0)    as normal_paid_amount,
+  nvl(repay_detail.normal_paid_principal   ,0)    as normal_paid_principal,
+  nvl(repay_detail.normal_paid_interest    ,0)    as normal_paid_interest,
+  nvl(repay_detail.normal_paid_cost        ,0)    as normal_paid_cost,
 
-  0                                            as pmml_should_repayamount,
-  0                                            as pmml_should_repayprincipal,
-  0                                            as pmml_should_repayinterest,
+  nvl(pmml_should_repay.should_repay_amount,0)    as pmml_should_repayamount,
+  nvl(pmml_should_repay.should_repay_principal,0) as pmml_should_repayprincipal,
+  nvl(pmml_should_repay.should_repay_interest,0)  as pmml_should_repayinterest,
 
-  0                                            as pmml_paid_amount,
-  0                                            as pmml_paid_principal,
-  0                                            as pmml_paid_interest,
+  nvl(pmml_paid.paid_amount,0)                    as pmml_paid_amount,
+  nvl(pmml_paid.paid_principal,0)                 as pmml_paid_principal,
+  nvl(pmml_paid.paid_interest,0)                  as pmml_paid_interest,
 
-  biz_dates.collect_date                       as collect_date,
+  biz_dates.collect_date                          as collect_date,
 
-  biz_dates.biz_date                           as biz_date,
-  biz_dates.project_id                         as project_id,
-  'default_project'                            as bag_id
+  biz_dates.biz_date                              as biz_date,
+  biz_dates.project_id                            as project_id,
+  'default_project'                               as bag_id
 from (
   select
     project_id,
@@ -443,5 +442,35 @@ left join (
 ) as repay_detail
 on  biz_dates.project_id   = repay_detail.project_id
 and biz_dates.collect_date = repay_detail.biz_date
+left join (
+  select
+  project_id,should_repay_date,
+  sum(nvl(should_repay_amount,0))    as should_repay_amount,
+  sum(nvl(should_repay_principal,0)) as should_repay_principal,
+  sum(nvl(should_repay_interest,0))  as should_repay_interest
+  from eagle.predict_repay_day
+  where 1 > 0
+    and biz_date = date_sub(next_day(current_date,'Sun'),8)
+    and cycle_key = '0'
+    and project_id = 'CL202011090089'
+  group by project_id,should_repay_date
+) as pmml_should_repay
+on  biz_dates.project_id   = pmml_should_repay.project_id
+and biz_dates.collect_date = pmml_should_repay.should_repay_date
+left join (
+  select
+    project_id,paid_out_date,
+    sum(nvl(paid_amount,0))    as paid_amount,
+    sum(nvl(paid_principal,0)) as paid_principal,
+    sum(nvl(paid_interest,0))  as paid_interest
+  from eagle.predict_repay_day
+  where 1 > 0
+    and biz_date = date_sub(next_day(current_date,'Sun'),8)
+    and cycle_key = '0'
+    and project_id = 'CL202011090089'
+  group by project_id,paid_out_date
+) as pmml_paid
+on  biz_dates.project_id   = pmml_paid.project_id
+and biz_dates.collect_date = pmml_paid.paid_out_date
 -- limit 10
 ;

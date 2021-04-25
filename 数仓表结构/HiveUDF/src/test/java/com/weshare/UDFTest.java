@@ -2,23 +2,16 @@ package com.weshare;
 
 import com.weshare.udf.*;
 import com.weshare.utils.*;
-import org.apache.hadoop.hive.ql.exec.UDFArgumentException;
 import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.ql.udf.generic.GenericUDF.DeferredObject;
 import org.apache.hadoop.hive.ql.udf.generic.GenericUDF.DeferredJavaObject;
 import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspector;
-import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspectorFactory;
-import org.apache.hadoop.hive.serde2.objectinspector.PrimitiveObjectInspector;
-import org.apache.hadoop.hive.serde2.objectinspector.StandardMapObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.*;
 import org.junit.Test;
 
-import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 public class UDFTest {
@@ -105,20 +98,18 @@ public class UDFTest {
 
     @Test
     public void test() {
-        System.out.println("111111 MD5     :" + EncoderHandler.encodeByMD5("111111"));
-        System.out.println("111111 SHA1    :" + EncoderHandler.encodeBySHA1("111111"));
-        System.out.println("111111 SHA-256 :" + EncoderHandler.encodeBySHA256("111111"));
-        System.out.println("111111 SHA-512 :" + EncoderHandler.encodeBySHA512("111111"));
+        System.out.println("111111 MD5     :" + EncoderHandler.md5("111111"));
+        System.out.println("111111 SHA1    :" + EncoderHandler.sha1("111111"));
+        System.out.println("111111 SHA-256 :" + EncoderHandler.sha256("111111"));
+        System.out.println("111111 SHA-512 :" + EncoderHandler.sha512("111111"));
     }
 
     @Test
     public void sha256HashSalt() {
         String string = "18812345678";
-        String sha256 = EncoderHandler.encodeBySHA256(string);
+        String sha256 = EncoderHandler.sha256(string);
 
         System.out.println(sha256);                                                                       // 93492748c362146f8e48dde778cdb703ead158e42de292307baf24a9b4d4e61b
-        System.out.println(IdMappingGenerator.idGenerate(string, 1));
-        System.out.println(IdMappingGenerator.idGenerate(sha256, 2));
 
         System.out.println(new Sha256Salt().evaluate(string, "", 1));                    // @_e6688c6761527a37f597fafa5f0d3415d5ea9ade3f56ad29448c4d4d77aec087
         System.out.println(new Sha256Salt().evaluate(sha256, "", 2));                    // @_e6688c6761527a37f597fafa5f0d3415d5ea9ade3f56ad29448c4d4d77aec087

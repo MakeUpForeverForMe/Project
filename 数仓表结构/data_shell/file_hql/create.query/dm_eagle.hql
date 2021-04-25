@@ -802,7 +802,7 @@ CREATE TABLE IF NOT EXISTS `dm_eagle${db_suffix}.eagle_repayment_record_day`(
   `remain_principal`                              decimal(25,5)  COMMENT '本金余额',
   `paid_out_type`                                 string         COMMENT '账户状态'
 ) COMMENT '还款记录'
-PARTITIONED BY(`biz_date` string COMMENT '实还日期',`product_id` string COMMENT '产品编号')
+PARTITIONED BY (`biz_date` string COMMENT '实还日期',`product_id` string COMMENT '产品编号')
 STORED AS PARQUET;
 
 

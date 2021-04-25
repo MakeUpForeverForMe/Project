@@ -15275,3 +15275,147 @@ COMPUTE STATS stage.asset_04_t_guaranty_info;
 
 select * from ods.customer_info_abs limit 10;
 
+
+
+
+
+select min(s_d_date) as s_d_date -- 2019-11-25
+from ods.loan_info_abs
+where project_id = 'CL202011090089';
+
+select max(should_repay_date) as should_repay_date -- 2023-10-15
+from ods.repay_schedule_abs
+where project_id = 'CL202101260095';
+
+
+
+
+select *
+from ods.repay_schedule
+where product_id = 'CL202101260095'
+limit 10;
+
+
+
+
+select
+  project_id,
+  due_bill_no,
+  pawn_value,
+  dim_frame_num.dim_decrypt   as frame_num,
+  dim_engine_num.dim_decrypt  as engine_num,
+  dim_license_num.dim_decrypt as license_num,
+  car_brand
+from (
+  select
+    project_id,
+    due_bill_no,
+    pawn_value,
+    frame_num,
+    engine_num,
+    license_num,
+    car_brand
+  from ods.guaranty_info_abs
+  where 1 > 0
+    and project_id = 'CL202012280092'
+    and due_bill_no in (
+      '1103563315',
+      '1103570144',
+      '1103698759',
+      ''
+    )
+) as guaranty
+left join (
+  select
+    dim_encrypt,
+    dim_decrypt
+  from dim.dim_encrypt_info
+) as dim_frame_num
+on guaranty.frame_num   = dim_frame_num.dim_encrypt
+left join (
+  select
+    dim_encrypt,
+    dim_decrypt
+  from dim.dim_encrypt_info
+) as dim_engine_num
+on guaranty.engine_num  = dim_engine_num.dim_encrypt
+left join (
+  select
+    dim_encrypt,
+    dim_decrypt
+  from dim.dim_encrypt_info
+) as dim_license_num
+on guaranty.license_num = dim_license_num.dim_encrypt
+order by due_bill_no
+;
+
+
+
+
+select
+  project_id,
+  due_bill_no,
+  pawn_value,
+  dim_frame_num.dim_decrypt   as frame_num,
+  dim_engine_num.dim_decrypt  as engine_num,
+  dim_license_num.dim_decrypt as license_num,
+  car_brand
+from (
+  select
+    project_id,
+    due_bill_no,
+    pawn_value,
+    frame_num,
+    engine_num,
+    license_num,
+    car_brand
+  from ods.guaranty_info_abs
+  where 1 > 0
+    and project_id = 'cl00326'
+    and due_bill_no in (
+      '5100641271',
+      '5100641533',
+      '5100642081',
+      '5100642251',
+      '5100643739',
+      '5100643805',
+      '5100645507',
+      ''
+    )
+) as guaranty
+left join (
+  select
+    dim_encrypt,
+    dim_decrypt
+  from dim.dim_encrypt_info
+) as dim_frame_num
+on guaranty.frame_num   = dim_frame_num.dim_encrypt
+left join (
+  select
+    dim_encrypt,
+    dim_decrypt
+  from dim.dim_encrypt_info
+) as dim_engine_num
+on guaranty.engine_num  = dim_engine_num.dim_encrypt
+left join (
+  select
+    dim_encrypt,
+    dim_decrypt
+  from dim.dim_encrypt_info
+) as dim_license_num
+on guaranty.license_num = dim_license_num.dim_encrypt
+order by due_bill_no
+;
+
+
+
+
+
+
+select distinct
+  length(is_empty(map_from_str(extra_info)['TIMESTAMP'])) as len
+from stage.asset_04_t_guaranty_info;
+
+
+
+

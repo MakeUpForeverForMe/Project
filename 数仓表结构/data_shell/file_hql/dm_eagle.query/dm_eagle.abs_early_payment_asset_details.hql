@@ -78,7 +78,7 @@ inner join (
   inner join loan_settle_info as settle_info
   on  loan_info.project_id  = settle_info.project_id
   and loan_info.due_bill_no = settle_info.due_bill_no
-  where date_sub(settle_info.pre_settle_date,1) between s_d_date and date_sub(e_d_date,1) -- 取提前结清的前一天的剩余本金，要不然提前结清后，当天的剩余本金就为0
+  where date_sub(settle_info.pre_settle_date,1) between s_d_date and date_sub(e_d_date,1)
 ) as loan_before_settle
 on  loan_settle.project_id  = loan_before_settle.project_id
 and loan_settle.due_bill_no = loan_before_settle.due_bill_no

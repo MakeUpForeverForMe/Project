@@ -51,7 +51,10 @@ insert overwrite table ods${db_suffix}.loan_lending partition(product_id)
 select
   lending.apply_no                              as apply_no,
   lending.contract_no                           as contract_no,
-  lending.contract_term                         as contract_term,
+  if(dayofmonth(lending.loan_expiry_date) - dayofmonth(lending.loan_issue_date) > 27,
+    (year(lending.loan_expiry_date) - year(lending.loan_issue_date)) * 12 + month(lending.loan_expiry_date) - month(lending.loan_issue_date) + 1,
+    (year(lending.loan_expiry_date) - year(lending.loan_issue_date)) * 12 + month(lending.loan_expiry_date) - month(lending.loan_issue_date)
+  )                                             as contract_term,
   lending.due_bill_no                           as due_bill_no,
   is_empty(
     case log.guaranty_type
@@ -89,11 +92,6 @@ from (
   select
     apply_no                          as apply_no,
     is_empty(contract_no,due_bill_no) as contract_no,
-    if(
-      dayofmonth(loan_expire_date) - dayofmonth(active_date) > 27,
-      (year(loan_expire_date) - year(active_date)) * 12 + month(loan_expire_date) - month(active_date) + 1,
-      (year(loan_expire_date) - year(active_date)) * 12 + month(loan_expire_date) - month(active_date)
-    )                                 as contract_term,
     due_bill_no                       as due_bill_no,
     '信用担保'                        as guarantee_type,
     purpose                           as loan_usage,

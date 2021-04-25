@@ -1,7 +1,5 @@
 package com.weshare.utils;
 
-import org.apache.commons.lang3.StringUtils;
-
 /**
  * id mapping
  * 多个系统 按照统一规则生成ID
@@ -102,8 +100,16 @@ public class IdMappingGenerator {
      * @param type 1:明文  2:SHA-256密文
      * @return 返回密文
      */
-    public static String idGenerate(String key, int type) {
+    private static String idGenerate(String key, int type) {
         if (EmptyUtil.isEmpty(key)) return null;
-        return EncoderHandler.encodeBySHA256(type == 1 ? EncoderHandler.encodeBySHA256(key) + SALT : key);
+        String newHashKey;
+        if (type == 1) {
+            newHashKey = EncoderHandler.sha256(key).toLowerCase();  // 统一用小写
+        } else if (type == 2) {
+            newHashKey = key.toLowerCase();  // 统一用小写
+        } else {
+            throw new IllegalArgumentException("The second arg " + type + " is not 1 or 2 !");
+        }
+        return EncoderHandler.sha256(newHashKey + SALT).toLowerCase();
     }
 }

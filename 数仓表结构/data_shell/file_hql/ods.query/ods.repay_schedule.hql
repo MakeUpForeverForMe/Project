@@ -129,7 +129,7 @@ from (
   where 1 > 0
     and is_settled = 'no'
     and s_d_date < '${ST9}'
-    ${product_id}
+    and product_id in (${product_id})
 ) as old_data
 left join (
   select
@@ -140,7 +140,7 @@ left join (
   from ods${db_suffix}.repay_schedule_inter
   where 1 > 0
     and biz_date = '${ST9}'
-    ${product_id}
+    and product_id in (${product_id})
 ) as new_data
 on  old_data.product_id  = new_data.product_id
 and old_data.due_bill_no = new_data.due_bill_no
@@ -154,6 +154,6 @@ select
 from ods${db_suffix}.repay_schedule_inter
 where 1 > 0
   and biz_date = '${ST9}'
-  ${product_id}
+  and product_id in (${product_id})
 -- limit 10
 ;

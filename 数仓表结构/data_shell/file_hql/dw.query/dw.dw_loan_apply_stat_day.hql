@@ -15,6 +15,24 @@ set hive.vectorized.execution.enabled=false;
 set hive.vectorized.execution.reduce.enabled=false;
 set hive.vectorized.execution.reduce.groupby.enabled=false;
 
+--CREATE TABLE IF NOT EXISTS `dw.dw_loan_apply_stat_day`(
+--  `loan_terms`                            decimal(3,0)   COMMENT '贷款期数',
+--
+--  `loan_apply_date`                       string         COMMENT '用信申请日期',
+--  `loan_apply_num`                        decimal(20,0)  COMMENT '用信申请笔数',
+--  `loan_apply_num_count`                  decimal(20,0)  COMMENT '累计申请笔数',
+--  `loan_apply_num_person`                 decimal(20,0)  COMMENT '用信申请人数',
+--  `loan_apply_num_person_count`           decimal(20,0)  COMMENT '累计用信申请人数',
+--  `loan_apply_amount`                     decimal(25,5)  COMMENT '用信申请金额',
+--  `loan_apply_amount_count`               decimal(25,5)  COMMENT '累计用信申请金额',
+--  `loan_approval_date`                    string         COMMENT '用信通过日期',
+--  `loan_approval_num`                     decimal(20,0)  COMMENT '用信通过笔数',
+--  `loan_approval_num_person`              decimal(20,0)  COMMENT '用信通过人数',
+--  `loan_approval_amount`                  decimal(25,5)  COMMENT '用信通过金额'
+--) COMMENT '轻度用信统计（申请）'
+--PARTITIONED BY (`biz_date` string COMMENT '用信申请日期',`product_id` string COMMENT '产品编号')
+--STORED AS PARQUET;
+
 
 --set hivevar:ST9=2021-01-01;
 --set hivevar:hive_param_str=and product_id in ('001801') ;

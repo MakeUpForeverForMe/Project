@@ -21,7 +21,7 @@ set hive.vectorized.execution.reduce.enabled=false;
 set hive.vectorized.execution.reduce.groupby.enabled=false;
 
 
-
+-- 滴滴
 with temp_credit_apply as (
   select
     'DIDI201908161538'                                                                               as product_id,

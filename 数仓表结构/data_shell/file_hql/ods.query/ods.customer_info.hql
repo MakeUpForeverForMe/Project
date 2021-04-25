@@ -76,7 +76,8 @@ from (
     null                                                                                   as job_year,
     null                                                                                   as income_month,
     null                                                                                   as income_year,
-    '个人'                                                                                 as cutomer_type,
+    '未知'                                                                                 as customer_type,
+    '个人'                                                                                 as loan_type,
     null                                                                                   as cust_rating,
     msg_log.product_code                                                                   as product_id
   from (
@@ -240,7 +241,8 @@ from (
     null                                                                            as job_year,
     null                                                                            as income_month,
     null                                                                            as income_year,
-    '个人'                                                                          as cutomer_type,
+    if(company_loan_bool = 'true','企业','未知')                                    as customer_type,
+    if(company_loan_bool = 'true','企业','个人')                                    as loan_type,
     null                                                                            as cust_rating,
     resp_log.product_id                                                             as product_id
   from (
@@ -263,6 +265,7 @@ from (
       get_json_object(standard_req_msg,'$.borrower.area')                                                  as resident_county,
       get_json_object(standard_req_msg,'$.borrower.industry')                                              as job_type,
       substring(get_json_object(standard_req_msg,'$.borrower.id_no'),1,6)                                  as idcard_area,
+      get_json_object(standard_req_msg,'$.company_loan_bool')                                              as company_loan_bool,
       get_json_object(standard_req_msg,'$.product.product_no')                                             as product_id
     from stage.nms_interface_resp_log
     where sta_service_method_name = 'setupCustCredit'
@@ -360,7 +363,7 @@ from (
       when 'B' then '澳门身份证'
       when 'C' then '台湾身份证'
       when 'X' then '其他证件'
-    else is_empty(get_json_object(msg_log.original_msg,'$.reqContent.jsonReq.content.reqData.idType'))
+      else is_empty(get_json_object(msg_log.original_msg,'$.reqContent.jsonReq.content.reqData.idType'))
     end                                                                                                                   as idcard_type,
     sha256(get_json_object(msg_log.original_msg,'$.reqContent.jsonReq.content.reqData.idNo'),'idNumber',1)                as idcard_no,
     sha256(get_json_object(msg_log.original_msg,'$.reqContent.jsonReq.content.reqData.custName'),'userName',1)            as name,
@@ -408,13 +411,14 @@ from (
       when '80' then '小学'
       when '90' then '文盲或半文盲'
       when '99' then '未知'
-    else is_empty(get_json_object(msg_log.original_msg,'$.reqContent.jsonReq.content.reqData.edu'))
+      else is_empty(get_json_object(msg_log.original_msg,'$.reqContent.jsonReq.content.reqData.edu'))
     end                                                                                                                   as education,
-    case  when get_json_object(msg_log.original_msg,'$.reqContent.jsonReq.content.reqData.edu') in ('30','40','50','60','70','80','90') then '大专及以下'
-          when get_json_object(msg_log.original_msg,'$.reqContent.jsonReq.content.reqData.edu') = '10'                                  then '硕士及以上'
-          when get_json_object(msg_log.original_msg,'$.reqContent.jsonReq.content.reqData.edu') = '20'                                  then '大学本科'
-          when get_json_object(msg_log.original_msg,'$.reqContent.jsonReq.content.reqData.edu') = '99'                                  then '未知'
-          else is_empty(get_json_object(msg_log.original_msg,'$.reqContent.jsonReq.content.reqData.edu'))
+    case
+      when get_json_object(msg_log.original_msg,'$.reqContent.jsonReq.content.reqData.edu') in ('30','40','50','60','70','80','90') then '大专及以下'
+      when get_json_object(msg_log.original_msg,'$.reqContent.jsonReq.content.reqData.edu') = '10'                                  then '硕士及以上'
+      when get_json_object(msg_log.original_msg,'$.reqContent.jsonReq.content.reqData.edu') = '20'                                  then '大学本科'
+      when get_json_object(msg_log.original_msg,'$.reqContent.jsonReq.content.reqData.edu') = '99'                                  then '未知'
+      else is_empty(get_json_object(msg_log.original_msg,'$.reqContent.jsonReq.content.reqData.edu'))
     end                                                                                                                   as education_ws,
     concat(dim_idno.idno_province_cn,dim_idno.idno_city_cn,dim_idno.idno_county_cn)                                       as idcard_address,
     dim_idno.idno_area_cn                                                                                                 as idcard_area,
@@ -469,8 +473,9 @@ from (
       when '03' then '个体工商户'
       when '04' then '学生'
       when '99' then '其他'
-      else is_empty(get_json_object(msg_log.original_msg,'$.reqContent.jsonReq.content.reqData.custType'))
-    end                                                                                                                   as cutomer_type,
+      else is_empty(get_json_object(msg_log.original_msg,'$.reqContent.jsonReq.content.reqData.custType'),'未知')
+    end                                                                                                                   as customer_type,
+    '个人'                                                                                                                as loan_type,
     null                                                                                                                  as cust_rating,
     get_json_object(msg_log.original_msg,'$.reqContent.jsonReq.content.reqData.proCode')                                  as product_id
   from (
@@ -641,7 +646,8 @@ from (
       is_empty(get_json_object(msg_log.original_msg,'$.data.borrower.annualIncomeMin'),0) +
       is_empty(get_json_object(msg_log.original_msg,'$.data.borrower.annualIncomeMax'),0)
     ) / 2                                                                                                             as income_year,
-    '个人'                                                                                                            as cutomer_type,
+    if(is_empty(get_json_object(msg_log.original_msg,'$.companyLoanBool')) = '企业','企业','未知')                    as customer_type,
+    is_empty(get_json_object(msg_log.original_msg,'$.companyLoanBool'),'个人')                                        as loan_type,
     null                                                                                                              as cust_rating,
     get_json_object(msg_log.original_msg,'$.data.product.productNo')                                                  as product_id
   from (
@@ -718,8 +724,8 @@ from (
 
 
 -- 新核心 乐信云信
-msck repair table stage.lx_kafka_credit_msg;
-insert overwrite table ods_sic.customer_info partition(product_id)
+msck repair table stage.kafka_credit_msg;
+insert overwrite table ods.customer_info partition(product_id)
 select distinct *
 from (
   select
@@ -821,13 +827,15 @@ from (
       when '03' then '个体工商户'
       when '04' then '学生'
       when '99' then '其他'
-      else is_empty(msg_log.reqdata["custType"])
+      else is_empty(msg_log.reqdata["custType"],'未知')
     end                                                                                                                              as cutomer_type,
+    '个人'                                                                                                                           as loan_type,
     null                                                                                                                             as cust_rating,
     msg_log.reqdata["proCode"]                                                                                                       as product_id
   from (
-    select *
-    from stage.lx_kafka_credit_msg
+    select
+      *
+    from stage.kafka_credit_msg
     where 1 > 0
       and p_type = 'WS0013200001'
       and batch_date between date_sub('${ST9}',2) and '${ST9}'
@@ -864,4 +872,130 @@ from (
     where p_type = 'WS0013200001'
   ) as product_id_tbl
   on customer_info.product_id = product_id_tbl.product_id
-) as tmp;
+) as tmp
+-- limit 1
+;
+
+
+
+
+
+
+
+-- 新核心 百度医美
+msck repair table stage.kafka_credit_msg;
+insert overwrite table ods.customer_info partition(product_id)
+select distinct *
+from (
+  select
+    msg_log.reqdata["applyNo"]                                                                                                as apply_id,
+    msg_log.reqdata["applyNo"]                                                                                                as due_bill_no,
+    concat_ws('_',b.channel_id,sha256(msg_log.reqdata["idNo"],'idNumber',1),sha256(msg_log.reqdata["custName"],'userName',1)) as cust_id,
+    sha256(msg_log.reqdata["idNo"],'idNumber',1)                                                                              as user_hash_no,
+    null                                                                                                                      as outer_cust_id,
+    case msg_log.reqdata["idType"]
+      when '0' then '身份证'
+      when '1' then '户口簿'
+      when '2' then '护照'
+      when '3' then '军官证'
+      when '4' then '士兵证'
+      when '5' then '港澳居民来往内地通行证'
+      when '6' then '台湾同胞来往内地通行证'
+      when '7' then '临时身份证'
+      when '8' then '外国人居留证'
+      when '9' then '警官证'
+      when 'A' then '香港身份证'
+      when 'B' then '澳门身份证'
+      when 'C' then '台湾身份证'
+      when 'X' then '其他证件'
+      else is_empty(msg_log.reqdata["idType"])
+    end                                                                                                                       as idcard_type,
+    sha256(msg_log.reqdata["idNo"],'idNumber',1)                                                                              as idcard_no,
+    sha256(msg_log.reqdata["custName"],'userName',1)                                                                          as name,
+    sha256(msg_log.reqdata["phoneNo"],'phone',1)                                                                              as mobie,
+    null                                                                                                                      as card_phone,
+    is_empty(
+      case msg_log.reqdata["sex"]
+        when '1' then '男'
+        when '2' then '女'
+        else null
+      end,
+      sex_idno(msg_log.reqdata["idNo"])
+    )                                                                                                                         as sex,
+    is_empty(
+      datefmt(msg_log.reqdata["birth"],'yyyyMMdd','yyyy-MM-dd'),
+      datefmt(substring(msg_log.reqdata["idNo"],7,8),'yyyyMMdd','yyyy-MM-dd')
+    )                                                                                                                         as birthday,
+    age_birth(
+      msg_log.reqdata["loanDate"],
+      is_empty(
+        datefmt(msg_log.reqdata["birth"],'yyyyMMdd','yyyy-MM-dd'),
+        datefmt(substring(msg_log.reqdata["idNo"],7,8),'yyyyMMdd','yyyy-MM-dd')
+      )
+    )                                                                                                                         as age,
+    null                                                                                                                      as marriage_status,
+    null                                                                                                                      as education,
+    null                                                                                                                      as education_ws,
+    concat(dim_idno.idno_province_cn,dim_idno.idno_city_cn,dim_idno.idno_county_cn)                                           as idcard_address,
+    dim_idno.idno_area_cn                                                                                                     as idcard_area,
+    dim_idno.idno_province_cn                                                                                                 as idcard_province,
+    dim_idno.idno_city_cn                                                                                                     as idcard_city,
+    dim_idno.idno_county_cn                                                                                                   as idcard_county,
+    null                                                                                                                      as idcard_township,
+    null                                                                                                                      as resident_address,
+    null                                                                                                                      as resident_area,
+    null                                                                                                                      as resident_province,
+    null                                                                                                                      as resident_city,
+    null                                                                                                                      as resident_county,
+    null                                                                                                                      as resident_township,
+    null                                                                                                                      as job_type,
+    null                                                                                                                      as job_year,
+    0                                                                                                                         as income_month,
+    0                                                                                                                         as income_year,
+    '未知'                                                                                                                    as customer_type,
+    '个人'                                                                                                                    as loan_type,
+    null                                                                                                                      as cust_rating,
+    msg_log.reqdata["proCode"]                                                                                                as product_id
+  from (
+    select
+      *
+    from stage.kafka_credit_msg
+    where 1 > 0
+      and p_type = 'WS0012200001'
+      and batch_date between date_sub('${ST9}',2) and '${ST9}'
+  ) as msg_log
+  left join (
+    select distinct
+      product_id as dim_product_id,
+      channel_id
+    from (
+      select
+        max(if(col_name = 'product_id',  col_val,null)) as product_id,
+        max(if(col_name = 'channel_id',  col_val,null)) as channel_id
+      from dim.data_conf
+      where col_type = 'ac'
+      group by col_id
+    ) as tmp
+  ) as biz_conf
+  on msg_log.reqdata["proCode"] = biz_conf.dim_product_id
+  left join (
+    select distinct
+      idno_addr,
+      idno_area_cn,
+      idno_province_cn,
+      idno_city_cn,
+      idno_county_cn
+    from dim_new.dim_idno
+  ) as dim_idno
+  on substring(msg_log.reqdata["idNo"],1,6) = dim_idno.idno_addr
+  union all
+  select customer_info.* from ods.customer_info
+  join (
+    select distinct reqdata["proCode"] as product_id
+    from stage.lx_kafka_credit_msg
+    where p_type = 'WS0012200001'
+  ) as product_id_tbl
+  on customer_info.product_id = product_id_tbl.product_id
+) as tmp
+-- limit 1
+;

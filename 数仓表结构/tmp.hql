@@ -1459,7 +1459,7 @@ limit 100
 
 
 select distinct keys
-from stage.asset_06_t_asset_pay_flow
+from stage.asset_04_t_guaranty_info
 lateral view explode(map_keys(map_from_str(extra_info))) key as keys
 order by keys;
 

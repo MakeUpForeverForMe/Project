@@ -18,6 +18,7 @@ log=$log/${base_file_name}.${e_date}.log
 
 echo -e "${date_s_aa:=$(date +'%F %T')} 资产 ods_cloud 开始 当前脚本进程ID为：$(pid)\n" &>> $log
 
+sh $data_manage -a $rd -s ${s_date} -e ${e_date} -f $dim_new_hql/dim.dim_encrypt_info.hql &
 
 sh $data_manage -a $rd -s ${e_date} -e ${e_date} -f $ods_cloud_hql/ods.risk_control.hql &
 
@@ -151,7 +152,7 @@ done
 
 wait_jobs
 
-echo -e "${date_d_aa:=$(date +'%F %T')} 资产 ods_cloud 数据导出 结束 当前脚本进程ID为：$(pid)    用时：${during_time:=$(during "$date_d_aa" "$date_c_aa")}\n\n" &>> $log
+echo -e "${date_d_aa:=$(date +'%F %T')} 资产 ods_cloud 数据导出 结束 当前脚本进程ID为：$(pid)    用时：$(during "$date_d_aa" "$date_c_aa")\n\n" &>> $log
 
 for db_tb in ${!tables[@]};do
 
@@ -170,7 +171,7 @@ done
 
 wait_jobs
 
-echo -e "${date_f_aa:=$(date +'%F %T')} 资产 ods_cloud 数据上传到 MySQL 结束 当前脚本进程ID为：$(pid)    用时：${during_time:=$(during "$date_f_aa" "$date_d_aa")}\n\n" &>> $log
+echo -e "${date_f_aa:=$(date +'%F %T')} 资产 ods_cloud 数据上传到 MySQL 结束 当前脚本进程ID为：$(pid)    用时：$(during "$date_f_aa" "$date_d_aa")\n\n" &>> $log
 
 
 echo -e "${date_e_aa:=$(date +'%F %T')} 资产 ods_cloud 结束 当前脚本进程ID为：$(pid)    用时：${during_time:=$(during "$date_e_aa" "$date_s_aa")}\n\n" &>> $log
