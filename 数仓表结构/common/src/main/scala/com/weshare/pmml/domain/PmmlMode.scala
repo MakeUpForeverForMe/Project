@@ -51,7 +51,6 @@ case class PmmlMode(
                      var overdue_terms_max:BigDecimal,
                      var overdue_principal_accumulate:BigDecimal,
                      var overdue_principal_max:BigDecimal,
-                     var biz_date:String,
                      var creditlimit:BigDecimal,
                      var edu:String,
                      var degree:String,
@@ -66,7 +65,11 @@ case class PmmlMode(
                      var worktitle:String,
                      var idcard_area:String,
                      var risklevel:String,
-                     var scorerange:String
+                     var scorerange:String,
+                     var rn:Integer,
+                     var biz_date:String,
+                     var project_id:String
+
                    )
 
 
@@ -109,9 +112,28 @@ case class Scheduler(
                       var reduce_svc_fee:BigDecimal,
                       var reduce_penalty:BigDecimal,
                       var reduce_mult_amt:BigDecimal,
-                      var s_d_date:String,
-                      var e_d_date:String,
-                      var effective_time:String,
-                      var expire_time:String,
-                      var product_id_vt :String
+                      var range_rate:String,
+                      var product_id_vt :String,
+                      var project_id:String
+                    )
+
+
+case class PmmlParam(
+                      var batch_date:String,
+                      var tablename:String,
+                      var cycle_key:String,
+                      projectId:String,
+                      var  isHa:Int,
+                      var hdfs_master:String,
+                      project_start_date:String,
+                      project_end_date:String,
+                      init_total_amount:BigDecimal,
+                      cycle_start_date:String,
+                      cycle_end_date:String,
+                      amortization_period_start_date:String,
+                      amortization_period_end_date:String,
+                      loan_terms:String,
+                      available_amount:BigDecimal,
+                      pmml_url:String,
+                      mode_rate:Map[String,String]
                     )

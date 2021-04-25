@@ -4,13 +4,18 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 
 import com.alibaba.fastjson.{JSON, JSONObject}
-import com.weshare.pmml.domain.{PmmlMode, Scheduler}
+import com.weshare.pmml.dao.PmmlDaoImpl
+import com.weshare.pmml.domain.{PmmlMode, PmmlParam, Scheduler}
 import com.weshare.utils.PmmlUtils
+import io.netty.util.internal.ThreadLocalRandom
 import org.apache.commons.lang3.StringUtils
-import org.apache.spark.sql.{Dataset, SaveMode, SparkSession, functions}
+import org.apache.spark.sql.{DataFrame, Dataset, SaveMode, SparkSession, functions}
 import org.dmg.pmml.FieldName
 import org.jpmml.evaluator.ModelEvaluator
+import org.json4s.jackson.Json
+import org.slf4j.{Logger, LoggerFactory}
 
+import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
 /**
@@ -18,20 +23,26 @@ import scala.util.Random
  **/
 object RunJob {
 
+  private val logger: Logger = LoggerFactory.getLogger(RunJob.getClass)
+
+
   /**
    * 针对还款计划 进行预测  将结果输出到对应的输出表
-   * @param spark
-   * @param batch_date
-   * @param tablename
-   * @param cycle_key
+   *
+   * @param
+   * @param
+   * @param
+   * @param
    */
 
-  def runJob(spark:SparkSession, batch_date: String, tablename:String, cycle_key:String)={
+  def runJob=(spark:SparkSession, pmmlParam:PmmlParam)=>{
+    // 计算概率值
     import spark.implicits._
-    val ds: Dataset[PmmlMode] = spark.sql(s"select * from  ${tablename} where cycle_key='${cycle_key}'").drop("cycle_key").as[PmmlMode]
+    println(s"select * from  ${pmmlParam.tablename} where cycle_key='${pmmlParam.cycle_key}' and project_id in ('${pmmlParam.projectId}') and biz_date='${pmmlParam.batch_date}'")
+    val ds: Dataset[PmmlMode] = spark.sql(s"select * from  ${pmmlParam.tablename} where cycle_key='${pmmlParam.cycle_key}' and project_id in ('${pmmlParam.projectId}') and biz_date='${pmmlParam.batch_date}'").drop("cycle_key").as[PmmlMode]
     ds.cache()
     val setedBills = ds.filter(it=>StringUtils.equals("F",it.Loan_status)).mapPartitions(it=>{
-      var modes = List[Map[String,String]]()
+      var modes = ListBuffer[Map[String,String]]()
       while (it.hasNext) {
         val mode = it.next()
         modes=modes ++ changeJsonToMap(mode,mode.schedule)
@@ -42,71 +53,122 @@ object RunJob {
     val unSettle = ds.filter(it => {
       !StringUtils.equals("F", it.Loan_status)
     }).mapPartitions(it => {
-      var modes = List[Map[String, String]]()
-      val evaluator: ModelEvaluator[_] = PmmlUtils.initPmmUtils("model.pmml")
+      var modes = ListBuffer[Map[String, String]]()
+      val evaluator: ModelEvaluator[_] = PmmlUtils.initPmmUtils(pmmlParam)
       while (it.hasNext) {
         val mode: PmmlMode = it.next()
         // 初始化信息
         val initMap: Map[String, Object] = initModeMap(mode)
         val schedules = mode.schedule
         //转换结果为schedule_list
-        var schedule_list: List[Map[String, String]] = changeJsonToMap(mode,schedules)
-        while (!isHasnoDeal(schedule_list))
-          schedule_list = dealScheduleList(evaluator,mode, schedule_list, initMap)
+        var schedule_list: ListBuffer[Map[String, String]] = changeJsonToMap(mode,schedules)
+        while (!isHasnoDeal(schedule_list)) {
+          schedule_list = dealScheduleList(evaluator,mode, schedule_list, initMap,pmmlParam)
+        }
         modes = modes ++ schedule_list
         //println(schedule_list)
       }
       modes.iterator
     })
     val result = unSettle.unionByName(setedBills).mapPartitions(it => {
-      var schedulers = List[com.weshare.pmml.domain.Scheduler]()
+      var schedulers = ListBuffer[com.weshare.pmml.domain.Scheduler]()
       while (it.hasNext) {
-        val map = it.next()
-        val scheduler: Scheduler = mapToDoMain(map)
-        schedulers = scheduler :: schedulers
+        val schedule = it.next()
+        schedulers += mapToDoMain(schedule)
       }
       schedulers.iterator
     })
 
-    spark.sql("set hive.exec.dynamic.partition=true")
-    spark.sql("set hive.exec.dynamic.partition.mode=nonstrict")
-    spark.sql("set hive.exec.max.dynamic.partitions=100000")
-    spark.sql("set hive.exec.max.dynamic.partitions.pernode=100000")
-    spark.sql("set hive.exec.max.created.files=100000")
+
     /* println("还款计划条数:",result.count())*/
     //result.show(100,false)
-    result.
-    withColumn("biz_date",functions.lit(batch_date))
-      .withColumnRenamed("product_id_vt","product_id")
-      .withColumn("cycle_key",functions.lit(cycle_key)).
-    select("due_bill_no","schedule_id","loan_active_date","loan_init_principal","loan_init_term","loan_term","start_interest_date",
-    "curr_bal","should_repay_date","should_repay_date_history","grace_date","should_repay_amount","should_repay_principal",
-    "should_repay_interest","should_repay_term_fee","should_repay_svc_fee","should_repay_penalty","should_repay_mult_amt",
-    "should_repay_penalty_acru","schedule_status","schedule_status_cn","paid_out_date","paid_out_type",
-    "paid_out_type_cn","paid_amount","paid_principal","paid_interest","paid_term_fee","paid_svc_fee",
-    "paid_penalty","paid_mult","reduce_amount","reduce_principal","reduce_interest","reduce_term_fee",
-    "reduce_svc_fee","reduce_penalty","reduce_mult_amt","s_d_date","e_d_date","effective_time","expire_time",
-    "biz_date","product_id","cycle_key"
-    ).
-    write.mode(SaveMode.Overwrite).insertInto("eagle.predict_schedule")
+   // spark.sql(s"alter table eagle.predict_schedule drop partition(biz_date='${pmmlParam.batch_date}',project_id='${pmmlParam.projectId}',cycle_key='${pmmlParam.cycle_key}')")
+     result.
+      withColumn("biz_date", functions.lit(pmmlParam.batch_date))
+      .withColumnRenamed("product_id_vt", "product_id")
+      .withColumn("cycle_key", functions.lit(pmmlParam.cycle_key))
+      .repartition(10).
+      select("due_bill_no", "schedule_id", "loan_active_date", "loan_init_principal", "loan_init_term", "loan_term", "start_interest_date",
+        "curr_bal", "should_repay_date", "should_repay_date_history", "grace_date", "should_repay_amount", "should_repay_principal",
+        "should_repay_interest", "should_repay_term_fee", "should_repay_svc_fee", "should_repay_penalty", "should_repay_mult_amt",
+        "should_repay_penalty_acru", "schedule_status", "schedule_status_cn", "paid_out_date", "paid_out_type",
+        "paid_out_type_cn", "paid_amount", "paid_principal", "paid_interest", "paid_term_fee", "paid_svc_fee",
+        "paid_penalty", "paid_mult", "reduce_amount", "reduce_principal", "reduce_interest", "reduce_term_fee",
+        "reduce_svc_fee", "reduce_penalty", "reduce_mult_amt","range_rate",
+        "product_id", "biz_date", "project_id", "cycle_key"
+      ).write.mode(SaveMode.Overwrite).insertInto("eagle.predict_schedule")
     // 计算实还数据
-    calRepayDay(spark,batch_date,cycle_key)
-    ds.persist()
-    result.persist()
+
+    ds.unpersist()
+    val df = calRepayDay(spark,pmmlParam.batch_date,pmmlParam.cycle_key)
+    //维护可用于放款的金额
+    if(null!=df){
+      //维护 提前还款和逾期的概率分布表
+      calAvailable_amount(spark,pmmlParam)
+    }
   }
 
   /**
-   * 计算实还数据
-   * @param spark
-   * @param batch_date
-   * @param cycle_key
+   * 计算可用金额
+   * @param
+   * @param
    */
-  def calRepayDay(spark: SparkSession, batch_date: String, cycle_key:String): Unit ={
-    spark.sql("set hive.exec.dynamic.partition=true")
+  def calAvailable_amount=(sparkSession: SparkSession,pmmlParam:PmmlParam) => {
+   logger.error(s"""
+                   |
+                   |select
+                   |sum(paid_principal) as paid_principal,
+                   |sum(paid_interest) as paid_interest,
+                   |sum(paid_amount) as paid_amount,
+                   |sum(nvl(should_repay_principal,0)-nvl(paid_principal,0)) as remain_principal
+                   |from eagle.predict_repay_day
+                   |where biz_date='${pmmlParam.batch_date}' and  project_id='${pmmlParam.projectId}'
+                   |and
+                   |if('${pmmlParam.cycle_key}'='0',
+                   |cycle_key='0' and date_format(paid_out_date,'yyyy-MM')=date_format(add_months('${pmmlParam.batch_date}',cast('1' as int )),'yyyy-MM'),
+                   |(cycle_key<='${pmmlParam.cycle_key}')  and
+                   |date_format(paid_out_date,'yyyy-MM')=date_format(add_months('${pmmlParam.batch_date}',cast('${pmmlParam.cycle_key}' as int )+1),'yyyy-MM')
+                   |)
+                   |""".stripMargin)
+
+
+   val decimal=sparkSession.sql(
+      s"""
+        |
+        |select
+        |sum(paid_principal) as paid_principal,
+        |sum(paid_interest) as paid_interest,
+        |sum(paid_amount) as paid_amount,
+        |sum(nvl(should_repay_principal,0)-nvl(paid_principal,0)) as remain_principal
+        |from eagle.predict_repay_day
+        |where biz_date='${pmmlParam.batch_date}' and  project_id='${pmmlParam.projectId}'
+        |and
+        |if('${pmmlParam.cycle_key}'='0',
+        |cycle_key='0' and date_format(paid_out_date,'yyyy-MM')=date_format(add_months('${pmmlParam.batch_date}',cast('1' as int )),'yyyy-MM'),
+        |(cycle_key<='${pmmlParam.cycle_key}')  and
+        |date_format(paid_out_date,'yyyy-MM')=date_format(add_months('${pmmlParam.batch_date}',cast('${pmmlParam.cycle_key}' as int )+1),'yyyy-MM')
+        |)
+        |""".stripMargin).take(1)(0).getAs[java.math.BigDecimal]("paid_amount")
+   // val aviable_amount=pmmlParam.init_total_amount.*(BigDecimal((90 + Random.nextInt(5)) * 0.01)).setScale(0,BigDecimal.RoundingMode.FLOOR)-decimal;
+    val aviable_amount=decimal;
+    logger.warn("第{}次预测，本次剩余本金:{}，总金额:{},可用余额:{}",pmmlParam.cycle_key,decimal,pmmlParam.init_total_amount.*(BigDecimal((90 + Random.nextInt(5)) * 0.01)).setScale(0,BigDecimal.RoundingMode.FLOOR),aviable_amount)
+    PmmlDaoImpl.updatePoolTotalPrincipal(aviable_amount,pmmlParam.projectId)
+  }
+
+
+
+  /**
+   * 计算实还数据
+   * @param
+   * @param
+   * @param
+   */
+  def calRepayDay=(spark: SparkSession, batch_date: String, cycle_key:String) =>{
+  /*  spark.sql("set hive.exec.dynamic.partition=true")
     spark.sql("set hive.exec.dynamic.partition.mode=nonstrict")
     spark.sql("set hive.exec.max.dynamic.partitions=100000")
     spark.sql("set hive.exec.max.dynamic.partitions.pernode=100000")
-    spark.sql("set hive.exec.max.created.files=100000")
+    spark.sql("set hive.exec.max.created.files=100000")*/
     spark.sql(
       s"""
         |insert overwrite table eagle.predict_repay_day partition(biz_Date,project_id,cycle_key)
@@ -119,8 +181,9 @@ object RunJob {
         |sum(paid_principal) as paid_principal,
         |sum(paid_interest) as paid_interest,
         |sum(paid_amount) as paid_amount,
+        |sum(if(paid_out_date is null,should_repay_principal,nvl(should_repay_principal,0)-nvl(paid_principal,0))) as remain_principal,
         |"${batch_date}" as biz_Date,
-        |biz_conf.project_id as project_id,
+        |project_id as project_id,
         |"${cycle_key}" as cycle_key
         |from
         |(
@@ -129,14 +192,10 @@ object RunJob {
         |eagle.predict_schedule
         |where cycle_key="${cycle_key}" and biz_Date="${batch_date}"
         |)predict
-        |inner join dim_new.biz_conf on predict.product_id=biz_conf.product_id
-        |group by biz_conf.project_id ,should_repay_date,paid_out_date
-        |
-        |
+        |group by project_id ,should_repay_date,paid_out_date
         |""".stripMargin
-
     )
-
+   // true
 
   }
 
@@ -171,7 +230,7 @@ object RunJob {
       map.getOrElse("schedule_status",""),
       map.getOrElse("schedule_status_cn",""),
       map.getOrElse("paid_out_date",""),
-      map.getOrElse("paid_out_type",""),
+      map.getOrElse("paid_out_type",null),
       map.getOrElse("paid_out_type_cn",""),
       BigDecimal.apply(map.getOrElse("paid_amount","0")),
       BigDecimal.apply(map.getOrElse("paid_principal","0")),
@@ -187,11 +246,9 @@ object RunJob {
       BigDecimal.apply(map.getOrElse("reduce_svc_fee","0")),
       BigDecimal.apply(map.getOrElse("reduce_penalty","0")),
       BigDecimal.apply(map.getOrElse("reduce_mult_amt","0")),
-      map.getOrElse("s_d_date",""),
-      map.getOrElse("e_d_date",""),
-      map.getOrElse("effective_time",""),
-      map.getOrElse("expire_time",""),
-      map.getOrElse("product_id","")
+      map.getOrElse("range_rate",""),
+      map.getOrElse("product_id",""),
+      map.getOrElse("project_id","")
     )
 
 
@@ -202,10 +259,10 @@ object RunJob {
 
   /**
    * 判断 改还款计划list 是否还存在未处理的还款计划
-   * @param schedule_list
+   * @param
    * @return
    */
-  def isHasnoDeal(schedule_list:List[Map[String,String]])={
+  def isHasnoDeal=(schedule_list:ListBuffer[Map[String,String]])=>{
     var paid_term=true;
     schedule_list.foreach(it=>{
       if(StringUtils.equals("N",it.getOrElse("schedule_status",""))){
@@ -218,10 +275,10 @@ object RunJob {
 
   /**
    * 计算改还款计划list 判断该笔借据是否是一次 未还 一次未还则 该笔借据的所有还款计划状态为N
-   * @param schedule_list
+   * @param
    * @return
    */
-  def caclPaid_term(schedule_list:List[Map[String,String]])={
+  def caclPaid_term=(schedule_list:ListBuffer[Map[String,String]])=>{
     var paid_term=0;
     schedule_list.foreach(it=>{
       if(StringUtils.equals("N",it.getOrElse("schedule_status",""))){
@@ -243,8 +300,8 @@ object RunJob {
    * @param initMap
    * @return
    */
-  def dealScheduleList(evaluator: ModelEvaluator[_],mode:PmmlMode,schedule_list:List[Map[String,String]], initMap: Map[String, Object]) ={
-    var temp: List[Map[String, String]] = List[Map[String,String]]()
+  def dealScheduleList(evaluator: ModelEvaluator[_],mode:PmmlMode,schedule_list:ListBuffer[Map[String,String]], initMap: Map[String, Object],param: PmmlParam) ={
+    var temp = ListBuffer[Map[String,String]]()
     if(null!=schedule_list&&schedule_list.nonEmpty){
       var term_map =Map[String,Object]()
       //如果该笔借据一期都没有还 则加第一期进入
@@ -255,7 +312,7 @@ object RunJob {
         term_map = getMaxPaidOutTerm(schedule_list)
         term_map+=("previous_status"->term_map.getOrElse("schedule_status","N"))
       }
-      val mincome= if(mode.mincome.compare(BigDecimal.valueOf(0))==0) "1000" else {mode.mincome.toString()}
+      val mincome= if(mode.mincome== null || mode.mincome.compare(BigDecimal.valueOf(0))==0) "1000" else {mode.mincome.toString()}
       term_map+=("mincome"->mincome)
       term_map+=("creditlimit"->mode.creditlimit)
       term_map+=("scoreRange"->mode.scorerange)
@@ -267,24 +324,41 @@ object RunJob {
         .map(it=>(it._1.getValue,it._2.toString)).toMap
       //修改对应期数的值
       //判断是否只有一期
-      val resultMap = getRandomNext(map) // 预测完的结果
-      if(mode.loan_init_term==1 ){ // 如果只有一期
+      val resultMap = getRandomNext(map,param) // 预测完的结果
+
+      if(resultMap._1.equals("Fv")){ //修改所有的schedule
+        val min: String = schedule_list.filter(it=>"N".equals(it.getOrElse("schedule_status","N"))).map(it=>it.getOrElse("should_repay_date","")).min
+        temp =temp ++ schedule_list.filter(it=>{!"N".equals(it.getOrElse("schedule_status","N"))})
+        val paid_out_date = clcalDate(min,-Random.nextInt(5))
+        schedule_list.filter(it=>"N".equals(it.getOrElse("schedule_status","N"))).foreach(it=>{
+          temp+=  it ++ Map[String,String]("schedule_status"->"F",
+            "paid_out_date"->paid_out_date ,
+            "paid_principal"->it.getOrElse("should_repay_principal",""),
+            "paid_interest"->it.getOrElse("should_repay_interest",""),
+            "paid_amount"->it.getOrElse("should_repay_amount",""),
+            "paid_out_type"->"PRE_SETTLE",
+            "schedule_status_cn"->"已还清",
+            "paid_out_type_cn"->"提前结清"
+          )
+
+        })
+      }else if(mode.loan_init_term==1 ){ // 如果只有一期
         val schedule = schedule_list(0)
         if(!StringUtils.equals("F",schedule.getOrElse("schedule_status","N"))){ // 仅有一期 且未还
-          temp =updateSchedule(schedule,resultMap)::Nil
+          temp +=updateSchedule(schedule,resultMap,map)
         }
       }
       else { //大于1期 则取当前期数的下一期
         schedule_list.foreach(it=>{
           val next_term = (Integer.valueOf(term_map.getOrElse("loan_term","").toString)+1).toString
           if(it.getOrElse("loan_term","").equals(next_term)){ //等于当前预测期数的下一期
-            temp= updateSchedule(it,resultMap)::temp // 改变下一期的值
+            temp += updateSchedule(it,resultMap,map) // 改变下一期的值
           }else if (StringUtils.equals(it.getOrElse("loan_term",""),term_map.getOrElse("loan_term","").toString) && StringUtils.equals("N",it.getOrElse("schedule_status","N"))){
             // 保持原来的还款计划
-            temp= updateSchedule(it,resultMap)::temp
+            temp += updateSchedule(it,resultMap,map)
 
           }else{
-            temp= it::temp
+            temp += it
           }
         })
       }
@@ -303,8 +377,10 @@ object RunJob {
    * @param result
    * @return
    */
-  def updateSchedule(schedule:Map[String,String],result:(String,String)) ={
+  def updateSchedule(schedule:Map[String,String],result:(String,String),map:Map[String,String]) ={
     var res = Map[String,String]()
+    import org.json4s.DefaultFormats
+
     result._1 match {
       case "N" => // 正常还款
         res= Map[String,String]("schedule_status"->"F",
@@ -331,7 +407,8 @@ object RunJob {
 
       case "O" =>{ // 逾期
         res= Map[String,String]("schedule_status"->"O"
-          ,"schedule_status_cn"->"逾期"
+          ,"schedule_status_cn"->"逾期",
+          "paid_out_date"->null
         )
 
       }
@@ -347,6 +424,7 @@ object RunJob {
         )
       }
     }
+    res+=("range_rate"-> Json(DefaultFormats).write(map))
     res=schedule++res
     res
   }
@@ -371,28 +449,38 @@ object RunJob {
    * @param map
    * @return
    */
-  def getRandomNext(map:Map[String, String]) ={
-    val basenum=100;
+  def getRandomNext(map:Map[String, String],param: PmmlParam) ={
+    val basenum=1000
     val list: Map[String, String] = map.map(it => {
-      it._1.replaceAll("probability\\(", "").replaceAll("\\)", "") match {
+      val rate = it._2
+      val key = it._1.replaceAll("probability\\(", "").replaceAll("\\)", "")
+      (param.mode_rate.getOrElse(key.toString,""),rate)
+      })
+      /*match {
         case "0" => ("N", it._2)
         case "1" => ("F", it._2)
         case "2" => ("O", it._2)
         case "3" => ("Ov", it._2)
-      }
-    })
+      }*/
     // 计算每个数字出现的次数
-    var result_list = List[(String, String)]()
+   println(list)
+    var result_list = ListBuffer[(String, String)]()
     list.foreach(it=>{
       val rate = it._2
       val num = (BigDecimal.apply(rate)*basenum).toInt
         for (a <- 1 to num){
-          result_list=it::result_list
+          result_list+=it
         }
     })
-
-    result_list(Math.abs(Random.nextInt(result_list.size)))
-
+    val list2=ListBuffer[(String, String)]()
+    val result_lists= Random.shuffle(result_list)
+    for (elem <- 1.to(10)) {
+    val i= Math.floor(ThreadLocalRandom.current().nextDouble(1.000)*result_lists.length).toInt
+      list2+=result_lists(i)
+    }
+    val tuple: (String, Int) = list2.groupBy(it => it._1).map(it=>(it._1,it._2.length)).maxBy(it=>it._2)
+    println(tuple)
+    (tuple._1,tuple._2.toString)
   }
 
 
@@ -475,14 +563,11 @@ object RunJob {
       "worktype" -> mode.worktype,
       "workduty" -> mode.workduty,
       "worktitle" -> mode.worktitle,
-      "idcard_area" -> mode.idcard_area
+      "idcard_area" -> mode.idcard_area,
+      "project_id"->mode.project_id
     )
 
     initMap
-
-
-
-
   }
 
   /**
@@ -490,11 +575,14 @@ object RunJob {
    * @param schedules
    */
   def changeJsonToMap(mode:PmmlMode,schedules:String) ={
+
     val array: JSONObject = JSON.parseObject(schedules)
-    var result = List[Map[String, String]]()
+
+    var result = ListBuffer[Map[String, String]]()
 
     for (elem <- 1.to(array.size())) {
       var map = Map[String, String]()
+      map+=("project_id"->mode.project_id)
       map+=("product_id"->mode.product_id)
       val json = array.getJSONObject(elem.toString)
       val keys = json.keySet().iterator()
@@ -503,7 +591,7 @@ object RunJob {
         val value = json.getString(key)
         map+=(key->value)
       }
-      result=map::result
+      result +=map
     }
     result
   }
@@ -512,7 +600,7 @@ object RunJob {
    * 获取还款计划的最大期数
    * @param schedules
    */
-  def getMaxPaidOutTerm(schedules:List[Map[String, String]]) ={
+  def getMaxPaidOutTerm(schedules:ListBuffer[Map[String, String]]) ={
     /* if( schedules.filter(it => StringUtils.equals("F",it.getOrElse("schedule_status", "")))==null || schedules.filter(it => StringUtils.equals("F",it.getOrElse("schedule_status", ""))).isEmpty){
        println(schedules)
      }*/
@@ -525,7 +613,7 @@ object RunJob {
    * 获取还款计划的最大期数
    * @param schedules
    */
-  def getMinTerm(schedules:List[Map[String, String]]) ={
+  def getMinTerm(schedules:ListBuffer[Map[String, String]]) ={
     schedules.minBy(it => it.getOrElse("loan_term", ""))
   }
 

@@ -1,6 +1,10 @@
 package com.weshare.utils
 
+import java.nio.file.FileSystemException
+import java.util.Properties
+
 import org.apache.hadoop.conf.Configuration
+import org.apache.hadoop.fs.{FileSystem, Path}
 
 /**
  * created by chao.guo on 2021/3/3
@@ -22,4 +26,16 @@ object HdfsUtils {
     }
     conf
   }
+
+  val initProperties: (Configuration, String) => Properties = (conf:Configuration, config_path:String)=>{
+    val properties = new Properties()
+    val fileSystem = FileSystem.get(conf)
+    val stream = fileSystem.open(new Path(config_path))
+    properties.load(stream)
+    stream.close()
+    properties
+  }
+
+
+
 }

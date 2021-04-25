@@ -101,11 +101,12 @@ CREATE TABLE IF NOT EXISTS `ods.customer_info`(
   `resident_city`                                     string         COMMENT '常住地地级（城市）',
   `resident_county`                                   string         COMMENT '常住地县级（区县）',
   `resident_township`                                 string         COMMENT '常住地乡级（乡/镇/街）（预留）',
-  `job_type`                                          string         COMMENT '工作类型',
-  `job_year`                                          decimal(2,0)   COMMENT '工作年限',
+  `job_type`                                          string         COMMENT '借款人行业',
+  `job_year`                                          decimal(5,0)   COMMENT '工作年限',
   `income_month`                                      decimal(25,5)  COMMENT '月收入',
   `income_year`                                       decimal(25,5)  COMMENT '年收入',
-  `cutomer_type`                                      string         COMMENT '客戶类型（个人或企业）',
+  `customer_type`                                     string         COMMENT '客戶类型（中文值：个体工商户、学生、企业、未知等）',
+  `borrower_type`                                     string         COMMENT '借款方类型（个人或企业）',
   `cust_rating`                                       string         COMMENT '内部信用等级'
 ) COMMENT '客户信息表'
 PARTITIONED BY (`product_id` string COMMENT '产品编号')
@@ -244,7 +245,7 @@ CREATE TABLE IF NOT EXISTS `ods.guaranty_info`(
   `guaranty_code`                                     string         COMMENT '抵押物编号',
   `guaranty_handling_status`                          string         COMMENT '抵押办理状态 预定义字段：办理中 办理完成 尚未办理',
   `guaranty_alignment`                                string         COMMENT '抵押顺位 1-第一顺位 2-第二顺位 9-其他',
-  `car_property`                                      string         COMMENT '车辆性质 预定义字段：非融资车分期非 融资车抵贷 融资租赁车分期 融资租赁车抵贷',
+  `car_property`                                      string         COMMENT '车辆性质 预定义字段：非融资车分期、非融资车抵贷、融资租赁车分期、融资租赁车抵贷',
   `financing_type`                                    string         COMMENT '融资方式 预定义字段：正租 反租',
   `guarantee_type`                                    string         COMMENT '担保方式 预定义字段：质押担保，信用担保，保证担保，抵押担保',
   `pawn_value`                                        decimal(20,6)  COMMENT '评估价格(元)',
@@ -259,7 +260,7 @@ CREATE TABLE IF NOT EXISTS `ods.guaranty_info`(
   `one_year_car_transfer_number`                      decimal(11,0)  COMMENT '一年内车辆过户次数',
   `liability_insurance_cost1`                         decimal(20,6)  COMMENT '责信保费用1',
   `liability_insurance_cost2`                         decimal(20,6)  COMMENT '责信保费用2',
-  `car_type`                                          string         COMMENT '车类型 预定义字段：新车 二手车',
+  `car_type`                                          string         COMMENT '车类型 预定义字段：新车、二手车、',
   `frame_num`                                         string         COMMENT '车架号',
   `engine_num`                                        string         COMMENT '发动机号',
   `gps_code`                                          string         COMMENT 'GPS编号',
@@ -350,7 +351,7 @@ CREATE TABLE IF NOT EXISTS `ods${db_suffix}.loan_lending`(
   `loan_active_date`                                  string         COMMENT '放款日期',
   `loan_expire_date`                                  string         COMMENT '贷款到期日期',
   `cycle_day`                                         decimal(2,0)   COMMENT '账单日',
-  `loan_type`                                         string         COMMENT '分期类型（英文原值）（MCEP：等额本金，MCEI：等额本息，R：消费转分期，C：现金分期，B：账单分期，P：POS分期，M：大额分期（专项分期），MCAT：随借随还，STAIR：阶梯还款，Z：默认值）',
+  `loan_type`                                         string         COMMENT '分期类型（英文原值）（MCEP：等额本金，MCEI：等额本息，R：消费转分期，C：现金分期，B：账单分期，P：POS分期，M：大额分期（专项分期），MCAT：随借随还，STAIR：阶梯还款）',
   `loan_type_cn`                                      string         COMMENT '分期类型（汉语解释）',
   `contract_daily_interest_rate_basis`                decimal(3,0)   COMMENT '日利率计算基础',
   `interest_rate_type`                                string         COMMENT '利率类型',
@@ -623,16 +624,16 @@ CREATE TABLE IF NOT EXISTS `ods${db_suffix}.order_info`(
   `apply_no`                                          string         COMMENT '申请件编号',
   `due_bill_no`                                       string         COMMENT '借据号',
   `term`                                              decimal(3,0)   COMMENT '处理期数',
-  `pay_channel`                                       string         COMMENT '支付渠道',
-  `command_type`                                      string         COMMENT '支付指令类型（SPA：单笔代付，SDB：单笔代扣，QSP：单笔代付查询，QSD：单笔代扣查询，BDB：批量代扣，BDA：批量代付）',
-  `order_status`                                      string         COMMENT '订单状态（C：已提交，P：待提交，Q：待审批，W：处理中，S：已完成，V：已失效，E：失败，T：超时，R：已重提，G：拆分处理中，D：拆分已完成，B：撤销，X：已受理待入账）',
+  `pay_channel`                                       string         COMMENT '支付渠道（中文值：宝付、通联、代扣-广银联等）',
+  `command_type`                                      string         COMMENT '支付指令类型（SPA：单笔代付，SDB：单笔代扣，BDB：批量代扣，QSP：单笔代付查询，QSD：单笔代扣查询，BDA：批量代付）',
+  `order_status`                                      string         COMMENT '订单状态（A：成功，C：已提交，P：待提交，Q：待审批，W：处理中，S：已完成，V：已失效，E：失败，T：超时，R：已重提，G：拆分处理中，D：拆分已完成，B：撤销，X：已受理待入账）',
   `repay_way`                                         string         COMMENT '还款方式（ONLINE：线上，OFFLINE：线下）',
   `txn_amt`                                           decimal(20,5)  COMMENT '交易金额',
   `success_amt`                                       decimal(20,5)  COMMENT '成功金额',
   `currency`                                          string         COMMENT '币种',
   `business_date`                                     string         COMMENT '业务日期',
-  `loan_usage`                                        string         COMMENT '贷款用途（B：回购，C：差额补足，D：代偿，F：追偿代扣，H：处置回收，I：强制结清扣款，L：放款申请，M：预约提前结清扣款，N：提前还当期，O：逾期扣款，P：打款通知，R：退货，T：退票，W：赎回结清，X：账务调整，Z：委托转付）',
-  `purpose`                                           string         COMMENT '支付用途',
+  `loan_usage`                                        string         COMMENT '银行流水交易类型（B：回购，C：差额补足，D：代偿，F：追偿代扣，H：处置回收，I：强制结清扣款，L：放款申请，M：预约提前结清扣款，N：提前还当期，O：逾期扣款，P：打款通知，R：退货，T：退票，W：赎回结清，X：账务调整，Z：委托转付，REPAY：主动还款，BATCH：系统批扣，RECOVER：代偿催回，REDUCE：减免，DISCOUNT：商户贴息，RECOVERY_REPAYMENT：降额还本，INTEREST_REBATE：降额退息，RECEIVABLE：退款回款，INTERNAL_REFUND：退款退息，UNKNOWN：未知）',
+  `purpose`                                           string         COMMENT '支付用途（中文值：正常扣款、线上还款等）',
   `bank_trade_act_no`                                 string         COMMENT '银行付款账号',
   `bank_trade_act_name`                               string         COMMENT '银行付款账户名称',
   `bank_trade_act_phone`                              string         COMMENT '银行预留手机号',
@@ -643,7 +644,6 @@ CREATE TABLE IF NOT EXISTS `ods${db_suffix}.order_info`(
 ) COMMENT '订单流水表'
 PARTITIONED BY (`biz_date` string COMMENT '交易日期',`product_id` string COMMENT '产品编号')
 STORED AS PARQUET;
-
 
 
 
@@ -683,8 +683,14 @@ CREATE VIEW IF NOT EXISTS `ods.customer_info_abs`(
   `job_year`                           COMMENT '工作年限',
   `income_month`                       COMMENT '月收入',
   `income_year`                        COMMENT '年收入',
-  `cutomer_type`                       COMMENT '客戶类型（个人或企业）',
+  `customer_type`                      COMMENT '客戶类型（中文值：个体工商户、学生、企业、未知等）',
+  `borrower_type`                      COMMENT '借款方类型（个人或企业）',
   `cust_rating`                        COMMENT '内部信用等级',
+  `project_full_name`                  COMMENT '项目全名称',
+  `asset_type`                         COMMENT '资产类别（1：汽车贷，2：房贷，3：消费贷）',
+  `project_type`                       COMMENT '业务模式（1：存量，2：增量）',
+  `data_source`                        COMMENT '数据来源（1：startLink，2：excelImport，3：systemgenerated）',
+  `import_id`                          COMMENT '导入Id',
   `product_id`                         COMMENT '产品编号',
   `project_id`                         COMMENT '项目编号'
 ) COMMENT '客户信息表' AS select
@@ -719,14 +725,22 @@ CREATE VIEW IF NOT EXISTS `ods.customer_info_abs`(
   t1.job_year          as job_year,
   t1.income_month      as income_month,
   t1.income_year       as income_year,
-  t1.cutomer_type      as cutomer_type,
+  t1.customer_type     as customer_type,
+  t1.borrower_type     as borrower_type,
   t1.cust_rating       as cust_rating,
+  t3.project_full_name as project_full_name,
+  t3.asset_type        as asset_type,
+  t3.project_type      as project_type,
+  t3.data_source       as data_source,
+  t2.import_id         as import_id,
   t1.product_id        as product_id,
   t2.project_id        as project_id
 from ods.customer_info as t1
 join dim.project_due_bill_no as t2
 on  t1.product_id  = t2.partition_id
-and t1.due_bill_no = t2.due_bill_no;
+and t1.due_bill_no = t2.due_bill_no
+join dim.project_info as t3
+on t2.project_id = t3.project_id;
 
 
 -- DROP VIEW IF EXISTS `ods.linkman_info_abs`;
@@ -757,6 +771,11 @@ CREATE VIEW IF NOT EXISTS `ods.linkman_info_abs`(
   `deal_date`                          COMMENT '业务时间',
   `create_time`                        COMMENT '创建时间',
   `update_time`                        COMMENT '更新时间',
+  `project_full_name`                  COMMENT '项目全名称',
+  `asset_type`                         COMMENT '资产类别（1：汽车贷，2：房贷，3：消费贷）',
+  `project_type`                       COMMENT '业务模式（1：存量，2：增量）',
+  `data_source`                        COMMENT '数据来源（1：startLink，2：excelImport，3：systemgenerated）',
+  `import_id`                          COMMENT '导入Id',
   `product_id`                         COMMENT '产品编号',
   `project_id`                         COMMENT '项目编号'
 ) COMMENT '联系人信息表' AS select
@@ -786,12 +805,19 @@ CREATE VIEW IF NOT EXISTS `ods.linkman_info_abs`(
   t1.deal_date            as deal_date,
   t1.create_time          as create_time,
   t1.update_time          as update_time,
+  t3.project_full_name    as project_full_name,
+  t3.asset_type           as asset_type,
+  t3.project_type         as project_type,
+  t3.data_source          as data_source,
+  t2.import_id            as import_id,
   t1.product_id           as product_id,
   t2.project_id           as project_id
 from ods.linkman_info as t1
 join dim.project_due_bill_no as t2
 on  t1.product_id  = t2.partition_id
-and t1.due_bill_no = t2.due_bill_no;
+and t1.due_bill_no = t2.due_bill_no
+join dim.project_info as t3
+on t2.project_id = t3.project_id;
 
 
 -- DROP VIEW IF EXISTS `ods.guaranty_info_abs`;
@@ -833,6 +859,11 @@ CREATE VIEW IF NOT EXISTS `ods.guaranty_info_abs`(
   `car_colour`                         COMMENT '车辆颜色',
   `create_time`                        COMMENT '创建时间',
   `update_time`                        COMMENT '更新时间',
+  `project_full_name`                  COMMENT '项目全名称',
+  `asset_type`                         COMMENT '资产类别（1：汽车贷，2：房贷，3：消费贷）',
+  `project_type`                       COMMENT '业务模式（1：存量，2：增量）',
+  `data_source`                        COMMENT '数据来源（1：startLink，2：excelImport，3：systemgenerated）',
+  `import_id`                          COMMENT '导入Id',
   `product_id`                         COMMENT '产品编号',
   `project_id`                         COMMENT '项目编号'
 ) COMMENT '抵押物（车）信息表' AS select
@@ -873,12 +904,19 @@ CREATE VIEW IF NOT EXISTS `ods.guaranty_info_abs`(
   t1.car_colour                     as car_colour,
   t1.create_time                    as create_time,
   t1.update_time                    as update_time,
+  t3.project_full_name              as project_full_name,
+  t3.asset_type                     as asset_type,
+  t3.project_type                   as project_type,
+  t3.data_source                    as data_source,
+  t2.import_id                      as import_id,
   t1.product_id                     as product_id,
   t2.project_id                     as project_id
 from ods.guaranty_info as t1
 join dim.project_due_bill_no as t2
-on  t1.product_id  = t2.partition_id
-and t1.due_bill_no = t2.due_bill_no;
+on  t1.product_id  = nvl(t2.related_project_id,t2.project_id)
+and t1.due_bill_no = t2.due_bill_no
+join dim.project_info as t3
+on t2.project_id = t3.project_id;
 
 
 -- DROP VIEW IF EXISTS `ods.enterprise_info_abs`;
@@ -903,6 +941,11 @@ CREATE VIEW IF NOT EXISTS `ods.enterprise_info_abs`(
   `province`                           COMMENT '企业省份',
   `create_time`                        COMMENT '创建时间',
   `update_time`                        COMMENT '更新时间',
+  `project_full_name`                  COMMENT '项目全名称',
+  `asset_type`                         COMMENT '资产类别（1：汽车贷，2：房贷，3：消费贷）',
+  `project_type`                       COMMENT '业务模式（1：存量，2：增量）',
+  `data_source`                        COMMENT '数据来源（1：startLink，2：excelImport，3：systemgenerated）',
+  `import_id`                          COMMENT '导入Id',
   `product_id`                         COMMENT '产品编号',
   `project_id`                         COMMENT '项目编号'
 ) COMMENT '企业信息表' AS select
@@ -926,12 +969,62 @@ CREATE VIEW IF NOT EXISTS `ods.enterprise_info_abs`(
   t1.province            as province,
   t1.create_time         as create_time,
   t1.update_time         as update_time,
+  t3.project_full_name   as project_full_name,
+  t3.asset_type          as asset_type,
+  t3.project_type        as project_type,
+  t3.data_source         as data_source,
+  t2.import_id           as import_id,
   t1.product_id          as product_id,
   t2.project_id          as project_id
 from ods.enterprise_info as t1
 join dim.project_due_bill_no as t2
-on  t1.product_id  = t2.partition_id
-and t1.due_bill_no = t2.due_bill_no;
+on  t1.product_id  = nvl(t2.related_project_id,t2.project_id)
+and t1.due_bill_no = t2.due_bill_no
+join dim.project_info as t3
+on t2.project_id = t3.project_id;
+
+
+-- DROP VIEW IF EXISTS `ods.risk_control_abs`;
+CREATE VIEW IF NOT EXISTS `ods.risk_control_abs`(
+  `risk_control_type`                  COMMENT '风控数据类型（1：授信，2：用信，3：星云）',
+  `apply_id`                           COMMENT '申请编号',
+  `due_bill_no`                        COMMENT '借据编号',
+  `map_key`                            COMMENT '数据的Key',
+  `map_com`                            COMMENT '数据的Key注释',
+  `map_val`                            COMMENT '数据的Val',
+  `create_time`                        COMMENT '创建时间',
+  `update_time`                        COMMENT '更新时间',
+  `project_full_name`                  COMMENT '项目全名称',
+  `asset_type`                         COMMENT '资产类别（1：汽车贷，2：房贷，3：消费贷）',
+  `project_type`                       COMMENT '业务模式（1：存量，2：增量）',
+  `data_source`                        COMMENT '数据来源（1：startLink，2：excelImport，3：systemgenerated）',
+  `import_id`                          COMMENT '导入Id',
+  `product_id`                         COMMENT '产品编号',
+  `project_id`                         COMMENT '项目编号',
+  `source_table`                       COMMENT '来源表'
+) COMMENT '风控信息表' as select
+  t1.risk_control_type as risk_control_type,
+  t1.apply_id          as apply_id,
+  t1.due_bill_no       as due_bill_no,
+  t1.map_key           as map_key,
+  t1.map_com           as map_com,
+  t1.map_val           as map_val,
+  t1.create_time       as create_time,
+  t1.update_time       as update_time,
+  t3.project_full_name as project_full_name,
+  t3.asset_type        as asset_type,
+  t3.project_type      as project_type,
+  t3.data_source       as data_source,
+  t2.import_id         as import_id,
+  t1.product_id        as product_id,
+  t2.project_id        as project_id,
+  t1.source_table      as source_table
+from ods.risk_control as t1
+join dim.project_due_bill_no as t2
+on  t1.product_id  = nvl(t2.related_project_id,t2.project_id)
+and t1.due_bill_no = t2.due_bill_no
+join dim.project_info as t3
+on t2.project_id = t3.project_id;
 
 
 -- DROP VIEW IF EXISTS `ods.loan_lending_abs`;
@@ -961,6 +1054,11 @@ CREATE VIEW IF NOT EXISTS `ods.loan_lending_abs`(
   `bus_product_name`                   COMMENT '产品方案名称',
   `mortgage_rate`                      COMMENT '抵押率',
   `biz_date`                           COMMENT '放款日期',
+  `project_full_name`                  COMMENT '项目全名称',
+  `asset_type`                         COMMENT '资产类别（1：汽车贷，2：房贷，3：消费贷）',
+  `project_type`                       COMMENT '业务模式（1：存量，2：增量）',
+  `data_source`                        COMMENT '数据来源（1：startLink，2：excelImport，3：systemgenerated）',
+  `import_id`                          COMMENT '导入Id',
   `product_id`                         COMMENT '产品编号',
   `project_id`                         COMMENT '项目编号'
 ) COMMENT '放款表' AS select
@@ -989,12 +1087,19 @@ CREATE VIEW IF NOT EXISTS `ods.loan_lending_abs`(
   t1.bus_product_name                   as bus_product_name,
   t1.mortgage_rate                      as mortgage_rate,
   t1.biz_date                           as biz_date,
+  t3.project_full_name                  as project_full_name,
+  t3.asset_type                         as asset_type,
+  t3.project_type                       as project_type,
+  t3.data_source                        as data_source,
+  t2.import_id                          as import_id,
   t1.product_id                         as product_id,
   t2.project_id                         as project_id
 from ods.loan_lending as t1
 join dim.project_due_bill_no as t2
 on  t1.product_id  = t2.partition_id
-and t1.due_bill_no = t2.due_bill_no;
+and t1.due_bill_no = t2.due_bill_no
+join dim.project_info as t3
+on t2.project_id = t3.project_id;
 
 
 -- DROP VIEW IF EXISTS `ods.loan_info_abs`;
@@ -1055,6 +1160,11 @@ CREATE VIEW IF NOT EXISTS `ods.loan_info_abs`(
   `s_d_date`                           COMMENT 'ods层起始日期',
   `e_d_date`                           COMMENT 'ods层结束日期',
   `is_settled`                         COMMENT '是否已结清',
+  `project_full_name`                  COMMENT '项目全名称',
+  `asset_type`                         COMMENT '资产类别（1：汽车贷，2：房贷，3：消费贷）',
+  `project_type`                       COMMENT '业务模式（1：存量，2：增量）',
+  `data_source`                        COMMENT '数据来源（1：startLink，2：excelImport，3：systemgenerated）',
+  `import_id`                          COMMENT '导入Id',
   `product_id`                         COMMENT '产品编号',
   `project_id`                         COMMENT '项目编号'
 ) COMMENT '借据信息表' AS select
@@ -1112,15 +1222,21 @@ CREATE VIEW IF NOT EXISTS `ods.loan_info_abs`(
   t1.overdue_principal_accumulate as overdue_principal_accumulate,
   t1.overdue_principal_max        as overdue_principal_max,
   t1.s_d_date                     as s_d_date,
-  -- if(t1.paid_out_date is null,if(t1.e_d_date = '3000-12-31',to_date(date_sub(current_timestamp(),1)),t1.e_d_date),t1.paid_out_date) as e_d_date,
   t1.e_d_date                     as e_d_date,
   t1.is_settled                   as is_settled,
+  t3.project_full_name            as project_full_name,
+  t3.asset_type                   as asset_type,
+  t3.project_type                 as project_type,
+  t3.data_source                  as data_source,
+  t2.import_id                    as import_id,
   t1.product_id                   as product_id,
   t2.project_id                   as project_id
 from ods.loan_info as t1
 join dim.project_due_bill_no as t2
 on  t1.product_id  = t2.partition_id
-and t1.due_bill_no = t2.due_bill_no;
+and t1.due_bill_no = t2.due_bill_no
+join dim.project_info as t3
+on t2.project_id = t3.project_id;
 
 
 -- DROP VIEW IF EXISTS `ods.repay_schedule_abs`;
@@ -1169,6 +1285,9 @@ CREATE ViEW IF NOT EXISTS `ods.repay_schedule_abs`(
   `s_d_date`                           COMMENT '数据生效日期',
   `e_d_date`                           COMMENT '数据失效日期',
   `is_settled`                         COMMENT '是否已结清',
+  `project_full_name`                  COMMENT '项目全名称',
+  `asset_type`                         COMMENT '资产类别（1：汽车贷，2：房贷，3：消费贷）',
+  `project_type`                       COMMENT '业务模式（1：存量，2：增量）',
   `data_source`                        COMMENT '数据来源（1：startLink，2：excelImport，3：systemgenerated）',
   `import_id`                          COMMENT '导入Id',
   `product_id`                         COMMENT '产品编号',
@@ -1218,6 +1337,9 @@ CREATE ViEW IF NOT EXISTS `ods.repay_schedule_abs`(
   t1.s_d_date                  as s_d_date,
   t1.e_d_date                  as e_d_date,
   t1.is_settled                as is_settled,
+  t3.project_full_name         as project_full_name,
+  t3.asset_type                as asset_type,
+  t3.project_type              as project_type,
   t3.data_source               as data_source,
   t2.import_id                 as import_id,
   t1.product_id                as product_id,
@@ -1226,13 +1348,8 @@ from ods.repay_schedule as t1
 join dim.project_due_bill_no as t2
 on  t1.product_id  = t2.partition_id
 and t1.due_bill_no = t2.due_bill_no
-join (
-  select
-    project_id as dim_project_id,
-    data_source
-  from dim.project_info
-) as t3
-on t3.dim_project_id = t2.project_id;
+join dim.project_info as t3
+on t2.project_id = t3.project_id;
 
 
 -- DROP VIEW IF EXISTS `ods.repay_detail_abs`;
@@ -1252,32 +1369,42 @@ CREATE VIEW IF NOT EXISTS `ods.repay_detail_abs`(
   `create_time`                        COMMENT '创建时间',
   `update_time`                        COMMENT '更新时间',
   `biz_date`                           COMMENT '交易时间',
+  `project_full_name`                  COMMENT '项目全名称',
+  `asset_type`                         COMMENT '资产类别（1：汽车贷，2：房贷，3：消费贷）',
+  `project_type`                       COMMENT '业务模式（1：存量，2：增量）',
+  `data_source`                        COMMENT '数据来源（1：startLink，2：excelImport，3：systemgenerated）',
   `import_id`                          COMMENT '导入Id',
   `product_id`                         COMMENT '产品编号',
   `project_id`                         COMMENT '项目编号'
 ) COMMENT '实还明细表' AS select
-  t1.due_bill_no   as due_bill_no,
-  t1.repay_term    as repay_term,
-  t1.order_id      as order_id,
-  t1.repay_type    as repay_type,
-  t1.repay_type_cn as repay_type_cn,
-  t1.payment_id    as payment_id,
-  t1.txn_time      as txn_time,
-  t1.post_time     as post_time,
-  t1.bnp_type      as bnp_type,
-  t1.bnp_type_cn   as bnp_type_cn,
-  t1.repay_amount  as repay_amount,
-  t1.batch_date    as batch_date,
-  t1.create_time   as create_time,
-  t1.update_time   as update_time,
-  t1.biz_date      as biz_date,
-  t2.import_id     as import_id,
-  t1.product_id    as product_id,
-  t2.project_id    as project_id
+  t1.due_bill_no       as due_bill_no,
+  t1.repay_term        as repay_term,
+  t1.order_id          as order_id,
+  t1.repay_type        as repay_type,
+  t1.repay_type_cn     as repay_type_cn,
+  t1.payment_id        as payment_id,
+  t1.txn_time          as txn_time,
+  t1.post_time         as post_time,
+  t1.bnp_type          as bnp_type,
+  t1.bnp_type_cn       as bnp_type_cn,
+  t1.repay_amount      as repay_amount,
+  t1.batch_date        as batch_date,
+  t1.create_time       as create_time,
+  t1.update_time       as update_time,
+  t1.biz_date          as biz_date,
+  t3.project_full_name as project_full_name,
+  t3.asset_type        as asset_type,
+  t3.project_type      as project_type,
+  t3.data_source       as data_source,
+  t2.import_id         as import_id,
+  t1.product_id        as product_id,
+  t2.project_id        as project_id
 from ods.repay_detail as t1
 join dim.project_due_bill_no as t2
 on  t1.product_id  = t2.partition_id
-and t1.due_bill_no = t2.due_bill_no;
+and t1.due_bill_no = t2.due_bill_no
+join dim.project_info as t3
+on t2.project_id = t3.project_id;
 
 
 -- DROP VIEW IF EXISTS `ods.order_info_abs`;
@@ -1286,7 +1413,7 @@ CREATE VIEW IF NOT EXISTS `ods.order_info_abs`(
   `apply_no`                           COMMENT '申请件编号',
   `due_bill_no`                        COMMENT '借据号',
   `term`                               COMMENT '处理期数',
-  `pay_channel`                        COMMENT '支付渠道',
+  `pay_channel`                        COMMENT '支付渠道（中文值：宝付、通联、代扣-广银联等）',
   `command_type`                       COMMENT '支付指令类型（SPA：单笔代付，SDB：单笔代扣，QSP：单笔代付查询，QSD：单笔代扣查询，BDB：批量代扣，BDA：批量代付）',
   `order_status`                       COMMENT '订单状态（C：已提交，P：待提交，Q：待审批，W：处理中，S：已完成，V：已失效，E：失败，T：超时，R：已重提，G：拆分处理中，D：拆分已完成，B：撤销，X：已受理待入账）',
   `repay_way`                          COMMENT '还款方式（ONLINE：线上，OFFLINE：线下）',
@@ -1294,8 +1421,8 @@ CREATE VIEW IF NOT EXISTS `ods.order_info_abs`(
   `success_amt`                        COMMENT '成功金额',
   `currency`                           COMMENT '币种',
   `business_date`                      COMMENT '业务日期',
-  `loan_usage`                         COMMENT '贷款用途（B：回购，C：差额补足，D：代偿，F：追偿代扣，H：处置回收，I：强制结清扣款，L：放款申请，M：预约提前结清扣款，N：提前还当期，O：逾期扣款，P：打款通知，R：退货，T：退票，W：赎回结清，X：账务调整，Z：委托转付）',
-  `purpose`                            COMMENT '支付用途',
+  `loan_usage`                         COMMENT '银行流水交易类型（B：回购，C：差额补足，D：代偿，F：追偿代扣，H：处置回收，I：强制结清扣款，L：放款申请，M：预约提前结清扣款，N：提前还当期，O：逾期扣款，P：打款通知，R：退货，T：退票，W：赎回结清，X：账务调整，Z：委托转付）',
+  `purpose`                            COMMENT '支付用途（中文值：正常扣款、线上还款等）',
   `bank_trade_act_no`                  COMMENT '银行付款账号',
   `bank_trade_act_name`                COMMENT '银行付款账户名称',
   `bank_trade_act_phone`               COMMENT '银行预留手机号',
@@ -1304,6 +1431,10 @@ CREATE VIEW IF NOT EXISTS `ods.order_info_abs`(
   `create_time`                        COMMENT '创建时间',
   `update_time`                        COMMENT '更新时间',
   `biz_date`                           COMMENT '交易日期',
+  `project_full_name`                  COMMENT '项目全名称',
+  `asset_type`                         COMMENT '资产类别（1：汽车贷，2：房贷，3：消费贷）',
+  `project_type`                       COMMENT '业务模式（1：存量，2：增量）',
+  `data_source`                        COMMENT '数据来源（1：startLink，2：excelImport，3：systemgenerated）',
   `import_id`                          COMMENT '导入Id',
   `product_id`                         COMMENT '产品编号',
   `project_id`                         COMMENT '项目编号'
@@ -1330,13 +1461,19 @@ CREATE VIEW IF NOT EXISTS `ods.order_info_abs`(
   t1.create_time          as create_time,
   t1.update_time          as update_time,
   t1.biz_date             as biz_date,
+  t3.project_full_name    as project_full_name,
+  t3.asset_type           as asset_type,
+  t3.project_type         as project_type,
+  t3.data_source          as data_source,
   t2.import_id            as import_id,
   t1.product_id           as product_id,
   t2.project_id           as project_id
 from ods.order_info as t1
 join dim.project_due_bill_no as t2
 on  t1.product_id  = t2.partition_id
-and t1.due_bill_no = t2.due_bill_no;
+and t1.due_bill_no = t2.due_bill_no
+join dim.project_info as t3
+on t2.project_id = t3.project_id;
 
 
 
@@ -1482,7 +1619,8 @@ where biz_date between s_d_date and date_sub(e_d_date,1);
 
 
 
-create table IF NOT EXISTS `ods.t_10_basic_asset_stage`(
+-- DROP TABLE IF EXISTS `ods.t_10_basic_asset_stage`;
+CREATE TABLE IF NOT EXISTS `ods.t_10_basic_asset_stage`(
   `id`                                                int            COMMENT '主键id',
   `import_id`                                         string         COMMENT '导入记录编号',
   `project_id`                                        string         COMMENT '项目编号',
@@ -1572,7 +1710,7 @@ STORED AS PARQUET;
 -- alter table TBLS modify column VIEW_EXPANDED_TEXT mediumtext character set utf8;
 -- alter table TBLS modify column VIEW_ORIGINAL_TEXT mediumtext character set utf8;
 -- DROP VIEW IF EXISTS ods.t_10_basic_asset;
-CREATE VIEW IF NOT EXISTS ods.t_10_basic_asset(
+CREATE VIEW IF NOT EXISTS `ods.t_10_basic_asset`(
   `id`                                 COMMENT '主键id',
   `import_id`                          COMMENT '导入记录编号',
   `project_id`                         COMMENT '项目编号',

@@ -12,7 +12,7 @@ import scala.util.Random
 object PmmlMain {
   def main(args: Array[String]): Unit = {
     val batch_date = args(0)
-    val tablename=args(1)
+    val tablename="eagle.one_million_random_risk_data"
     val partition_key=args(2)
     val spark = SparkSession.builder()
       //.master("local[*]")
@@ -22,7 +22,7 @@ object PmmlMain {
       .appName("PmmlMain"+UUID.randomUUID())
       .enableHiveSupport()
       .getOrCreate()
-      RunJob.runJob(spark,batch_date,tablename,partition_key)
+      //RunJob.runJob(spark,batch_date,tablename,partition_key)
       spark.close()
   }
 }

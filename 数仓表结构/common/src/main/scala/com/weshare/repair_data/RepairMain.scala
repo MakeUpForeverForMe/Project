@@ -5,7 +5,7 @@ import java.text.SimpleDateFormat
 import java.util.{Calendar, Date, Properties, UUID}
 
 import com.weshare.repair_data.mode.{Loan, RepairMode, RepaySchedule}
-import com.weshare.utils.{DruidDataSourceUtils, JDBCUtils, ProertiesUtils, SendEmailUtil}
+import com.weshare.utils.{DruidDataSourceUtils, JDBCUtils, PropertiesUtils, SendEmailUtil}
 import org.apache.commons.lang3.StringUtils
 import org.apache.spark.sql.{DataFrame, Dataset, Row, SaveMode, SparkSession}
 
@@ -41,7 +41,7 @@ object RepairMain {
    //  1 查询现在所有的问题借据
     //数据校验执行impala 查询
     val batch_date = args(1)
-    val properties = ProertiesUtils.propertiesLoad(cluster_type)
+    val properties = PropertiesUtils.propertiesLoad(cluster_type)
     initCompent(properties)
     val ht_repair_table = properties.getProperty("ht_repair_table")
     val connection = DruidDataSourceUtils.getConection("cm_mysql")

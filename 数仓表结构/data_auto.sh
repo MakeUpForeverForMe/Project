@@ -1300,3 +1300,16 @@ while [[ $(date +%s) -lt $(date -d '04:00:00' +%s) ]]; do
 done
 
 
+sudo -u hadoop impala-shell -u hadoop -i 10.80.240.5:27001 -t 0 -B --output_delimiter=',' -q '
+select
+  project_id,
+  due_bill_no
+from ods.guaranty_info_abs
+where project_id in ("CL202012280092","cl00326")
+group by project_id,due_bill_no
+having count(due_bill_no) > 1
+order by project_id
+;' > aa.csv
+
+
+$impala -q "select * from $app_name limit 1;"                                                                                                                                                 &>> $manage_log

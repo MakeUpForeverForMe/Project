@@ -43,7 +43,7 @@ object RunJobTest {
       !StringUtils.equals("F", it.Loan_status)
     }).mapPartitions(it => {
       var modes = List[Map[String, String]]()
-      val evaluator: ModelEvaluator[_] = PmmlUtils.initPmmUtils("model.pmml")
+      val evaluator: ModelEvaluator[_] =null ;
       while (it.hasNext) {
         val mode: PmmlMode = it.next()
         // 初始化信息
@@ -191,11 +191,9 @@ object RunJobTest {
       BigDecimal.apply(map.getOrElse("reduce_svc_fee","0")),
       BigDecimal.apply(map.getOrElse("reduce_penalty","0")),
       BigDecimal.apply(map.getOrElse("reduce_mult_amt","0")),
-      map.getOrElse("s_d_date",""),
-      map.getOrElse("e_d_date",""),
-      map.getOrElse("effective_time",""),
-      map.getOrElse("expire_time",""),
-      map.getOrElse("product_id","")
+      map.getOrElse("range_rate",""),
+      map.getOrElse("product_id",""),
+      ""
     )
 
 

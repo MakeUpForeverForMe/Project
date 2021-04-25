@@ -21,7 +21,7 @@ set hive.vectorized.execution.reduce.enabled=false;
 set hive.vectorized.execution.reduce.groupby.enabled=false;
 
 
-set hivevar:ST9=2021-04-12;
+-- set hivevar:ST9=2021-04-12;
 
 -- 乐信代偿前
 -- set hivevar:db_suffix=;set hivevar:tb_suffix=_asset;
@@ -53,10 +53,14 @@ select
   lending.contract_no                           as contract_no,
   lending.contract_term                         as contract_term,
   lending.due_bill_no                           as due_bill_no,
-  nvl(
+  is_empty(
     case log.guaranty_type
-    when 'CAR' then '抵押担保'
-    else log.guaranty_type end,
+      when 'A' then '质押担保'
+      when 'B' then '信用担保'
+      when 'C' then '保证担保'
+      when 'D' then '抵押担保'
+      else log.guaranty_type
+    end,
     lending.guarantee_type
   ) as guarantee_type,
   lending.loan_usage                            as loan_usage,
@@ -94,9 +98,15 @@ from (
     '信用担保'                        as guarantee_type,
     purpose                           as loan_usage,
     active_date                       as loan_issue_date,
-    loan_expire_date                  as loan_expiry_date,
+    is_empty(
+      loan_expire_date,
+      add_months(active_date,loan_init_term)
+    )                                 as loan_expiry_date,
     active_date                       as loan_active_date,
-    loan_expire_date                  as loan_expire_date,
+    is_empty(
+      loan_expire_date,
+      add_months(active_date,loan_init_term)
+    )                                 as loan_expire_date,
     cast(cycle_day as decimal(2,0))   as cycle_day,
     loan_type                         as loan_type,
     case loan_type
@@ -128,18 +138,18 @@ from (
 left join (
   -- 汇通
   select distinct
-    get_json_object(standard_req_msg,'$.product.product_no')                              as product_id,
-    map_from_str(standard_req_msg)['apply_no']                                            as due_bill_no,
-    json_array_to_array(map_from_str(standard_req_msg)['guaranties'])[0]['guaranty_type'] as guaranty_type
+    get_json_object(standard_req_msg,'$.product.product_no')     as product_id,
+    map_from_str(standard_req_msg)['apply_no']                   as due_bill_no,
+    get_json_object(standard_req_msg,'$.product.guarantee_type') as guaranty_type
   from stage.nms_interface_resp_log
   where 1 > 0
     and sta_service_method_name = 'setupCustCredit'
   union all
   -- 瓜子
   select distinct
-    get_json_object(original_msg,'$.data.product.productNo') as product_id,
-    get_json_object(original_msg,'$.data.applyNo')           as due_bill_no,
-    json_array_to_array(get_json_object(regexp_replace(regexp_replace(regexp_replace(original_msg,'\\\"\\\{','\\\{'),'\\\}\\\"','\\\}'),'\\\\\"','\\\"'),'$.data.guaranties'))[0]['guarantyType'] as guaranty_type
+    get_json_object(original_msg,'$.data.product.productNo')     as product_id,
+    get_json_object(original_msg,'$.data.applyNo')               as due_bill_no,
+    get_json_object(original_msg,'$.data.product.guaranteeType') as guaranty_type
   from stage.ecas_msg_log
   where 1 > 0
     and msg_type = 'GZ_CREDIT_APPLY'

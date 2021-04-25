@@ -137,8 +137,8 @@
 
 
 """ 获取字符串 Unicode 码 """
-print(ord('a'))
-print(ord('m'))
+# print(ord('a'))
+# print(ord('m'))
 
 """ 测试字符串长度 """
 
@@ -164,13 +164,13 @@ print(ord('m'))
 
 # print(str(15))
 
-
-def rgb2hex(r: int, g: int, b: int):
-    return int('%2x%2x%02x' % (b, g, r), 16)
-
-
-print(rgb2hex(5, 99, 193))
-
-col_width = (5, 99, 193)
-for i, width in enumerate(col_width):
-    print(i, width)
+#
+# def rgb2hex(r: int, g: int, b: int):
+#     return int('%2x%2x%02x' % (b, g, r), 16)
+#
+#
+# print(rgb2hex(5, 99, 193))
+#
+# col_width = (5, 99, 193)
+# for i, width in enumerate(col_width):
+#     print(i, width)

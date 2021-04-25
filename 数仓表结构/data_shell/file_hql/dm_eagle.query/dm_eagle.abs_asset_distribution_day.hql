@@ -38,7 +38,7 @@ bill_info as (
       when loan_info.remain_principal > 300000 and loan_info.remain_principal <= 400000  then concat("1","|","30万元（不含）- 40万元（含",'|','5')
       when loan_info.remain_principal > 400000 and loan_info.remain_principal <= 500000  then concat("1","|","40万元（不含）- 50万元（含）",'|','6')
       when loan_info.remain_principal > 500000 and loan_info.remain_principal <= 1000000 then concat("1","|","50万元（不含）- 100万元（含）",'|','7')
-      else  concat("1","|","100万元（不含）以上",'|','8')
+      else concat("1","|","100万元（不含）以上",'|','8')
     end                                                                                                                                               as un_principal_distribution,
     -- 2 资产利率分布
     case
@@ -137,7 +137,7 @@ bill_info as (
     concat("15","|",nvl(risk_control.score_range,-1),'|',cast(abs(round(hash(nvl(risk_control.score_range,-1)) % 50) ) as string))                    as score_range_distribution,
     -- 16 借款人地区分布
     concat("16","|",customer_info.idcard_area,'|',cast(abs(round(hash(customer_info.idcard_area) % 50)) as string))                                   as idcard_area_distribution,
-    -- 17 抵押率分布，
+    -- 17 抵押率分布
     case
       when loan_leading.mortgage_rate <= 10                                     then concat("17","|","10%（含）以下",'|','1')
       when loan_leading.mortgage_rate > 10 and loan_leading.mortgage_rate <= 20 then concat("17","|","10%（不含）- 20%（含）",'|','2')
@@ -266,17 +266,17 @@ project_total_bag_bill as (
 -- 插入数据
 insert overwrite table dm_eagle.abs_asset_distribution_day partition(biz_date,project_id)
 select
-  'y'                                                             as is_allbag,
-  asset_tab_name                                                  as asset_tab_name,
-  asset_name                                                      as asset_name,
-  asset_name_order                                                as asset_name_order,
-  sum(remain_principal)                                           as remain_principal,
+  'y'                                                               as is_allbag,
+  asset_tab_name                                                    as asset_tab_name,
+  asset_name                                                        as asset_name,
+  asset_name_order                                                  as asset_name_order,
+  sum(remain_principal)                                             as remain_principal,
   sum(remain_principal) / max(project_total.total_remain_principal) as remain_principal_ratio,
-  count(bag.due_bill_no)                                          as loan_num,
+  count(bag.due_bill_no)                                            as loan_num,
   count(bag.due_bill_no) / max(project_total.total_bill)            as loan_numratio,
   sum(remain_principal) / count(bag.due_bill_no)                    as remain_principal_loan_num_avg,
-  '${ST9}'                                                        as biz_date,
-  baginfo.project_id                                              as project_id
+  '${ST9}'                                                          as biz_date,
+  baginfo.project_id                                                as project_id
 from dim.bag_due_bill_no as bag
 inner join (
   select

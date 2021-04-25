@@ -307,9 +307,9 @@ excel = xlwings.Book(file_path)
 """ 获取 Excel 程序对象 """
 app = excel.app
 """ 设置 App 对象属性 """
-app.visible = False
-app.display_alerts = False
-app.screen_updating = False
+app.visible = False  # visible 决定App是否可见
+app.display_alerts = False  # 关闭一些提示信息，可以加快运行速度。 默认为 True
+app.screen_updating = False  # 关掉屏幕刷新。默认为 True
 
 sheet_names = [sheet.name for sheet in excel.sheets]
 

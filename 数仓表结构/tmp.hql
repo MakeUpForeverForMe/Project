@@ -348,11 +348,38 @@ invalidate metadata dim.bag_due_bill_no;
 invalidate metadata stage.abs_t_related_assets;
 invalidate metadata stage.ecas_loan;
 
-invalidate metadata ods.loan_lending;
-invalidate metadata ods.loan_info;
-invalidate metadata ods.repay_schedule;
 
+
+
+invalidate metadata ods.risk_control;
+invalidate metadata ods.risk_control_abs;
+
+invalidate metadata ods.linkman_info;
+invalidate metadata ods.linkman_info_abs;
+
+invalidate metadata ods.guaranty_info;
+invalidate metadata ods.guaranty_info_abs;
+
+invalidate metadata ods.enterprise_info;
+invalidate metadata ods.enterprise_info_abs;
+
+invalidate metadata ods.customer_info;
+invalidate metadata ods.customer_info_abs;
+
+invalidate metadata ods.loan_lending;
+invalidate metadata ods.loan_lending_abs;
+
+invalidate metadata ods.loan_info;
 invalidate metadata ods.loan_info_abs;
+
+invalidate metadata ods.repay_detail;
+invalidate metadata ods.repay_detail_abs;
+invalidate metadata ods.t_07_actualrepayinfo;
+
+invalidate metadata ods.order_info;
+invalidate metadata ods.order_info_abs;
+
+invalidate metadata ods.repay_schedule;
 invalidate metadata ods.repay_schedule_abs;
 invalidate metadata ods.t_05_repaymentplan;
 
@@ -360,6 +387,7 @@ invalidate metadata ods.t_10_basic_asset_stage;
 invalidate metadata ods.t_10_basic_asset;
 
 
+invalidate metadata ods_cps.order_info;
 
 
 invalidate metadata dm_eagle.abs_asset_information_bag_snapshot;
@@ -1431,7 +1459,7 @@ limit 100
 
 
 select distinct keys
-from stage.asset_01_t_loan_contract_info
+from stage.asset_06_t_asset_pay_flow
 lateral view explode(map_keys(map_from_str(extra_info))) key as keys
 order by keys;
 

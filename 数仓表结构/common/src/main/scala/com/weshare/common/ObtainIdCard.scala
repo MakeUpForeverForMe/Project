@@ -17,7 +17,7 @@ object ObtainIdCard {
   private val log: Logger = LoggerFactory.getLogger("IdCard")
 
   def main(args: Array[String]): Unit = {
-    val idno="340829199602114415"
+    val idno="140329199907212716"
     log.info("<--调用接口请求返回身份证信息-->")
     val url:URL=new URL(s"http://api.k780.com:88/?app=idcard.get&idcard=${idno}&appkey=10003&sign=b59bc3ef6191eb9f747dd4e83c99f2a4&format=json")
     val stream = url.openStream()
@@ -29,7 +29,7 @@ object ObtainIdCard {
     //insert into table dim_new.dim_idno values('231029','2','东北地区','23','黑龙江省','2310','牡丹江市','231029','牡丹江市');
     val info = dealIdNoOtherMessage(jsonObject,idno)
     val sql = s"insert into table dim_new.dim_idno values('${info.idno_addr}','${info.idno_area}','${info.idno_area_cn}'," +
-    s"'${info.idno_province}','${info.idno_province_cn}','${info.idno_city}','${info.idno_city_cn}','${info.idno_county}','${info.idno_county_cn.replaceAll(" ","")}');"
+      s"'${info.idno_province}','${info.idno_province_cn}','${info.idno_city}','${info.idno_city_cn}','${info.idno_county}','${info.idno_county_cn.replaceAll(" ","")}');"
     println(sql)
     stream.close()
     reader.close()
@@ -37,7 +37,7 @@ object ObtainIdCard {
 
 
   /**
-   * 处理身份证信息 返回元组 拼装sql 
+   * 处理身份证信息 返回元组 拼装sql
    * @param jsonObject
    * @param idno
    * @return
@@ -81,7 +81,7 @@ object ObtainIdCard {
       area_tump._1,
       area_tump._2,
       provice, provice_cn, city, city_cn, idno_addr, adress_info)
-}
+  }
 
 
 

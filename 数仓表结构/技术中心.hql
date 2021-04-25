@@ -14348,35 +14348,6 @@ insert overwrite table ods.repay_schedule_inter_hdfs partition(biz_date,product_
 select * from ods.repay_schedule_inter_hdfs;
 
 
-root_dir=/data/data_shell
-
-data_manage=$root_dir/bin/data_manage.sh
-ods_cloud=$root_dir/file_hql/ods_cloud.query
-ods=$root_dir/file_hql/ods.query
-
-param=$root_dir/param_beeline
-
-mail=$root_dir/conf_mail/data_receives_mail_ximing.config
-
-log=$root_dir/log
-
-
-sh $data_manage -s 2020-10-24 -e 2020-10-24 -f $ods/ods.loan_info_inter.hql -i $param/ods_new_s_cps.param_lx.hql -a $mail -n 10 &>> $log/loan_cps.log &
-sh $data_manage -s 2020-10-25 -e 2020-10-25 -f $ods/ods.loan_info_inter.hql -i $param/ods_new_s_cps.param_lx.hql -a $mail -n 10 &>> $log/loan_cps.log &
-sh $data_manage -s 2020-10-26 -e 2020-10-26 -f $ods/ods.loan_info_inter.hql -i $param/ods_new_s_cps.param_lx.hql -a $mail -n 10 &>> $log/loan_cps.log &
-sh $data_manage -s 2021-03-06 -e 2021-03-06 -f $ods/ods.loan_info_inter.hql -i $param/ods_new_s_cps.param_lx.hql -a $mail -n 10 &>> $log/loan_cps.log &
-sh $data_manage -s 2021-03-07 -e 2021-03-07 -f $ods/ods.loan_info_inter.hql -i $param/ods_new_s_cps.param_lx.hql -a $mail -n 10 &>> $log/loan_cps.log &
-sh $data_manage -s 2021-03-08 -e 2021-03-08 -f $ods/ods.loan_info_inter.hql -i $param/ods_new_s_cps.param_lx.hql -a $mail -n 10 &>> $log/loan_cps.log &
-sh $data_manage -s 2021-03-10 -e 2021-03-10 -f $ods/ods.loan_info_inter.hql -i $param/ods_new_s_cps.param_lx.hql -a $mail -n 10 &>> $log/loan_cps.log &
-sh $data_manage -s 2021-03-20 -e 2021-03-20 -f $ods/ods.loan_info_inter.hql -i $param/ods_new_s_cps.param_lx.hql -a $mail -n 10 &>> $log/loan_cps.log &
-sh $data_manage -s 2021-03-21 -e 2021-03-21 -f $ods/ods.loan_info_inter.hql -i $param/ods_new_s_cps.param_lx.hql -a $mail -n 10 &>> $log/loan_cps.log &
-
-sh $data_manage -s 2020-10-26 -e 2020-10-26 -f $ods/ods.repay_schedule_inter.hql -i $param/ods_new_s.param_lx.hql -a $mail &>> $log/schedule.log &
-
-
-nohup sh $data_manage -s 2017-06-01 -e 2021-03-22 -f $ods_cloud/ods.loan_info_inter.hql      -a $mail -n 20 &> $log/cloud_loan.log     &
-nohup sh $data_manage -s 2020-12-02 -e 2021-03-22 -f $ods_cloud/ods.repay_schedule_inter.hql -a $mail -n 20 &> $log/cloud_schedule.log &
-
 
 
 
@@ -14881,4 +14852,426 @@ limit 20
 ;
 
 
-CRITICAL
+
+
+
+select * from ods.guaranty_info where due_bill_no = '1000000002';
+
+select * from ods.guaranty_info_abs where due_bill_no = '1000000002';
+
+
+
+select * from dim.project_due_bill_no where due_bill_no = '1000000002';
+
+
+select * from ods.t_10_basic_asset where project_id = 'CL202011090089' and serial_number = '1000000002';
+
+
+select * from ods.loan_lending_abs where project_id = 'CL202011090089' and due_bill_no = '1000000002';
+
+
+
+select
+  due_term_prin,
+  due_term_int,
+  due_term_fee,
+  due_svc_fee,
+  due_penalty,
+  due_mult_amt
+from stage.ecas_repay_schedule
+where d_date = '2019-11-26'
+  and p_type = 'ddht'
+  and product_code = '001603'
+  and due_bill_no = '1000000002'
+  and curr_term = 0
+;
+
+
+select *
+  -- should_repay_amount,
+  -- should_repay_principal,
+  -- should_repay_interest,
+  -- should_repay_term_fee,
+  -- should_repay_svc_fee,
+  -- should_repay_penalty,
+  -- should_repay_mult_amt,
+  -- should_repay_penalty_acru
+from ods.repay_schedule
+where product_id = '001603'
+  and due_bill_no = '1000000002'
+  and effective_date = '2019-11-26'
+  and loan_term = 0;
+
+
+
+select *
+  -- should_repay_amount,
+  -- should_repay_principal,
+  -- should_repay_interest,
+  -- should_repay_term_fee,
+  -- should_repay_svc_fee,
+  -- should_repay_penalty,
+  -- should_repay_mult_amt,
+  -- should_repay_penalty_acru
+from ods.repay_schedule_abs
+where project_id = 'CL202011090089'
+  and due_bill_no = '1000000002'
+  -- and effective_date = '2019-11-26'
+  -- and loan_term = 0
+order by loan_term,s_d_date
+;
+
+
+
+
+
+select *
+from ods.t_05_repaymentplan
+where project_id = 'CL202011090089'
+  and serial_number = '1000000002'
+  -- and effective_date = '2019-11-26'
+  -- and loan_term = 0
+order by period,s_d_date
+;
+
+
+select *
+from ods.loan_lending_abs
+where project_id = 'CL202011090089'
+  and due_bill_no = '1000000002'
+;
+
+
+
+
+
+
+
+
+
+
+insert overwrite table ods${db_suffix}.order_info partition(biz_date,product_id)
+select
+  order_id,
+  apply_no,
+  due_bill_no,
+  term,
+  pay_channel,
+  command_type,
+  order_status,
+  repay_way,
+  txn_amt,
+  success_amt,
+  currency,
+  business_date,
+  loan_usage,
+  purpose,
+  bank_trade_act_no,
+  bank_trade_act_name,
+  bank_trade_act_phone,
+  txn_time,
+  txn_date,
+  create_time,
+  update_time,
+  biz_date,
+  product_id
+from ods${db_suffix}.order_info;
+
+
+
+
+
+select
+  product_id,
+  due_bill_no,
+  job_type,
+  job_year,
+  income_month,
+  income_year,
+  cutomer_type,
+  cust_rating
+from ods.customer_info
+where 1 > 0
+  and job_type = '科学研究、技术服务业和地质勘察业N-水利、环境和公共设施管理业'
+limit 10
+;
+
+
+
+
+select distinct keys
+from stage.asset_01_t_loan_contract_info
+lateral view explode(map_keys(map_from_str(extra_info))) key as keys
+order by keys;
+
+
+
+select distinct loan_type from ods.enterprise_info;
+
+
+select distinct job_year from ods.customer_info;
+
+select distinct product_id,cutomer_type from ods.customer_info where cutomer_type = '98';
+
+
+select distinct
+  is_empty(map_from_str(extra_info)['工作年限'])                 as job_year
+from stage.asset_02_t_principal_borrower_info;
+
+
+
+select distinct
+  is_empty(map_from_str(extra_info)['年收入(元)'],annual_income) as income_year
+from stage.asset_02_t_principal_borrower_info;
+
+
+
+
+
+select distinct
+  is_empty(map_from_str(extra_info)['内部信用等级'])             as cust_rating
+from stage.asset_02_t_principal_borrower_info;
+
+
+
+
+
+
+select distinct loan_status from ods.loan_info_abs;
+
+
+
+select
+  -- loan_status,
+  count(due_bill_no) as cnt
+from ods.loan_info_abs
+where '2021-04-14' between s_d_date and date_sub(e_d_date,1)
+  and project_id = 'CL202011090089'
+  -- and loan_status <> 'F'
+-- group by loan_status
+;
+
+select count(distinct due_bill_no) as cnt from ods.loan_info_inter;
+
+
+
+select product_id,count(distinct due_bill_no)
+from (
+select product_id,due_bill_no,count(1) as cnt
+from ods.guaranty_info
+group by product_id,due_bill_no
+having count(1) > 1
+) as cmt
+group by product_id
+limit 20
+;
+
+
+
+select *
+from ods.guaranty_info_abs
+where project_id = 'cl00326'
+and due_bill_no = '5100687593'
+;
+
+
+
+select *
+from ods.customer_info_abs
+where project_id = 'cl00326'
+and due_bill_no = '5100687593'
+;
+
+
+
+
+
+
+
+
+
+select distinct
+  get_json_object(standard_req_msg,'$.company_loan_bool') as company_loan_bool
+from stage.nms_interface_resp_log
+where sta_service_method_name = 'setupCustCredit'
+;
+
+
+
+
+
+
+
+
+select borrower_type from ods.customer_info_abs where project_id = 'CL202011090089' and due_bill_no = '1000000002';
+select project_id,due_bill_no,borrower_type from ods.customer_info_abs where project_id = 'CL202011090089' and due_bill_no = '1000000002';
+
+select borrower_type from ods.t_10_basic_asset_stage where project_id = 'CL202011090089' and serial_number = '1000000002';
+
+select borrower_type from ods.t_10_basic_asset where project_id = 'CL202011090089' and serial_number = '1000000002';
+
+
+
+
+
+select distinct project_id,guarantee_type from ods.guaranty_info_abs order by project_id;
+
+
+select distinct project_id,guarantee_type from ods.guaranty_info_abs order by project_id;
+
+
+select distinct car_type from ods.guaranty_info_abs;
+
+select distinct car_brand from ods.guaranty_info_abs where car_brand is null;
+
+select * from ods.guaranty_info_abs where project_id = 'cl00326' and due_bill_no = '5100643739';
+
+
+
+
+
+
+
+
+select
+  project_id,
+  due_bill_no
+from ods.guaranty_info_abs
+group by project_id,due_bill_no
+having count(due_bill_no) > 1
+;
+
+
+
+select
+  product_id,
+  due_bill_no,
+  count(due_bill_no) as cnt,
+  count(distinct car_brand) as car_brand
+from ods.guaranty_info
+group by product_id,due_bill_no
+having count(due_bill_no) > 1
+  and count(distinct car_brand) > 1
+limit 20
+;
+
+
+
+
+select *
+from ods.guaranty_info_abs
+where 1 > 0
+  and project_id = 'cl00326'
+  and due_bill_no in (
+    '5100643739',
+    '5100650605',
+    '5100636078',
+    '5100646104',
+    '5100636786',
+    ''
+  )
+;
+
+
+
+select
+  project_id,
+  agency_id,
+  asset_id,
+  guaranty_type,
+  guaranty_umber,
+  mortgage_handle_status,
+  mortgage_alignment,
+  extra_info,
+  create_time,
+  update_time,
+  processed
+from stage.asset_04_t_guaranty_info
+where 1 > 0
+  and project_id = 'cl00326'
+  and asset_id in (
+    '5100643739',
+    '5100650605',
+    '5100636078',
+    '5100646104',
+    '5100636786',
+    ''
+  )
+order by asset_id,guaranty_umber
+;
+
+
+
+
+select
+  project_id,
+  agency_id,
+  asset_id,
+  guaranty_type,
+  guaranty_umber,
+  mortgage_handle_status,
+  mortgage_alignment,
+  extra_info,
+  create_time,
+  update_time,
+  processed
+from stage.asset_04_t_guaranty_info
+where 1 > 0
+  and project_id = 'CL202012280092'
+  and asset_id in (
+    '1103563315',
+    ''
+  )
+order by asset_id,guaranty_umber
+;
+
+
+
+
+
+select *
+from stage.asset_10_t_asset_check
+where project_id = 'cl00326'
+and asset_id = '5100762020'
+;
+
+
+select *
+from ods.loan_info_inter
+where product_id = 'cl00326'
+  and due_bill_no = '5100762020'
+;
+
+
+
+
+
+select
+  project_id,
+  count(asset_id) as cnt,
+  is_empty(map_from_str(extra_info)['车类型']) as car_type
+from stage.asset_04_t_guaranty_info
+where project_id = 'CL202101260095'
+group by project_id,is_empty(map_from_str(extra_info)['车类型'])
+limit 10
+;
+
+
+select
+  *
+from stage.asset_04_t_guaranty_info
+where project_id = 'CL202101260095'
+  and is_empty(map_from_str(extra_info)['车类型']) is null
+limit 10
+;
+
+
+
+
+COMPUTE STATS stage.asset_04_t_guaranty_info;
+
+
+
+
+select * from ods.customer_info_abs limit 10;
+

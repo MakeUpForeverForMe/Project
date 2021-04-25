@@ -51,7 +51,7 @@ select distinct
   tail_amount_rate,
   bus_product_id,
   bus_product_name,
-  mortgage_rate,
+  is_empty(mortgage_rate,0) as mortgage_rate,
   is_empty(loan_active_date,loan_issue_date) as biz_date,
   loan_init_principal as loan_original_principal,
   case product_id
@@ -64,37 +64,67 @@ from (
     is_empty(map_from_str(extra_info)['借据号'],asset_id)                                        as due_bill_no,
     is_empty(map_from_str(extra_info)['担保方式'],guarantee_type)                                as guarantee_type,
     is_empty(map_from_str(extra_info)['贷款用途'],loan_use)                                      as loan_usage,
-    case when length(map_from_str(extra_info)['合同开始时间']) = 19 then to_date(map_from_str(extra_info)['合同开始时间'])
-    else is_empty(datefmt(map_from_str(extra_info)['合同开始时间'],'','yyyy-MM-dd')) end         as loan_issue_date,
-    case when length(map_from_str(extra_info)['合同结束时间']) = 19 then to_date(map_from_str(extra_info)['合同结束时间'])
-    else is_empty(datefmt(map_from_str(extra_info)['合同结束时间'],'','yyyy-MM-dd')) end         as loan_expiry_date,
     case
-    when length(map_from_str(extra_info)['贷款还款日']) = 1 then datefmt(map_from_str(extra_info)['贷款还款日'],'d','dd')
-    when length(map_from_str(extra_info)['贷款还款日']) = 2 then map_from_str(extra_info)['贷款还款日']
-    else is_empty(map_from_str(extra_info)['贷款还款日']) end                                    as cycle_day,
+      when length(map_from_str(extra_info)['合同开始时间']) = 19 then to_date(map_from_str(extra_info)['合同开始时间'])
+      else is_empty(datefmt(map_from_str(extra_info)['合同开始时间'],'','yyyy-MM-dd'))
+    end                                                                                          as loan_issue_date,
     is_empty(
-      case when length(map_from_str(extra_info)['实际放款时间']) = 19 then to_date(map_from_str(extra_info)['实际放款时间'])
-      else is_empty(datefmt(map_from_str(extra_info)['实际放款时间'],'','yyyy-MM-dd')) end,
-      case when length(map_from_str(extra_info)['合同开始时间']) = 19 then to_date(map_from_str(extra_info)['合同开始时间'])
-      else is_empty(datefmt(map_from_str(extra_info)['合同开始时间'],'','yyyy-MM-dd')) end
+      case
+        when length(map_from_str(extra_info)['合同结束时间']) = 19 then to_date(map_from_str(extra_info)['合同结束时间'])
+        else is_empty(datefmt(map_from_str(extra_info)['合同结束时间'],'','yyyy-MM-dd'))
+      end,
+      add_months(
+        case
+          when length(map_from_str(extra_info)['合同开始时间']) = 19 then to_date(map_from_str(extra_info)['合同开始时间'])
+          else is_empty(datefmt(map_from_str(extra_info)['合同开始时间'],'','yyyy-MM-dd'))
+        end,
+        cast(is_empty(map_from_str(extra_info)['总期数'],periods) as int)
+      )
+    )                                                                                            as loan_expiry_date,
+    case
+      when length(map_from_str(extra_info)['贷款还款日']) = 1 then datefmt(map_from_str(extra_info)['贷款还款日'],'d','dd')
+      when length(map_from_str(extra_info)['贷款还款日']) = 2 then map_from_str(extra_info)['贷款还款日']
+      else is_empty(map_from_str(extra_info)['贷款还款日'])
+    end                                                                                          as cycle_day,
+    is_empty(
+      case
+        when length(map_from_str(extra_info)['实际放款时间']) = 19 then to_date(map_from_str(extra_info)['实际放款时间'])
+        else is_empty(datefmt(map_from_str(extra_info)['实际放款时间'],'','yyyy-MM-dd'))
+      end,
+      case
+        when length(map_from_str(extra_info)['合同开始时间']) = 19 then to_date(map_from_str(extra_info)['合同开始时间'])
+        else is_empty(datefmt(map_from_str(extra_info)['合同开始时间'],'','yyyy-MM-dd'))
+      end
     )                                                                                            as loan_active_date,
     is_empty(
-      case when length(map_from_str(extra_info)['最后一次预计扣款时间']) = 19 then to_date(map_from_str(extra_info)['最后一次预计扣款时间'])
-      else is_empty(datefmt(map_from_str(extra_info)['最后一次预计扣款时间'],'','yyyy-MM-dd')) end,
-      case when length(map_from_str(extra_info)['合同结束时间']) = 19 then to_date(map_from_str(extra_info)['合同结束时间'])
-      else is_empty(datefmt(map_from_str(extra_info)['合同结束时间'],'','yyyy-MM-dd')) end
+      case
+        when length(map_from_str(extra_info)['最后一次预计扣款时间']) = 19 then to_date(map_from_str(extra_info)['最后一次预计扣款时间'])
+        else is_empty(datefmt(map_from_str(extra_info)['最后一次预计扣款时间'],'','yyyy-MM-dd'))
+      end,
+      case
+        when length(map_from_str(extra_info)['合同结束时间']) = 19 then to_date(map_from_str(extra_info)['合同结束时间'])
+        else is_empty(datefmt(map_from_str(extra_info)['合同结束时间'],'','yyyy-MM-dd'))
+      end,
+      add_months(
+        case
+          when length(map_from_str(extra_info)['合同开始时间']) = 19 then to_date(map_from_str(extra_info)['合同开始时间'])
+          else is_empty(datefmt(map_from_str(extra_info)['合同开始时间'],'','yyyy-MM-dd'))
+        end,
+        cast(is_empty(map_from_str(extra_info)['总期数'],periods) as int)
+      )
     )                                                                                            as loan_expire_date,
     case is_empty(map_from_str(extra_info)['还款方式'],repay_type)
-    when '等额本金'             then 'MCEP'
-    when '等额本息'             then 'MCEI'
-    when '消费转分期'           then 'R'
-    when '现金分期'             then 'C'
-    when '账单分期'             then 'B'
-    when 'POS分期'              then 'P'
-    when '大额分期（专项分期）' then 'M'
-    when '随借随还'             then 'MCAT'
-    when '阶梯还款'             then 'STAIR'
-    else is_empty(map_from_str(extra_info)['还款方式'],repay_type) end                           as loan_type,
+      when '等额本金'             then 'MCEP'
+      when '等额本息'             then 'MCEI'
+      when '消费转分期'           then 'R'
+      when '现金分期'             then 'C'
+      when '账单分期'             then 'B'
+      when 'POS分期'              then 'P'
+      when '大额分期（专项分期）' then 'M'
+      when '随借随还'             then 'MCAT'
+      when '阶梯还款'             then 'STAIR'
+      else is_empty(map_from_str(extra_info)['还款方式'],repay_type)
+    end                                                                                          as loan_type,
     is_empty(map_from_str(extra_info)['还款方式'],repay_type)                                    as loan_type_cn,
     is_empty(map_from_str(extra_info)['日利率计算基础'])                                         as contract_daily_interest_rate_basis,
     is_empty(map_from_str(extra_info)['总期数'],periods)                                         as loan_init_term,

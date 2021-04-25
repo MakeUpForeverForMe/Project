@@ -1,34 +1,25 @@
---driver-java-options -verbose:class \
-#测试环境提交任务脚本
-
-
-spark-submit \
---class com.weshare.pmml.app.PmmlMain \
---deploy-mode client \
---driver-memory 2g \
---executor-memory 2g \
---executor-cores 2 \
---num-executors 4 \
---master local[*] \
---conf "spark.driver.userClassPathFirst=true" \
---jars /root/guochao/test/pmml-evaluator-1.5.14.jar,/root/guochao/test/pmml-model-1.5.14.jar,/root/guochao/test/fastjson-1.2.47.jar,/root/guochao/test/guava-22.0.jar \
-/root/guochao/test/common-1.0-SNAPSHOT.jar 2021-02-27 eagle.one_million_random_risk_data 0
-
-
-
-
-
---conf "spark.executor.userClassPathFirst=true" \
+#!/bin/bash
+biz_date=$1
+project_id=$2
 
 
 spark-submit \
 --class com.weshare.pmml.app.MockDataAndInvokePmml \
 --deploy-mode client \
---driver-memory 2g \
---executor-memory 2g \
+--driver-memory 8g \
+--executor-memory 6g \
 --executor-cores 2 \
---num-executors 4 \
+--num-executors 50 \
 --master yarn \
---conf "spark.driver.userClassPathFirst=true" \
---jars /root/guochao/test/pmml-evaluator-1.5.14.jar,/root/guochao/test/pmml-model-1.5.14.jar,/root/guochao/test/fastjson-1.2.47.jar,/root/guochao/test/guava-22.0.jar \
-/root/guochao/test/common-1.0-SNAPSHOT.jar 2021-02-27 2
+--conf "spark.sql.shuffle.partitions=100" \
+--conf "spark.default.parallelism=100" \
+--conf "spark.driver.memoryOverhead=4096" \
+--conf "spark.executor.memoryOverhead=2048" \
+--conf "spark.executor.userClassPathFirst=true" \
+--conf "spark.storage.memoryFraction=0.2" \
+--conf "spark.shuffle.memoryFraction=0.6" \
+--conf "spark.broadcast.blockSize=50M" \
+--jars hdfs:///user/hadoop/pmml/pmml-evaluator-1.5.14.jar,hdfs:///user/hadoop/pmml/pmml-model-1.5.14.jar,hdfs:///user/hadoop/pmml/fastjson-1.2.47.jar,hdfs:///user/hadoop/pmml/guava-22.0.jar,hdfs:///user/hadoop/pmml/json4s-jackson_2.11-3.2.11.jar,hdfs:///user/hadoop/data_watch/druid-1.1.6.jar,hdfs:///user/hadoop/data_watch/mysql-connector-java-5.1.24.jar \
+hdfs:///user/hadoop/pmml/common-1.0-SNAPSHOT.jar "$biz_date" "$project_id" EMR
+
+

@@ -22,29 +22,29 @@ echo -e "${date_s:=$(date +'%F %T')} 任务执行  开始 当前脚本进程ID�
 
 
 
-sh $data_manage -s ${s_date} -e ${e_date} -f $dm_operation_hql/dm_eagle.operation_overdue_datail.hql                 -a $rd &
-sh $data_manage -s ${s_date} -e ${e_date} -f $dm_operation_hql/dm_eagle.operation_product_management_report_agg.hql  -a $rd &
-sh $data_manage -s ${s_date} -e ${e_date} -f $dm_operation_hql/dm_eagle.operation_should_repay_day_agg.hql           -a $rd &
+sh $data_manage -s ${s_date} -e ${e_date} -f $dm_operation_hql/dm_eagle.operation_overdue_datail.hql -i $param_dir/dm_operation.hql                -a $rd &
+sh $data_manage -s ${s_date} -e ${e_date} -f $dm_operation_hql/dm_eagle.operation_product_management_report_agg.hql -i $param_dir/dm_operation.hql -a $rd &
+sh $data_manage -s ${s_date} -e ${e_date} -f $dm_operation_hql/dm_eagle.operation_should_repay_day_agg.hql  -i $param_dir/dm_operation.hql         -a $rd &
 
 wait_jobs
 
 #运营平台取最新数据任务
-sh $data_manage -s ${e_date} -e ${e_date} -f $dm_operation_hql/dm_eagle.operation_daily_repay_agg.hql                -a $rd &
-sh $data_manage -s ${e_date} -e ${e_date} -f $dm_operation_hql/dm_eagle.operation_daily_repay_detail.hql             -a $rd &
+sh $data_manage -s ${e_date} -e ${e_date} -f $dm_operation_hql/dm_eagle.operation_daily_repay_agg.hql -i $param_dir/dm_operation.hql               -a $rd &
+sh $data_manage -s ${e_date} -e ${e_date} -f $dm_operation_hql/dm_eagle.operation_daily_repay_detail.hql -i $param_dir/dm_operation.hql            -a $rd &
 
 wait_jobs
 
-sh $data_manage -s ${e_date} -e ${e_date} -f $dm_operation_hql/dm_eagle.operation_lending_daily_agg.hql              -a $rd &
-sh $data_manage -s ${e_date} -e ${e_date} -f $dm_operation_hql/dm_eagle.operation_loan_ledger_detail.hql             -a $rd &
+sh $data_manage -s ${e_date} -e ${e_date} -f $dm_operation_hql/dm_eagle.operation_lending_daily_agg.hql  -i $param_dir/dm_operation.hql            -a $rd &
+sh $data_manage -s ${e_date} -e ${e_date} -f $dm_operation_hql/dm_eagle.operation_loan_ledger_detail.hql -i $param_dir/dm_operation.hql            -a $rd &
 
 wait_jobs
 
 
-sh $data_manage -s ${e_date} -e ${e_date} -f $dm_operation_hql/dm_eagle.operation_return_ticket_agg.hql              -a $rd &
+sh $data_manage -s ${e_date} -e ${e_date} -f $dm_operation_hql/dm_eagle.operation_return_ticket_agg.hql  -i $param_dir/dm_operation.hql            -a $rd &
 
 wait_jobs
 
-sh $data_manage -s ${e_date} -e ${e_date} -f $dm_operation_hql/dm_eagle.operation_return_ticket_detail.hql           -a $rd &
-sh $data_manage -s ${e_date} -e ${e_date} -f $dm_operation_hql/dm_eagle.operation_should_repay_detail.hql            -a $rd &
+sh $data_manage -s ${e_date} -e ${e_date} -f $dm_operation_hql/dm_eagle.operation_return_ticket_detail.hql -i $param_dir/dm_operation.hql          -a $rd &
+sh $data_manage -s ${e_date} -e ${e_date} -f $dm_operation_hql/dm_eagle.operation_should_repay_detail.hql -i $param_dir/dm_operation.hql           -a $rd &
 
 echo -e "${date_e:=$(date +'%F %T')} 任务执行  结束 当前脚本进程ID为：$(pid)    用时：$(during "$date_e" "$date_s")\n\n" &>> $log

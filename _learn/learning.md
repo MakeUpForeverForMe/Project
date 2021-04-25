@@ -1222,12 +1222,14 @@ ALTER DATABASE db_hive SET dbproperties('createtime'='20170830');
 ALTER TABLE test RENAME TO tet;
 -- 修改表注释
 ALTER TABLE test SET TBLPROPERTIES('comment' = '这是表注释');
--- 添加字段
+-- 添加字段（使用级联方式增加字段。结尾加 CASCADE ）
 ALTER TABLE test ADD COLUMNS (t_1 string comment '测试');
 -- 修改字段注释
 ALTER TABLE test CHANGE COLUMN t_1 t string comment '这里是列注释';
 -- 修改字段
 ALTER TABLE test CHANGE COLUMN t_1 t string AFTER id;
+-- 修改字段名后（Parquet格式情况下）
+ALTER TABLE table_name SET TBLPROPERTIES ('parquet.column.index.access'='true');
 -- 删除字段
 ALTER TABLE test REPLACE COLUMNS (id int COMMENT 'id', name string COMMENT '名称');
 -- 增加分区
@@ -1236,8 +1238,10 @@ ALTER TABLE test ADD IF NOT EXISTS PARTITION (year_month='201911',day_of_month='
 ALTER TABLE test DROP IF EXISTS PARTITION (year_month = '201911',day_of_month = 8);
 -- 修改 location
 ALTER TABLE stage.ecas_msg_log SET location 'cosn://bigdata-center-prod-1253824322/user/hadoop/warehouse/stage.db/ecas_msg_log';
--- 修复分区
+-- 修复有分区的表（主要是修复 hdfs put 后读取不到分区数据问题。无分区表用不了）
 MSCK REPAIR TABLE table_name;
+-- 修复表
+ANALYZE TABLE [db_name.]tablename [PARTITION(partcol1[=val1], partcol2[=val2], ...)] COMPUTE STATISTICS;
 -- 赋权
 grant select on eagle.loan_info to role riskctrl with grant option;
 -- 加载数据
@@ -2038,7 +2042,7 @@ SHOW FUNCTIONS LIKE 'default*';
 DESC FUNCTION EXTENDED is_empty;
 
 SHOW FUNCTIONS LIKE '*array*';
-DESC FUNCTION EXTENDED array;
+DESC FUNCTION EXTENDED floor;
 ```
 
 

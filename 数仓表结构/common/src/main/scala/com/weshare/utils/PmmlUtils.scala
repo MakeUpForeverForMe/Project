@@ -1,5 +1,7 @@
 package com.weshare.utils
 
+import com.weshare.pmml.domain.PmmlParam
+import org.apache.hadoop.fs.{FileSystem, Path}
 import org.jpmml.evaluator.LoadingModelEvaluatorBuilder
 
 
@@ -11,17 +13,24 @@ object PmmlUtils {
 
   /**
    * 初始化 PmmlUtils
-    * @param pmmlFilePath
+    * @param
    * @return
    */
 
-def initPmmUtils(pmmlFilePath: String) ={
-  val pmmlIs = getClass.getClassLoader.getResourceAsStream(pmmlFilePath)
+def initPmmUtils(pmmlParam:PmmlParam) ={
+  val conf = HdfsUtils.initConfiguration(pmmlParam.hdfs_master,isHa = pmmlParam.isHa)
+  val fs = FileSystem.get(conf)
+if (!fs.exists(new Path(pmmlParam.pmml_url))) {
+  throw new RuntimeException(s"pmml file is not exists!${pmmlParam.pmml_url}")
+
+}
+  val stream = fs.open(new Path(pmmlParam.pmml_url))
+  //val pmmlIs = getClass.getClassLoader.getResourceAsStream(pmmlFilePath)
   // Create the evaluator
   val evaluator =new LoadingModelEvaluatorBuilder()
-      .load(pmmlIs)
+      .load(stream)
       .build()
-    pmmlIs.close()
+  stream.close()
   evaluator
 }
 

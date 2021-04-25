@@ -15,6 +15,7 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <spark.version>2.3.0</spark.version>
         <hadoop.version>2.7.0</hadoop.version>
+        <mail.version>1.6.2</mail.version>
         <scala.binary.version>2.11</scala.binary.version>
     </properties>
     <repositories>
@@ -43,6 +44,7 @@
         <groupId>org.apache.spark</groupId>
         <artifactId>spark-core_${scala.binary.version}</artifactId>
         <version>${spark.version}</version>
+       <!-- <scope>runtime</scope>-->
     </dependency>
     <!-- https://mvnrepository.com/artifact/com.alibaba/druid -->
     <dependency>
@@ -53,13 +55,14 @@
     <dependency>
         <groupId>org.apache.spark</groupId>
         <artifactId>spark-hive_${scala.binary.version}</artifactId>
-        <exclusions></exclusions>
         <version>${spark.version}</version>
+       <!-- <scope>runtime</scope>-->
     </dependency>
     <dependency>
         <groupId>org.apache.spark</groupId>
         <artifactId>spark-sql_${scala.binary.version}</artifactId>
         <version>${spark.version}</version>
+       <!-- <scope>runtime</scope>-->
     </dependency>
     <dependency>
         <groupId>mysql</groupId>
@@ -70,21 +73,30 @@
         <groupId>com.alibaba</groupId>
         <artifactId>fastjson</artifactId>
         <version>1.2.47</version>
+       <!-- <scope>runtime</scope>-->
     </dependency>
+        <dependency>
+            <groupId>com.cloudera</groupId>
+            <artifactId>ImpalaJDBC41</artifactId>
+            <version>2.6.3</version>
+        </dependency>
     <dependency>
         <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-hdfs</artifactId>
         <version>${hadoop.version}</version>
+       <!-- <scope>runtime</scope>-->
     </dependency>
     <dependency>
         <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-common</artifactId>
         <version>${hadoop.version}</version>
+       <!-- <scope>runtime</scope>-->
     </dependency>
     <dependency>
         <groupId>org.apache.hive.hcatalog</groupId>
         <artifactId>hive-hcatalog-core</artifactId>
         <version>${spark.version}</version>
+       <!-- <scope>runtime</scope>-->
         <exclusions>
             <exclusion>
                 <groupId>org.slf4j</groupId>
@@ -104,11 +116,23 @@
         <groupId>org.jpmml</groupId>
         <artifactId>pmml-evaluator</artifactId>
         <version>1.5.7</version>
+        <!--<scope>runtime</scope>-->
     </dependency>
         <dependency>
             <groupId>org.apache.hive</groupId>
             <artifactId>hive-jdbc</artifactId>
             <version>1.2.1</version>
+            <!--<scope>runtime</scope>-->
+        </dependency>
+        <dependency>
+            <groupId>javax.mail</groupId>
+            <artifactId>javax.mail-api</artifactId>
+            <version>${mail.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.mail</groupId>
+            <artifactId>javax.mail</artifactId>
+            <version>${mail.version}</version>
         </dependency>
 </dependencies>
     <build>
@@ -150,7 +174,25 @@
                     </classpathContainers>
                 </configuration>
             </plugin>
-
+           <!-- <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.0.0</version>
+                <configuration>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>-->
         </plugins>
     </build>
 
@@ -167,5 +209,7 @@
             </plugin>
         </plugins>
     </reporting>
+
+
 
 </project>

@@ -31,7 +31,6 @@ bill_info as (
     loan_info.due_bill_no,
     loan_info.project_id,
     loan_info.remain_principal,
-
     -- 1 未偿本金余额分布
     case
       when loan_info.remain_principal <= 50000                                           then concat("1","|","5万元（含）以下",'|','1')
@@ -42,7 +41,7 @@ bill_info as (
       when loan_info.remain_principal > 400000 and loan_info.remain_principal <= 500000  then concat("1","|","40万元（不含）- 50万元（含）",'|','6')
       when loan_info.remain_principal > 500000 and loan_info.remain_principal <= 1000000 then concat("1","|","50万元（不含）- 100万元（含）",'|','7')
       else concat("1","|","100万元（不含）以上",'|','8')
-    end                                                                                                                                             as un_principal_distribution,
+    end                                                                                                                                               as un_principal_distribution,
     -- 2 资产利率分布
     case
       when loan_leading.loan_init_interest_rate <= 5                                                then concat("2","|","5%（含）以下",'|','1')
@@ -50,9 +49,9 @@ bill_info as (
       when loan_leading.loan_init_interest_rate > 10 and loan_leading.loan_init_interest_rate <= 15 then concat("2","|","10%（不含）- 15%（含）",'|','3')
       when loan_leading.loan_init_interest_rate > 15 and loan_leading.loan_init_interest_rate <= 20 then concat("2","|","15%（不含）- 20%（含）",'|','4')
       else concat("2","|","20%（不含）以上",'|','5')
-    end                                                                                                                                             as interest_rate_distribution,
+    end                                                                                                                                               as interest_rate_distribution,
     -- 3 资产合同期限分布
-    concat("3","|",concat(cast(loan_leading.contract_term as string),"期"),'|',cast(loan_leading.contract_term as string))                          as residual_maturity_distribution,
+    concat("3","|",concat(cast(loan_leading.contract_term as string),"期"),'|',cast(loan_leading.contract_term as string))                            as residual_maturity_distribution,
     -- 4 资产剩余期限分布
     case
       when loan_info.loan_term_remain between 1  and 6  then concat("4","|","1期（含）~ 6期（含）",'|','1')
@@ -64,7 +63,7 @@ bill_info as (
       when loan_info.loan_term_remain between 37 and 42 then concat("4","|","37期（含）~ 42期（含）",'|','7')
       when loan_info.loan_term_repaid between 43 and 48 then concat("4","|","43期（含）~ 48期（含）",'|','8')
       else concat("4","|","48期（不含）以上",'|','9')
-    end                                                                                                                                             as loan_term_remain_distribution,
+    end                                                                                                                                               as loan_term_remain_distribution,
     -- 5 资产已还期数分布
     case
       when loan_info.loan_term_repaid between 1  and 6  then concat("5","|","1期（含）~ 6期（含）",'|','1')
@@ -76,7 +75,7 @@ bill_info as (
       when loan_info.loan_term_repaid between 37 and 42 then concat("5","|","37期（含）~ 42期（含）",'|','7')
       when loan_info.loan_term_repaid between 43 and 48 then concat("5","|","43期（含）~ 48期（含）",'|','8')
       else concat("5","|","48期（不含）以上",'|','9')
-    end                                                                                                                                             as loan_term_repaid_distribution,
+    end                                                                                                                                               as loan_term_repaid_distribution,
     -- 6 账龄分布
     case
       when loan_info.account_age = 0               then concat("6","|","0（含）",'|','1')
@@ -89,7 +88,7 @@ bill_info as (
       when loan_info.account_age between 37 and 42 then concat("6","|","37（含）- 42（含）",'|','8')
       when loan_info.account_age between 43 and 48 then concat("6","|","43（含）- 48（含）",'|','9')
       else concat("6","|","48（不含）- 项目最大合同期限",'|' ,'10')
-    end                                                                                                                                             as account_age_distribution,
+    end                                                                                                                                               as account_age_distribution,
     -- 7 合同剩余期限分布（账龄相关）
     case
       when nvl(loan_leading.contract_term,0) - nvl(loan_info.account_age,0) = 0               then concat("7","|","0（含）",'|','1')
@@ -102,9 +101,9 @@ bill_info as (
       when nvl(loan_leading.contract_term,0) - nvl(loan_info.account_age,0) between 37 and 42 then concat("7","|","37（含）- 42（含）",'|','8')
       when nvl(loan_leading.contract_term,0) - nvl(loan_info.account_age,0) between 43 and 48 then concat("7","|","43（含）- 48（含）",'|','9')
       else concat("7","|","48（不含）- 项目最大合同期限",'|','10')
-    end                                                                                                                                             as residual_maturity_remain_distribution,
+    end                                                                                                                                               as residual_maturity_remain_distribution,
     -- 8 还款方式分布
-    concat("8","|",loan_leading.loan_type_cn,'|',cast(abs(round(hash(loan_leading.loan_type_cn) % 50)) as string))                                  as loan_type_distribution,
+    concat("8","|",loan_leading.loan_type_cn,'|',cast(abs(round(hash(loan_leading.loan_type_cn)%50)) as string))                                      as loan_type_distribution,
     -- 9 借款人年龄分布
     case
       when customer_info.age between 18 and 20 then concat("9","|",'18岁（含）- 20岁（含）','|','1')
@@ -116,9 +115,9 @@ bill_info as (
       when customer_info.age between 46 and 50 then concat("9","|",'45岁（不含）- 50岁（含）','|','7')
       when customer_info.age > 50              then concat("9","|",'50岁（不含）以上','|','8')
       else concat("9","|",'0岁（含）- 18岁（不含）','|','9')
-    end                                                                                                                                             as age_distribution,
+    end                                                                                                                                               as age_distribution,
     -- 10 借款人行业分布
-    concat("10","|",if(customer_info.job_type='未知','Z',customer_info.job_type),'|',cast(abs(round(hash(customer_info.job_type) % 50)) as string)) as job_type_distribution,
+    concat("10","|",if(customer_info.job_type = '未知','Z',customer_info.job_type),'|',cast(abs(round(hash(customer_info.job_type) % 50)) as string)) as job_type_distribution,
     -- 11 借款人年收入分布
     case
       when nvl(customer_info.income_year,0) <= 50000                                   then concat("11","|",'5万元（含）以下','|','1')
@@ -129,17 +128,17 @@ bill_info as (
       when customer_info.income_year > 400000 and customer_info.income_year <= 500000  then concat("11","|",'40万元（不含）- 50万元（含）','|','6')
       when customer_info.income_year > 500000 and customer_info.income_year <= 1000000 then concat("11","|",'50万元（不含）- 100万元（含）','|','7')
       else concat("11","|",'100万元（不含）以上','|','8')
-    end                                                                                                                                             as income_year_distribution,
+    end                                                                                                                                               as income_year_distribution,
     -- 12 借款人风控结果分布
-    concat("12","|",nvl(risk_control.wind_control_status,-1),'|',cast(abs(round(hash(nvl(risk_control.wind_control_status,-1)) % 50)) as string))   as wind_control_status_distribution,
+    concat("12","|",nvl(risk_control.wind_control_status,-1),'|',cast(abs(round(hash(nvl(risk_control.wind_control_status,-1)) % 50)) as string))     as wind_control_status_distribution,
     -- 13 借款人信用等级分布
-    concat("13","|",nvl(credit_control.credit_level,-1),'|',cast(abs(round(hash(nvl(credit_control.credit_level,-1)) % 50)) as string))             as credit_level_distribution,
+    concat("13","|",nvl(credit_control.credit_level,-1),'|',cast(abs(round(hash(nvl(credit_control.credit_level,-1)) % 50)) as string))               as credit_level_distribution,
     -- 14 借款人反欺诈等级分布
-    concat("14","|",nvl(risk_control.cheat_level,-1),'|',cast(abs(round(hash(nvl(risk_control.cheat_level,-1)) % 50)) as string))                   as cheat_level_distribution,
+    concat("14","|",nvl(risk_control.cheat_level,-1),'|',cast(abs(round(hash(nvl(risk_control.cheat_level,-1)) % 50)) as string))                     as cheat_level_distribution,
     -- 15 借款人资产等级分布
-    concat("15","|",nvl(risk_control.score_range,-1),'|',cast(abs(round(hash(nvl(risk_control.score_range,-1)) % 50) ) as string))                  as score_range_distribution,
+    concat("15","|",nvl(risk_control.score_range,-1),'|',cast(abs(round(hash(nvl(risk_control.score_range,-1)) % 50) ) as string))                    as score_range_distribution,
     -- 16 借款人地区分布
-    concat("16","|",customer_info.idcard_area,'|',cast(abs(round(hash(customer_info.idcard_area) % 50)) as string))                                 as idcard_area_distribution,
+    concat("16","|",customer_info.idcard_area,'|',cast(abs(round(hash(customer_info.idcard_area) % 50)) as string))                                   as idcard_area_distribution,
     -- 17 抵押率分布
     case
       when loan_leading.mortgage_rate <= 10                                     then concat("17","|","10%（含）以下",'|','1')
@@ -152,11 +151,11 @@ bill_info as (
       when loan_leading.mortgage_rate > 70 and loan_leading.mortgage_rate <= 80 then concat("17","|","70%（不含）- 80%（含）",'|','8')
       when loan_leading.mortgage_rate > 80 and loan_leading.mortgage_rate <= 90 then concat("17","|","80%（不含）- 90%（含）",'|','9')
       else concat("17","|","90%（不含）以上",'|','10')
-    end                                                                                                                                             as mortgage_rate_distribution,
+    end                                                                                                                                               as mortgage_rate_distribution,
     -- 18 车辆品牌分布
-    concat("18","|",nvl(guaranty_info.car_brand,'NONE'),'|',cast(abs(round(hash(nvl(guaranty_info.car_brand,'NONE')) % 50)) as string))             as car_brand_distribution,
+    concat("18","|",nvl(guaranty_info.car_brand,'NONE'),'|',cast(abs(round(hash(nvl(guaranty_info.car_brand,'NONE')) % 50)) as string))               as car_brand_distribution,
     -- 19 新旧车辆分布
-    concat("19","|",nvl(guaranty_info.car_type,'NONE'),'|',cast(round(abs(hash(nvl(guaranty_info.car_type,'NONE')) % 50)) as string))               as car_type_distribution
+    concat("19","|",nvl(guaranty_info.car_type,'NONE'),'|',cast(round(abs(hash(nvl(guaranty_info.car_type,'NONE')) % 50)) as string))                 as car_type_distribution
   from (
     select
       due_bill_no,
@@ -166,7 +165,9 @@ bill_info as (
       loan_term_repaid,
       account_age
     from ods.loan_info_abs
-    where '${ST9}' between s_d_date and date_sub(e_d_date,1)
+    where 1 > 0
+      and '${ST9}' between s_d_date and date_sub(e_d_date,1)
+      and loan_status <> 'F'
   ) as loan_info
   left join (
     select
@@ -177,7 +178,6 @@ bill_info as (
       contract_term,
       nvl(mortgage_rate,0)  as mortgage_rate
     from ods.loan_lending_abs
-    where biz_date <= '${ST9}'
   ) as loan_leading
   on  loan_info.due_bill_no = loan_leading.due_bill_no
   and loan_info.project_id  = loan_leading.project_id
@@ -190,7 +190,7 @@ bill_info as (
       income_year,
       idcard_area
     from ods.customer_info_abs
-    --where
+    -- where
   ) as customer_info
   on  loan_info.due_bill_no = customer_info.due_bill_no
   and loan_info.project_id  = customer_info.project_id
