@@ -157,7 +157,7 @@ from (
       nvl(datefmt(cast(lst_upd_time as string),'ms','yyyy-MM-dd HH:mm:ss'),cast(business_date as timestamp)) as update_time,
       nvl(txn_date,datefmt(cast(txn_time as string),'ms','yyyy-MM-dd')) as biz_date
     from stage.ecas_order_hst${tb_suffix}
-    where 1 > 0
+    where 1 > 0 and  order_status='S'
       ${where_date}
     union all
     select

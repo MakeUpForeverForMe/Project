@@ -1302,14 +1302,82 @@ done
 
 sudo -u hadoop impala-shell -u hadoop -i 10.80.240.5:27001 -t 0 -B --output_delimiter=',' -q '
 select
-  project_id,
-  due_bill_no
-from ods.guaranty_info_abs
-where project_id in ("CL202012280092","cl00326")
-group by project_id,due_bill_no
-having count(due_bill_no) > 1
-order by project_id
+  guaranty.project_id          as "项目编号",
+  guaranty.due_bill_no         as "借据号",
+  guaranty.guaranty_code       as "抵押物编号",
+  guaranty.pawn_value          as "评估价格",
+  guaranty.car_sales_price     as "车辆销售价格",
+  guaranty.car_new_price       as "新车指导价",
+  guaranty.total_investment    as "投资总额",
+  guaranty.purchase_tax_amouts as "购置税金额",
+  dim_frame_num.dim_decrypt    as "车架号",
+  dim_engine_num.dim_decrypt   as "发动机号",
+  dim_license_num.dim_decrypt  as "车牌号码",
+  guaranty.car_brand           as "车辆品牌",
+  guaranty.ts                  as "时间戳",
+  guaranty.create_time         as "创建时间",
+  guaranty.update_time         as "更新时间"
+from ods.guaranty_info_abs as guaranty
+join (
+  select
+    project_id,
+    due_bill_no
+  from ods.guaranty_info_abs
+  group by project_id,due_bill_no
+  having count(due_bill_no) > 1
+) as guaranty_info
+on  guaranty.project_id  = guaranty_info.project_id
+and guaranty.due_bill_no = guaranty_info.due_bill_no
+left join (
+  select
+    dim_encrypt,
+    dim_decrypt
+  from dim.dim_encrypt_info
+) as dim_frame_num
+on guaranty.frame_num   = dim_frame_num.dim_encrypt
+left join (
+  select
+    dim_encrypt,
+    dim_decrypt
+  from dim.dim_encrypt_info
+) as dim_engine_num
+on guaranty.engine_num  = dim_engine_num.dim_encrypt
+left join (
+  select
+    dim_encrypt,
+    dim_decrypt
+  from dim.dim_encrypt_info
+) as dim_license_num
+on guaranty.license_num = dim_license_num.dim_encrypt
+order by guaranty.project_id,guaranty.due_bill_no,guaranty.ts,guaranty.create_time
 ;' > aa.csv
 
 
 $impala -q "select * from $app_name limit 1;"                                                                                                                                                 &>> $manage_log
+
+
+
+
+tbls=(
+  dim.out_project_due_bill_no
+  ods.out_customer_info
+  ods.out_loan_lending
+  ods.out_loan_info
+  ods.out_repay_schedule
+  ods.out_repay_detail
+  ods.out_order_info
+)
+
+
+for tbl in ${tbls[@]}; do
+  db_tb=(${tbl//./ })
+  echo ${db_tb[@]}
+  hdfs dfs -get -f hdfs://10.80.1.155:4007/user/hadoop/warehouse/${db_tb[0]}.db/${db_tb[1]} ./
+done
+
+
+for tbl in ${tbls[@]}; do
+  db_tb=(${tbl//./ })
+  echo "sudo -u hive hdfs dfs -put ./${db_tb[1]}/* /user/hive/warehouse/${db_tb[0]}.db/${db_tb[1]}"
+  sudo -u hive hdfs dfs -put ./${db_tb[1]}/* /user/hive/warehouse/${db_tb[0]}.db/${db_tb[1]}
+done

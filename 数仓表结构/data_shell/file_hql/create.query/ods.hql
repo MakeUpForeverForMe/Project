@@ -276,6 +276,7 @@ CREATE TABLE IF NOT EXISTS `ods.guaranty_info`(
   `register_date`                                     string         COMMENT '注册日期',
   `buy_car_address`                                   string         COMMENT '车辆购买地',
   `car_colour`                                        string         COMMENT '车辆颜色',
+  `ts`                                                string         COMMENT '时间戳',
   `create_time`                                       timestamp      COMMENT '创建时间',
   `update_time`                                       timestamp      COMMENT '更新时间'
 ) COMMENT '抵押物（车）信息表'
@@ -857,6 +858,7 @@ CREATE VIEW IF NOT EXISTS `ods.guaranty_info_abs`(
   `register_date`                      COMMENT '注册日期',
   `buy_car_address`                    COMMENT '车辆购买地',
   `car_colour`                         COMMENT '车辆颜色',
+  `ts`                                 COMMENT '时间戳',
   `create_time`                        COMMENT '创建时间',
   `update_time`                        COMMENT '更新时间',
   `project_full_name`                  COMMENT '项目全名称',
@@ -902,6 +904,7 @@ CREATE VIEW IF NOT EXISTS `ods.guaranty_info_abs`(
   t1.register_date                  as register_date,
   t1.buy_car_address                as buy_car_address,
   t1.car_colour                     as car_colour,
+  t1.ts                             as ts,
   t1.create_time                    as create_time,
   t1.update_time                    as update_time,
   t3.project_full_name              as project_full_name,
@@ -1054,6 +1057,7 @@ CREATE VIEW IF NOT EXISTS `ods.loan_lending_abs`(
   `bus_product_name`                   COMMENT '产品方案名称',
   `mortgage_rate`                      COMMENT '抵押率',
   `biz_date`                           COMMENT '放款日期',
+  `loan_original_principal`            COMMENT '初始放款本金',
   `project_full_name`                  COMMENT '项目全名称',
   `asset_type`                         COMMENT '资产类别（1：汽车贷，2：房贷，3：消费贷）',
   `project_type`                       COMMENT '业务模式（1：存量，2：增量）',
@@ -1087,6 +1091,7 @@ CREATE VIEW IF NOT EXISTS `ods.loan_lending_abs`(
   t1.bus_product_name                   as bus_product_name,
   t1.mortgage_rate                      as mortgage_rate,
   t1.biz_date                           as biz_date,
+  t1.loan_original_principal            as loan_original_principal,
   t3.project_full_name                  as project_full_name,
   t3.asset_type                         as asset_type,
   t3.project_type                       as project_type,
@@ -1157,6 +1162,8 @@ CREATE VIEW IF NOT EXISTS `ods.loan_info_abs`(
   `overdue_terms_max`                  COMMENT '历史单次最长逾期期数',
   `overdue_principal_accumulate`       COMMENT '累计逾期本金',
   `overdue_principal_max`              COMMENT '历史最大逾期本金',
+  `create_time`                        COMMENT '创建时间',
+  `update_time`                        COMMENT '更新时间',
   `s_d_date`                           COMMENT 'ods层起始日期',
   `e_d_date`                           COMMENT 'ods层结束日期',
   `is_settled`                         COMMENT '是否已结清',
@@ -1221,6 +1228,8 @@ CREATE VIEW IF NOT EXISTS `ods.loan_info_abs`(
   t1.overdue_terms_max            as overdue_terms_max,
   t1.overdue_principal_accumulate as overdue_principal_accumulate,
   t1.overdue_principal_max        as overdue_principal_max,
+  t1.create_time                  as create_time,
+  t1.update_time                  as update_time,
   t1.s_d_date                     as s_d_date,
   t1.e_d_date                     as e_d_date,
   t1.is_settled                   as is_settled,
@@ -1415,7 +1424,7 @@ CREATE VIEW IF NOT EXISTS `ods.order_info_abs`(
   `term`                               COMMENT '处理期数',
   `pay_channel`                        COMMENT '支付渠道（中文值：宝付、通联、代扣-广银联等）',
   `command_type`                       COMMENT '支付指令类型（SPA：单笔代付，SDB：单笔代扣，QSP：单笔代付查询，QSD：单笔代扣查询，BDB：批量代扣，BDA：批量代付）',
-  `order_status`                       COMMENT '订单状态（C：已提交，P：待提交，Q：待审批，W：处理中，S：已完成，V：已失效，E：失败，T：超时，R：已重提，G：拆分处理中，D：拆分已完成，B：撤销，X：已受理待入账）',
+  `order_status`                       COMMENT '订单状态（A：成功，C：已提交，P：待提交，Q：待审批，W：处理中，S：已完成，V：已失效，E：失败，T：超时，R：已重提，G：拆分处理中，D：拆分已完成，B：撤销，X：已受理待入账）',
   `repay_way`                          COMMENT '还款方式（ONLINE：线上，OFFLINE：线下）',
   `txn_amt`                            COMMENT '交易金额',
   `success_amt`                        COMMENT '成功金额',
@@ -1561,12 +1570,6 @@ CREATE VIEW IF NOT EXISTS `ods.t_07_actualrepayinfo`(
   update_time                    as update_time
 from (
   select
-    project_id as dim_project_id,
-    data_source
-  from dim.project_info
-) as project_info
-join (
-  select
     project_id                                         as project_id,
     due_bill_no                                        as due_bill_no,
     repay_term                                         as term,
@@ -1582,6 +1585,7 @@ join (
     sum(if(bnp_type = 'EarlyRepayFee',repay_amount,0)) as advanced_commission_charge,
     sum(if(bnp_type = 'OtherFee',     repay_amount,0)) as other_fee,
     0                                                  as actual_work_interest_rate,
+    data_source                                        as data_source,
     import_id                                          as import_id,
     create_time                                        as create_time,
     update_time                                        as update_time
@@ -1592,11 +1596,11 @@ join (
     repay_term,
     biz_date,
     repay_type,
+    data_source,
     import_id,
     create_time,
     update_time
 ) as repay_detail_abs
-on dim_project_id = project_id
 left join (
   select
     project_id       as loan_project_id,

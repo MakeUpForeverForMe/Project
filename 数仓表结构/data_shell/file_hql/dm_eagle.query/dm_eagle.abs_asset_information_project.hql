@@ -54,7 +54,7 @@ select
   sum(bag_due.package_remain_principal * (loan.account_age)) / sum(bag_due.package_remain_principal)                         as aging_avg_weighted,
   max(lending.contract_term - loan.account_age)                                                                              as remain_period_max,
   min(lending.contract_term - loan.account_age)                                                                              as remain_period_min,
-  sum(lending.contract_term - loan.account_age) / count(loan.due_bill_no)                                  as remain_period_avg,
+  sum(lending.contract_term - loan.account_age) / count(loan.due_bill_no)                                                    as remain_period_avg,
   sum(bag_due.package_remain_principal * (lending.contract_term - loan.account_age)) / sum(bag_due.package_remain_principal) as remain_period_avg_weighted,
   max(lending.loan_init_interest_rate)                                                                                       as interest_rate_max,
   min(lending.loan_init_interest_rate)                                                                                       as interest_rate_min,
@@ -163,10 +163,10 @@ select
   0                                                                                                                          as income_debt_ratio_avg_weighted,
   sum(if(guaranty.guarantee_type = '抵押担保',loan.remain_principal,0))                                                      as pledged_asset_balance,
   count(if(guaranty.guarantee_type = '抵押担保',loan.due_bill_no,null))                                                      as pledged_asset_count,
-  100 * sum(if(guaranty.guarantee_type = '抵押担保',loan.remain_principal,0)) / sum(loan.remain_principal)                   as pledged_asset_balance_ratio,
-  100 * count(if(guaranty.guarantee_type = '抵押担保',loan.due_bill_no,null)) / count(loan.due_bill_no)                      as pledged_asset_count_ratio,
+  sum(if(guaranty.guarantee_type = '抵押担保',loan.remain_principal,0)) / sum(loan.remain_principal)                         as pledged_asset_balance_ratio,
+  count(if(guaranty.guarantee_type = '抵押担保',loan.due_bill_no,null)) / count(loan.due_bill_no)                            as pledged_asset_count_ratio,
   sum(guaranty.pawn_value)                                                                                                   as pawn_value,
-  100 * (
+  (
     sum(
       if(guaranty.guarantee_type = '抵押担保',loan.remain_principal,0) * (
         if(guaranty.guarantee_type = '抵押担保',loan.loan_init_principal,0) /

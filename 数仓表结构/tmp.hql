@@ -1167,8 +1167,8 @@ set hivevar:ST9=2021-04-14;
 
 
 set hive.exec.input.listing.max.threads=50; -- 最大1024
-set tez.grouping.min-size=15000000;
-set tez.grouping.max-size=15000000;
+set tez.grouping.min-size=50000000;
+set tez.grouping.max-size=50000000;
 set hive.exec.reducers.max=500;
 
 set hive.execution.engine=mr;
@@ -1192,8 +1192,6 @@ set tez.runtime.unordered.output.buffer.size-mb=1024;
 set yarn.nodemanager.vmem-check-enabled=false;
 -- 使 Hive 写入时的线程数为 1
 set hive.load.dynamic.partitions.thread=1;
--- 设置可以使用正则匹配 `(a|b)?+.+`
-set hive.support.quoted.identifiers=None;
 
 set hive.cbo.enable=false;
 
@@ -1216,11 +1214,6 @@ set hive.auto.convert.join=false;                    -- 关闭自动 MapJoin
 set hive.auto.convert.join.noconditionaltask=false;  -- 关闭自动 MapJoin
 
 
-set hive.exec.input.listing.max.threads=50;
-set tez.grouping.min-size=50000000;
-set tez.grouping.max-size=50000000;
-set hive.exec.reducers.max=500;
-
 -- 设置 Container 大小
 set hive.tez.container.size=4096;
 set tez.am.resource.memory.mb=4096;
@@ -1232,11 +1225,14 @@ set hive.merge.smallfiles.avgsize=64000000; -- 64M
 set hive.exec.dynamic.partition=true;
 set hive.exec.dynamic.partition.mode=nonstrict;
 set hive.exec.max.dynamic.partitions=200000;
-set hive.exec.max.dynamic.partitions.pernode=50000;
+set hive.exec.max.dynamic.partitions.pernode=200000;
 -- 禁用 Hive 矢量执行
 set hive.vectorized.execution.enabled=false;
 set hive.vectorized.execution.reduce.enabled=false;
 set hive.vectorized.execution.reduce.groupby.enabled=false;
+
+-- 设置可以使用正则匹配 `(a|b)?+.+`
+set hive.support.quoted.identifiers=None;
 
 
 

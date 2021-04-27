@@ -2037,6 +2037,7 @@ reload function; -- 多个 HiveServer 之间，需要同步元数据信息
 
 -- 修复分区
 MSCK REPAIR TABLE table_name;
+analyze table table_name compute statistics;
 
 SHOW FUNCTIONS LIKE 'default*';
 DESC FUNCTION EXTENDED is_empty;
@@ -2058,6 +2059,7 @@ invalidate metadata [table];
 -- impala 刷新数据库
 refresh dwb.dwb_credit_apply;
 refresh [table] [partition [partition]];
+COMPUTE STATS stage.asset_04_t_guaranty_info;
 
 -- impala 函数操作
 show functions in _impala_builtins like '*sub*';

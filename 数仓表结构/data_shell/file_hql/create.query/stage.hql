@@ -467,6 +467,193 @@ PARTITIONED BY(biz_date string COMMENT '观察日期',product_id string COMMENT 
 STORED AS PARQUET;
 
 
+-- DROP TABLE IF EXISTS `stage.ecas_loan_ht_repair`;
+CREATE EXTERNAL TABLE `stage.ecas_loan_ht_repair`(
+  `org`                                               string        COMMENT '',
+  `loan_id`                                           string        COMMENT '///@UuidSeq',
+  `acct_nbr`                                          string        COMMENT '',
+  `acct_type`                                         string        COMMENT '///@EnumRef:cn.sunline.ppy.dictionary.enums.AccountType\r\n\r\nA人民币独立基本信用账户\r\nB美元独立基本信用账户\r\nC人民币共享基本信用账户\r\nD美元共享基本信用账户\r\nE人民币独立小额贷款账户\r\nF人民币活期借记账户\r\nG人民币共享小额贷款账户\r\nL人民币存款账户',
+  `cust_id`                                           string        COMMENT '',
+  `due_bill_no`                                       string        COMMENT '',
+  `apply_no`                                          string        COMMENT '',
+  `register_date`                                     string        COMMENT '',
+  `request_time`                                      bigint        COMMENT '请求日期时间',
+  `loan_type`                                         string        COMMENT '///@EnumRef:cn.sunline.ppy.dictionary.enums.LoanType\r\nR消费转分期\r\nC现金分期\r\nB账单分期\r\nPPOS分期\r\nM大额分期（专项分期）\r\nMCAT随借随还\r\nMCEP等额本金\r\nMCEI等额本息',
+  `loan_status`                                       string        COMMENT '///@EnumRef:cn.sunline.ecas.definition.enums.LoanStatus\r\nN正常\r\nO逾期\r\nF已还清',
+  `loan_init_term`                                    int           COMMENT '',
+  `curr_term`                                         int           COMMENT '',
+  `remain_term`                                       int           COMMENT '',
+  `loan_init_prin`                                    decimal(15,2) COMMENT '',
+  `totle_int`                                         decimal(15,2) COMMENT '',
+  `totle_term_fee`                                    decimal(15,2) COMMENT '',
+  `totle_svc_fee`                                     decimal(15,2) COMMENT '',
+  `unstmt_prin`                                       decimal(15,2) COMMENT '',
+  `paid_principal`                                    decimal(15,2) COMMENT '',
+  `paid_interest`                                     decimal(15,2) COMMENT '',
+  `paid_svc_fee`                                      decimal(15,2) COMMENT '',
+  `paid_term_fee`                                     decimal(15,2) COMMENT '',
+  `paid_penalty`                                      decimal(15,2) COMMENT '',
+  `paid_mult`                                         decimal(15,2) COMMENT '',
+  `active_date`                                       string        COMMENT '',
+  `paid_out_date`                                     string        COMMENT '',
+  `terminal_date`                                     string        COMMENT '',
+  `terminal_reason_cd`                                string        COMMENT '///@EnumRef:cn.sunline.ecas.definition.enums.LoanTerminateReason\r\nP提前还款\r\nM银行业务人员手工终止（manual）\r\nD逾期自动终止（delinquency）\r\nR锁定码终止(Refund)\r\nV持卡人手动终止\r\nC理赔终止\r\nT退货终止\r\nU重组结清终止\r\nF强制结清终止\r\nB免息转分期',
+  `loan_code`                                         string        COMMENT '',
+  `register_id`                                       string        COMMENT '',
+  `interest_rate`                                     decimal(12,8) COMMENT '',
+  `penalty_rate`                                      decimal(12,8) COMMENT '',
+  `loan_expire_date`                                  string        COMMENT '',
+  `loan_age_code`                                     string        COMMENT '',
+  `past_extend_cnt`                                   int           COMMENT '',
+  `past_shorten_cnt`                                  int           COMMENT '',
+  `contract_no`                                       string        COMMENT '',
+  `overdue_date`                                      string        COMMENT '',
+  `max_cpd`                                           int           COMMENT '',
+  `max_cpd_date`                                      string        COMMENT '',
+  `max_dpd`                                           int           COMMENT '',
+  `max_dpd_date`                                      string        COMMENT '',
+  `cpd_begin_date`                                    string        COMMENT '',
+  `loan_fee_def_id`                                   string        COMMENT '',
+  `purpose`                                           string        COMMENT '',
+  `product_code`                                      string        COMMENT '产品代码',
+  `pre_age_cd_gl`                                     string        COMMENT '',
+  `age_code_gl`                                       string        COMMENT '',
+  `normal_int_acru`                                   decimal(15,2) COMMENT '',
+  `totle_mult_fee`                                    decimal(15,2) COMMENT '',
+  `totle_penalty`                                     decimal(15,2) COMMENT '',
+  `is_int_accural_ind`                                string        COMMENT '///@EnumRef:cn.sunline.common.enums.Indicator\r\nY是\r\nN否',
+  `collect_out_date`                                  string        COMMENT '出催收队列时间',
+  `create_time`                                       bigint        COMMENT '',
+  `create_user`                                       string        COMMENT '',
+  `loan_settle_reason`                                string        COMMENT '///@EnumRef:cn.sunline.ecas.definition.enums.LoanSettleReason\r\nNORMAL_SETTLE正常结清\r\nOVERDUE_SETTLE逾期结清\r\nPRE_SETTLE提前结清\r\nREFUND退车\r\nREDEMPTION赎回',
+  `repay_term`                                        int           COMMENT '',
+  `overdue_term`                                      int           COMMENT '',
+  `count_overdue_term`                                int           COMMENT '',
+  `max_overdue_term`                                  int           COMMENT '',
+  `max_overdue_prin`                                  decimal(15,2) COMMENT '',
+  `overdue_days`                                      int           COMMENT '',
+  `count_overdue_days`                                int           COMMENT '',
+  `max_overdue_days`                                  int           COMMENT '',
+  `reduce_prin`                                       decimal(15,2) COMMENT '减免本金',
+  `reduce_interest`                                   decimal(15,2) COMMENT '减免利息',
+  `reduce_svc_fee`                                    decimal(15,2) COMMENT '减免服务费',
+  `reduce_term_fee`                                   decimal(15,2) COMMENT '减免手续费',
+  `reduce_penalty`                                    decimal(15,2) COMMENT '减免罚息',
+  `reduce_mult_amt`                                   decimal(15,2) COMMENT '减免滞纳金',
+  `overdue_prin`                                      decimal(15,2) COMMENT '',
+  `overdue_interest`                                  decimal(15,2) COMMENT '',
+  `overdue_svc_fee`                                   decimal(15,2) COMMENT '',
+  `overdue_term_fee`                                  decimal(15,2) COMMENT '',
+  `overdue_penalty`                                   decimal(15,2) COMMENT '',
+  `overdue_mult_amt`                                  decimal(15,2) COMMENT '',
+  `svc_fee_rate`                                      decimal(12,8) COMMENT '服务费费率',
+  `term_fee_rate`                                     decimal(12,8) COMMENT '',
+  `acq_id`                                            string        COMMENT '',
+  `cycle_day`                                         string        COMMENT '账户的账单日期',
+  `goods_princ`                                       decimal(12,2) COMMENT '关联金额',
+  `sync_date`                                         string        COMMENT '同步日期',
+  `capital_plan_no`                                   string        COMMENT '资金计划编号',
+  `lst_upd_time`                                      bigint        COMMENT '最后一次更新时间',
+  `lst_upd_user`                                      string        COMMENT '最后一次更新人',
+  `capital_type`                                      string        COMMENT '资金方类型'
+) COMMENT '汇通借据修数表'
+PARTITIONED BY (`d_date` string COMMENT '观察日期',`p_type` string COMMENT '数据类型')
+STORED as PARQUET;
+
+
+-- DROP TABLE IF EXISTS `stage.ecas_repay_schedule_ht_repair`;
+CREATE EXTERNAL TABLE `stage.ecas_repay_schedule_ht_repair`(
+  `org`                                               string        COMMENT '机构号',
+  `schedule_id`                                       string        COMMENT '还款计划ID : ///@UuidSeq',
+  `due_bill_no`                                       string        COMMENT '借据号',
+  `curr_bal`                                          decimal(15,2) COMMENT '当前余额 : 当前欠款',
+  `loan_init_prin`                                    decimal(15,2) COMMENT '分期总本金',
+  `loan_init_term`                                    int           COMMENT '分期总期数',
+  `curr_term`                                         int           COMMENT '当前期数',
+  `due_term_prin`                                     decimal(15,2) COMMENT '应还本金',
+  `due_term_int`                                      decimal(15,2) COMMENT '应还利息',
+  `due_term_fee`                                      decimal(15,2) COMMENT '应还手续费',
+  `due_svc_fee`                                       decimal(15,2) COMMENT '应还服务费',
+  `due_penalty`                                       decimal(15,2) COMMENT '应还罚息',
+  `due_mult_amt`                                      decimal(15,2) COMMENT '应还滞纳金',
+  `paid_term_pric`                                    decimal(15,2) COMMENT '已还本金',
+  `paid_term_int`                                     decimal(15,2) COMMENT '已还利息',
+  `paid_term_fee`                                     decimal(15,2) COMMENT '已还手续费',
+  `paid_svc_fee`                                      decimal(15,2) COMMENT '已还服务费',
+  `paid_penalty`                                      decimal(15,2) COMMENT '已还罚息',
+  `paid_mult_amt`                                     decimal(15,2) COMMENT '已还滞纳金',
+  `reduced_amt`                                       decimal(15,2) COMMENT '减免金额',
+  `reduce_term_prin`                                  decimal(15,2) COMMENT '减免本金',
+  `reduce_term_int`                                   decimal(15,2) COMMENT '减免利息',
+  `reduce_term_fee`                                   decimal(15,2) COMMENT '减免手续费',
+  `reduce_svc_fee`                                    decimal(15,2) COMMENT '减免服务费',
+  `reduce_penalty`                                    decimal(15,2) COMMENT '减免罚息',
+  `reduce_mult_amt`                                   decimal(15,2) COMMENT '减免滞纳金',
+  `penalty_acru`                                      decimal(15,2) COMMENT '罚息累计金额',
+  `paid_out_date`                                     string        COMMENT '还清日期',
+  `paid_out_type`                                     string        COMMENT '还清类型',
+  `start_interest_date`                               string        COMMENT '起息日',
+  `pmt_due_date`                                      string        COMMENT '到期还款日期',
+  `origin_pmt_due_date`                               string        COMMENT '原到期还款日',
+  `product_code`                                      string        COMMENT '产品代码',
+  `schedule_status`                                   string        COMMENT '还款计划状态 : ///@EnumRef:cn.sunline.ecas.definition.enums.ScheduleStatus\r\nN正常\r\nO逾期\r\nF已还清',
+  `grace_date`                                        string        COMMENT '宽限日期 : 宽限日',
+  `create_time`                                       bigint        COMMENT '创建时间',
+  `create_user`                                       string        COMMENT '创建人',
+  `lst_upd_time`                                      bigint        COMMENT '最后一次更新时间',
+  `lst_upd_user`                                      string        COMMENT '最后一次更新人',
+  `jpa_version`                                       int           COMMENT '乐观锁版本号',
+  `out_side_schedule_no`                              string        COMMENT '外部还款计划编号'
+) COMMENT '汇通还款计划修数表'
+PARTITIONED BY (`d_date` string COMMENT '观察日期',`p_type` string COMMENT '数据类型')
+STORED as PARQUET;
+
+
+-- DROP TABLE IF EXISTS `stage.t_transaction_blend_record`;
+CREATE EXTERNAL TABLE `stage.t_transaction_blend_record`(
+  `id`                                                int           COMMENT '',
+  `blend_serial_no`                                   string        COMMENT '流水勾兑编号',
+  `record_type`                                       string        COMMENT '记录类型  D:借方 C:贷方 M:手工调整值 F:结果值 G:看管值',
+  `loan_amt`                                          decimal(18,2) COMMENT '放款金额',
+  `cust_repay_amt`                                    decimal(18,2) COMMENT '客户还款',
+  `comp_bak_amt`                                      decimal(18,2) COMMENT '代偿回款',
+  `buy_bak_amt`                                       decimal(18,2) COMMENT '回购回款',
+  `deduct_sve_fee`                                    decimal(18,2) COMMENT '划扣手续费',
+  `return_ticket_bak_amt`                             decimal(18,2) COMMENT '退票回款',
+  `invest_amt`                                        decimal(18,2) COMMENT '投资金额',
+  `invest_redeem_amt`                                 decimal(18,2) COMMENT '投资赎回金额',
+  `invest_earning`                                    decimal(18,2) COMMENT '投资收益',
+  `acct_int`                                          decimal(18,2) COMMENT '账户利息',
+  `acct_fee`                                          decimal(18,2) COMMENT '账户费用',
+  `tax_amt`                                           decimal(18,2) COMMENT '税费支付',
+  `invest_cash`                                       decimal(18,2) COMMENT '投资兑付',
+  `ci_fund`                                           decimal(18,2) COMMENT '信保基金',
+  `ci_redeem_amt`                                     decimal(18,2) COMMENT '信保赎回',
+  `ci_earning`                                        decimal(18,2) COMMENT '信保收益',
+  `other_amt`                                         decimal(18,2) COMMENT '其他金额',
+  `trade_day_bal`                                     decimal(18,2) COMMENT 'T日余额',
+  `trade_yesterday_bal`                               decimal(18,2) COMMENT 'T-1日余额',
+  `trade_day__bal_diff`                               decimal(18,2) COMMENT 'T日余额差异',
+  `remark`                                            string        COMMENT '备注',
+  `create_date`                                       bigint        COMMENT '创建时间',
+  `update_date`                                       bigint        COMMENT '创建时间',
+  `calc_date`                                         string        COMMENT '勾兑记录日期',
+  `product_code`                                      string        COMMENT '信托产品编号',
+  `product_name`                                      string        COMMENT '信托产品名称',
+  `ch_diff_explain`                                   string        COMMENT '',
+  `en_diff_explain`                                   string        COMMENT ''
+) COMMENT '资金表'
+PARTITIONED BY (`d_date` string COMMENT '观察日期')
+STORED AS PARQUET;
+
+
+
+
+
+
+
+
+
 
 
 
@@ -888,6 +1075,11 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `stage.asset_t_credit_loan`(
   `first_use_credit`                                  int           COMMENT 'credit_id是否存在'
 ) COMMENT '校验平台用信表（取浦发用）'
 STORED AS PARQUET;
+
+
+
+
+
 
 
 
@@ -1622,191 +1814,3 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `stage.abs_t_asset_bag`(
   `update_time`               string        COMMENT '更新时间'
 ) COMMENT '资产包信息表'
 STORED as PARQUET;
-
-
-
-
-
-
-
-
-
-
--- DROP TABLE IF EXISTS `stage.ecas_loan_ht_repair`;
-CREATE EXTERNAL TABLE `stage.ecas_loan_ht_repair`(
-  `org`                                               string        COMMENT '',
-  `loan_id`                                           string        COMMENT '///@UuidSeq',
-  `acct_nbr`                                          string        COMMENT '',
-  `acct_type`                                         string        COMMENT '///@EnumRef:cn.sunline.ppy.dictionary.enums.AccountType\r\n\r\nA人民币独立基本信用账户\r\nB美元独立基本信用账户\r\nC人民币共享基本信用账户\r\nD美元共享基本信用账户\r\nE人民币独立小额贷款账户\r\nF人民币活期借记账户\r\nG人民币共享小额贷款账户\r\nL人民币存款账户',
-  `cust_id`                                           string        COMMENT '',
-  `due_bill_no`                                       string        COMMENT '',
-  `apply_no`                                          string        COMMENT '',
-  `register_date`                                     string        COMMENT '',
-  `request_time`                                      bigint        COMMENT '请求日期时间',
-  `loan_type`                                         string        COMMENT '///@EnumRef:cn.sunline.ppy.dictionary.enums.LoanType\r\nR消费转分期\r\nC现金分期\r\nB账单分期\r\nPPOS分期\r\nM大额分期（专项分期）\r\nMCAT随借随还\r\nMCEP等额本金\r\nMCEI等额本息',
-  `loan_status`                                       string        COMMENT '///@EnumRef:cn.sunline.ecas.definition.enums.LoanStatus\r\nN正常\r\nO逾期\r\nF已还清',
-  `loan_init_term`                                    int           COMMENT '',
-  `curr_term`                                         int           COMMENT '',
-  `remain_term`                                       int           COMMENT '',
-  `loan_init_prin`                                    decimal(15,2) COMMENT '',
-  `totle_int`                                         decimal(15,2) COMMENT '',
-  `totle_term_fee`                                    decimal(15,2) COMMENT '',
-  `totle_svc_fee`                                     decimal(15,2) COMMENT '',
-  `unstmt_prin`                                       decimal(15,2) COMMENT '',
-  `paid_principal`                                    decimal(15,2) COMMENT '',
-  `paid_interest`                                     decimal(15,2) COMMENT '',
-  `paid_svc_fee`                                      decimal(15,2) COMMENT '',
-  `paid_term_fee`                                     decimal(15,2) COMMENT '',
-  `paid_penalty`                                      decimal(15,2) COMMENT '',
-  `paid_mult`                                         decimal(15,2) COMMENT '',
-  `active_date`                                       string        COMMENT '',
-  `paid_out_date`                                     string        COMMENT '',
-  `terminal_date`                                     string        COMMENT '',
-  `terminal_reason_cd`                                string        COMMENT '///@EnumRef:cn.sunline.ecas.definition.enums.LoanTerminateReason\r\nP提前还款\r\nM银行业务人员手工终止（manual）\r\nD逾期自动终止（delinquency）\r\nR锁定码终止(Refund)\r\nV持卡人手动终止\r\nC理赔终止\r\nT退货终止\r\nU重组结清终止\r\nF强制结清终止\r\nB免息转分期',
-  `loan_code`                                         string        COMMENT '',
-  `register_id`                                       string        COMMENT '',
-  `interest_rate`                                     decimal(12,8) COMMENT '',
-  `penalty_rate`                                      decimal(12,8) COMMENT '',
-  `loan_expire_date`                                  string        COMMENT '',
-  `loan_age_code`                                     string        COMMENT '',
-  `past_extend_cnt`                                   int           COMMENT '',
-  `past_shorten_cnt`                                  int           COMMENT '',
-  `contract_no`                                       string        COMMENT '',
-  `overdue_date`                                      string        COMMENT '',
-  `max_cpd`                                           int           COMMENT '',
-  `max_cpd_date`                                      string        COMMENT '',
-  `max_dpd`                                           int           COMMENT '',
-  `max_dpd_date`                                      string        COMMENT '',
-  `cpd_begin_date`                                    string        COMMENT '',
-  `loan_fee_def_id`                                   string        COMMENT '',
-  `purpose`                                           string        COMMENT '',
-  `product_code`                                      string        COMMENT '产品代码',
-  `pre_age_cd_gl`                                     string        COMMENT '',
-  `age_code_gl`                                       string        COMMENT '',
-  `normal_int_acru`                                   decimal(15,2) COMMENT '',
-  `totle_mult_fee`                                    decimal(15,2) COMMENT '',
-  `totle_penalty`                                     decimal(15,2) COMMENT '',
-  `is_int_accural_ind`                                string        COMMENT '///@EnumRef:cn.sunline.common.enums.Indicator\r\nY是\r\nN否',
-  `collect_out_date`                                  string        COMMENT '出催收队列时间',
-  `create_time`                                       bigint        COMMENT '',
-  `create_user`                                       string        COMMENT '',
-  `loan_settle_reason`                                string        COMMENT '///@EnumRef:cn.sunline.ecas.definition.enums.LoanSettleReason\r\nNORMAL_SETTLE正常结清\r\nOVERDUE_SETTLE逾期结清\r\nPRE_SETTLE提前结清\r\nREFUND退车\r\nREDEMPTION赎回',
-  `repay_term`                                        int           COMMENT '',
-  `overdue_term`                                      int           COMMENT '',
-  `count_overdue_term`                                int           COMMENT '',
-  `max_overdue_term`                                  int           COMMENT '',
-  `max_overdue_prin`                                  decimal(15,2) COMMENT '',
-  `overdue_days`                                      int           COMMENT '',
-  `count_overdue_days`                                int           COMMENT '',
-  `max_overdue_days`                                  int           COMMENT '',
-  `reduce_prin`                                       decimal(15,2) COMMENT '减免本金',
-  `reduce_interest`                                   decimal(15,2) COMMENT '减免利息',
-  `reduce_svc_fee`                                    decimal(15,2) COMMENT '减免服务费',
-  `reduce_term_fee`                                   decimal(15,2) COMMENT '减免手续费',
-  `reduce_penalty`                                    decimal(15,2) COMMENT '减免罚息',
-  `reduce_mult_amt`                                   decimal(15,2) COMMENT '减免滞纳金',
-  `overdue_prin`                                      decimal(15,2) COMMENT '',
-  `overdue_interest`                                  decimal(15,2) COMMENT '',
-  `overdue_svc_fee`                                   decimal(15,2) COMMENT '',
-  `overdue_term_fee`                                  decimal(15,2) COMMENT '',
-  `overdue_penalty`                                   decimal(15,2) COMMENT '',
-  `overdue_mult_amt`                                  decimal(15,2) COMMENT '',
-  `svc_fee_rate`                                      decimal(12,8) COMMENT '服务费费率',
-  `term_fee_rate`                                     decimal(12,8) COMMENT '',
-  `acq_id`                                            string        COMMENT '',
-  `cycle_day`                                         string        COMMENT '账户的账单日期',
-  `goods_princ`                                       decimal(12,2) COMMENT '关联金额',
-  `sync_date`                                         string        COMMENT '同步日期',
-  `capital_plan_no`                                   string        COMMENT '资金计划编号',
-  `lst_upd_time`                                      bigint        COMMENT '最后一次更新时间',
-  `lst_upd_user`                                      string        COMMENT '最后一次更新人',
-  `capital_type`                                      string        COMMENT '资金方类型'
-) COMMENT '汇通借据修数表'
-PARTITIONED BY (`d_date` string COMMENT '观察日期',`p_type` string COMMENT '数据类型')
-STORED as PARQUET;
-
-
--- DROP TABLE IF EXISTS `stage.ecas_repay_schedule_ht_repair`;
-CREATE EXTERNAL TABLE `stage.ecas_repay_schedule_ht_repair`(
-  `org`                                               string        COMMENT '机构号',
-  `schedule_id`                                       string        COMMENT '还款计划ID : ///@UuidSeq',
-  `due_bill_no`                                       string        COMMENT '借据号',
-  `curr_bal`                                          decimal(15,2) COMMENT '当前余额 : 当前欠款',
-  `loan_init_prin`                                    decimal(15,2) COMMENT '分期总本金',
-  `loan_init_term`                                    int           COMMENT '分期总期数',
-  `curr_term`                                         int           COMMENT '当前期数',
-  `due_term_prin`                                     decimal(15,2) COMMENT '应还本金',
-  `due_term_int`                                      decimal(15,2) COMMENT '应还利息',
-  `due_term_fee`                                      decimal(15,2) COMMENT '应还手续费',
-  `due_svc_fee`                                       decimal(15,2) COMMENT '应还服务费',
-  `due_penalty`                                       decimal(15,2) COMMENT '应还罚息',
-  `due_mult_amt`                                      decimal(15,2) COMMENT '应还滞纳金',
-  `paid_term_pric`                                    decimal(15,2) COMMENT '已还本金',
-  `paid_term_int`                                     decimal(15,2) COMMENT '已还利息',
-  `paid_term_fee`                                     decimal(15,2) COMMENT '已还手续费',
-  `paid_svc_fee`                                      decimal(15,2) COMMENT '已还服务费',
-  `paid_penalty`                                      decimal(15,2) COMMENT '已还罚息',
-  `paid_mult_amt`                                     decimal(15,2) COMMENT '已还滞纳金',
-  `reduced_amt`                                       decimal(15,2) COMMENT '减免金额',
-  `reduce_term_prin`                                  decimal(15,2) COMMENT '减免本金',
-  `reduce_term_int`                                   decimal(15,2) COMMENT '减免利息',
-  `reduce_term_fee`                                   decimal(15,2) COMMENT '减免手续费',
-  `reduce_svc_fee`                                    decimal(15,2) COMMENT '减免服务费',
-  `reduce_penalty`                                    decimal(15,2) COMMENT '减免罚息',
-  `reduce_mult_amt`                                   decimal(15,2) COMMENT '减免滞纳金',
-  `penalty_acru`                                      decimal(15,2) COMMENT '罚息累计金额',
-  `paid_out_date`                                     string        COMMENT '还清日期',
-  `paid_out_type`                                     string        COMMENT '还清类型',
-  `start_interest_date`                               string        COMMENT '起息日',
-  `pmt_due_date`                                      string        COMMENT '到期还款日期',
-  `origin_pmt_due_date`                               string        COMMENT '原到期还款日',
-  `product_code`                                      string        COMMENT '产品代码',
-  `schedule_status`                                   string        COMMENT '还款计划状态 : ///@EnumRef:cn.sunline.ecas.definition.enums.ScheduleStatus\r\nN正常\r\nO逾期\r\nF已还清',
-  `grace_date`                                        string        COMMENT '宽限日期 : 宽限日',
-  `create_time`                                       bigint        COMMENT '创建时间',
-  `create_user`                                       string        COMMENT '创建人',
-  `lst_upd_time`                                      bigint        COMMENT '最后一次更新时间',
-  `lst_upd_user`                                      string        COMMENT '最后一次更新人',
-  `jpa_version`                                       int           COMMENT '乐观锁版本号',
-  `out_side_schedule_no`                              string        COMMENT '外部还款计划编号'
-) COMMENT '汇通还款计划修数表'
-PARTITIONED BY (`d_date` string COMMENT '观察日期',`p_type` string COMMENT '数据类型')
-STORED as PARQUET;
-
-
--- DROP TABLE IF EXISTS `stage.t_transaction_blend_record`;
-CREATE EXTERNAL TABLE `stage.t_transaction_blend_record`(
-  `id`                                                int           COMMENT '',
-  `blend_serial_no`                                   string        COMMENT '流水勾兑编号',
-  `record_type`                                       string        COMMENT '记录类型  D:借方 C:贷方 M:手工调整值 F:结果值 G:看管值',
-  `loan_amt`                                          decimal(18,2) COMMENT '放款金额',
-  `cust_repay_amt`                                    decimal(18,2) COMMENT '客户还款',
-  `comp_bak_amt`                                      decimal(18,2) COMMENT '代偿回款',
-  `buy_bak_amt`                                       decimal(18,2) COMMENT '回购回款',
-  `deduct_sve_fee`                                    decimal(18,2) COMMENT '划扣手续费',
-  `return_ticket_bak_amt`                             decimal(18,2) COMMENT '退票回款',
-  `invest_amt`                                        decimal(18,2) COMMENT '投资金额',
-  `invest_redeem_amt`                                 decimal(18,2) COMMENT '投资赎回金额',
-  `invest_earning`                                    decimal(18,2) COMMENT '投资收益',
-  `acct_int`                                          decimal(18,2) COMMENT '账户利息',
-  `acct_fee`                                          decimal(18,2) COMMENT '账户费用',
-  `tax_amt`                                           decimal(18,2) COMMENT '税费支付',
-  `invest_cash`                                       decimal(18,2) COMMENT '投资兑付',
-  `ci_fund`                                           decimal(18,2) COMMENT '信保基金',
-  `ci_redeem_amt`                                     decimal(18,2) COMMENT '信保赎回',
-  `ci_earning`                                        decimal(18,2) COMMENT '信保收益',
-  `other_amt`                                         decimal(18,2) COMMENT '其他金额',
-  `trade_day_bal`                                     decimal(18,2) COMMENT 'T日余额',
-  `trade_yesterday_bal`                               decimal(18,2) COMMENT 'T-1日余额',
-  `trade_day__bal_diff`                               decimal(18,2) COMMENT 'T日余额差异',
-  `remark`                                            string        COMMENT '备注',
-  `create_date`                                       bigint        COMMENT '创建时间',
-  `update_date`                                       bigint        COMMENT '创建时间',
-  `calc_date`                                         string        COMMENT '勾兑记录日期',
-  `product_code`                                      string        COMMENT '信托产品编号',
-  `product_name`                                      string        COMMENT '信托产品名称',
-  `ch_diff_explain`                                   string        COMMENT '',
-  `en_diff_explain`                                   string        COMMENT ''
-) COMMENT '资金表'
-PARTITIONED BY (`d_date` string COMMENT '观察日期')
-STORED AS PARQUET;

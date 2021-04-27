@@ -15157,17 +15157,12 @@ limit 20
 
 
 
-
-select *
+select distinct *
 from ods.guaranty_info_abs
 where 1 > 0
-  and project_id = 'cl00326'
+  and project_id = 'CL202012280092'
   and due_bill_no in (
-    '5100643739',
-    '5100650605',
-    '5100636078',
-    '5100646104',
-    '5100636786',
+    '1103570144',
     ''
   )
 ;
@@ -15265,11 +15260,24 @@ where project_id = 'CL202101260095'
 limit 10
 ;
 
+select * from ods.repay_schedule_abs
+where 1 > 0
+  and effective_date between s_d_date and date_sub(e_d_date,1)
+  and project_id = 'CL202104250093'
+  and due_bill_no = '1000000003'
+limit 10;
 
 
+select * from ods.t_05_repaymentplan
+where project_id = 'CL202104250093'
+  and serial_number = '1000000003'
+limit 10;
 
-COMPUTE STATS stage.asset_04_t_guaranty_info;
 
+select * from ods.t_10_basic_asset
+where project_id = 'CL202104250093'
+  and serial_number = '1000000003'
+limit 10;
 
 
 
@@ -15299,32 +15307,50 @@ limit 10;
 
 
 select
-  project_id,
-  due_bill_no,
-  pawn_value,
-  dim_frame_num.dim_decrypt   as frame_num,
-  dim_engine_num.dim_decrypt  as engine_num,
-  dim_license_num.dim_decrypt as license_num,
-  car_brand
-from (
+  guaranty.project_id          as '项目编号',
+  guaranty.due_bill_no         as '借据号',
+  guaranty.guaranty_code       as '抵押物编号',
+  guaranty.pawn_value          as '评估价格',
+  guaranty.car_sales_price     as '车辆销售价格',
+  guaranty.car_new_price       as '新车指导价',
+  guaranty.total_investment    as '投资总额',
+  guaranty.purchase_tax_amouts as '购置税金额',
+  dim_frame_num.dim_decrypt    as '车架号',
+  dim_engine_num.dim_decrypt   as '发动机号',
+  dim_license_num.dim_decrypt  as '车牌号码',
+  guaranty.car_brand           as '车辆品牌',
+  guaranty.ts                  as '时间戳',
+  guaranty.create_time         as '创建时间',
+  guaranty.update_time         as '更新时间'
+from ods.guaranty_info_abs as guaranty
+join (
   select
     project_id,
-    due_bill_no,
-    pawn_value,
-    frame_num,
-    engine_num,
-    license_num,
-    car_brand
+    due_bill_no
   from ods.guaranty_info_abs
-  where 1 > 0
-    and project_id = 'CL202012280092'
-    and due_bill_no in (
-      '1103563315',
-      '1103570144',
-      '1103698759',
-      ''
-    )
-) as guaranty
+  where project_id not in (
+    'CL202003230083',
+    'CL202007020086',
+    'CL202011090089',
+    'CL202011090090',
+    'CL202012160091',
+    'CL202101220094',
+    'CL202102010097',
+    'CL202102050098',
+    'CL202102240099',
+    'CL202102240100',
+    'CL202103160101',
+    'CL202103260102',
+    'CL202104010103',
+    'CL202104080105',
+    'CL202104160106',
+    ''
+  )
+  group by project_id,due_bill_no
+  having count(due_bill_no) > 1
+) as guaranty_info
+on  guaranty.project_id  = guaranty_info.project_id
+and guaranty.due_bill_no = guaranty_info.due_bill_no
 left join (
   select
     dim_encrypt,
@@ -15346,76 +15372,54 @@ left join (
   from dim.dim_encrypt_info
 ) as dim_license_num
 on guaranty.license_num = dim_license_num.dim_encrypt
-order by due_bill_no
-;
-
-
-
-
-select
-  project_id,
-  due_bill_no,
-  pawn_value,
-  dim_frame_num.dim_decrypt   as frame_num,
-  dim_engine_num.dim_decrypt  as engine_num,
-  dim_license_num.dim_decrypt as license_num,
-  car_brand
-from (
-  select
-    project_id,
-    due_bill_no,
-    pawn_value,
-    frame_num,
-    engine_num,
-    license_num,
-    car_brand
-  from ods.guaranty_info_abs
-  where 1 > 0
-    and project_id = 'cl00326'
-    and due_bill_no in (
-      '5100641271',
-      '5100641533',
-      '5100642081',
-      '5100642251',
-      '5100643739',
-      '5100643805',
-      '5100645507',
-      ''
-    )
-) as guaranty
-left join (
-  select
-    dim_encrypt,
-    dim_decrypt
-  from dim.dim_encrypt_info
-) as dim_frame_num
-on guaranty.frame_num   = dim_frame_num.dim_encrypt
-left join (
-  select
-    dim_encrypt,
-    dim_decrypt
-  from dim.dim_encrypt_info
-) as dim_engine_num
-on guaranty.engine_num  = dim_engine_num.dim_encrypt
-left join (
-  select
-    dim_encrypt,
-    dim_decrypt
-  from dim.dim_encrypt_info
-) as dim_license_num
-on guaranty.license_num = dim_license_num.dim_encrypt
-order by due_bill_no
+order by guaranty.project_id,guaranty.due_bill_no,guaranty.ts,guaranty.create_time
 ;
 
 
 
 
 
-
-select distinct
-  length(is_empty(map_from_str(extra_info)['TIMESTAMP'])) as len
-from stage.asset_04_t_guaranty_info;
+select * from ods.order_info_abs where project_id = 'CL202011090089' limit 10;
 
 
 
 
+select count(distinct due_bill_no) from dim.project_due_bill_no where project_id = 'CL202011090089';
+
+select count(distinct due_bill_no) from ods.loan_info_abs where project_id = 'CL202011090089';
+
+select count(distinct due_bill_no) from ods.repay_schedule_abs where project_id = 'CL202011090089';
+
+select count(distinct due_bill_no) from ods.repay_detail_abs where project_id = 'CL202011090089';
+
+
+
+
+
+select count(distinct due_bill_no) from ods.loan_info_abs where project_id = 'CL202104250093';
+
+select count(serial_number) from ods_new_s.t_10_basic_asset_stage where project_id = 'CL202104250093';
+
+select count(serial_number) from ods.t_10_basic_asset where project_id = 'CL202104250093';
+
+
+invalidate metadata dim_new.bag_info;
+
+
+
+curl -d "assetBagId=CL202104250093_2" --connect-timeout 30 -m 60 10.83.0.69:8210/uabs-core/callback/packageSuccessConfirm
+curl -d "assetBagId=CL202104250093_3" --connect-timeout 30 -m 60 10.83.0.69:8210/uabs-core/callback/packageSuccessConfirm
+
+
+select distinct *
+from ods.guaranty_info_abs
+where 1 > 0
+  and project_id = 'CL202012280092'
+  and due_bill_no in (
+    '1103563315',
+    '1103570144',
+    '1103698759',
+    ''
+  )
+;
+          

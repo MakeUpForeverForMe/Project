@@ -116,19 +116,19 @@ on  loan_info.project_id  = first_repay.project_id
 and loan_info.due_bill_no = first_repay.due_bill_no
 left join (
   select
+    project_id,
     due_bill_no,
-    product_id,
     max(if(map_key = 'wind_control_status',map_val,'Yes'))              as wind_control_status,
     max(if(map_key = 'wind_control_status_pool',map_val,'Yes'))         as wind_control_status_pool,
     max(if(map_key = 'score_range',map_val,-1))                         as score_range,
     max(if(map_key = 'cheat_level',map_val,-1))                         as cheat_level,
     max(if(map_key = 'score_level',map_val,-1))                         as score_level
-  from ods.risk_control
+  from ods.risk_control_abs
   where source_table in ('t_asset_wind_control_history')
     and map_key in ('wind_control_status','wind_control_status_pool','cheat_level','score_range','score_level')
-  group by due_bill_no,product_id
+  group by project_id,due_bill_no
 ) as risk
-on  loan_info.project_id  = risk.product_id
+on  loan_info.project_id  = risk.project_id
 and loan_info.due_bill_no = risk.due_bill_no
 group by
   loan_info.due_bill_no,

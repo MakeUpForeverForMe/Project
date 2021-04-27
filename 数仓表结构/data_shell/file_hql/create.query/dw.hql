@@ -488,14 +488,3 @@ LOCATION
 
 
 
-
--- 星云宽表（借据级）
--- DROP TABLE IF EXISTS `dw.abs_due_info_day`;
-CREATE TABLE IF NOT EXISTS `dw.abs_due_info_day`(
-  `due_bill_no`                           string         COMMENT '借据编号',
-  `loan_status`                           string         COMMENT '借据状态（英文原值）（N：正常，O：逾期，F：已还清）',
-  `remain_principal`                      decimal(20,0)  COMMENT '剩余本金',
-  `distribution_array`                    array<string>  COMMENT '分布数组',
-) COMMENT '星云宽表（借据级）'
-PARTITIONED BY (`biz_date` string COMMENT '观察日期',`project_id` string COMMENT '项目编号')
-STORED AS PARQUET;

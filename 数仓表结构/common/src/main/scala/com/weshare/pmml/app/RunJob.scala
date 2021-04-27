@@ -1,6 +1,6 @@
 package com.weshare.pmml.app
 
-import java.text.SimpleDateFormat
+import java.text.{DecimalFormat, NumberFormat, SimpleDateFormat}
 import java.util.Calendar
 
 import com.alibaba.fastjson.{JSON, JSONObject}
@@ -9,6 +9,7 @@ import com.weshare.pmml.domain.{PmmlMode, PmmlParam, Scheduler}
 import com.weshare.utils.PmmlUtils
 import io.netty.util.internal.ThreadLocalRandom
 import org.apache.commons.lang3.StringUtils
+import org.apache.commons.lang3.math.NumberUtils
 import org.apache.spark.sql.{DataFrame, Dataset, SaveMode, SparkSession, functions}
 import org.dmg.pmml.FieldName
 import org.jpmml.evaluator.ModelEvaluator
@@ -17,6 +18,7 @@ import org.json4s.jackson.Json
 import org.slf4j.{Logger, LoggerFactory}
 
 import scala.collection.mutable.ListBuffer
+import scala.math.BigDecimal
 import scala.util.Random
 
 /**
@@ -456,7 +458,9 @@ object RunJob {
     val basenum=1000
     val list: Map[String, String] = map.map(it => {
       val rate = it._2
-      val key = it._1.replaceAll("probability\\(", "").replaceAll("\\)", "")
+
+      val key =  BigDecimal.apply(it._1.replaceAll("probability\\(", "").replaceAll("\\)", "")).toInt
+      /*BigDecimal.apply(key).toInt*/
       (param.mode_rate.getOrElse(key.toString,""),rate)
       })
       /*match {

@@ -45,7 +45,7 @@ object MockDataAndInvokePmml {
       .config("hive.merge.smallfiles.avgsize","268435456")
       .config("mapreduce.input.fileinputformat.split.minsize","268435456")
 
-      /*.master("local[4]")
+/*      .master("local[4]")
        .config("hive.metastore.uris", "thrift://10.83.0.47:9083")*/
       .enableHiveSupport()
       .getOrCreate()
