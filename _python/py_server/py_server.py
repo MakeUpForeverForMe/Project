@@ -8,7 +8,7 @@
 import socket
 from http.server import HTTPServer, BaseHTTPRequestHandler
 
-from .send_robot import send_robot, Error, NoKeyError, NotDictError, NotListError
+from send_robot import send_robot, Error, NoKeyError, NotDictError, NotListError
 
 
 class Invoke(object):

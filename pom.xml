@@ -12,7 +12,6 @@
     <version>1.0</version>
     <modules>
         <module>AKKA</module>
-        <module>BinLogSync</module>
         <module>MapReduce</module>
         <module>Scala</module>
         <module>Spark</module>

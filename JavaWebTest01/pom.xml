@@ -11,9 +11,6 @@
     <artifactId>JavaWebTest01</artifactId>
     <packaging>war</packaging>
 
-    <!-- FIXME change it to the project's website -->
-    <url>http://www.example.com</url>
-
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>8</maven.compiler.source>
