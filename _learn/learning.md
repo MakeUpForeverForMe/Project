@@ -2427,3 +2427,102 @@ ul{
   list-style: none;
 }
 ```
+
+# 10、Docker
+## 10.1、安装及启动
+```shell
+# 1、安装 Docker
+yum install docker
+# 2、启动 Docker
+service docker start
+# 3、查看启动
+docker -v
+# 4、设置开机自启动
+systemctl enable docker
+```
+## 10.2、Docker 命令
+[阿里云容器镜像服务中心](https://cr.console.aliyun.com/cn-hangzhou/instances/images)
+<br>
+[菜鸟 Docker 命令大全](https://www.runoob.com/docker/docker-command-manual.html)
+```shell
+# 1、查找 Docker Hub   在 阿里云容器镜像服务中心 中查找
+# 2、通过命令查找镜像
+docker search mysql
+# 3、下载镜像
+docker pull mysql:5.7
+# 4、删除已下载的镜像
+docker rmi docker.io/mysql:latest
+# 5、查看已经下载的镜像
+docker images
+# 6、查看已经安装过的镜像
+docker image
+# 7、启动镜像
+docker run [OPTIONS] IMAGE [COMMAND] [ARG...]
+OPTIONS说明：
+|                选项                |                                说明                               |
+|------------------------------------|-------------------------------------------------------------------|
+| -a stdin                           | 指定标准输入输出内容类型，可选 STDIN/STDOUT/STDERR 三项           |
+| -d                                 | 后台运行容器，并返回容器ID                                        |
+| -i                                 | 以交互模式运行容器，通常与 -t 同时使用                            |
+| -P                                 | 随机端口映射，容器内部端口随机映射到主机的端口                    |
+| -p                                 | 指定端口映射，格式为：主机(宿主)端口:容器端口                     |
+| -t                                 | 为容器重新分配一个伪输入终端，通常与 -i 同时使用                  |
+| -e username="ritchie"              | 设置环境变量                                                      |
+| -h "mars"                          | 指定容器的hostname                                                |
+| --name="nginx-lb"                  | 为容器指定一个名称                                                |
+| --dns 8.8.8.8                      | 指定容器使用的DNS服务器，默认和宿主一致                           |
+| --dns-search example.com           | 指定容器DNS搜索域名，默认和宿主一致                               |
+| --env-file=[]                      | 从指定文件读入环境变量                                            |
+| --cpuset="0-2" or --cpuset="0,1,2" | 绑定容器到指定CPU运行                                             |
+| -m                                 | 设置容器使用内存最大值                                            |
+| --net="bridge"                     | 指定容器的网络连接类型，支持 bridge/host/none/container: 四种类型 |
+| --link=[]                          | 添加链接到另一个容器                                              |
+| --expose=[]                        | 开放一个端口或一组端口                                            |
+| --volume , -v                      | 绑定一个卷                                                        |
+# 8、查看运行中的容器
+docker ps
+# 9、查看创建的所有容器
+docker ps -a
+# 10、停止容器
+docker stop container-id/container-name
+# 11、重新启动容器
+docker start container-id/container-name
+# 12、重启容器
+docker restart container-id/container-name
+# 13、查看容器日志
+docker logs container-id/container-name
+# 14、进入容器
+docker exec -it container-id/container-name bash
+# 14、删除容器
+docker rm container-id/container-name
+```
+## 10.3、安装 MySQL
+```shell
+# 1、安装 MySQL5.7 版本
+docker pull mysql:5.7
+# 2、设置本地挂载目录
+mkdir -p /data/docker/mysql1/conf
+mkdir -p /data/docker/mysql1/log
+mkdir -p /data/docker/mysql1/data
+# 3、启动
+docker run --name mysql5.7-1 \
+-p 33061:3306 \
+-h mysql5.7-1 \
+-v /etc/localtime:/etc/localtime:ro \
+-v /data/docker/mysql1/conf:/etc/mysql/conf.d \
+-v /data/docker/mysql1/log:/var/log/mysql \
+-v /data/docker/mysql1/data:/var/lib/mysql \
+-e MYSQL_ROOT_PASSWORD=000000 \
+-d mysql:5.7 \
+--character-set-server=utf8mb4 \
+--collation-server=utf8mb4_unicode_ci
+# 4、进入容器
+docker exec -it mysql5.7-1 bash
+```
+```sql
+-- SpringBoot 使用时，密码部分要加引号
+-- 修改 root 用户可以远程登录（不建议）
+GRANT ALL PRIVILEGES ON *.* TO root@"%" IDENTIFIED BY '000000' WITH GRANT OPTION;
+-- 刷新权限
+FLUSH PRIVILEGES;
+```
