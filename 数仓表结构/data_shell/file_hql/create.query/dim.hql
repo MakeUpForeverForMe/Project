@@ -157,12 +157,18 @@ STORED AS PARQUET;
 
 -- 加密信息表
 -- DROP TABLE IF EXISTS `dim.dim_encrypt_info`;
-CREATE TABLE IF NOT EXISTS `dim.dim_encrypt_info`(
-  `dim_type`                      string         COMMENT '数据类型',
+CREATE EXTERNAL TABLE IF NOT EXISTS `dim.dim_encrypt_info`(
   `dim_encrypt`                   string         COMMENT '加密字段',
   `dim_decrypt`                   string         COMMENT '明文字段'
 ) COMMENT '加密信息表'
-STORED AS PARQUET;
+STORED BY 'org.apache.hadoop.hive.hbase.HBaseStorageHandler'
+WITH SERDEPROPERTIES (
+  "hbase.columns.mapping" = ":key,cf:c1" -- 设置 Hive 与 HBase 表的对应关系 dim_encrypt <=> rowkey（:key） , dim_decrypt <=> 列族:列名（cf:c1）
+)
+TBLPROPERTIES(
+  "hbase.table.name"                = "default:decrypttab",
+  "hbase.mapred.output.outputtable" = "default:decrypttab" -- 表示 mapreduce 操作向 hbase 表中输出
+);
 
 
 -- 日期维度表

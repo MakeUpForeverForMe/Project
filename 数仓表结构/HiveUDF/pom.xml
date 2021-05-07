@@ -55,7 +55,21 @@
             <version>${aes.version}</version>
         </dependency>
 
-        <!-- 关于解析JSON的依赖 -->
+        <!-- 关于解析 Jackson 的依赖 -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.10.5</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+            <version>2.10.5</version>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- 关于解析 FastJson 的依赖 -->
         <!-- https://mvnrepository.com/artifact/com.alibaba/fastjson -->
         <dependency>
             <groupId>com.alibaba</groupId>

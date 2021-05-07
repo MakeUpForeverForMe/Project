@@ -168,15 +168,14 @@ export_file_from_hive(){
   # $impala -q "refresh ${db_tb};"
 
   # echo \
-  $impala -B --output_delimiter='\t' \
-  -q "${1}" > "${export_file}"
+  $impala -B --output_delimiter='\t' -q "${1};" > "${export_file}"
 
   # $beeline \
   # --color=true \
   # --nullemptystring=true \
   # --showHeader=false \
   # --outputformat=tsv2 \
-  # -e "${1}" > "${export_file}"
+  # -e "${1};" > "${export_file}"
 
   echo "${e_date_export:=$(date +'%F %T')} 从 Hive 拉取数据 结束 ${export_file}  用时：$(during "$e_date_export" "$s_date_export")"
 }
@@ -184,27 +183,19 @@ export_file_from_hive(){
 # 从本地文件拉取数据到 MySQL
 import_file_to_mysql(){
   fields=$(
-    $impala -B --print_header \
-    --output_delimiter=',' \
-    -q "select * from ${db_tb} where false;" 2> /dev/null
+    # 获取字段名
+    $impala -B --print_header --output_delimiter=',' -q "select * from ${db_tb} where false;" 2> /dev/null
 
-    # $beeline \
-    # --color=true \
-    # --hiveconf hive.resultset.use.unique.column.names=false \
-    # --outputformat=csv2 \
-    # -e "select * from ${db}.${tb} where false;" 2> /dev/null
+    # $beeline --hiveconf hive.resultset.use.unique.column.names=false --color=true \
+    # --outputformat=csv2 -e "select * from ${db_tb} where false;" 2> /dev/null
   )
 
   printf '%-20s%-80s%s\n' "${s_date_import:=$(date +'%F %T')}" "库表为：${db_tb}" "字段为：$fields"
 
-  tb=$(p_r_r ${db_tb})
   # echo \
   $mysql -e "
-  truncate table ${tb};
-  LOAD DATA LOCAL INFILE '${export_file}' INTO TABLE ${tb}
-  FIELDS TERMINATED BY '\t'
-  (${fields})
-  ;"
+    ${1};LOAD DATA LOCAL INFILE '${export_file}' INTO TABLE ${tb} FIELDS TERMINATED BY '\t' (${fields});
+  "
   echo "${e_date_import:=$(date +'%F %T')} 数据上传到 MySQL 结束 ${export_file}  用时：$(during "$e_date_import" "$s_date_import")"
 }
 

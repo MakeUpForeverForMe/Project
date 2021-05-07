@@ -247,30 +247,55 @@ from (
     resp_log.product_id                                                             as product_id
   from (
     select
-      deal_date                                                                                            as deal_date,
-      get_json_object(standard_req_msg,'$.apply_no')                                                       as due_bill_no,
-      get_json_object(standard_req_msg,'$.borrower.id_type')                                               as id_type,
-      sha256(get_json_object(standard_req_msg,'$.borrower.id_no'),'idNumber',1)                            as id_no,
-      sha256(get_json_object(standard_req_msg,'$.borrower.name'),'userName',1)                             as name,
-      get_json_object(standard_req_msg,'$.borrower.open_id')                                               as outer_cust_id,
-      sha256(get_json_object(standard_req_msg,'$.borrower.mobile_phone'),'phone',1)                        as mobie,
-      sha256(get_json_object(standard_req_msg,'$.loan_account.mobile_phone'),'phone',1)                    as card_phone,
-      sex_idno(get_json_object(standard_req_msg,'$.borrower.id_no'))                                       as sex,
-      datefmt(substring(get_json_object(standard_req_msg,'$.borrower.id_no'),7,8),'yyyyMMdd','yyyy-MM-dd') as birthday,
-      get_json_object(standard_req_msg,'$.borrower.marital_status')                                        as marital_status,
-      get_json_object(standard_req_msg,'$.borrower.education')                                             as education,
-      sha256(get_json_object(standard_req_msg,'$.borrower.address'),'address',1)                           as resident_address,
-      get_json_object(standard_req_msg,'$.borrower.province')                                              as resident_province,
-      get_json_object(standard_req_msg,'$.borrower.city')                                                  as resident_city,
-      get_json_object(standard_req_msg,'$.borrower.area')                                                  as resident_county,
-      get_json_object(standard_req_msg,'$.borrower.industry')                                              as job_type,
-      substring(get_json_object(standard_req_msg,'$.borrower.id_no'),1,6)                                  as idcard_area,
-      get_json_object(standard_req_msg,'$.company_loan_bool')                                              as company_loan_bool,
-      get_json_object(standard_req_msg,'$.product.product_no')                                             as product_id
-    from stage.nms_interface_resp_log
-    where sta_service_method_name = 'setupCustCredit'
-      and standard_req_msg is not null
-      and datefmt(update_time,'ms','yyyy-MM-dd') = '${ST9}'
+      deal_date,
+      due_bill_no,
+      id_type,
+      id_no,
+      name,
+      outer_cust_id,
+      mobie,
+      card_phone,
+      sex,
+      birthday,
+      marital_status,
+      education,
+      resident_address,
+      resident_province,
+      resident_city,
+      resident_county,
+      job_type,
+      idcard_area,
+      company_loan_bool,
+      product_id
+    from (
+      select
+        deal_date                                                                                            as deal_date,
+        get_json_object(standard_req_msg,'$.apply_no')                                                       as due_bill_no,
+        get_json_object(standard_req_msg,'$.borrower.id_type')                                               as id_type,
+        sha256(get_json_object(standard_req_msg,'$.borrower.id_no'),'idNumber',1)                            as id_no,
+        sha256(get_json_object(standard_req_msg,'$.borrower.name'),'userName',1)                             as name,
+        get_json_object(standard_req_msg,'$.borrower.open_id')                                               as outer_cust_id,
+        sha256(get_json_object(standard_req_msg,'$.borrower.mobile_phone'),'phone',1)                        as mobie,
+        sha256(get_json_object(standard_req_msg,'$.loan_account.mobile_phone'),'phone',1)                    as card_phone,
+        sex_idno(get_json_object(standard_req_msg,'$.borrower.id_no'))                                       as sex,
+        datefmt(substring(get_json_object(standard_req_msg,'$.borrower.id_no'),7,8),'yyyyMMdd','yyyy-MM-dd') as birthday,
+        get_json_object(standard_req_msg,'$.borrower.marital_status')                                        as marital_status,
+        get_json_object(standard_req_msg,'$.borrower.education')                                             as education,
+        sha256(get_json_object(standard_req_msg,'$.borrower.address'),'address',1)                           as resident_address,
+        get_json_object(standard_req_msg,'$.borrower.province')                                              as resident_province,
+        get_json_object(standard_req_msg,'$.borrower.city')                                                  as resident_city,
+        get_json_object(standard_req_msg,'$.borrower.area')                                                  as resident_county,
+        get_json_object(standard_req_msg,'$.borrower.industry')                                              as job_type,
+        substring(get_json_object(standard_req_msg,'$.borrower.id_no'),1,6)                                  as idcard_area,
+        get_json_object(standard_req_msg,'$.company_loan_bool')                                              as company_loan_bool,
+        get_json_object(standard_req_msg,'$.product.product_no')                                             as product_id,
+        row_number() over(partition by get_json_object(standard_req_msg,'$.product.product_no'),get_json_object(standard_req_msg,'$.apply_no') order by update_time desc) as rn
+      from stage.nms_interface_resp_log
+      where sta_service_method_name = 'setupCustCredit'
+        and standard_req_msg is not null
+        and datefmt(update_time,'ms','yyyy-MM-dd') = '${ST9}'
+    ) as tmp
+    where rn = 1
   ) as resp_log
   left join (
     select

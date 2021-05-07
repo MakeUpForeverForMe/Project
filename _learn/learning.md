@@ -1555,6 +1555,37 @@ constraint_specification:
     [, CONSTRAINT constraint_name CHECK [check_expression] ENABLE|DISABLE NOVALIDATE RELY/NORELY ]
 
 
+-- 创建物化视图
+CREATE MATERIALIZED VIEW [IF NOT EXISTS] [db_name.]materialized_view_name
+  [DISABLE REWRITE]
+  [COMMENT materialized_view_comment]
+  [PARTITIONED ON (col_name, ...)]
+  [CLUSTERED ON (col_name, ...) | DISTRIBUTED ON (col_name, ...) SORTED ON (col_name, ...)]
+  [
+    [ROW FORMAT row_format]
+    [STORED AS file_format]
+      | STORED BY 'storage.handler.class.name' [WITH SERDEPROPERTIES (...)]
+  ]
+  [LOCATION hdfs_path]
+  [TBLPROPERTIES (property_name=property_value, ...)]
+AS SELECT ...;
+
+-- 查看某个库中的物化视图
+SHOW MATERIALIZED VIEWS [IN/FROM database_name] [LIKE 'pattern_with_wildcards'];
+
+-- 更新物化视图
+ALTER MATERIALIZED VIEW [db_name.]materialized_view_name REBUILD;
+
+
+
+
+
+
+
+
+
+
+
 LOAD DATA [LOCAL] INPATH 'filepath' [OVERWRITE] INTO TABLE tablename [PARTITION (partcol1=val1, partcol2=val2 ...)]
 
 LOAD DATA [LOCAL] INPATH 'filepath' [OVERWRITE] INTO TABLE tablename [PARTITION (partcol1=val1, partcol2=val2 ...)] [INPUTFORMAT 'inputformat' SERDE 'serde'] (3.0 or later)
@@ -1996,51 +2027,45 @@ set hivevar:hdfs_path=cosn://bigdata-center-prod-1253824322/user/auxlib/HiveUDF-
 
 ADD JAR ${hdfs_path};
 
-ADD JAR hdfs:///user/hive/auxlib/hive-jdbc-handler-1.2.1.jar;
-ADD JAR hdfs:///user/hive/auxlib/mysql-connector-java.jar;
-ADD JAR hdfs:///user/hive/auxlib/hive-jdbc.jar;
-
 DROP FUNCTION IF EXISTS encrypt_aes;
 DROP FUNCTION IF EXISTS decrypt_aes;
-DROP FUNCTION IF EXISTS json_array_to_array;
-DROP FUNCTION IF EXISTS map_from_str;
--- DROP FUNCTION IF EXISTS json_map;
 DROP FUNCTION IF EXISTS datefmt;
 DROP FUNCTION IF EXISTS age_birth;
 DROP FUNCTION IF EXISTS age_idno;
 DROP FUNCTION IF EXISTS sex_idno;
-DROP FUNCTION IF EXISTS is_empty;
 DROP FUNCTION IF EXISTS sha256;
 DROP FUNCTION IF EXISTS date_max;
 DROP FUNCTION IF EXISTS date_min;
 DROP FUNCTION IF EXISTS ptrim;
 DROP FUNCTION IF EXISTS random;
+DROP FUNCTION IF EXISTS js2str;
+
+DROP FUNCTION IF EXISTS is_empty;
 
 CREATE FUNCTION encrypt_aes         AS 'com.weshare.udf.AesEncrypt'                     USING JAR '${hdfs_path}';
 CREATE FUNCTION decrypt_aes         AS 'com.weshare.udf.AesDecrypt'                     USING JAR '${hdfs_path}';
-CREATE FUNCTION json_array_to_array AS 'com.weshare.udf.AnalysisJsonArray'              USING JAR '${hdfs_path}';
-CREATE FUNCTION map_from_str        AS 'com.weshare.udf.AnalysisStringToJson'           USING JAR '${hdfs_path}';
--- CREATE FUNCTION json_map            AS 'com.weshare.udf.AnalysisStringToJsonGenericUDF' USING JAR '${hdfs_path}';
 CREATE FUNCTION datefmt             AS 'com.weshare.udf.DateFormat'                     USING JAR '${hdfs_path}';
 CREATE FUNCTION age_birth           AS 'com.weshare.udf.GetAgeOnBirthday'               USING JAR '${hdfs_path}';
 CREATE FUNCTION age_idno            AS 'com.weshare.udf.GetAgeOnIdNo'                   USING JAR '${hdfs_path}';
 CREATE FUNCTION sex_idno            AS 'com.weshare.udf.GetSexOnIdNo'                   USING JAR '${hdfs_path}';
--- CREATE FUNCTION is_empty            AS 'com.weshare.udf.IsEmpty'                        USING JAR '${hdfs_path}';
-CREATE FUNCTION is_empty            AS 'com.weshare.udf.IsEmptyGenericUDF'              USING JAR '${hdfs_path}';
 CREATE FUNCTION sha256              AS 'com.weshare.udf.Sha256Salt'                     USING JAR '${hdfs_path}';
 CREATE FUNCTION date_max            AS 'com.weshare.udf.GetDateMax'                     USING JAR '${hdfs_path}';
 CREATE FUNCTION date_min            AS 'com.weshare.udf.GetDateMin'                     USING JAR '${hdfs_path}';
 CREATE FUNCTION ptrim               AS 'com.weshare.udf.TrimPlus'                       USING JAR '${hdfs_path}';
 CREATE FUNCTION random              AS 'com.weshare.udf.RandomPlus'                     USING JAR '${hdfs_path}';
+CREATE FUNCTION js2str              AS 'com.weshare.udf.JsonString2StringUDF'           USING JAR '${hdfs_path}';
+
+CREATE FUNCTION is_empty            AS 'com.weshare.generic.IsEmptyGenericUDF'          USING JAR '${hdfs_path}';
 
 reload function; -- 多个 HiveServer 之间，需要同步元数据信息
+ALTER MATERIALIZED VIEW [db_name.]materialized_view_name REBUILD; -- 更新物化视图
 
 -- 修复分区
 MSCK REPAIR TABLE table_name;
 analyze table table_name compute statistics;
 
 SHOW FUNCTIONS LIKE 'default*';
-DESC FUNCTION EXTENDED is_empty;
+DESC FUNCTION EXTENDED js2str;
 
 SHOW FUNCTIONS LIKE '*array*';
 DESC FUNCTION EXTENDED next_day;
@@ -2525,4 +2550,17 @@ docker exec -it mysql5.7-1 bash
 GRANT ALL PRIVILEGES ON *.* TO root@"%" IDENTIFIED BY '000000' WITH GRANT OPTION;
 -- 刷新权限
 FLUSH PRIVILEGES;
+```
+
+# 11、HBase
+## 11.1、命令行操作
+```shell
+# 启动 HBase 命令行界面
+hbase shell
+# 查看所有表
+list
+# 创建表
+create 'default:decrypttab', 'cf:c1'
+# 只展示10条数据 LIMIT 要大写
+scan "table_name",{LIMIT => 10}
 ```

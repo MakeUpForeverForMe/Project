@@ -29,11 +29,33 @@
 --  `prepay_principal`                     decimal(15,4) COMMENT '当日提前还款金额'
 --) COMMENT '实还统计 - 日级'
 --PARTITIONED BY (`biz_date` string COMMENT '实还日期',`product_id` string COMMENT '产品编号')  
---STORED AS PARQUET;
+--STORED AS PARQUET;  
 
-set spark.executor.memory=4g;
-set spark.executor.memoryOverhead=4g;
-set spark.maxRemoteBlockSizeFetchToMem=4G;
+--set hivevar:db_suffix=;
+set hive.exec.input.listing.max.threads=50;
+set tez.grouping.min-size=50000000;
+set tez.grouping.max-size=50000000;
+set hive.exec.reducers.max=500;
+
+-- 设置 Container 大小
+set hive.tez.container.size=4096;
+set tez.am.resource.memory.mb=4096;
+-- 合并小文件
+set hive.merge.tezfiles=true;
+set hive.merge.size.per.task=128000000;      -- 64M
+set hive.merge.smallfiles.avgsize=128000000; -- 64M
+-- 设置动态分区
+set hive.exec.dynamic.partition=true;
+set hive.exec.dynamic.partition.mode=nonstrict;
+set hive.exec.max.dynamic.partitions=200000;
+set hive.exec.max.dynamic.partitions.pernode=50000;
+-- 禁用 Hive 矢量执行
+set hive.vectorized.execution.enabled=false;
+set hive.vectorized.execution.reduce.enabled=false;
+set hive.vectorized.execution.reduce.groupby.enabled=false;
+
+set hive.exec.parallel=true;
+set hive.exec.parallel.thread.number=10;
 set hive.auto.convert.join=false;
 --set hivevar:db_suffix=;
 --set hivevar:ST9=2021-03-07;
@@ -42,9 +64,13 @@ set hive.auto.convert.join=false;
 insert overwrite table dw${db_suffix}.dw_loan_base_stat_repay_detail_day partition(biz_date = '${ST9}',product_id)
 
 select
-  coalesce(loan_init_term,loan_init_term_count,loan_init_term_settle,loan_init_term_schedule)                 as loan_terms,
+
+  coalesce(loan_init_term,loan_init_term_settle,loan_init_term_schedule)                                      as loan_terms,
+  coalesce(loan_active_date,loan_active_date_settle,loan_active_date_schedule )                               as loan_active_date,
+  
   nvl(repaid_num,0)                                                                                           as repaid_num,
   nvl(repaid_num_count,0)                                                                                     as repaid_num_count,
+  
   nvl(repaid_amount,0)                                                                                        as repaid_amount,
   nvl(repaid_principal,0)                                                                                     as repaid_principal,
   nvl(repaid_interest_penalty_svc_fee,0)                                                                      as repaid_interest_penalty_svc_fee,
@@ -53,6 +79,7 @@ select
   nvl(repaid_repay_term_fee,0)                                                                                as repaid_repay_term_fee,
   nvl(repaid_repay_svc_fee,0)                                                                                 as repaid_repay_svc_fee,
   nvl(repaid_penalty,0)                                                                                       as repaid_penalty,
+  
   nvl(repaid_amount_count,0)                                                                                  as repaid_amount_count,
   nvl(repaid_principal_count,0)                                                                               as repaid_principal_count,
   nvl(repaid_interest_penalty_svc_fee_count,0)                                                                as repaid_interest_penalty_svc_fee_count,
@@ -61,78 +88,71 @@ select
   nvl(repaid_repay_term_fee_count,0)                                                                          as repaid_repay_term_fee_count,
   nvl(repaid_repay_svc_fee_count,0)                                                                           as repaid_repay_svc_fee_count,
   nvl(repaid_penalty_count,0)                                                                                 as repaid_penalty_count,
+  
   nvl(settle_num      , 0)                                                                                    as settle_num,
   nvl(settle_count    , 0)                                                                                    as settle_count,
   nvl(settle_loan_days, 0)                                                                                    as settle_loan_days,
   nvl(settle_loan_days_count, 0)                                                                              as settle_loan_days_count,
   nvl(prepay_principal,0)                                                                                     as prepay_principal,
-  coalesce(loan_active_date,loan_active_date_count,loan_active_date_settle,loan_active_date_schedule )        as loan_active_date,
-  coalesce(product_id,product_id_count,product_id_settle,product_id_schedule)                                 as product_id
-from (
+
+  coalesce(product_id,product_id_settle,product_id_schedule)                                                  as product_id
+  
+from 
+(
   select
-    loan_init_term                                      as loan_init_term,
-    loan_active_date                                    as loan_active_date,
-    repaid_num                                          as repaid_num,
-    pricinpal + interest + term_fee + svc_fee + penalty as repaid_amount,
-    pricinpal                                           as repaid_principal,
-    interest + term_fee + svc_fee + penalty             as repaid_interest_penalty_svc_fee,
-    interest                                            as repaid_interest,
-    term_fee + svc_fee                                  as repaid_repay_svc_term,
-    term_fee                                            as repaid_repay_term_fee,
-    svc_fee                                             as repaid_repay_svc_fee,
-    penalty                                             as repaid_penalty,
-    product_id                                          as product_id
+    loan_init_term                                                                    as loan_init_term,
+    loan_active_date                                                                  as loan_active_date,
+    
+    
+    repaid_num_count                                                                  as repaid_num_count,
+    pricinpal_count + interest_count + term_fee_count + svc_fee_count + penalty_count as repaid_amount_count,
+    pricinpal_count                                                                   as repaid_principal_count,
+    interest_count + term_fee_count + svc_fee_count + penalty_count                   as repaid_interest_penalty_svc_fee_count,
+    interest_count                                                                    as repaid_interest_count,
+    term_fee_count + svc_fee_count                                                    as repaid_repay_svc_term_count,
+    term_fee_count                                                                    as repaid_repay_term_fee_count,
+    svc_fee_count                                                                     as repaid_repay_svc_fee_count,
+    penalty_count                                                                     as repaid_penalty_count,
+    
+    repaid_num                                                                        as repaid_num,
+    pricinpal + interest + term_fee + svc_fee + penalty                               as repaid_amount,
+    pricinpal                                                                         as repaid_principal,
+    interest + term_fee + svc_fee + penalty                                           as repaid_interest_penalty_svc_fee,
+    interest                                                                          as repaid_interest,
+    term_fee + svc_fee                                                                as repaid_repay_svc_term,
+    term_fee                                                                          as repaid_repay_term_fee,
+    svc_fee                                                                           as repaid_repay_svc_fee,
+    penalty                                                                           as repaid_penalty,
+    product_id                                                                        as product_id
   from (
     select
-      loan_init_term,
-      loan_active_date,
-      count(distinct due_bill_no)                                      as repaid_num,
-      sum(case bnp_type when 'Pricinpal' then repay_amount else 0 end) as pricinpal,
-      sum(case bnp_type when 'Interest'  then repay_amount else 0 end) as interest,
-      sum(case bnp_type when 'TERMFee'   then repay_amount else 0 end) as term_fee,
-      sum(case bnp_type when 'SVCFee'    then repay_amount else 0 end) as svc_fee,
-      sum(case bnp_type when 'Penalty'   then repay_amount else 0 end) as penalty,
-      product_id
-    from ods${db_suffix}.repay_detail
+      loan.loan_init_term,
+      loan.loan_active_date,
+      
+      count(distinct detail.due_bill_no)                                                             as repaid_num_count,
+      sum(case detail.bnp_type when 'Pricinpal' then detail.repay_amount else 0 end)                 as pricinpal_count,
+      sum(case detail.bnp_type when 'Interest'  then detail.repay_amount else 0 end)                 as interest_count,
+      sum(case detail.bnp_type when 'TERMFee'   then detail.repay_amount else 0 end)                 as term_fee_count,
+      sum(case detail.bnp_type when 'SVCFee'    then detail.repay_amount else 0 end)                 as svc_fee_count,
+      sum(case detail.bnp_type when 'Penalty'   then detail.repay_amount else 0 end)                 as penalty_count,
+                                                                                                     
+      count(distinct( if(biz_date = '${ST9}', detail.due_bill_no,null)))                             as repaid_num,
+      sum(case when bnp_type = 'Pricinpal' and biz_date = '${ST9}' then repay_amount else 0 end)     as pricinpal,
+      sum(case when bnp_type = 'Interest'  and biz_date = '${ST9}' then repay_amount else 0 end)     as interest,
+      sum(case when bnp_type = 'TERMFee'   and biz_date = '${ST9}' then repay_amount else 0 end)     as term_fee,
+      sum(case when bnp_type = 'SVCFee'    and biz_date = '${ST9}' then repay_amount else 0 end)     as svc_fee,
+      sum(case when bnp_type = 'Penalty'   and biz_date = '${ST9}' then repay_amount else 0 end)     as penalty,
+      
+      loan.product_id
+    from ods${db_suffix}.repay_detail detail
+    join (select due_bill_no,product_id,loan_init_term,loan_active_date from ods${db_suffix}.loan_info where '${ST9}' between s_d_date and date_sub(e_d_date, 1) ${hive_param_str})    loan
+    on detail.due_bill_no = loan.due_bill_no
+    and detail.product_id = loan.product_id
     where 1 > 0
-      and biz_date = '${ST9}'  ${hive_param_str}
-    group by loan_init_term,product_id,loan_active_date
+      and detail.biz_date <= '${ST9}'
+    group by loan.loan_init_term,loan.product_id,loan.loan_active_date
   ) as tmp
-) as loan_active_num
-full join (
-  select
-    loan_init_term                                      as loan_init_term_count,
-    loan_active_date                                    as loan_active_date_count,
-    repaid_num                                          as repaid_num_count,
-    pricinpal + interest + term_fee + svc_fee + penalty as repaid_amount_count,
-    pricinpal                                           as repaid_principal_count,
-    interest + term_fee + svc_fee + penalty             as repaid_interest_penalty_svc_fee_count,
-    interest                                            as repaid_interest_count,
-    term_fee + svc_fee                                  as repaid_repay_svc_term_count,
-    term_fee                                            as repaid_repay_term_fee_count,
-    svc_fee                                             as repaid_repay_svc_fee_count,
-    penalty                                             as repaid_penalty_count,
-    product_id                                          as product_id_count
-  from (
-    select
-      loan_init_term,
-      loan_active_date,
-      count(distinct due_bill_no)                                      as repaid_num,
-      sum(case bnp_type when 'Pricinpal' then repay_amount else 0 end) as pricinpal,
-      sum(case bnp_type when 'Interest'  then repay_amount else 0 end) as interest,
-      sum(case bnp_type when 'TERMFee'   then repay_amount else 0 end) as term_fee,
-      sum(case bnp_type when 'SVCFee'    then repay_amount else 0 end) as svc_fee,
-      sum(case bnp_type when 'Penalty'   then repay_amount else 0 end) as penalty,
-      product_id
-    from ods${db_suffix}.repay_detail
-    where 1 > 0
-      and biz_date <= '${ST9}'  ${hive_param_str}
-    group by loan_init_term,product_id,loan_active_date
-  ) as tmp
-) as loan_active_count
-on  product_id     = product_id_count
-and loan_init_term = loan_init_term_count
-and loan_active_date = loan_active_date_count
+) as loan_active_current_past
 full join
 (
 select

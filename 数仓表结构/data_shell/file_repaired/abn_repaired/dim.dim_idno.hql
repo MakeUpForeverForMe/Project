@@ -90,6 +90,10 @@ insert into table dim_new.dim_idno values('411380','4','中南地区','41','河�
 insert into table dim.dim_idno values('340829','3','华东地区','34','安徽省','3408','安庆市','340829','安庆市');
 insert into table dim_new.dim_idno values('450520','4','中南地区','45','广西壮族自治区','4505','北海市','450520','北海市');
 
+insert into table dim.dim_idno values('420880','4','中南地区','42','湖北省','4208','荆门市','420880','荆门市');
+
+insert into table dim.dim_idno values('323251','3','华东地区','32','江苏省','3232','江苏省','323251','江苏省');
+
 insert overwrite table dim.dim_idno
 select
 idno_addr               ,

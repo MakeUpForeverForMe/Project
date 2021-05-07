@@ -33,26 +33,23 @@ set hive.support.quoted.identifiers=None;
 -- 代称后
 -- set hivevar:db_suffix=_cps;
 
--- 跑所有项目的产品编号设置
--- set hivevar:product_id=;
-
 -- 跑非乐信项目的产品编号设置
--- set hivevar:product_id=and product_id not in (
+-- set hivevar:product_id=
 --   '001801','001802','001803','001804',
 --   '001901','001902','001903','001904','001905','001906','001907',
 --   '002001','002002','002003','002004','002005','002006','002007',
 --   '002401','002402',
 --   ''
--- );
+-- ;
 
 -- 跑非乐信看管项目的产品编号设置
--- set hivevar:product_id=and product_id in (
+-- set hivevar:product_id=
 --   'DIDI201908161538',
 --   '001601','001602','001603',
 --   '001701','001702',
 --   '002201','002202','002203',
 --   ''
--- );
+-- ;
 
 
 -- -- 跑全量
@@ -224,11 +221,11 @@ select
   overdue_date_start,
   overdue_days,
   overdue_date,
-  overdue_date_start as dpd_begin_date,
-  overdue_days as dpd_days,
-  max(nvl(dpd_dpd_days_count,0) + overdue_days)            over(partition by product_id,due_bill_no order by s_d_date)    as dpd_days_count,
+  overdue_date_start    as dpd_begin_date,
+  overdue_days          as dpd_days,
+  nvl(dpd_days_count,0) as dpd_days_count,
   max(overdue_days)                                        over(partition by product_id,due_bill_no order by s_d_date)    as dpd_days_max,
-  collect_out_date as collect_out_date,
+  collect_out_date      as collect_out_date,
   overdue_term,
   size(collect_set(if(overdue_days > 0,overdue_term,null)) over(partition by product_id,due_bill_no order by s_d_date))   as overdue_terms_count,
   max(overdue_terms_max)                                   over(partition by product_id,due_bill_no order by s_d_date)    as overdue_terms_max,
@@ -282,6 +279,7 @@ from (
     old_data.overdue_mult_amt,
     old_data.overdue_date_start,
     old_data.overdue_days,
+    old_data.dpd_days_count,
     old_data.overdue_date,
     old_data.collect_out_date,
     old_data.dpd_days_max,
@@ -307,8 +305,8 @@ from (
     from ods${db_suffix}.loan_info
     where 1 > 0
       and is_settled = 'no'
-      and s_d_date < '${ST9}'
       and product_id in (${product_id})
+      and s_d_date < '${ST9}'
   ) as old_data
   left join (
     select
@@ -324,63 +322,85 @@ from (
   and old_data.due_bill_no = new_data.due_bill_no
   union all
   select
-    `(biz_date|product_id)?+.+`,
-    biz_date     as s_d_date,
-    '3000-12-31' as e_d_date,
-    product_id
-  from ods${db_suffix}.loan_info_inter
-  where 1 > 0
-    and biz_date = '${ST9}'
-    and product_id in (${product_id})
-) as loan_info
-left join (
-  select
-    dpd_product_id,
-    dpd_due_bill_no,
-    dpd_overdue_date_start,
-    dpd_overdue_date_next,
-    nvl(lag(dpd_dpd_days_count) over(partition by dpd_product_id,dpd_due_bill_no order by dpd_overdue_date_start),0) as dpd_dpd_days_count
+    new_data.due_bill_no,
+    new_data.apply_no,
+    new_data.loan_active_date,
+    new_data.loan_init_term,
+    new_data.loan_init_principal,
+    new_data.loan_init_interest,
+    new_data.loan_init_term_fee,
+    new_data.loan_init_svc_fee,
+    new_data.loan_term,
+    new_data.account_age,
+    new_data.should_repay_date,
+    new_data.loan_term_repaid,
+    new_data.loan_term_remain,
+    new_data.loan_status,
+    new_data.loan_status_cn,
+    new_data.loan_out_reason,
+    new_data.paid_out_type,
+    new_data.paid_out_type_cn,
+    new_data.paid_out_date,
+    new_data.terminal_date,
+    new_data.paid_amount,
+    new_data.paid_principal,
+    new_data.paid_interest,
+    new_data.paid_penalty,
+    new_data.paid_svc_fee,
+    new_data.paid_term_fee,
+    new_data.paid_mult,
+    new_data.remain_amount,
+    new_data.remain_principal,
+    new_data.remain_interest,
+    new_data.remain_svc_fee,
+    new_data.remain_term_fee,
+    new_data.remain_othAmounts,
+    new_data.overdue_principal,
+    new_data.overdue_interest,
+    new_data.overdue_svc_fee,
+    new_data.overdue_term_fee,
+    new_data.overdue_penalty,
+    new_data.overdue_mult_amt,
+    new_data.overdue_date_start,
+    new_data.overdue_days,
+    if(new_data.overdue_date_start is null,old_data.dpd_days_count,old_data.dpd_days_count + 1) as dpd_days_count,
+    new_data.overdue_date,
+    new_data.collect_out_date,
+    new_data.dpd_days_max,
+    new_data.overdue_term,
+    new_data.overdue_terms_count,
+    new_data.overdue_terms_max,
+    new_data.overdue_principal_accumulate,
+    new_data.overdue_principal_max,
+    new_data.create_time,
+    new_data.update_time,
+    new_data.s_d_date,
+    new_data.e_d_date,
+    new_data.product_id
   from (
     select
-      product_id                                                                                                       as dpd_product_id,
-      due_bill_no                                                                                                      as dpd_due_bill_no,
-      nvl(overdue_date_start,'1970-01-01')                                                                             as dpd_overdue_date_start,
-      nvl(lead(overdue_date_start) over(partition by product_id,due_bill_no order by overdue_date_start),'3000-12-31') as dpd_overdue_date_next,
-      sum(overdue_days_max)        over(partition by product_id,due_bill_no order by overdue_date_start)               as dpd_dpd_days_count
-    from (
-      select
-        product_id,
-        due_bill_no,
-        overdue_date_start,
-        max(overdue_days) as overdue_days_max
-      from (
-        select
-          product_id,
-          due_bill_no,
-          overdue_date_start,
-          overdue_days
-        from ods${db_suffix}.loan_info
-        where 1 > 0
-          and is_settled = 'no'
-          and s_d_date < '${ST9}'
-          and product_id in (${product_id})
-        union all
-        select
-          product_id,
-          due_bill_no,
-          overdue_date_start,
-          overdue_days
-        from ods${db_suffix}.loan_info_inter
-        where 1 > 0
-          and biz_date = '${ST9}'
-          and product_id in (${product_id})
-      ) as tmp
-      group by product_id,due_bill_no,overdue_date_start
-    ) as tmp
-  ) as tmp
-) as dpd_days_count
-on  product_id  = dpd_product_id
-and due_bill_no = dpd_due_bill_no
-where s_d_date between dpd_overdue_date_start and date_sub(dpd_overdue_date_next,1)
+      `(biz_date|product_id)?+.+`,
+      biz_date     as s_d_date,
+      '3000-12-31' as e_d_date,
+      product_id
+    from ods${db_suffix}.loan_info_inter
+    where 1 > 0
+      and biz_date = '${ST9}'
+      and product_id in (${product_id})
+  ) as new_data
+  left join (
+    select
+      product_id,
+      due_bill_no,
+      dpd_days_count
+    from ods${db_suffix}.loan_info
+    where 1 > 0
+      and is_settled = 'no'
+      and product_id in (${product_id})
+      and date_sub('${ST9}',1) between s_d_date and date_sub(e_d_date,1)
+  ) as old_data
+  on  new_data.product_id  = old_data.product_id
+  and new_data.due_bill_no = old_data.due_bill_no
+) as loan_info
 -- limit 10
 ;

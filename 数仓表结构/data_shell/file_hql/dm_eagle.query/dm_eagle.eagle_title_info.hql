@@ -32,25 +32,25 @@ from (
     cast(loan_terms as string) as loan_terms,
     sort_array(collect_set(cast(loan_terms as string)) over(partition by biz_conf.product_id${vt},datefmt(biz_date,'yyyy-MM-dd','yyyy-MM'))) as loan_terms_list
   from dw${db_suffix}.dw_loan_base_stat_loan_num_day as loan_num
-   join (
+  join (
     select distinct
-           capital_id,
-           channel_id,
-           project_id,
-           product_id_vt ,
-           product_id
-           from (
-                 select
-                   max(if(col_name = 'capital_id',   col_val,null)) as capital_id,
-                   max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
-                   max(if(col_name = 'project_id',   col_val,null)) as project_id,
-                   max(if(col_name = 'product_id_vt',col_val,null)) as product_id_vt,
-                   max(if(col_name = 'product_id',   col_val,null)) as product_id
-                 from dim.data_conf
-                 where col_type = 'ac'
-                 group by col_id
-        )tmp
-    )biz_conf
+      capital_id,
+      channel_id,
+      project_id,
+      product_id_vt ,
+      product_id
+    from (
+      select
+        max(if(col_name = 'capital_id',   col_val,null)) as capital_id,
+        max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
+        max(if(col_name = 'project_id',   col_val,null)) as project_id,
+        max(if(col_name = 'product_id_vt',col_val,null)) as product_id_vt,
+        max(if(col_name = 'product_id',   col_val,null)) as product_id
+      from dim.data_conf
+      where col_type = 'ac'
+      group by col_id
+    ) as tmp
+  ) as biz_conf
   on loan_num.product_id = biz_conf.product_id
   and product_id${vt} is not null
   -- order by product_id,biz_month,cast(loan_terms as int)

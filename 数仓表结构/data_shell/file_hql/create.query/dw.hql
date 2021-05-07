@@ -488,3 +488,113 @@ LOCATION
 
 
 
+
+-- 星云宽表（借据级）
+-- DROP TABLE IF EXISTS `dw.abs_due_info_day`;
+CREATE TABLE IF NOT EXISTS `dw.abs_due_info_day`(
+  -- 借据级
+  `due_bill_no`                  string         COMMENT '借据编号',
+  `loan_init_term`               decimal(3,0)   COMMENT '贷款期数（3、6、9等）',
+  `loan_init_principal`          decimal(20,5)  COMMENT '贷款本金',
+  `account_age`                  decimal(3,0)   COMMENT '账龄（取当前期数）',
+  `loan_term_remain`             decimal(3,0)   COMMENT '已还期数',
+  `loan_term_repaid`             decimal(3,0)   COMMENT '剩余期数',
+  `remain_principal`             decimal(20,5)  COMMENT '剩余本金',
+  `remain_interest`              decimal(20,5)  COMMENT '剩余利息',
+  `remain_principal_yesterday`   decimal(20,5)  COMMENT '昨日剩余本金',
+  `loan_status`                  string         COMMENT '借据状态（英文原值）（N：正常，O：逾期，F：已还清）',
+  `paid_out_type`                string         COMMENT '结清类型',
+  `overdue_due_bill_no`          string         COMMENT '逾期借据借据编号',
+  `overdue_user_hash_no`         string         COMMENT '逾期借据用户编号',
+  `overdue_date_start`           string         COMMENT '逾期起始日期',
+  `is_first_overdue_day`         decimal(2,0)   COMMENT '此逾期天数是否是首次逾期到这个天数（0：否，1：是）',
+  `overdue_days`                 decimal(5,0)   COMMENT '逾期天数',
+  `overdue_days_dpd`             array<string>  COMMENT 'DPD时期（1+、7+、14+、30+、60+、90+、120+、150+、180+、1_7、8_15、15_30、31_60、61_90、91_120、121_150、151_180）',
+  `overdue_principal`            decimal(20,5)  COMMENT '逾期本金',
+  `overdue_remain_principal`     decimal(20,5)  COMMENT '逾期借据剩余本金',
+  `min_date`                     string         COMMENT '借据的最小日期',
+
+  -- 合同级
+  `contract_no`                  string         COMMENT '借据编号',
+  `loan_init_interest_rate`      decimal(25,10) COMMENT '利息利率',
+  `loan_type_cn`                 string         COMMENT '分期类型（汉语解释）',
+  `contract_term`                decimal(3,0)   COMMENT '合同期限（按照月份计算）',
+  `mortgage_rate`                decimal(20,5)  COMMENT '抵押率',
+
+  -- 客户级
+  `user_hash_no`                 string         COMMENT '用户编号',
+  `age`                          decimal(3,0)   COMMENT '客户年龄',
+  `job_type`                     decimal(5,0)   COMMENT '工作年限',
+  `income_year`                  decimal(25,5)  COMMENT '年收入',
+  `idcard_area`                  string         COMMENT '身份证大区（东北地区、华北地区、西北地区、西南地区、华南地区、华东地区、华中地区、港澳台地区）',
+
+  -- 抵押物级
+  `due_bill_no_guaranty`         string         COMMENT '抵押物借据编号',
+  `pawn_value`                   decimal(20,6)  COMMENT '评估价格(元)',
+  `guarantee_type`               string         COMMENT '担保方式 预定义字段：质押担保，信用担保，保证担保，抵押担保',
+
+  -- 分布
+  `distribution_array`           array<string>  COMMENT '分布数组'
+) COMMENT '星云宽表（借据级）'
+PARTITIONED BY (`biz_date` string COMMENT '观察日期',`project_id` string COMMENT '项目编号')
+STORED AS PARQUET;
+
+
+
+
+DROP MATERIALIZED VIEW IF EXISTS `dw.abs_due_info_day_abs`;
+CREATE MATERIALIZED VIEW IF NOT EXISTS `dw.abs_due_info_day_abs`
+COMMENT '星云宽表（借据级）'
+-- PARTITIONED ON (`biz_date`,`project_id`)
+STORED AS PARQUET
+AS select
+  t1.due_bill_no,
+  t1.loan_init_term,
+  t1.loan_init_principal,
+  t1.account_age,
+  t1.loan_term_remain,
+  t1.loan_term_repaid,
+  t1.remain_principal,
+  t1.remain_interest,
+  t1.remain_principal_yesterday,
+  t1.loan_status,
+  t1.paid_out_type,
+  t1.overdue_due_bill_no,
+  t1.overdue_user_hash_no,
+  t1.overdue_date_start,
+  t1.is_first_overdue_day,
+  t1.overdue_days,
+  t1.overdue_days_dpd,
+  t1.overdue_principal,
+  t1.overdue_remain_principal,
+  t1.min_date,
+  t1.contract_no,
+  t1.loan_init_interest_rate,
+  t1.loan_type_cn,
+  t1.contract_term,
+  t1.mortgage_rate,
+  t1.user_hash_no,
+  t1.age,
+  t1.job_type,
+  t1.income_year,
+  t1.idcard_area,
+  t1.due_bill_no_guaranty,
+  t1.pawn_value,
+  t1.guarantee_type,
+  t1.distribution_array,
+  t1.biz_date,
+  t1.project_id
+from dw.abs_due_info_day as t1
+join dim.project_due_bill_no as t2
+on  t1.project_id  = nvl(t2.related_project_id,t2.project_id)
+and t1.due_bill_no = t2.due_bill_no;
+
+
+
+
+
+
+
+
+
+

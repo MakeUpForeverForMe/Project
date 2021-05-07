@@ -59,8 +59,8 @@ class ExcelWings(object):
 
 file_path = "D:\\Users\\ximing.wei\\Desktop\\手动维护表.xlsx"
 sheets = [
-    # ('biz_conf 表', 3, 'a', 'u', 'ac'),
-    ('星云项目', 2, 'b', 'm', 'pp'),
+    ('biz_conf 表', 3, 'a', 'u', 'ac'),
+    # ('星云项目', 2, 'b', 'm', 'pp'),
     # ('投资人信息表', 3, 'a', 'q', 'ai'),
 ]
 
@@ -78,8 +78,8 @@ for biz_sheet, row_start, col_s, col_e, col_type in sheets:
         col_map = {}
 
         for row_num in range(row_start + 1, excel.object_sheet_row() + 1):
-            col_val = str(sheet_range_value(f'{col_id}{row_num}'))
-            col_val = col_val if col_val else 'null'
+            col_val = sheet_range_value(f'{col_id}{row_num}')
+            col_val = col_val if col_val is not None else 'null'
             col_map[row_num] = (col_val, len_str(col_val))
 
         col_map[map_key_len] = max(col_map.values(), key=lambda map_tup: map_tup[1][0] * 2 + map_tup[1][1])[1]

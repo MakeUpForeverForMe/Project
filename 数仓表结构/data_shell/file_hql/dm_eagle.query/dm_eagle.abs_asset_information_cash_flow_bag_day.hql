@@ -25,8 +25,19 @@ set hive.auto.convert.join.noconditionaltask=false;
 
 
 
--- set hivevar:ST9=2019-10-01;
 -- set hivevar:ST9=2020-10-01;
+-- set hivevar:project_id=
+--   select distinct project_id
+--   from dim.project_info
+--   where 1 > 0
+-- ;
+-- set hivevar:bag_id=
+--   select distinct bag_id
+--   from dim.bag_info
+--   where 1 > 0
+-- ;
+
+
 
 insert overwrite table dm_eagle.abs_asset_information_cash_flow_bag_day partition(biz_date,project_id,bag_id)
 -- 单个包维度
@@ -81,25 +92,43 @@ from (
     '${ST9}'               as biz_date
   from (
     select
-      bag_info.bag_id,
       bag_info.project_id,
+      bag_info.bag_id,
       bag_info.bag_date,
       max(repay_schedule.should_repay_date) as should_repay_date_max
     from (
       select
         project_id,
+        bag_date,
+        bag_id
+      from dim.bag_info
+      where 1 > 0
+        and project_id in (${project_id})
+    ) as bag_info
+    join (
+      select
+        project_id,
+        due_bill_no,
+        bag_id
+      from dim.bag_due_bill_no
+      where 1 > 0
+        and bag_id in (${bag_id})
+    ) as bag_due
+    on  bag_info.project_id = bag_due.project_id
+    and bag_info.bag_id     = bag_due.bag_id
+    join (
+      select
+        project_id,
         due_bill_no,
         should_repay_date
       from ods.repay_schedule_abs
-      where '${ST9}' between s_d_date and date_sub(e_d_date,1)
+      where 1 > 0
+        and '${ST9}' between s_d_date and date_sub(e_d_date,1)
+        and project_id in (${project_id})
     ) as repay_schedule
-    join dim.bag_due_bill_no as bag_due
-    on  repay_schedule.project_id  = bag_due.project_id
-    and repay_schedule.due_bill_no = bag_due.due_bill_no
-    join dim.bag_info as bag_info
-    on  bag_due.project_id = bag_info.project_id
-    and bag_due.bag_id     = bag_info.bag_id
-    group by bag_info.bag_id,bag_info.project_id,bag_info.bag_date
+    on  bag_due.project_id  = repay_schedule.project_id
+    and bag_due.due_bill_no = repay_schedule.due_bill_no
+    group by bag_info.project_id,bag_info.bag_id,bag_info.bag_date
   ) as tmp
   lateral view posexplode(split(space(datediff(should_repay_date_max,bag_date)),' ')) tf as pos,val
 ) as biz_dates
@@ -112,12 +141,25 @@ left join (
     sum(nvl(schedule.should_repay_principal,0)) as should_repay_principal,
     sum(nvl(schedule.should_repay_interest,0))  as should_repay_interest,
     sum(nvl(schedule.should_repay_term_fee,0) + nvl(schedule.should_repay_svc_fee,0) + nvl(schedule.should_repay_penalty,0) + nvl(schedule.should_repay_mult_amt,0)) as should_repay_cost
-  from ods.repay_schedule_abs as schedule
-  join dim.bag_due_bill_no as bag_due
+  from (
+    select *
+    from ods.repay_schedule_abs
+    where 1 > 0
+      and project_id in (${project_id})
+      and if(paid_out_type_cn is NULL,'A',paid_out_type_cn) != '提前结清'
+  ) as schedule
+  join (
+    select
+      project_id,
+      due_bill_no,
+      bag_id
+    from dim.bag_due_bill_no
+    where 1 > 0
+      and bag_id in (${bag_id})
+  ) as bag_due
   on  schedule.project_id  = bag_due.project_id
   and schedule.due_bill_no = bag_due.due_bill_no
   where '${ST9}' between s_d_date and date_sub(e_d_date,1)
-    and if(paid_out_type_cn is NULL,'A',paid_out_type_cn) != '提前结清'
   group by schedule.project_id,bag_due.bag_id,schedule.should_repay_date
 ) as repay_schedule
 on  biz_dates.project_id   = repay_schedule.project_id
@@ -148,7 +190,15 @@ left join (
     sum(repay_detail.overdue_paid_principal) as overdue_paid_principal,
     sum(repay_detail.overdue_paid_interest)  as overdue_paid_interest,
     sum(repay_detail.overdue_paid_cost)      as overdue_paid_cost
-  from dim.bag_due_bill_no as bag_due
+  from (
+    select
+      project_id,
+      due_bill_no,
+      bag_id
+    from dim.bag_due_bill_no
+    where 1 > 0
+      and bag_id in (${bag_id})
+  ) as bag_due
   join (
     select
       project_id                                                                                                        as project_id,
@@ -175,7 +225,9 @@ left join (
       sum(nvl(if(repay_type_cn = '逾期还款' and bnp_type = 'Interest',repay_amount,0),0))                               as overdue_paid_interest,
       sum(nvl(if(repay_type_cn = '逾期还款' and bnp_type != 'Pricinpal' and bnp_type != 'Interest',repay_amount,0),0))  as overdue_paid_cost
     from ods.repay_detail_abs
-    where biz_date <= '${ST9}'
+    where 1 > 0
+      and biz_date <= '${ST9}'
+      and project_id in (${project_id})
     group by project_id,due_bill_no,repay_term -- group by 中要有 repay_term 取每一期中的实还日最大值
   ) as repay_detail
   on  bag_due.project_id  = repay_detail.project_id
@@ -185,8 +237,8 @@ left join (
 on  biz_dates.project_id   = repay_detail.project_id
 and biz_dates.bag_id       = repay_detail.bag_id
 and biz_dates.collect_date = repay_detail.biz_date
--- 所有包维度
 union all
+-- 所有包维度
 select
   biz_dates.bag_date                           as bag_date,
   max(repay_detail.biz_date) over(partition by biz_dates.project_id order by biz_dates.collect_date) as data_extraction_day,
@@ -243,17 +295,35 @@ from (
     from (
       select
         project_id,
+        bag_date,
+        bag_id
+      from dim.bag_info
+      where 1 > 0
+        and project_id in (${project_id})
+    ) as bag_info
+    join (
+      select
+        project_id,
+        due_bill_no,
+        bag_id
+      from dim.bag_due_bill_no
+      where 1 > 0
+        and bag_id in (${bag_id})
+    ) as bag_due
+    on  bag_info.project_id = bag_due.project_id
+    and bag_info.bag_id     = bag_due.bag_id
+    join (
+      select
+        project_id,
         due_bill_no,
         should_repay_date
       from ods.repay_schedule_abs
-      where '${ST9}' between s_d_date and date_sub(e_d_date,1)
+      where 1 > 0
+        and '${ST9}' between s_d_date and date_sub(e_d_date,1)
+        and project_id in (${project_id})
     ) as repay_schedule
-    join dim.bag_due_bill_no as bag_due
-    on  repay_schedule.project_id  = bag_due.project_id
-    and repay_schedule.due_bill_no = bag_due.due_bill_no
-    join dim.bag_info as bag_info
-    on  bag_due.project_id = bag_info.project_id
-    and bag_due.bag_id     = bag_info.bag_id
+    on  bag_due.project_id  = repay_schedule.project_id
+    and bag_due.due_bill_no = repay_schedule.due_bill_no
     group by bag_info.project_id
   ) as tmp
   lateral view posexplode(split(space(datediff(should_repay_date_max,bag_date)),' ')) tf as pos,val
@@ -266,12 +336,24 @@ left join (
     sum(nvl(schedule.should_repay_principal,0)) as should_repay_principal,
     sum(nvl(schedule.should_repay_interest,0))  as should_repay_interest,
     sum(nvl(schedule.should_repay_term_fee,0) + nvl(schedule.should_repay_svc_fee,0) + nvl(schedule.should_repay_penalty,0) + nvl(schedule.should_repay_mult_amt,0)) as should_repay_cost
-  from ods.repay_schedule_abs as schedule
-  join dim.bag_due_bill_no as bag_due
+  from (
+    select *
+    from ods.repay_schedule_abs
+    where 1 > 0
+      and project_id in (${project_id})
+      and if(paid_out_type_cn is NULL,'A',paid_out_type_cn) != '提前结清'
+  ) as schedule
+  join (
+    select
+      project_id,
+      due_bill_no
+    from dim.bag_due_bill_no
+    where 1 > 0
+      and bag_id in (${bag_id})
+  ) as bag_due
   on  schedule.project_id  = bag_due.project_id
   and schedule.due_bill_no = bag_due.due_bill_no
   where '${ST9}' between s_d_date and date_sub(e_d_date,1)
-    and if(paid_out_type_cn is NULL,'A',paid_out_type_cn) != '提前结清'
   group by schedule.project_id,schedule.should_repay_date
 ) as repay_schedule
 on  biz_dates.project_id   = repay_schedule.project_id
@@ -300,7 +382,14 @@ left join (
     sum(repay_detail.overdue_paid_principal) as overdue_paid_principal,
     sum(repay_detail.overdue_paid_interest)  as overdue_paid_interest,
     sum(repay_detail.overdue_paid_cost)      as overdue_paid_cost
-  from dim.bag_due_bill_no as bag_due
+  from (
+    select
+      project_id,
+      due_bill_no
+    from dim.bag_due_bill_no
+    where 1 > 0
+      and bag_id in (${bag_id})
+  ) as bag_due
   join (
     select
       project_id                                                                                                        as project_id,
@@ -327,7 +416,9 @@ left join (
       sum(nvl(if(repay_type_cn = '逾期还款' and bnp_type = 'Interest',repay_amount,0),0))                               as overdue_paid_interest,
       sum(nvl(if(repay_type_cn = '逾期还款' and bnp_type != 'Pricinpal' and bnp_type != 'Interest',repay_amount,0),0))  as overdue_paid_cost
     from ods.repay_detail_abs
-    where biz_date <= '${ST9}'
+    where 1 > 0
+      and biz_date <= '${ST9}'
+      and project_id in (${project_id})
     group by project_id,due_bill_no,repay_term -- group by 中要有 repay_term 取每一期中的实还日最大值
   ) as repay_detail
   on  bag_due.project_id  = repay_detail.project_id
@@ -336,8 +427,8 @@ left join (
 ) as repay_detail
 on  biz_dates.project_id   = repay_detail.project_id
 and biz_dates.collect_date = repay_detail.biz_date
--- 项目维度
 union all
+-- 项目维度
 select
   biz_dates.bag_date                              as bag_date,
   max(repay_detail.biz_date) over(partition by biz_dates.project_id order by biz_dates.collect_date) as data_extraction_day,
@@ -383,16 +474,18 @@ select
 from (
   select
     project_id,
-    loan_active_date as bag_date,
+    loan_active_date               as bag_date,
     date_add(loan_active_date,pos) as collect_date,
-    '${ST9}'               as biz_date
+    '${ST9}'                       as biz_date
   from (
     select
       project_id,
-      min(loan_active_date) as loan_active_date,
+      min(loan_active_date)  as loan_active_date,
       max(should_repay_date) as should_repay_date
     from ods.repay_schedule_abs
-    where '${ST9}' between s_d_date and date_sub(e_d_date,1)
+    where 1 > 0
+      and '${ST9}' between s_d_date and date_sub(e_d_date,1)
+      and project_id in (${project_id})
     group by project_id
   ) as tmp
   lateral view posexplode(split(space(datediff(should_repay_date,loan_active_date)),' ')) tf as pos,val
@@ -406,7 +499,9 @@ left join (
     sum(nvl(schedule.should_repay_interest,0))  as should_repay_interest,
     sum(nvl(schedule.should_repay_term_fee,0) + nvl(schedule.should_repay_svc_fee,0) + nvl(schedule.should_repay_penalty,0) + nvl(schedule.should_repay_mult_amt,0)) as should_repay_cost
   from ods.repay_schedule_abs as schedule
-  where '${ST9}' between s_d_date and date_sub(e_d_date,1)
+  where 1 > 0
+    and '${ST9}' between s_d_date and date_sub(e_d_date,1)
+    and project_id in (${project_id})
     and if(paid_out_type_cn is NULL,'A',paid_out_type_cn) != '提前结清'
   group by schedule.project_id,schedule.should_repay_date
 ) as repay_schedule
@@ -437,21 +532,24 @@ left join (
     sum(nvl(if(repay_type_cn = '逾期还款' and bnp_type = 'Interest',repay_amount,0),0))                               as overdue_paid_interest,
     sum(nvl(if(repay_type_cn = '逾期还款' and bnp_type != 'Pricinpal' and bnp_type != 'Interest',repay_amount,0),0))  as overdue_paid_cost
   from ods.repay_detail_abs
-  where biz_date <= '${ST9}'
+  where 1 > 0
+    and biz_date <= '${ST9}'
+    and project_id in (${project_id})
   group by project_id,repay_term -- group by 中要有 repay_term 取每一期中的实还日最大值
 ) as repay_detail
 on  biz_dates.project_id   = repay_detail.project_id
 and biz_dates.collect_date = repay_detail.biz_date
 left join (
   select
-  project_id,should_repay_date,
-  sum(nvl(should_repay_amount,0))    as should_repay_amount,
-  sum(nvl(should_repay_principal,0)) as should_repay_principal,
-  sum(nvl(should_repay_interest,0))  as should_repay_interest
+    project_id,should_repay_date,
+    sum(nvl(should_repay_amount,0))    as should_repay_amount,
+    sum(nvl(should_repay_principal,0)) as should_repay_principal,
+    sum(nvl(should_repay_interest,0))  as should_repay_interest
   from eagle.predict_repay_day
   where 1 > 0
     and biz_date = date_sub(next_day(current_date,'Sun'),8)
     and cycle_key = '0'
+    and project_id in (${project_id})
     and project_id = 'CL202011090089'
   group by project_id,should_repay_date
 ) as pmml_should_repay
@@ -467,6 +565,7 @@ left join (
   where 1 > 0
     and biz_date = date_sub(next_day(current_date,'Sun'),8)
     and cycle_key = '0'
+    and project_id in (${project_id})
     and project_id = 'CL202011090089'
   group by project_id,paid_out_date
 ) as pmml_paid

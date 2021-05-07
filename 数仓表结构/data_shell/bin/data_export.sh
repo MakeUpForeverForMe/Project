@@ -3,122 +3,122 @@
 . ${data_export_dir:=$(cd `dirname "${BASH_SOURCE[0]}"`;pwd)}/../conf_env/env.sh
 . $lib/function.sh
 
-e_date=$(date +%F)
-log=$log/$(basename "${BASH_SOURCE[0]}").${e_date}.log
 
-echo -e "${date_s_aa:=$(date +'%F %T')} 数据导出  开始 当前脚本进程ID为：$(pid)"
+echo -e "${date_s_aa:=$(date +'%F %T')} 导出数据 开始  当前脚本进程ID为：$(pid)"
 
+table_list=(
+  # # 资产
+  # dm_eagle.eagle_inflow_rate_first_term_day-$dm_eagle_dm_eagle
+  # dm_eagle_cps.eagle_inflow_rate_first_term_day-$dm_eagle_dm_eagle_cps
 
-# tables['dm_eagle.eagle_inflow_rate_first_term_day']=$dm_eagle_dm_eagle
-# tables['dm_eagle_cps.eagle_inflow_rate_first_term_day']=$dm_eagle_dm_eagle_cps
+  # dm_eagle.eagle_inflow_rate_day-$dm_eagle_dm_eagle
+  # dm_eagle_cps.eagle_inflow_rate_day-$dm_eagle_dm_eagle_cps
 
-# tables['dm_eagle.eagle_inflow_rate_day']=$dm_eagle_dm_eagle
-# tables['dm_eagle_cps.eagle_inflow_rate_day']=$dm_eagle_dm_eagle_cps
+  # dm_eagle.eagle_title_info-$dm_eagle_dm_eagle
+  # dm_eagle_cps.eagle_title_info-$dm_eagle_dm_eagle_cps
 
-# tables['dm_eagle.eagle_title_info']=$dm_eagle_dm_eagle
-# tables['dm_eagle_cps.eagle_title_info']=$dm_eagle_dm_eagle_cps
+  # dm_eagle.eagle_loan_amount_day-$dm_eagle_dm_eagle
+  # dm_eagle_cps.eagle_loan_amount_day-$dm_eagle_dm_eagle_cps
 
-# tables['dm_eagle.eagle_loan_amount_day']=$dm_eagle_dm_eagle
-# tables['dm_eagle_cps.eagle_loan_amount_day']=$dm_eagle_dm_eagle_cps
+  # dm_eagle.eagle_asset_scale_principal_day-$dm_eagle_dm_eagle
+  # dm_eagle_cps.eagle_asset_scale_principal_day-$dm_eagle_dm_eagle_cps
 
-# tables['dm_eagle.eagle_asset_scale_principal_day']=$dm_eagle_dm_eagle
-# tables['dm_eagle_cps.eagle_asset_scale_principal_day']=$dm_eagle_dm_eagle_cps
+  # dm_eagle.eagle_asset_scale_repaid_day-$dm_eagle_dm_eagle
+  # dm_eagle_cps.eagle_asset_scale_repaid_day-$dm_eagle_dm_eagle_cps
 
-# tables['dm_eagle.eagle_asset_scale_repaid_day']=$dm_eagle_dm_eagle
-# tables['dm_eagle_cps.eagle_asset_scale_repaid_day']=$dm_eagle_dm_eagle_cps
+  # dm_eagle.eagle_overdue_rate_month-$dm_eagle_dm_eagle
+  # dm_eagle_cps.eagle_overdue_rate_month-$dm_eagle_dm_eagle_cps
 
-# tables['dm_eagle.eagle_overdue_rate_month']=$dm_eagle_dm_eagle
-# tables['dm_eagle_cps.eagle_overdue_rate_month']=$dm_eagle_dm_eagle_cps
+  # dm_eagle.eagle_deferred_overdue_rate_full_month_product_day-$dm_eagle_dm_eagle
+  # dm_eagle_cps.eagle_deferred_overdue_rate_full_month_product_day-$dm_eagle_dm_eagle_cps
 
-# tables['dm_eagle.eagle_deferred_overdue_rate_full_month_product_day']=$dm_eagle_dm_eagle
-# tables['dm_eagle_cps.eagle_deferred_overdue_rate_full_month_product_day']=$dm_eagle_dm_eagle_cps
+  # dm_eagle.eagle_migration_rate_month-$dm_eagle_dm_eagle
+  # dm_eagle_cps.eagle_migration_rate_month-$dm_eagle_dm_eagle_cps
 
-# tables['dm_eagle.eagle_migration_rate_month']=$dm_eagle_dm_eagle
-# tables['dm_eagle_cps.eagle_migration_rate_month']=$dm_eagle_dm_eagle_cps
-
-# tables['dm_eagle.eagle_should_repay_repaid_amount_day']=$dm_eagle_dm_eagle
-# tables['dm_eagle_cps.eagle_should_repay_repaid_amount_day']=$dm_eagle_dm_eagle_cps
-
-
-# # 资金页面资产
-# tables['dm_eagle.eagle_asset_change']=$dm_eagle_dm_eagle
-# tables['dm_eagle.eagle_asset_comp_info']=$dm_eagle_dm_eagle
-# tables['dm_eagle.eagle_asset_change_t1']=$dm_eagle_dm_eagle
-# tables['dm_eagle.eagle_asset_change_comp']=$dm_eagle_dm_eagle
-# tables['dm_eagle.eagle_asset_change_comp_t1']=$dm_eagle_dm_eagle
-
-# # 进件
-# tables['dm_eagle.eagle_ret_msg_day']=$dm_eagle_dm_eagle
-# tables['dm_eagle.eagle_credit_loan_approval_rate_day']=$dm_eagle_dm_eagle
-# tables['dm_eagle.eagle_credit_loan_approval_amount_sum_day']=$dm_eagle_dm_eagle
-# tables['dm_eagle.eagle_credit_loan_approval_amount_rate_day']=$dm_eagle_dm_eagle
-
-# # 资金页面资金
-# tables['dm_eagle.eagle_funds']=$dm_eagle_dm_eagle
-# tables['dm_eagle.eagle_acct_cost']=$dm_eagle_dm_eagle
-# tables['dm_eagle.eagle_unreach_funds']=$dm_eagle_dm_eagle
-# tables['dm_eagle.eagle_repayment_detail']=$dm_eagle_dm_eagle
-
-# # 应还实还
-# tables['dm_eagle.eagle_should_repay_repaid_amount_day']=$dm_eagle_dm_eagle
-# tables['dm_eagle_cps.eagle_should_repay_repaid_amount_day']=$dm_eagle_dm_eagle_cps
-#tables['dm_eagle.eagle_should_repay_repaid_amount_day_hst']=$dm_eagle_dm_eagle
-#tables['dm_eagle_cps.eagle_should_repay_repaid_amount_day_hst']=$dm_eagle_dm_eagle_cps
-#tables['dm_eagle_cps.eagle_should_repay_repaid_amount_day_hst']=$dm_eagle_dm_eagle_cps
-
-# 星云 ABS 导出
-# tables['dm_eagle.abs_overdue_rate_day']=$dm_eagle_uabs_core
-
-# tables['dm_eagle.abs_asset_distribution_day']=$dm_eagle_uabs_core
-# tables['dm_eagle.abs_asset_distribution_bag_day']=$dm_eagle_uabs_core
-# tables['dm_eagle.abs_asset_distribution_bag_snapshot_day']=$dm_eagle_uabs_core
-
-# tables['dm_eagle.abs_asset_information_bag']=$dm_eagle_uabs_core
-tables['dm_eagle.abs_asset_information_project']=$dm_eagle_uabs_core
-# tables['dm_eagle.abs_asset_information_bag_snapshot']=$dm_eagle_uabs_core
-
-# tables['dm_eagle.abs_asset_information_cash_flow_bag_day']=$dm_eagle_uabs_core
-# tables['dm_eagle.abs_asset_information_cash_flow_bag_snapshot']=$dm_eagle_uabs_core
+  # dm_eagle.eagle_should_repay_repaid_amount_day-$dm_eagle_dm_eagle
+  # dm_eagle_cps.eagle_should_repay_repaid_amount_day-$dm_eagle_dm_eagle_cps
 
 
+  # # 资金页面资产
+  # dm_eagle.eagle_asset_change-$dm_eagle_dm_eagle
+  # dm_eagle.eagle_asset_comp_info-$dm_eagle_dm_eagle
+  # dm_eagle.eagle_asset_change_t1-$dm_eagle_dm_eagle
+  # dm_eagle.eagle_asset_change_comp-$dm_eagle_dm_eagle
+  # dm_eagle.eagle_asset_change_comp_t1-$dm_eagle_dm_eagle
 
-s_date=2017-06-01
-e_date=$(date +%F)
+  # # 进件
+  # dm_eagle.eagle_ret_msg_day-$dm_eagle_dm_eagle
+  # dm_eagle.eagle_credit_loan_approval_rate_day-$dm_eagle_dm_eagle
+  # dm_eagle.eagle_credit_loan_approval_amount_sum_day-$dm_eagle_dm_eagle
+  # dm_eagle.eagle_credit_loan_approval_amount_rate_day-$dm_eagle_dm_eagle
 
-# s_date=2021-04-14
-# e_date=2021-04-14
+  # # 资金页面资金
+  # dm_eagle.eagle_funds-$dm_eagle_dm_eagle
+  # dm_eagle.eagle_acct_cost-$dm_eagle_dm_eagle
+  # dm_eagle.eagle_unreach_funds-$dm_eagle_dm_eagle
+  # dm_eagle.eagle_repayment_detail-$dm_eagle_dm_eagle
+
+  # # 应还实还
+  # dm_eagle.eagle_should_repay_repaid_amount_day-$dm_eagle_dm_eagle
+  # dm_eagle_cps.eagle_should_repay_repaid_amount_day-$dm_eagle_dm_eagle_cps
+  # dm_eagle.eagle_should_repay_repaid_amount_day_hst-$dm_eagle_dm_eagle
+  # dm_eagle_cps.eagle_should_repay_repaid_amount_day_hst-$dm_eagle_dm_eagle_cps
+  # dm_eagle_cps.eagle_should_repay_repaid_amount_day_hst-$dm_eagle_dm_eagle_cps
+
+  # # 星云 ABS 导出
+  # dm_eagle.abs_overdue_rate_day-$dm_eagle_uabs_core
+
+  # dm_eagle.abs_asset_distribution_day-$dm_eagle_uabs_core
+  # dm_eagle.abs_asset_distribution_bag_day-$dm_eagle_uabs_core
+  # dm_eagle.abs_asset_distribution_bag_snapshot_day-$dm_eagle_uabs_core
+
+  # dm_eagle.abs_asset_information_bag-$dm_eagle_uabs_core
+  # dm_eagle.abs_asset_information_project-$dm_eagle_uabs_core
+  # dm_eagle.abs_asset_information_bag_snapshot-$dm_eagle_uabs_core
+
+  # dm_eagle.abs_asset_information_cash_flow_bag_day-$dm_eagle_uabs_core
+  # dm_eagle.abs_asset_information_cash_flow_bag_snapshot-$dm_eagle_uabs_core
+)
+
+# s_date=2017-06-01
+# e_date=2021-04-30
+s_date=$(date -d '-1 day' +%F)
+e_date=$(date -d '-1 day' +%F)
+
+s_date="${1:-${s_date}}"
+e_date="${2:-${e_date}}"
+table_list=(${3:-${table_list[@]}})
+
+
+for tbl in ${table_list[@]}; do
+  tbl_mysql=($(b_a $tbl))
+  tables[${tbl_mysql[0]}]=$(echo ${tbl_mysql[1]})
+done
+
+
 
 p_num=30
 
-p_operas=(
-  dm_eagle.abs_overdue_rate_day
-  dm_eagle.abs_asset_distribution_day
-  dm_eagle.abs_asset_distribution_bag_day
-
-  dm_eagle.abs_asset_information_bag
-  dm_eagle.abs_asset_information_project
-
-  dm_eagle.abs_asset_information_cash_flow_bag_day
+# 全表导出的表
+export_all_data_tbl=(
+  dm_eagle.eagle_title_info
+  dm_eagle_cps.eagle_title_info
 )
+
+echo -e "${date_a_aa:=$(date +'%F %T')} 导出数据 从 Hive 导出数据 开始  当前脚本进程ID为：$(pid)"
 
 for db_tb in ${!tables[@]};do
     hql=()
     current_date=$(date +%Y%m%d)
 
-    if [[ "${db_tb}" = 'dm_eagle.abs_asset_information_cash_flow_bag_day' ]]; then
-      hql[$current_date]="
-        select * from dm_eagle.abs_asset_information_cash_flow_bag_day
-        where biz_date = (
-          select max(biz_date) from dm_eagle.abs_asset_information_cash_flow_bag_day
-          where biz_date between to_date(date_sub(current_timestamp(),3)) and to_date(date_sub(current_timestamp(),1))
-        );
-      "
-    elif [[ "${p_operas[@]}" =~ "${db_tb}" ]]; then
+    if [[ "${export_all_data_tbl[@]}" =~ "${db_tb}" ]]; then
+      hql[$current_date]="select * from ${db_tb};"
+    elif [[ "${db_tb}" = 'dm_eagle.abs_asset_information_cash_flow_bag_day' ]]; then
+      hql[$current_date]="select * from dm_eagle.abs_asset_information_cash_flow_bag_day where biz_date = '${e_date}';"
+    else
       for (( excute_date = $(date -d "${s_date}" +%Y%m%d); excute_date <= $(date -d "${e_date}" +%Y%m%d); excute_date = $(date -d "1 day ${excute_date}" +%Y%m%d) )); do
         hql[$excute_date]="select * from ${db_tb} where biz_date = '$(date -d "${excute_date}" +%F)';"
       done
-    else
-      hql[$current_date]="select * from ${db_tb};"
     fi
 
 
@@ -126,17 +126,18 @@ for db_tb in ${!tables[@]};do
       {
         export_file="$file_export/${db_tb}.$hql_key.tsv"
 
-        echo "$hql_key" "$export_file" "${hql[$hql_key]}"
+        echo -e "$hql_key"'\t'"$export_file"'\t'"${hql[$hql_key]}"
 
         export_file_from_hive "${hql[$hql_key]}"
-        # sleep 2
       } &
       p_opera $p_num &> /dev/null
     done
 done
 
 wait_jobs
-echo -e "${date_a_aa:=$(date +'%F %T')} 从Hive导出数据结束，开始上传到MySQL 当前脚本进程ID为：$(pid)    用时：${during_time:=$(during "$date_a_aa" "$date_s_aa")}\n\n"
+
+echo -e "${date_b_aa:=$(date +'%F %T')} 导出数据 从 Hive 导出数据 结束  当前脚本进程ID为：$(pid)    用时：$(during "$date_b_aa" "$date_a_aa")\n\n"
+echo -e "${date_c_aa:=$(date +'%F %T')} 导出数据 MySQL 上传 开始  当前脚本进程ID为：$(pid)"
 
 for db_tb in ${!tables[@]};do
 
@@ -144,23 +145,26 @@ for db_tb in ${!tables[@]};do
   export_file="$file_export/${db_tb}.tsv"
   mysql="$($mysql_cmd ${tables[$db_tb]})"
 
-  # echo $all_file
-
+  echo "$(date +'%F %T') 整理数据 all_file ——> simple 开始 ${db_tb}"
   cat $all_file > $export_file
+  echo "$(date +'%F %T') 整理数据 all_file ——> simple 结束 ${db_tb}"
+
+  echo "$(date +'%F %T') 删除数据 all_file 开始 ${db_tb}"
   rm -f $all_file
+  echo "$(date +'%F %T') 删除数据 all_file 结束 ${db_tb}"
 
-  import_file_to_mysql &
+  tb=$(p_r_r ${db_tb})
+  if [[ "${export_all_data_tbl[@]}" =~ "${db_tb}" ]]; then
+    delete_sql="truncate table ${tb};"
+  else
+    delete_sql="DELETE FROM ${tb} WHERE biz_date BETWEEN '${1}' and '${2}';"
+  fi
+
+  import_file_to_mysql "${delete_sql}" &
   p_opera $p_num &> /dev/null
-
 done
 
 wait_jobs
 
-echo -e "${date_e_aa:=$(date +'%F %T')} 数据导出  结束 当前脚本进程ID为：$(pid)    用时：${during_time:=$(during "$date_e_aa" "$date_a_aa")}\n\n"
-
-# $mail $pm_rd '数据 4.0 数据导出 结束' "
-#   执行导出日期： $e_date
-#   操作开始时间： $date_s_aa
-#   操作结束时间： $date_e_aa
-#   操作执行时长： $during_time
-# "
+echo -e "${date_d_aa:=$(date +'%F %T')} 导出数据 MySQL 上传 结束 当前脚本进程ID为：$(pid)    用时：$(during "$date_d_aa" "$date_c_aa")\n\n"
+echo -e "${date_e_aa:=$(date +'%F %T')} 导出数据 结束 当前脚本进程ID为：$(pid)    用时：$(during "$date_e_aa" "$date_s_aa")\n\n"

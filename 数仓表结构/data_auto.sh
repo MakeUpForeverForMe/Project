@@ -1214,25 +1214,25 @@ aa=$(select_data "${aa:-"$(
 )"}")
 
 beeline -n hive -u jdbc:hive2://node233:10000 --nullemptystring=true --outputformat=tsv2 -e "
-select
-  due_bill_no,
-  overdue_days,
-  loan_status,
-  loan_status_cn,
-  paid_out_type,
-  paid_out_type_cn,
-  product_id
-from ods_new_s.loan_info
-where 1 > 0
-  and product_id in (
-    '001801','001802','001803','001804',
-    '001901','001902','001903','001904','001905','001906','001907',
-    '002001','002002','002003','002004','002005','002006','002007',
-    '002401','002402'
-  )
-  and ('2021-02-01' between s_d_date and date_sub(e_d_date,1))
-  and overdue_days > 180
-order by loan_status,overdue_days
+  select
+    due_bill_no,
+    overdue_days,
+    loan_status,
+    loan_status_cn,
+    paid_out_type,
+    paid_out_type_cn,
+    product_id
+  from ods_new_s.loan_info
+  where 1 > 0
+    and product_id in (
+      '001801','001802','001803','001804',
+      '001901','001902','001903','001904','001905','001906','001907',
+      '002001','002002','002003','002004','002005','002006','002007',
+      '002401','002402'
+    )
+    and ('2021-02-01' between s_d_date and date_sub(e_d_date,1))
+    and overdue_days > 180
+  order by loan_status,overdue_days
 ;" > aa.tsv
 
 
@@ -1358,6 +1358,55 @@ $impala -q "select * from $app_name limit 1;"                                   
 
 
 
+
+
+
+
+db_tbs=(
+  $(
+    sudo -u hadoop \
+    beeline -n hadoop \
+    -u "jdbc:hive2://10.80.0.46:2181,10.80.0.255:2181,10.80.1.113:2181/;serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=hiveserver2" \
+    --color=true \
+    --hiveconf hive.resultset.use.unique.column.names=false \
+    --showHeader=false \
+    --outputformat=tsv2 \
+    -e '
+      show tables in dm_eagle
+    ;' 2> /dev/null
+  )
+)
+
+
+
+for tbl in ${db_tbs[@]}; do
+  path=cosn://bigdata-center-prod-1253824322/user/hadoop/warehouse/dm_eagle.db/${tbl}
+
+  files=(
+    $(
+      sudo -u hadoop hdfs dfs -ls $path | awk '{print $8}' | grep -E '\.hive' 2> /dev/null
+    )
+  )
+
+  delete_files=''
+  for file in ${files[@]}; do
+    delete_files+="${file##*/}$([[ $file = ${files[$(( ${#files[@]} - 1 ))]} ]] && echo '' || echo ',')"
+  done
+  [[ -n $delete_files ]] && {
+    delete_files=$path/'{'${delete_files}'}'
+    echo $delete_files
+    sudo -u hadoop hdfs dfs -rm -r $delete_files
+  }
+done
+
+
+
+
+
+
+
+
+
 tbls=(
   dim.out_project_due_bill_no
   ods.out_customer_info
@@ -1381,3 +1430,5 @@ for tbl in ${tbls[@]}; do
   echo "sudo -u hive hdfs dfs -put ./${db_tb[1]}/* /user/hive/warehouse/${db_tb[0]}.db/${db_tb[1]}"
   sudo -u hive hdfs dfs -put ./${db_tb[1]}/* /user/hive/warehouse/${db_tb[0]}.db/${db_tb[1]}
 done
+
+

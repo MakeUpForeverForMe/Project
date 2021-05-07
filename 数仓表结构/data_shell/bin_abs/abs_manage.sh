@@ -147,7 +147,8 @@ then
         bag_date=$(parse_json "`cat ${import_file_dir}/bag_info/bag_info@${input_file_suffix}.json`" "bag_date")
         # 解包任务 : 删除对应bag_id分区
         sh $bin_abs/data_abs_dm_eagle_unpacket.sh $bag_date $bag_date ${input_file_suffix} >> $log_file
-       # 解包成功回调
+        impala-shell -q "refresh dim_new.${input_file_prefix};"
+        # 解包成功回调
         print_log "unpacket finished,bag id is ${input_file_suffix} ! "
         curl -d "assetBagId=${input_file_suffix}" --connect-timeout 30 -m 60 ${call_back_address}/uabs-core/callback/unPackageSuccessConfirm >> $log_file
     else

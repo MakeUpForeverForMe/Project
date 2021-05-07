@@ -21,15 +21,14 @@ set hive.vectorized.execution.reduce.enabled=false;
 set hive.vectorized.execution.reduce.groupby.enabled=false;
 
 
--- set hivevar:bag_id=;
-
--- select ${bag_id};
--- !exit
-
+-- set hivevar:bag_id=
+--   select distinct bag_id
+--   from dim.bag_info
+--   where 1 > 0
+-- ;
 
 
 insert overwrite table dm_eagle.abs_asset_information_cash_flow_bag_snapshot partition(bag_id)
--- explain
 select
   project_id                                              as project_id,
   should_repay_date                                       as should_repay_date,
@@ -63,8 +62,23 @@ from (
       should_repay_cost          as should_repay_cost,
       repay_schedule.due_bill_no as due_bill_no,
       bag_info.bag_id            as bag_id
-    from (select project_id,bag_date,bag_id from dim.bag_info ${bag_id}) as bag_info
-    join (select due_bill_no,bag_id from dim.bag_due_bill_no ${bag_id}) as bag_due
+    from (
+      select
+        project_id,
+        bag_date,
+        bag_id
+      from dim.bag_info
+      where 1 > 0
+        and bag_id in (${bag_id})
+    ) as bag_info
+    join (
+      select
+        due_bill_no,
+        bag_id
+      from dim.bag_due_bill_no
+      where 1 > 0
+        and bag_id in (${bag_id})
+    ) as bag_due
     on bag_info.bag_id = bag_due.bag_id
     join (
       select

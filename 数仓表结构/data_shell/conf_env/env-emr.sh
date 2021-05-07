@@ -12,7 +12,7 @@ case $ip in
   (10.80.* )
     is_test=n
     hive_host='10.80.0.46:2181,10.80.0.255:2181,10.80.1.113:2181/;serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=hiveserver2'
-    impala_host=10.80.2.51:21050
+    impala_host=10.80.3.61:21050
     impala_clb='--protoco=hs2'
     ;;
   (10.83.* )
@@ -38,7 +38,7 @@ dm_eagle_uabs_core=$([[ ${is_test} == 'n' ]] && echo $conf_env/prod_dm_eagle_uab
 
 
 file_hql=$base_dir/file_hql
-reload_hql=$base_dir/ods_reload.query
+reload_hql=$file_hql/ods_reload.query
 dim_new_hql=$file_hql/dim.query
 ods_new_s_hql=$file_hql/ods.query
 ods_cloud_hql=$file_hql/ods_cloud.query

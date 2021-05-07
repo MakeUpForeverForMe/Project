@@ -229,7 +229,7 @@ done
 [[ -n $manage_kv_tmp_file ]] && trap $(rm -f $manage_kv_tmp_file) 1 2 9 15 19 20
 
 echo -e "${date_impala_s:=$(date +'%F %T')} Impala 刷新任务 执行开始  表名为：$app_name 当前脚本进程ID为：$(pid)"                                                                             &>> $manage_log
-$impala -q "invalidate metadata $app_name;"                                                                                                                                                   &>> $manage_log
+$impala -q "refresh $app_name;"                                                                                                                                                   &>> $manage_log
 $impala -q "COMPUTE STATS $app_name;"                                                                                                                                                         &>> $manage_log
 echo -e "${date_impala_e:=$(date +'%F %T')} Impala 刷新任务 执行结束  表名为：$app_name 当前脚本进程ID为：$(pid)  用时：$(during "$date_impala_e" "$date_impala_s")"                          &>> $manage_log
 

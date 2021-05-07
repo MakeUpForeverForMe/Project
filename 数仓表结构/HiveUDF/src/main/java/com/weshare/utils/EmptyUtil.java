@@ -11,7 +11,7 @@ import java.util.Map;
 public class EmptyUtil {
     private final static int defV = 0;
     private final static int mapV = 1;
-    private final static Map<String, Integer> map = new HashMap<>();
+    private static Map<String, Integer> map = new HashMap<>();
 
     static {
         map.put("", mapV);

@@ -37,7 +37,13 @@ set spark.sql.autoBroadcastJoinThreshold=1073741824; -- 设置广播变量的大
 
 set parquet.memory.min.chunk.size=32768;             -- 设置为32K
 
+set parquet.memory.min.chunk.size=32768;             -- 设置为32K
 
+set hive.optimize.skewjoin=true;                             -- 有数据倾斜时开启负载均衡，默认false
+set hive.auto.convert.join=true;                             -- 设置自动选择MapJoin，默认是true
+set hive.auto.convert.join.noconditionaltask=true;           -- map-side join
+set hive.auto.convert.join.noconditionaltask.size=100000000; -- 多大的表可以自动触发放到内层LocalTask中，默认大小10M
+set hive.mapjoin.smalltable.filesize=200000000;              -- 设置mapjoin小表的文件大小为20M，小表阈值
 
 set spark.executor.memory=4g;
 set spark.executor.memoryOverhead=4g;
@@ -47,9 +53,14 @@ set hive.support.quoted.identifiers=None;     -- 设置可以使用正则表达�
 -- set hive.groupby.orderby.position.alias=true; -- 设置 Hive 可以使用 group by 1,2,3
 set hive.optimize.index.filter=true;
 set hive.stats.fetch.column.stats=true;
--- set hive.auto.convert.join=false;                    -- 关闭自动 MapJoin
--- set hive.auto.convert.join.noconditionaltask=false;  -- 关闭自动 MapJoin
--- set hive.auto.convert.join.noconditionaltask.size=1073741824; -- 基于统计信息将基础join转化为map join的阈值
+-- 关闭自动 MapJoin
+-- set hive.auto.convert.join=false;
+-- set hive.auto.convert.join.noconditionaltask=false;  -- Hive在基于输入文件大小的前提下将普通JOIN转换成MapJoin，并是否将多个MJ合并成一个
+-- set hive.auto.convert.join.noconditionaltask.size=1073741824; -- 多个MJ合并成一个MJ时，其表的总的大小须小于该值，同时hive.auto.convert.join.noconditionaltask必须为true
+-- 不忽略 MAPJOIN 标记 /* +mapjoin(date_list) */
+set hive.ignore.mapjoin.hint=false;
+-- 设置小表不超过多大时开启 mapjoin 优化
+set hive.mapjoin.smalltable.filesize=256000000;
 set hive.mapjoin.followby.gby.localtask.max.memory.usage=0.9;
 -- set hive.mapjoin.optimized.hashtable=false;
 -- set hive.mapred.mode=nonstrict; -- 非严格模式
@@ -351,6 +362,9 @@ invalidate metadata stage.ecas_loan;
 
 
 
+invalidate metadata ods.enterprise_info;
+invalidate metadata ods.enterprise_info_abs;
+
 invalidate metadata ods.risk_control;
 invalidate metadata ods.risk_control_abs;
 
@@ -359,9 +373,6 @@ invalidate metadata ods.linkman_info_abs;
 
 invalidate metadata ods.guaranty_info;
 invalidate metadata ods.guaranty_info_abs;
-
-invalidate metadata ods.enterprise_info;
-invalidate metadata ods.enterprise_info_abs;
 
 invalidate metadata ods.customer_info;
 invalidate metadata ods.customer_info_abs;
@@ -390,6 +401,8 @@ invalidate metadata ods.t_10_basic_asset;
 invalidate metadata ods_cps.order_info;
 
 
+invalidate metadata dm_eagle.abs_asset_information_bag;
+invalidate metadata dm_eagle.abs_asset_information_project;
 invalidate metadata dm_eagle.abs_asset_information_bag_snapshot;
 
 
@@ -1164,7 +1177,8 @@ set hivevar:ST9=2021-02-01;
 
 set hivevar:ST9=2021-04-14;
 
-
+-- HBase 插入数据前加这个配置（Hive官网）
+set hive.hbase.wal.enabled=false;
 
 set hive.exec.input.listing.max.threads=50; -- 最大1024
 set tez.grouping.min-size=50000000;

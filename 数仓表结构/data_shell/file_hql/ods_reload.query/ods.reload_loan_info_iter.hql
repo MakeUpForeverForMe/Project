@@ -79,16 +79,16 @@ insert overwrite table ods${db_suffix}.loan_info_inter partition(biz_date,produc
       ecas_loan.apply_no,
       ecas_loan.loan_active_date,
       ecas_loan.loan_init_term,
-      case
-      when ecas_loan.paid_out_date = ecas_loan.loan_active_date then 1
-      when ecas_loan.paid_out_date is null                      then repay_schedule.loan_term2
-      when '${ST9}' <= ecas_loan.paid_out_date                  then repay_schedule.loan_term2
+     case  when overdue_principal_reload.max_paid_out_date = ecas_loan.loan_active_date then 1
+             when '${ST9}' >=overdue_principal_reload.max_should_repay_date  then overdue_principal_reload.max_should_repay_term
+             when '${ST9}' <= overdue_principal_reload.max_paid_out_date                  then repay_schedule.loan_term2
+      when overdue_principal_reload.max_paid_out_date IS NOT NULL  and overdue_principal_reload.max_paid_out_date!='1970-01-01' then settled_repay_schedule.settle_term
+     when  (overdue_principal_reload.max_paid_out_date='1970-01-01'or overdue_principal_reload.max_paid_out_date is null )                     then repay_schedule.loan_term2
       else null end as loan_term,
-      if(
-        (ecas_loan.paid_out_date = ecas_loan.loan_active_date and ecas_loan.loan_term = 1) or ecas_loan.paid_out_date is null or '${ST9}' <= ecas_loan.paid_out_date,
-        repay_schedule.should_repay_date,
-        null
-      ) as should_repay_date,
+      case  when '${ST9}' >=overdue_principal_reload.max_should_repay_date  then overdue_principal_reload.max_should_repay_date  --当前批次时间大于最大应还日 取最大一期的期次
+              when overdue_principal_reload.max_paid_out_date IS NOT NULL  and overdue_principal_reload.max_paid_out_date!='1970-01-01' then settled_repay_schedule.should_repay_date
+              when  (overdue_principal_reload.max_paid_out_date = ecas_loan.loan_active_date and ecas_loan.loan_term = 1) or (overdue_principal_reload.max_paid_out_date='1970-01-01'or overdue_principal_reload.max_paid_out_date is null ) or '${ST9}' <= overdue_principal_reload.max_paid_out_date then     repay_schedule.should_repay_date                     -- 如果借据最后一期已还 则标志借据为结清
+            else null end as should_repay_date,
       --取用实还上的已还期数更新借据上的已还期数和剩余期数
       nvl(repay_detail.paid_term,0)                              as loan_term_repaid,
       ecas_loan.loan_init_term-nvl(repay_detail.paid_term,0)     as loan_term_remain,
@@ -372,7 +372,10 @@ insert overwrite table ods${db_suffix}.loan_info_inter partition(biz_date,produc
                 when nvl(repay_hst.repayhst_paid_principal,0) >= due_term_prin then 0
                 when '${ST9}' < pmt_due_date then 0
                 when '${ST9}' >= pmt_due_date then due_term_int
-                end )                                                                   as overdue_interest
+                end )                                                                   as overdue_interest,
+            max(if(loan_init_term=curr_term and paid_out_date is not null,paid_out_date,"1970-01-01")) as max_paid_out_date,
+                max(pmt_due_date) as max_should_repay_date,
+                max(curr_term) as max_should_repay_term
         from
         (
             select
@@ -455,6 +458,30 @@ insert overwrite table ods${db_suffix}.loan_info_inter partition(biz_date,produc
         )tmp
         group by due_bill_no
     )overdue_day  on ecas_loan.due_bill_no = overdue_day.due_bill_no
+    left join (
+   select
+        due_bill_no,product_code,
+        max(should_repay_date) as should_repay_date,
+        max(max_paid_out_date) as max_paid_out_date,
+        max(min_repay_term) as settle_term
+     from
+        (
+        select
+        due_bill_no,product_code,paid_out_date,
+        min(curr_term)   as min_repay_term,
+        min(paid_out_date) as max_paid_out_date,
+        min(pmt_due_date) as should_repay_date
+        from stage.ecas_repay_schedule${tb_suffix}
+        where 1 > 0
+          and d_date = '${ST9}'
+          and curr_term > 0
+          and product_code in (${product_id})
+          and paid_out_date is not null
+        group by due_bill_no,product_code,paid_out_date
+    ) a
+   group by due_bill_no,product_code
+  ) settled_repay_schedule                                -- 结清借据会取最大应还日
+  on ecas_loan.due_bill_no = settled_repay_schedule.due_bill_no
   ) as today
   left join (
     select
@@ -463,16 +490,16 @@ insert overwrite table ods${db_suffix}.loan_info_inter partition(biz_date,produc
       ecas_loan.apply_no,
       ecas_loan.loan_active_date,
       ecas_loan.loan_init_term,
-      case
-      when ecas_loan.paid_out_date = ecas_loan.loan_active_date then 1
-      when ecas_loan.paid_out_date is null                      then repay_schedule.loan_term2
-      when '${ST9}' <= ecas_loan.paid_out_date                  then repay_schedule.loan_term2
+       case  when overdue_principal_reload.max_paid_out_date = ecas_loan.loan_active_date then 1
+             when date_sub('${ST9}',1) >=overdue_principal_reload.max_should_repay_date  then overdue_principal_reload.max_should_repay_term
+             when date_sub('${ST9}',1) <= overdue_principal_reload.max_paid_out_date                  then repay_schedule.loan_term2
+      when overdue_principal_reload.max_paid_out_date IS NOT NULL  and overdue_principal_reload.max_paid_out_date!='1970-01-01' then settled_repay_schedule.settle_term
+     when  (overdue_principal_reload.max_paid_out_date='1970-01-01'or overdue_principal_reload.max_paid_out_date is null )                     then repay_schedule.loan_term2
       else null end as loan_term,
-      if(
-        (ecas_loan.paid_out_date = ecas_loan.loan_active_date and ecas_loan.loan_term = 1) or ecas_loan.paid_out_date is null or '${ST9}' <= ecas_loan.paid_out_date,
-        repay_schedule.should_repay_date,
-        null
-      ) as should_repay_date,
+      case  when date_sub('${ST9}',1) >=overdue_principal_reload.max_should_repay_date  then overdue_principal_reload.max_should_repay_date  --当前批次时间大于最大应还日 取最大一期的期次
+              when overdue_principal_reload.max_paid_out_date IS NOT NULL  and overdue_principal_reload.max_paid_out_date!='1970-01-01' then settled_repay_schedule.should_repay_date
+              when  (overdue_principal_reload.max_paid_out_date = ecas_loan.loan_active_date and ecas_loan.loan_term = 1) or (overdue_principal_reload.max_paid_out_date='1970-01-01'or overdue_principal_reload.max_paid_out_date is null ) or date_sub('${ST9}',1) <= overdue_principal_reload.max_paid_out_date then     repay_schedule.should_repay_date                     -- 如果借据最后一期已还 则标志借据为结清
+            else null end as should_repay_date,
       nvl(repay_detail.paid_term,0)                              as loan_term_repaid,
       ecas_loan.loan_init_term-nvl(repay_detail.paid_term,0)     as loan_term_remain,
        case
@@ -633,7 +660,10 @@ insert overwrite table ods${db_suffix}.loan_info_inter partition(biz_date,produc
                 when nvl(repay_hst.repayhst_paid_principal,0) >= due_term_prin then 0
                 when date_sub('${ST9}',1) < pmt_due_date then 0
                 when date_sub('${ST9}',1) >= pmt_due_date then due_term_int
-                end )                                                                   as overdue_interest
+                end )                                                                   as overdue_interest,
+                max(if(loan_init_term=curr_term and paid_out_date is not null,paid_out_date,"1970-01-01")) as max_paid_out_date,
+                max(pmt_due_date) as max_should_repay_date,
+                max(curr_term) as max_should_repay_term
         from
         (
             select
@@ -715,6 +745,30 @@ insert overwrite table ods${db_suffix}.loan_info_inter partition(biz_date,produc
         )tmp
         group by due_bill_no
     )overdue_day  on ecas_loan.due_bill_no = overdue_day.due_bill_no
+     left join (
+        select
+           due_bill_no,product_code,
+           max(should_repay_date) as should_repay_date,
+           max(max_paid_out_date) as max_paid_out_date,
+           max(min_repay_term) as settle_term
+        from
+           (
+           select
+           due_bill_no,product_code,paid_out_date,
+           min(curr_term)   as min_repay_term,
+           min(paid_out_date) as max_paid_out_date,
+           min(pmt_due_date) as should_repay_date
+           from stage.ecas_repay_schedule${tb_suffix}
+           where 1 > 0
+             and d_date = date_sub('${ST9}',1)
+             and curr_term > 0
+             and product_code in (${product_id})
+             and paid_out_date is not null
+           group by due_bill_no,product_code,paid_out_date
+    ) a
+    group by due_bill_no,product_code
+  ) settled_repay_schedule                                -- 结清借据会取最大应还日
+  on ecas_loan.due_bill_no = settled_repay_schedule.due_bill_no
   ) as yesterday
   on  is_empty(today.product_id             ,'a') = is_empty(yesterday.product_id             ,'a')
   and is_empty(today.due_bill_no            ,'a') = is_empty(yesterday.due_bill_no            ,'a')

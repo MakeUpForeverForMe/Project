@@ -97,16 +97,16 @@ insert overwrite table ods.loan_info_inter partition(biz_date,product_id)
       ecas_loan.apply_no,
       ecas_loan.loan_active_date,
       ecas_loan.loan_init_term,
-      case
-      when ecas_loan.paid_out_date = ecas_loan.loan_active_date then 1
-      when ecas_loan.paid_out_date is null                      then repay_schedule.loan_term2
-      when '${ST9}' <= ecas_loan.paid_out_date                  then repay_schedule.loan_term2
+      case  when overdue_principal_reload.max_paid_out_date = ecas_loan.loan_active_date then 1
+             when '${ST9}' >=overdue_principal_reload.max_should_repay_date  then overdue_principal_reload.max_should_repay_term
+             when '${ST9}' <= overdue_principal_reload.max_paid_out_date                  then repay_schedule.loan_term2
+      when overdue_principal_reload.max_paid_out_date IS NOT NULL  and overdue_principal_reload.max_paid_out_date!='1970-01-01' then settled_repay_schedule.settle_term
+     when  (overdue_principal_reload.max_paid_out_date='1970-01-01'or overdue_principal_reload.max_paid_out_date is null )                     then repay_schedule.loan_term2
       else null end as loan_term,
-      if(
-        (ecas_loan.paid_out_date = ecas_loan.loan_active_date and ecas_loan.loan_term = 1) or ecas_loan.paid_out_date is null or '${ST9}' <= ecas_loan.paid_out_date,
-        repay_schedule.should_repay_date,
-        null
-      ) as should_repay_date,
+      case  when '${ST9}' >=overdue_principal_reload.max_should_repay_date  then overdue_principal_reload.max_should_repay_date  --当前批次时间大于最大应还日 取最大一期的期次
+              when overdue_principal_reload.max_paid_out_date IS NOT NULL  and overdue_principal_reload.max_paid_out_date!='1970-01-01' then settled_repay_schedule.should_repay_date
+              when  (overdue_principal_reload.max_paid_out_date = ecas_loan.loan_active_date and ecas_loan.loan_term = 1) or (overdue_principal_reload.max_paid_out_date='1970-01-01'or overdue_principal_reload.max_paid_out_date is null ) or '${ST9}' <= overdue_principal_reload.max_paid_out_date then     repay_schedule.should_repay_date                     -- 如果借据最后一期已还 则标志借据为结清
+            else null end as should_repay_date,
       case when ecas_loan.due_bill_no ="1000000275" and  ecas_loan.d_date<'2020-02-12' then 0
       when ecas_loan.due_bill_no ="1000000381" and  ecas_loan.d_date>='2020-08-17' then ecas_loan.loan_init_term
       when ecas_loan.due_bill_no ="1000000275" and ecas_loan.d_date >='2020-02-12'  then ecas_loan.loan_init_term
@@ -120,18 +120,20 @@ insert overwrite table ods.loan_info_inter partition(biz_date,product_id)
              when ecas_loan.due_bill_no="1000000163" and ecas_loan.d_date >='2020-09-29'  then 'F'
              when ecas_loan.due_bill_no="1000000403" and ecas_loan.d_date >='2020-11-09'  then 'F'
              when ecas_loan.loan_status='O' and overdue_day.overdue_date='9999-12-31' then "N"
+             when overdue_principal_reload.max_paid_out_date IS NOT NULL  and overdue_principal_reload.max_paid_out_date!='1970-01-01' then 'F'
       else  ecas_loan.loan_status  end as loan_status,
        case
-            when ecas_loan.due_bill_no="1000004836" and ecas_loan.d_date >='2020-11-23'  then 'F'
+            when ecas_loan.due_bill_no="1000004836" and ecas_loan.d_date >='2020-11-23'  then '已还清'
             when ecas_loan.due_bill_no="1000000163" and ecas_loan.d_date >='2020-09-29'  then '已还清'
             when ecas_loan.due_bill_no="1000000403" and ecas_loan.d_date >='2020-11-09'  then '已还清'
+            when overdue_principal_reload.max_paid_out_date IS NOT NULL  and overdue_principal_reload.max_paid_out_date!='1970-01-01' then '已还清'
             when overdue_day.overdue_date!='9999-12-31' then '逾期'
             when ecas_loan.loan_status='O' and overdue_day.overdue_date='9999-12-31' then "正常"
       else  ecas_loan.loan_status_cn  end as loan_status_cn,
       ecas_loan.loan_out_reason,
       ecas_loan.paid_out_type,
       ecas_loan.paid_out_type_cn,
-      ecas_loan.paid_out_date,
+      if(overdue_principal_reload.max_paid_out_date IS NOT NULL  and overdue_principal_reload.max_paid_out_date!='1970-01-01' ,overdue_principal_reload.max_paid_out_date,ecas_loan.paid_out_date) as paid_out_date,
       ecas_loan.terminal_date,
       ecas_loan.loan_init_principal,
       ecas_loan.loan_init_interest_rate,
@@ -484,7 +486,10 @@ insert overwrite table ods.loan_info_inter partition(biz_date,product_id)
                          when nvl(reduce_penalty,0)>nvl(due_penalty,0) then nvl(due_penalty,0)
                          else nvl(reduce_penalty,0) end) +
                          +sum(if(nvl(reduce_svc_fee,0)>nvl(due_svc_fee,0),nvl(due_svc_fee,0),nvl(reduce_svc_fee,0)))
-                         +sum(if(nvl(reduce_mult_amt,0)>nvl(due_mult_amt,0),nvl(due_mult_amt,0),nvl(reduce_mult_amt,0))) as total_reduce_fee_amount
+                         +sum(if(nvl(reduce_mult_amt,0)>nvl(due_mult_amt,0),nvl(due_mult_amt,0),nvl(reduce_mult_amt,0))) as total_reduce_fee_amount,
+                max(if(loan_init_term=curr_term and paid_out_date is not null,paid_out_date,"1970-01-01")) as max_paid_out_date,
+                max(pmt_due_date) as max_should_repay_date,
+                max(curr_term) as max_should_repay_term
         from
         (
             select
@@ -495,6 +500,7 @@ insert overwrite table ods.loan_info_inter partition(biz_date,product_id)
                 tmp.due_term_int,
                 tmp.curr_term,
                 tmp.due_term_fee,
+                tmp.loan_init_term,
                case when tmp.due_bill_no="1000000163" and tmp.d_date >='2020-09-29' and tmp.curr_term=0 then 600
                          when tmp.due_bill_no="1000000403" and tmp.d_date >='2020-11-09' and tmp.curr_term=0 then 600
                          else tmp.due_svc_fee end                                                       as due_svc_fee,
@@ -603,6 +609,64 @@ insert overwrite table ods.loan_info_inter partition(biz_date,product_id)
         )tmp
         group by due_bill_no
     )overdue_day  on ecas_loan.due_bill_no = overdue_day.due_bill_no
+   left join (
+    select
+        due_bill_no,product_code,
+        max(should_repay_date) as should_repay_date,
+        max(max_paid_out_date) as max_paid_out_date,
+        max(min_repay_term) as settle_term
+     from
+        (
+        select
+        due_bill_no,product_code,paid_out_date,
+        min(curr_term)   as min_repay_term,
+        min(paid_out_date) as max_paid_out_date,
+        min(pmt_due_date) as should_repay_date
+        from (
+            select
+                tmp.product_code,
+                tmp.due_bill_no,
+                tmp.origin_pmt_due_date,
+                tmp.pmt_due_date,
+                tmp.due_term_prin,
+                tmp.due_term_int,
+                tmp.curr_term,
+                tmp.due_term_fee,
+                tmp.loan_init_term,
+                case
+                     when tmp.due_bill_no="1000000223" and tmp.d_date >='2020-10-07' and tmp.curr_term=10 then '2020-10-07'
+                     when tmp.due_bill_no="1000000720" and tmp.d_date >='2020-10-16' and tmp.curr_term=3 then '2020-10-16'
+                     when tmp.due_bill_no="1000000060" and tmp.d_date >='2020-10-04' and tmp.curr_term=10 then '2020-10-04'
+                     when tmp.due_bill_no="1000004836" and tmp.d_date >='2020-11-23' then '2020-11-23'
+                     when tmp.due_bill_no='1000000381' and tmp.d_date >='2020-08-17' then '2020-08-17'
+                     when tmp.due_bill_no="1000001858" and tmp.d_date ='2020-09-21' and tmp.curr_term=0 then null
+                     when tmp.paid_out_date >tmp.d_date then null
+                      when tmp.due_bill_no="1000000163" and tmp.d_date >='2020-09-29' and (tmp.curr_term=0 or tmp.curr_term between 6 and 36) then '2020-09-29'
+                      when tmp.due_bill_no="1000000403" and tmp.d_date >='2020-11-09' and (tmp.curr_term=0 or tmp.curr_term between 3 and 36)  then '2020-11-09'
+                     when tmp.d_date>=new_schedule.paid_out_date then new_schedule.paid_out_date
+                     when tmp.due_bill_no='1000000275' and  tmp.d_date<'2020-02-12' then null
+                     when tmp.due_bill_no='1000000275' and  tmp.d_date>='2020-02-12' then '2020-02-12'
+                     when tmp.paid_out_date!=new_schedule.paid_out_date and tmp.paid_out_date is not null then new_schedule.paid_out_date
+                else tmp.paid_out_date end  as paid_out_date
+            from (
+            select * from stage.ecas_repay_schedule where d_date = '${ST9}' and p_type in (${p_types}) and product_code in (${product_id_list}) and schedule_id not in ('000016006898691admin000068000001')   and curr_term > 0
+            union all
+            select * from stage.ecas_repay_schedule_ht_repair where d_date = '${ST9}' and p_type in (${p_types}) and product_code in(${product_id_list}) and schedule_id not in ('000016006898691admin000068000001') and curr_term > 0
+            )tmp
+            left join
+            (
+                    select due_bill_no,curr_term,paid_out_date,schedule_status,reduce_svc_fee
+                    from stage.ecas_repay_schedule where d_date='${d_date}'  and p_type in (${p_types}) and product_code in (${product_id_list})
+                    and paid_out_date is not null and paid_out_date<=date_add('${ST9}',10) and schedule_id not in ('000016006898691admin000068000001')
+            )new_schedule on tmp.due_bill_no=new_schedule.due_bill_no and tmp.curr_term=new_schedule.curr_term
+        )repay_schedule
+        where 1 > 0
+          and  paid_out_date is not null
+        group by due_bill_no,product_code,paid_out_date
+    ) a
+   group by due_bill_no,product_code
+  ) settled_repay_schedule
+  on ecas_loan.due_bill_no=settled_repay_schedule.due_bill_no
   ) as today
   left join (
     select
@@ -611,16 +675,16 @@ insert overwrite table ods.loan_info_inter partition(biz_date,product_id)
       ecas_loan.apply_no,
       ecas_loan.loan_active_date,
       ecas_loan.loan_init_term,
-      case
-      when ecas_loan.paid_out_date = ecas_loan.loan_active_date then 1
-      when ecas_loan.paid_out_date is null                      then repay_schedule.loan_term2
-      when '${ST9}' <= ecas_loan.paid_out_date                  then repay_schedule.loan_term2
+        case  when overdue_principal_reload.max_paid_out_date = ecas_loan.loan_active_date then 1
+             when date_sub('${ST9}',1) >=overdue_principal_reload.max_should_repay_date  then overdue_principal_reload.max_should_repay_term
+             when date_sub('${ST9}',1) <= overdue_principal_reload.max_paid_out_date                  then repay_schedule.loan_term2
+      when overdue_principal_reload.max_paid_out_date IS NOT NULL  and overdue_principal_reload.max_paid_out_date!='1970-01-01' then settled_repay_schedule.settle_term
+     when  (overdue_principal_reload.max_paid_out_date='1970-01-01'or overdue_principal_reload.max_paid_out_date is null )                     then repay_schedule.loan_term2
       else null end as loan_term,
-      if(
-        (ecas_loan.paid_out_date = ecas_loan.loan_active_date and ecas_loan.loan_term = 1) or ecas_loan.paid_out_date is null or '${ST9}' <= ecas_loan.paid_out_date,
-        repay_schedule.should_repay_date,
-        null
-      ) as should_repay_date,
+      case  when date_sub('${ST9}',1) >=overdue_principal_reload.max_should_repay_date  then overdue_principal_reload.max_should_repay_date  --当前批次时间大于最大应还日 取最大一期的期次
+              when overdue_principal_reload.max_paid_out_date IS NOT NULL  and overdue_principal_reload.max_paid_out_date!='1970-01-01' then settled_repay_schedule.should_repay_date
+              when  (overdue_principal_reload.max_paid_out_date = ecas_loan.loan_active_date and ecas_loan.loan_term = 1) or (overdue_principal_reload.max_paid_out_date='1970-01-01'or overdue_principal_reload.max_paid_out_date is null ) or date_sub('${ST9}',1) <= overdue_principal_reload.max_paid_out_date then     repay_schedule.should_repay_date                     -- 如果借据最后一期已还 则标志借据为结清
+            else null end as should_repay_date,
       case when ecas_loan.due_bill_no ="1000000275"  and ecas_loan.d_date<'2020-02-12' then 0
       when ecas_loan.due_bill_no ="1000000275" and ecas_loan.d_date >='2020-02-12'  then ecas_loan.loan_init_term
       when ecas_loan.due_bill_no ="1000000381" and ecas_loan.d_date >='2020-08-17'  then ecas_loan.loan_init_term
@@ -634,12 +698,13 @@ insert overwrite table ods.loan_info_inter partition(biz_date,product_id)
     case when ecas_loan.due_bill_no="1000000163" and ecas_loan.d_date >='2020-09-29'  then 'F'
          when ecas_loan.due_bill_no="1000000403" and ecas_loan.d_date >='2020-11-09'  then 'F'
          when ecas_loan.due_bill_no="1000004836" and ecas_loan.d_date >='2020-11-23'  then 'F'
+         when overdue_principal_reload.max_paid_out_date IS NOT NULL  and overdue_principal_reload.max_paid_out_date!='1970-01-01' then 'F'
          when overdue_day.overdue_date!='9999-12-31' then 'O'
          when ecas_loan.loan_status='O' and overdue_day.overdue_date='9999-12-31' then "N"
       else  ecas_loan.loan_status  end as loan_status,
       ecas_loan.loan_out_reason,
       ecas_loan.paid_out_type,
-      ecas_loan.paid_out_date,
+     if(overdue_principal_reload.max_paid_out_date IS NOT NULL  and overdue_principal_reload.max_paid_out_date!='1970-01-01' ,overdue_principal_reload.max_paid_out_date,ecas_loan.paid_out_date) as paid_out_date,
       ecas_loan.terminal_date,
       ecas_loan.loan_init_principal,
       ecas_loan.loan_init_interest_rate,
@@ -893,10 +958,14 @@ insert overwrite table ods.loan_info_inter partition(biz_date,product_id)
                          when nvl(reduce_penalty,0)>nvl(due_penalty,0) then nvl(due_penalty,0)
                          else nvl(reduce_penalty,0) end) +
                          +sum(if(nvl(reduce_svc_fee,0)>nvl(due_svc_fee,0),nvl(due_svc_fee,0),nvl(reduce_svc_fee,0)))
-                         +sum(if(nvl(reduce_mult_amt,0)>nvl(due_mult_amt,0),nvl(due_mult_amt,0),nvl(reduce_mult_amt,0))) as total_reduce_fee_amount
+                         +sum(if(nvl(reduce_mult_amt,0)>nvl(due_mult_amt,0),nvl(due_mult_amt,0),nvl(reduce_mult_amt,0))) as total_reduce_fee_amount,
+                 max(if(loan_init_term=curr_term and paid_out_date is not null,paid_out_date,"1970-01-01")) as max_paid_out_date,
+                max(pmt_due_date) as max_should_repay_date,
+                max(curr_term) as max_should_repay_term
         from
         (
             select
+                tmp.loan_init_term,
                 tmp.due_bill_no,
                 tmp.origin_pmt_due_date,
                 tmp.pmt_due_date,
@@ -1007,6 +1076,64 @@ insert overwrite table ods.loan_info_inter partition(biz_date,product_id)
         )tmp
         group by due_bill_no
     )overdue_day  on ecas_loan.due_bill_no = overdue_day.due_bill_no
+    left join (
+    select
+        due_bill_no,product_code,
+        max(should_repay_date) as should_repay_date,
+        max(max_paid_out_date) as max_paid_out_date,
+        max(min_repay_term) as settle_term
+     from
+        (
+        select
+        due_bill_no,product_code,paid_out_date,
+        min(curr_term)   as min_repay_term,
+        min(paid_out_date) as max_paid_out_date,
+        min(pmt_due_date) as should_repay_date
+        from (
+            select
+                tmp.product_code,
+                tmp.due_bill_no,
+                tmp.origin_pmt_due_date,
+                tmp.pmt_due_date,
+                tmp.due_term_prin,
+                tmp.due_term_int,
+                tmp.curr_term,
+                tmp.due_term_fee,
+                tmp.loan_init_term,
+                case
+                     when tmp.due_bill_no="1000000223" and tmp.d_date >='2020-10-07' and tmp.curr_term=10 then '2020-10-07'
+                     when tmp.due_bill_no="1000000720" and tmp.d_date >='2020-10-16' and tmp.curr_term=3 then '2020-10-16'
+                     when tmp.due_bill_no="1000000060" and tmp.d_date >='2020-10-04' and tmp.curr_term=10 then '2020-10-04'
+                     when tmp.due_bill_no="1000004836" and tmp.d_date >='2020-11-23' then '2020-11-23'
+                     when tmp.due_bill_no='1000000381' and tmp.d_date >='2020-08-17' then '2020-08-17'
+                     when tmp.due_bill_no="1000001858" and tmp.d_date ='2020-09-21' and tmp.curr_term=0 then null
+                     when tmp.paid_out_date >tmp.d_date then null
+                      when tmp.due_bill_no="1000000163" and tmp.d_date >='2020-09-29' and (tmp.curr_term=0 or tmp.curr_term between 6 and 36) then '2020-09-29'
+                      when tmp.due_bill_no="1000000403" and tmp.d_date >='2020-11-09' and (tmp.curr_term=0 or tmp.curr_term between 3 and 36)  then '2020-11-09'
+                     when tmp.d_date>=new_schedule.paid_out_date then new_schedule.paid_out_date
+                     when tmp.due_bill_no='1000000275' and  tmp.d_date<'2020-02-12' then null
+                     when tmp.due_bill_no='1000000275' and  tmp.d_date>='2020-02-12' then '2020-02-12'
+                     when tmp.paid_out_date!=new_schedule.paid_out_date and tmp.paid_out_date is not null then new_schedule.paid_out_date
+                else tmp.paid_out_date end  as paid_out_date
+            from (
+            select * from stage.ecas_repay_schedule where d_date = date_sub('${ST9}',1) and p_type in (${p_types}) and product_code in (${product_id_list}) and schedule_id not in ('000016006898691admin000068000001')   and curr_term > 0
+            union all
+            select * from stage.ecas_repay_schedule_ht_repair where d_date = date_sub('${ST9}',1) and p_type in (${p_types}) and product_code in(${product_id_list}) and schedule_id not in ('000016006898691admin000068000001') and curr_term > 0
+            )tmp
+            left join
+            (
+                    select due_bill_no,curr_term,paid_out_date,schedule_status,reduce_svc_fee
+                    from stage.ecas_repay_schedule where d_date='${d_date}'  and p_type in (${p_types}) and product_code in (${product_id_list})
+                    and paid_out_date is not null and paid_out_date<=date_add('${ST9}',10) and schedule_id not in ('000016006898691admin000068000001')
+            )new_schedule on tmp.due_bill_no=new_schedule.due_bill_no and tmp.curr_term=new_schedule.curr_term
+        )repay_schedule
+        where 1 > 0
+          and  paid_out_date is not null
+        group by due_bill_no,product_code,paid_out_date
+    ) a
+   group by due_bill_no,product_code
+  ) settled_repay_schedule
+  on ecas_loan.due_bill_no=settled_repay_schedule.due_bill_no
   ) as yesterday
   on  is_empty(today.product_id             ,'a') = is_empty(yesterday.product_id             ,'a')
   and is_empty(today.due_bill_no            ,'a') = is_empty(yesterday.due_bill_no            ,'a')
@@ -1041,6 +1168,7 @@ insert overwrite table ods.loan_info_inter partition(biz_date,product_id)
   and is_empty(today.overdue_date           ,'a') = is_empty(yesterday.overdue_date           ,'a')
   and is_empty(today.overdue_days           ,'a') = is_empty(yesterday.overdue_days           ,'a')
   where yesterday.due_bill_no is null
+  --and today.due_bill_no="1000003360"
   --limit 1
   ;
 

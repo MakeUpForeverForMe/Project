@@ -15402,24 +15402,156 @@ select count(serial_number) from ods_new_s.t_10_basic_asset_stage where project_
 
 select count(serial_number) from ods.t_10_basic_asset where project_id = 'CL202104250093';
 
-
-invalidate metadata dim_new.bag_info;
-
+select * from ods.t_10_basic_asset where project_id = 'CL202104250093' and serial_number = '1000000122';
 
 
-curl -d "assetBagId=CL202104250093_2" --connect-timeout 30 -m 60 10.83.0.69:8210/uabs-core/callback/packageSuccessConfirm
-curl -d "assetBagId=CL202104250093_3" --connect-timeout 30 -m 60 10.83.0.69:8210/uabs-core/callback/packageSuccessConfirm
+select * from dim_new.bag_info where bag_id = 'CL202104250093_4' limit 10;
+
+select * from dim_new.bag_due_bill_no where project_id = 'CL202104250093' limit 10;
 
 
-select distinct *
-from ods.guaranty_info_abs
-where 1 > 0
-  and project_id = 'CL202012280092'
-  and due_bill_no in (
-    '1103563315',
-    '1103570144',
-    '1103698759',
-    ''
-  )
+
+select cast('63700.000000' as decimal(20,5)) = 63700 as aa;
+
+
+select datediff('2021-04-26','2019-12-11') as diff;
+
+
+
+
+DROP TABLE IF EXISTS `customers`;
+DROP TABLE IF EXISTS `sample_07`;
+DROP TABLE IF EXISTS `sample_08`;
+DROP TABLE IF EXISTS `web_logs`;
+
+
+
+
+
+select * from ods.loan_info where '2020-06-03' between s_d_date and date_sub(e_d_date,1) and product_id in ('001801','001802') limit 10;
+
+
+
+select distinct product_id,loan_usage from ods.loan_lending order by product_id,loan_usage;
+
+
+
+select
+  a.a,
+  max(b.a) as b,
+  sum(b.b) as c
+from (
+  select 0 as a union all
+  select 1 as a union all
+  select 2 as a union all
+  select 3 as a union all
+  select 4 as a union all
+  select 5 as a
+) as a
+left join (
+  select 1 as a,10 as b union all
+  select 3 as a,20 as b union all
+  select 4 as a,30 as b
+) as b
+on b.a <= a.a
+group by a.a
+order by a.a
 ;
-          
+
+
+
+
+refresh dw.abs_due_info_day;
+
+
+select
+  biz_date,
+  project_id,
+  count(1) as a,
+  count(distinct due_bill_no) as b,
+  count(1) - count(distinct due_bill_no) as c
+from dw.abs_due_info_day
+where 1 > 0
+  -- and biz_date between '2021-03-17' and '2021-04-26'
+  -- and biz_date = '2021-04-27' and project_id = 'CL202103260102'
+group by
+  project_id
+  ,biz_date
+having count(1) - count(distinct due_bill_no) > 0
+order by biz_date
+;
+
+
+
+
+
+
+
+
+
+select * from dw.abs_due_info_day where biz_date = '2021-04-27' and project_id = 'CL202103260102' and due_bill_no = '1103698759';
+
+
+
+
+
+
+select * from ods.loan_info_abs where project_id = '001601' and due_bill_no = '1000003360';
+
+
+
+
+
+select * from ods.customer_info_abs
+where job_year is null
+  and project_id = 'CL202011090089'
+limit 10
+;
+
+
+
+
+
+
+
+
+
+
+
+
+select * from dw.abs_due_info_day_abs limit 10;
+
+
+select * from dim.bag_info where project_id = 'CL202011090089';
+
+
+
+select
+  original_msg
+from stage.ecas_msg_log
+where 1 > 0
+  and msg_type = 'GZ_CREDIT_APPLY'
+  and original_msg is not null
+limit 10;
+
+
+
+
+
+
+
+
+select count(1) from dim.dim_encrypt_info
+where 1 > 0
+  and dim_encrypt like '@%'
+;
+
+
+select is_empty('','null',null,'aa') as a;
+
+
+
+select js2str(a) as a
+from a;
+
+
