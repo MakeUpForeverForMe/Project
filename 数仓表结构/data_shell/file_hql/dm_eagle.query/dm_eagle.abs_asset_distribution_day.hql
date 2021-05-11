@@ -20,11 +20,19 @@ set hive.vectorized.execution.enabled=false;
 set hive.vectorized.execution.reduce.enabled=false;
 set hive.vectorized.execution.reduce.groupby.enabled=false;
 
+
 -- set hivevar:ST9=2021-04-14;
 
-with
 -- 项目级
+with
 bill_info as (
+  select
+  from dw.abs_due_info_day_abs as dw
+  where 1 > 0
+    and biz_date = '${ST9}'
+    and loan_status <> 'F'
+
+
   select
     loan_info.due_bill_no,
     loan_info.project_id,

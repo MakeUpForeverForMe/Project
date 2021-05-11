@@ -148,7 +148,7 @@ left join (
     sum(remain_principal)  as overdue_remain_principal
     from ods_new_s.loan_info
     where "${ST9}" between s_d_date and date_sub(e_d_date,1)
-    and overdue_days>=1 and loan_status='O' and product_id in (${product_id_list})
+    and overdue_days>=30 and loan_status='O' and product_id in (${product_id_list})
     and nvl(paid_out_type,"normal")!='BUY_BACK'
     group by product_id
 )loan_over on biz_conf.product_id=loan_over.product_id

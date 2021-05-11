@@ -2037,7 +2037,8 @@ DROP FUNCTION IF EXISTS sha256;
 DROP FUNCTION IF EXISTS date_max;
 DROP FUNCTION IF EXISTS date_min;
 DROP FUNCTION IF EXISTS ptrim;
-DROP FUNCTION IF EXISTS random;
+DROP FUNCTION IF EXISTS map_from_str;
+DROP FUNCTION IF EXISTS json_array_to_array;
 DROP FUNCTION IF EXISTS js2str;
 
 DROP FUNCTION IF EXISTS is_empty;
@@ -2052,23 +2053,24 @@ CREATE FUNCTION sha256              AS 'com.weshare.udf.Sha256Salt'             
 CREATE FUNCTION date_max            AS 'com.weshare.udf.GetDateMax'                     USING JAR '${hdfs_path}';
 CREATE FUNCTION date_min            AS 'com.weshare.udf.GetDateMin'                     USING JAR '${hdfs_path}';
 CREATE FUNCTION ptrim               AS 'com.weshare.udf.TrimPlus'                       USING JAR '${hdfs_path}';
-CREATE FUNCTION random              AS 'com.weshare.udf.RandomPlus'                     USING JAR '${hdfs_path}';
+CREATE FUNCTION map_from_str        AS 'com.weshare.udf.AnalysisStringToJson'           USING JAR '${hdfs_path}';
+CREATE FUNCTION json_array_to_array AS 'com.weshare.udf.AnalysisJsonArray'              USING JAR '${hdfs_path}';
 CREATE FUNCTION js2str              AS 'com.weshare.udf.JsonString2StringUDF'           USING JAR '${hdfs_path}';
 
 CREATE FUNCTION is_empty            AS 'com.weshare.generic.IsEmptyGenericUDF'          USING JAR '${hdfs_path}';
 
 reload function; -- 多个 HiveServer 之间，需要同步元数据信息
-ALTER MATERIALIZED VIEW [db_name.]materialized_view_name REBUILD; -- 更新物化视图
 
 -- 修复分区
 MSCK REPAIR TABLE table_name;
 analyze table table_name compute statistics;
+ALTER MATERIALIZED VIEW [db_name.]materialized_view_name REBUILD; -- 更新物化视图
 
 SHOW FUNCTIONS LIKE 'default*';
 DESC FUNCTION EXTENDED js2str;
 
-SHOW FUNCTIONS LIKE '*array*';
-DESC FUNCTION EXTENDED next_day;
+SHOW FUNCTIONS LIKE '*json*';
+DESC FUNCTION EXTENDED json_tuple;
 ```
 
 

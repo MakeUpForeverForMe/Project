@@ -292,7 +292,7 @@ STORED AS TEXTFILE;
 CREATE TABLE IF NOT EXISTS `dim.bag_due_bill_no`(
   `project_id`                    string         COMMENT '项目编号',
   `due_bill_no`                   string         COMMENT '借据编号',
-  `package_remain_principal`      decimal(15,4)  COMMENT '封包时本金余额',
+  `package_remain_principal`      decimal(25,5)  COMMENT '封包时本金余额',
   `package_remain_periods`        int            COMMENT '封包时剩余期数'
 ) COMMENT '包借据映射'
 PARTITIONED BY (`bag_id` string COMMENT '包编号')

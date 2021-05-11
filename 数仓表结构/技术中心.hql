@@ -15547,11 +15547,106 @@ where 1 > 0
 ;
 
 
-select is_empty('','null',null,'aa') as a;
+select distinct
+  project_id,
+  loan_type_cn,
+  loan_type
+from ods.loan_lending_abs;
 
 
 
-select js2str(a) as a
-from a;
 
 
+
+select sha256('aa','userName',1);
+
+select sum(a)
+from (
+  select null as a union all
+  select null as a union all
+  select null as a
+) as tmp
+;
+
+
+
+show create table dm_eagle.abs_early_payment_asset_statistic_a;
+show create table dm_eagle.abs_early_payment_asset_statistic_b;
+
+select package_remain_principal from dm_eagle.abs_early_payment_asset_statistic_a where biz_date = '2018-11-10' and project_id = 'cl00185';
+select package_remain_principal from dm_eagle.abs_early_payment_asset_statistic_b where biz_date = '2018-11-10' and project_id = 'cl00185';
+
+
+
+select project_id,package_remain_principal from dm_eagle.abs_early_payment_asset_statistic where biz_date = '2018-11-10';
+
+select project_id,package_remain_principal from dm_eagle.abs_early_payment_asset_statistic_a where biz_date = '2018-11-10';
+select project_id,package_remain_principal from dm_eagle.abs_early_payment_asset_statistic_b where biz_date = '2018-11-10';
+
+select project_id,package_remain_principal from dm_eagle.abs_early_payment_asset_statistic_c;
+
+select project_id,package_remain_principal from dm_eagle.abs_early_payment_asset_statistic_d;
+
+
+
+
+select distinct project_id from dw.abs_due_info_day_abs where biz_date = '{$ST9}';
+
+
+drop table if exists dm_eagle.abs_early_payment_asset_statistic;
+
+
+truncate table dm_eagle.abs_early_payment_asset_statistic;
+
+
+MSCK REPAIR TABLE dm_eagle.abs_early_payment_asset_statistic_c;
+
+
+
+
+ALTER TABLE dm_eagle.abs_early_payment_asset_statistic DROP IF EXISTS PARTITION (biz_date = '2018-11-10');
+
+
+
+
+
+
+
+
+-- 应收
+select
+  project_id                                          as project_id,
+  should_repay_date                                   as should_repay_date,
+  loan_active_date,
+  min(loan_active_date) over(partition by project_id) as min_active_date,
+  sum(nvl(should_repay_amount,0))                     as should_repay_amount,
+  sum(nvl(should_repay_principal,0))                  as should_repay_principal,
+  sum(nvl(should_repay_interest,0))                   as should_repay_interest,
+  sum(nvl(should_repay_cost,0))                       as should_repay_cost
+from (
+  select
+    product_id                                                               as product_id,
+    loan_active_date                                                         as loan_active_date,
+    should_repay_date                                                        as should_repay_date,
+    sum(should_repay_amount)                                                 as should_repay_amount,
+    sum(should_repay_principal)                                              as should_repay_principal,
+    sum(should_repay_interest)                                               as should_repay_interest,
+    sum(should_repay_term_fee + should_repay_svc_fee + should_repay_penalty) as should_repay_cost
+  from ods.repay_schedule
+  where '2020-06-05' between s_d_date and date_sub(e_d_date,1)
+    and if(paid_out_type_cn is NULL,'A',paid_out_type_cn) != '提前结清'
+  group by product_id,loan_active_date,should_repay_date
+) as schedule
+join (
+  select
+    max(if(col_name = 'channel_id',col_val,null)) as channel_id,
+    max(if(col_name = 'project_id',col_val,null)) as project_id,
+    max(if(col_name = 'product_id',col_val,null)) as product_id
+  from dim.data_conf
+  where col_type = 'ac'
+  group by col_id
+) as bizconf
+on schedule.product_id = bizconf.product_id
+where bizconf.channel_id = '0006'
+group by project_id,loan_active_date,should_repay_date
+order by project_id,should_repa

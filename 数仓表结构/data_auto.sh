@@ -1432,3 +1432,117 @@ for tbl in ${tbls[@]}; do
 done
 
 
+
+
+
+
+
+
+
+host=10.80.1.43
+
+host_list=(
+  # 10.80.240.5
+  # 10.80.240.7
+
+  # 10.80.1.13
+  # 10.80.1.43
+  10.80.1.67
+)
+
+
+for host in ${host_list[@]}; do
+  echo "#---------------------------------------- $host ----------------------------------------#"
+  html=$(curl http://$host:27004/queries 2> /dev/null)
+
+  # 先关闭
+  close_queries=$(echo $html | xmllint --html --xpath '//h3[2]/text()' - 2> /dev/null | sed '/^\s*$/d' | grep -Po '\K[\d]+')
+
+  [[ $close_queries != 0 ]] && {
+    href_list=($(echo $html | xmllint --html --xpath '//table[2]/tr/td[a="Close"]/a/@href' - 2> /dev/null | grep -Po 'href[=" /]+\K[\w?=:]*'))
+
+    for href in ${href_list[@]}; do
+      echo "#---------------------------------------- $host  close_tab  Close  $href ----------------------------------------#"
+      curl http://$host:27004/$href 2> /dev/null | xmllint --html --xpath '//pre/text()' - 2> /dev/null
+      echo
+    done
+  } || echo '没有需要关闭的程序'
+
+
+  # 再查看是否有程序在运行
+  flight_queries=$(echo $html | xmllint --html --xpath '//h3[1]/text()' - 2> /dev/null | sed '/^\s*$/d' | grep -Po '\K[\d]+')
+
+  [[ $flight_queries != 0 ]] && {
+    flight_stat=$(echo $html | xmllint --html --xpath '//table[1]/tr/td[samp][3]/samp/text()' - 2> /dev/null)
+    echo "#---------------------------------------- $host  flight_stat  stat  $flight_stat ----------------------------------------#"
+
+    href_list=($(echo $html | xmllint --html --xpath '//table[1]/tr/td[a="Cancel"]/a/@href' - 2> /dev/null | grep -Po 'href[=" /]+\K[\w?=:]*'))
+
+    for href in ${href_list[@]}; do
+      echo "#---------------------------------------- $host  flight_stat  Cancel  $href ----------------------------------------#"
+      # html=$(curl http://$host:27004/$href 2> /dev/null)
+      [[ $flight_stat = 'CREATED' ]] && {
+        echo $html | xmllint --html --xpath '//div[strong]/text()' - 2> /dev/null
+      }
+    done
+  } || echo '没有在运行的程序'
+done
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+host_list=(
+  10.80.1.94
+
+  10.80.1.155
+  10.80.0.195
+
+  10.80.1.13
+  10.80.1.43
+  10.80.1.67
+
+  10.80.240.16
+  10.80.240.27
+  10.80.240.34
+  10.80.240.35
+  10.80.240.70
+  10.80.240.72
+  10.80.240.79
+  10.80.240.93
+  10.80.240.128
+  10.80.240.134
+)
+
+for host in ${host_list[@]}; do
+  # echo $host
+  # echo '#----------------------- scp star -----------------------#'
+  # scp root@10.80.1.94:/data/data_shell/hive-exec-3.1.1.jar root@$host:/usr/local/service/hive/lib/hive-exec-3.1.1.jar.tmp
+  # echo '#----------------------- scp end -----------------------#'
+  echo '#----------------------- ssh star -----------------------#'
+  ssh root@$host "
+    # echo '#----------------------- '$host' mv 1 star -----------------------#'
+    # mv -f /usr/local/service/hive/lib/hive-exec-3.1.1.jar /usr/local/service/hive/lib/hive-exec-3.1.1.jar-bak2
+    # echo '#----------------------- '$host' mv 1 end -----------------------#'
+    # echo '#----------------------- '$host' mv 2 star -----------------------#'
+    # mv -f /usr/local/service/hive/lib/hive-exec-3.1.1.jar.tmp /usr/local/service/hive/lib/hive-exec-3.1.1.jar
+    # echo '#----------------------- '$host' mv 2 end -----------------------#'
+    # echo '#----------------------- '$host' chown star -----------------------#'
+    # chown hadoop:hadoop /usr/local/service/hive/lib/hive-exec-3.1.1.jar
+    # echo '#----------------------- '$host' chown end -----------------------#'
+    echo $host
+    ls -lh /usr/local/service/hive/lib/hive-exec-3.1.1.jar*
+  "
+  echo '#----------------------- ssh end -----------------------#'
+done
+
+

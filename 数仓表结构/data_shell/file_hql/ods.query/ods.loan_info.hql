@@ -104,7 +104,7 @@ set hive.support.quoted.identifiers=None;
 --   max(overdue_days)                                        over(partition by product_id,due_bill_no order by biz_date)    as dpd_days_max,
 --   collect_out_date as collect_out_date,
 --   overdue_term,
---   size(collect_set(if(overdue_days > 0,overdue_term,null)) over(partition by product_id,due_bill_no order by s_d_date))   as overdue_terms_count,
+--   size(collect_set(if(overdue_days > 0,overdue_term,null)) over(partition by product_id,due_bill_no order by biz_date))   as overdue_terms_count,
 --   max(overdue_terms_max)                                   over(partition by product_id,due_bill_no order by biz_date)    as overdue_terms_max,
 --   nvl(sum(overdue_principal)                               over(partition by product_id,due_bill_no order by biz_date),0) as overdue_principal_accumulate, -- 需要重新计算
 --   nvl(max(overdue_principal)                               over(partition by product_id,due_bill_no order by biz_date),0) as overdue_principal_max,
@@ -116,7 +116,7 @@ set hive.support.quoted.identifiers=None;
 -- from (
 --   select * from ods${db_suffix}.loan_info_inter
 --   where 1 > 0
---     ${product_id}
+--     and product_id in (${product_id})
 -- ) as loan_info
 -- left join (
 --   select
@@ -166,7 +166,7 @@ set hive.support.quoted.identifiers=None;
 -- ) as dpd_days_count
 -- on  product_id  = dpd_product_id
 -- and due_bill_no = dpd_due_bill_no
--- where s_d_date between dpd_overdue_date_start and date_sub(dpd_overdue_date_next,1)
+-- where biz_date between dpd_overdue_date_start and date_sub(dpd_overdue_date_next,1)
 -- ;
 
 

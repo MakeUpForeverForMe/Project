@@ -123,9 +123,11 @@ from (
       when '大额分期（专项分期）' then 'M'
       when '随借随还'             then 'MCAT'
       when '阶梯还款'             then 'STAIR'
-      else is_empty(map_from_str(extra_info)['还款方式'],repay_type)
+      when '其他还款方式'         then 'OTHER'
+      when '气球贷'               then 'BALLOON'
+      else is_empty(map_from_str(extra_info)['还款方式'],repay_type,'Z')
     end                                                                                          as loan_type,
-    is_empty(map_from_str(extra_info)['还款方式'],repay_type)                                    as loan_type_cn,
+    is_empty(map_from_str(extra_info)['还款方式'],repay_type,'默认值')                           as loan_type_cn,
     is_empty(map_from_str(extra_info)['日利率计算基础'])                                         as contract_daily_interest_rate_basis,
     is_empty(map_from_str(extra_info)['总期数'],periods)                                         as loan_init_term,
     is_empty(map_from_str(extra_info)['贷款总金额(元)'],is_empty(loan_total_amount,0))           as loan_init_principal,

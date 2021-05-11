@@ -21,10 +21,10 @@ set hive.vectorized.execution.reduce.enabled=false;
 set hive.vectorized.execution.reduce.groupby.enabled=false;
 
 
--- set hivevar:ST9 = 2020-10-01;
+-- set hivevar:ST9=2020-10-01;
 
-with
 -- 包级
+with
 bill_info as (
   select
     loan_info.due_bill_no,

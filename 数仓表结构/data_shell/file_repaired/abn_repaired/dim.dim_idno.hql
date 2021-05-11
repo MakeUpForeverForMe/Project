@@ -93,6 +93,8 @@ insert into table dim_new.dim_idno values('450520','4','中南地区','45','广�
 insert into table dim.dim_idno values('420880','4','中南地区','42','湖北省','4208','荆门市','420880','荆门市');
 
 insert into table dim.dim_idno values('323251','3','华东地区','32','江苏省','3232','江苏省','323251','江苏省');
+insert into table dim.dim_idno values('513726','5','西南地区','51','四川省','5137','巴中市','513726','巴中地区');
+insert into table dim.dim_idno values('520226','5','西南地区','52','贵州省','5202','六盘水市','520226','六盘水市');
 
 insert overwrite table dim.dim_idno
 select

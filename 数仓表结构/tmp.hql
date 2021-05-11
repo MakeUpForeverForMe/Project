@@ -344,14 +344,14 @@ ALTER TABLE dw_new_cps.dw_loan_base_stat_overdue_num_day_hst RENAME TO dw_new_cp
 
 
 
-invalidate metadata dim.data_conf;
-invalidate metadata dim.dim_idno;
 invalidate metadata dim.dim_encrypt_info;
-invalidate metadata dim.dim_date;
-invalidate metadata dim.dim_static_overdue_bill;
-invalidate metadata dim.dim_ht_bag_asset;
+invalidate metadata dim.data_conf;
+
+invalidate metadata dim.dim_idno;
+
 invalidate metadata dim.project_info;
 invalidate metadata dim.project_due_bill_no;
+
 invalidate metadata dim.bag_info;
 invalidate metadata dim.bag_due_bill_no;
 
@@ -406,6 +406,17 @@ invalidate metadata dm_eagle.abs_asset_information_project;
 invalidate metadata dm_eagle.abs_asset_information_bag_snapshot;
 
 
+invalidate metadata dm_eagle.abs_overdue_rate_details_day;
+invalidate metadata dm_eagle.abs_early_payment_asset_details;
+
+invalidate metadata dm_eagle.abs_early_payment_asset_statistic;
+
+
+
+
+analyze table dim.bag_info compute statistics;
+analyze table dim.bag_due_bill_no compute statistics;
+analyze table dw.abs_due_info_day_abs compute statistics;
 
 
 
@@ -1224,9 +1235,9 @@ set mapreduce.input.fileinputformat.split.maxsize=1024000000;
 
 
 
-set hive.auto.convert.join=false;                    -- 关闭自动 MapJoin
-set hive.auto.convert.join.noconditionaltask=false;  -- 关闭自动 MapJoin
-
+-- 关闭自动 MapJoin （ Hive3 的 bug，引发 No work found for tablescan ）
+set hive.auto.convert.join=false;
+set hive.auto.convert.join.noconditionaltask=false;
 
 -- 设置 Container 大小
 set hive.tez.container.size=4096;
@@ -1469,7 +1480,7 @@ limit 100
 
 
 select distinct keys
-from stage.asset_04_t_guaranty_info
+from stage.asset_07_t_repayment_info
 lateral view explode(map_keys(map_from_str(extra_info))) key as keys
 order by keys;
 

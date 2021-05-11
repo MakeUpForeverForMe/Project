@@ -352,7 +352,7 @@ CREATE TABLE IF NOT EXISTS `ods${db_suffix}.loan_lending`(
   `loan_active_date`                                  string         COMMENT '放款日期',
   `loan_expire_date`                                  string         COMMENT '贷款到期日期',
   `cycle_day`                                         decimal(2,0)   COMMENT '账单日',
-  `loan_type`                                         string         COMMENT '分期类型（英文原值）（MCEP：等额本金，MCEI：等额本息，R：消费转分期，C：现金分期，B：账单分期，P：POS分期，M：大额分期（专项分期），MCAT：随借随还，STAIR：阶梯还款）',
+  `loan_type`                                         string         COMMENT '分期类型（英文原值）（MCEP：等额本金，MCEI：等额本息，R：消费转分期，C：现金分期，B：账单分期，P：POS分期，M：大额分期（专项分期），MCAT：随借随还，STAIR：阶梯还款，OTHER：其他还款方式，BALLOON：气球贷，Z：默认）',
   `loan_type_cn`                                      string         COMMENT '分期类型（汉语解释）',
   `contract_daily_interest_rate_basis`                decimal(3,0)   COMMENT '日利率计算基础',
   `interest_rate_type`                                string         COMMENT '利率类型',
@@ -1043,7 +1043,7 @@ CREATE VIEW IF NOT EXISTS `ods.loan_lending_abs`(
   `loan_active_date`                   COMMENT '放款日期',
   `loan_expire_date`                   COMMENT '贷款到期日期',
   `cycle_day`                          COMMENT '账单日',
-  `loan_type`                          COMMENT '分期类型（英文原值）（MCEP：等额本金，MCEI：等额本息，R：消费转分期，C：现金分期，B：账单分期，P：POS分期，M：大额分期（专项分期），MCAT：随借随还，STAIR：阶梯还款）',
+  `loan_type`                          COMMENT '分期类型（英文原值）（MCEP：等额本金，MCEI：等额本息，R：消费转分期，C：现金分期，B：账单分期，P：POS分期，M：大额分期（专项分期），MCAT：随借随还，STAIR：阶梯还款，OTHER：其他还款方式，BALLOON：气球贷，Z：默认）',
   `loan_type_cn`                       COMMENT '分期类型（汉语解释）',
   `contract_daily_interest_rate_basis` COMMENT '日利率计算基础',
   `interest_rate_type`                 COMMENT '利率类型',
@@ -1547,6 +1547,79 @@ CREATE VIEW IF NOT EXISTS `ods.t_07_actualrepayinfo`(
   `create_time`                        COMMENT '创建时间',
   `update_time`                        COMMENT '更新时间'
 ) COMMENT '实际还款信息表-文件七' as select
+  project_id                     as project_id,
+  due_bill_no                    as serial_number,
+  term                           as term,
+  is_borrowers_oneself_repayment as is_borrowers_oneself_repayment,
+  biz_date                       as actual_repay_time,
+  remain_principal               as current_period_loan_balance,
+  repay_type                     as repay_type,
+  loan_status_cn                 as current_account_status,
+  actual_repay_principal         as actual_repay_principal,
+  actual_repay_interest          as actual_repay_interest,
+  actual_repay_fee               as actual_repay_fee,
+  penalbond                      as penalbond,
+  penalty_interest               as penalty_interest,
+  compensation                   as compensation,
+  advanced_commission_charge     as advanced_commission_charge,
+  other_fee                      as other_fee,
+  actual_work_interest_rate      as actual_work_interest_rate,
+  import_id                      as import_id,
+  data_source                    as data_source,
+  create_time                    as create_time,
+  update_time                    as update_time
+from (
+  select
+    project_id                                         as project_id,
+    due_bill_no                                        as due_bill_no,
+    repay_term                                         as term,
+    'Y'                                                as is_borrowers_oneself_repayment,
+    biz_date                                           as biz_date,
+    repay_type                                         as repay_type,
+    sum(if(bnp_type = 'Pricinpal',    repay_amount,0)) as actual_repay_principal,
+    sum(if(bnp_type = 'Interest',     repay_amount,0)) as actual_repay_interest,
+    sum(if(bnp_type = 'RepayFee',     repay_amount,0)) as actual_repay_fee,
+    sum(if(bnp_type = 'Damages',      repay_amount,0)) as penalbond,
+    sum(if(bnp_type = 'Penalty',      repay_amount,0)) as penalty_interest,
+    sum(if(bnp_type = 'Compensation', repay_amount,0)) as compensation,
+    sum(if(bnp_type = 'EarlyRepayFee',repay_amount,0)) as advanced_commission_charge,
+    sum(if(bnp_type = 'OtherFee',     repay_amount,0)) as other_fee,
+    0                                                  as actual_work_interest_rate,
+    data_source                                        as data_source,
+    import_id                                          as import_id,
+    create_time                                        as create_time,
+    update_time                                        as update_time
+  from ods.repay_detail_abs
+  group by
+    project_id,
+    due_bill_no,
+    repay_term,
+    biz_date,
+    repay_type,
+    data_source,
+    import_id,
+    create_time,
+    update_time
+) as repay_detail_abs
+left join (
+  select
+    project_id       as loan_project_id,
+    due_bill_no      as loan_due_bill_no,
+    remain_principal,
+    loan_status_cn,
+    s_d_date,
+    e_d_date
+  from ods.loan_info_abs
+) as loan_info
+on  project_id  = loan_project_id
+and due_bill_no = loan_due_bill_no
+where biz_date between s_d_date and date_sub(e_d_date,1);
+
+
+-- DROP MATERIALIZED VIEW IF EXISTS `ods.t_07_actualrepayinfo`;
+CREATE MATERIALIZED VIEW IF NOT EXISTS `ods.t_07_actualrepayinfo`
+COMMENT '实际还款信息表-文件七'
+STORED AS PARQUET AS select
   project_id                     as project_id,
   due_bill_no                    as serial_number,
   term                           as term,

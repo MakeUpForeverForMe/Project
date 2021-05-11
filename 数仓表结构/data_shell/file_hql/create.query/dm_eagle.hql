@@ -1516,7 +1516,6 @@ STORED AS PARQUET;
 -- 借据详情
 -- DROP TABLE IF EXISTS `dm_eagle.abs_overdue_rate_details_day`;
 CREATE TABLE IF NOT EXISTS `dm_eagle.abs_overdue_rate_details_day`(
-  `is_allBag`                                     string         COMMENT '是否是所有包（y：是，n：否）',
   `serial_number`                                 string         COMMENT '借据号',
   `contract_no`                                   string         COMMENT '合同编号',
   `overdue_days`                                  decimal(5,0)   COMMENT '逾期天数',
@@ -1562,10 +1561,8 @@ STORED AS PARQUET;
 
 
 -- 早偿监控资产详情表
--- 借据详情
 -- DROP TABLE IF EXISTS `dm_eagle.abs_early_payment_asset_details`;
 CREATE TABLE IF NOT EXISTS `dm_eagle.abs_early_payment_asset_details`(
-  `is_allBag`                                     string         COMMENT '是否是所有包(y:是,n:否)',
   `serial_number`                                 string         COMMENT '借据号',
   `contract_no`                                   string         COMMENT '合同编号',
   `remain_principal_before_payment`               decimal(25,5)  COMMENT '还款前剩余本金',

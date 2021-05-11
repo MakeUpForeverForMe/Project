@@ -46,7 +46,7 @@ dw_new_hql=$file_hql/dw.query
 dm_eagle_hql=$file_hql/dm_eagle.query
 asset_report_hql=$file_hql/asset_report.query
 dm_operation_hql=$file_hql/dm_operation.query
-
+eagle_hql=$file_hql/eagle.query
 file_check=$base_dir/file_check
 file_export=$base_dir/file_export
 file_import=$base_dir/file_import

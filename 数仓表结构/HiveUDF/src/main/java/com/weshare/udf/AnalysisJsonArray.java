@@ -1,10 +1,8 @@
 package com.weshare.udf;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.weshare.utils.EmptyUtil;
-import org.apache.commons.collections.map.HashedMap;
 import org.apache.hadoop.hive.ql.exec.Description;
 import org.apache.hadoop.hive.ql.exec.UDF;
 
@@ -14,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * @author ximing.wei
+ * @author ximing.wei 2021-05-10 11:29:16
  */
 @Description(
         name = "json_array_to_array",
@@ -31,7 +29,7 @@ public class AnalysisJsonArray extends UDF {
         List<Map<String, String>> list = new ArrayList<>();
 
         JSON.parseArray(jsonArray).forEach(item -> {
-            HashMap<String, String> hashMap = new HashMap<>();
+            Map<String, String> hashMap = new HashMap<>();
             ((JSONObject) item).forEach((key, value) -> hashMap.put(key, String.valueOf(value)));
             list.add(hashMap);
         });
