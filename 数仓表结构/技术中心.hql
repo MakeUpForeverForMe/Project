@@ -15604,49 +15604,26 @@ MSCK REPAIR TABLE dm_eagle.abs_early_payment_asset_statistic_c;
 
 
 
-ALTER TABLE dm_eagle.abs_early_payment_asset_statistic DROP IF EXISTS PARTITION (biz_date = '2018-11-10');
+ALTER TABLE dm_eagle.abs_asset_information_cash_flow_bag_snapshot DROP IF EXISTS PARTITION (biz_date = '${ST9}');
 
 
 
 
+select * from dim.bag_info where project_id = 'PL202105120104';
+
+
+select * from dm_eagle.abs_asset_information_cash_flow_bag_snapshot where bag_id = 'PL202105120104_1';
+
+
+
+select distinct repayment_type from ods.t_10_basic_asset;
 
 
 
 
--- 应收
-select
-  project_id                                          as project_id,
-  should_repay_date                                   as should_repay_date,
-  loan_active_date,
-  min(loan_active_date) over(partition by project_id) as min_active_date,
-  sum(nvl(should_repay_amount,0))                     as should_repay_amount,
-  sum(nvl(should_repay_principal,0))                  as should_repay_principal,
-  sum(nvl(should_repay_interest,0))                   as should_repay_interest,
-  sum(nvl(should_repay_cost,0))                       as should_repay_cost
-from (
-  select
-    product_id                                                               as product_id,
-    loan_active_date                                                         as loan_active_date,
-    should_repay_date                                                        as should_repay_date,
-    sum(should_repay_amount)                                                 as should_repay_amount,
-    sum(should_repay_principal)                                              as should_repay_principal,
-    sum(should_repay_interest)                                               as should_repay_interest,
-    sum(should_repay_term_fee + should_repay_svc_fee + should_repay_penalty) as should_repay_cost
-  from ods.repay_schedule
-  where '2020-06-05' between s_d_date and date_sub(e_d_date,1)
-    and if(paid_out_type_cn is NULL,'A',paid_out_type_cn) != '提前结清'
-  group by product_id,loan_active_date,should_repay_date
-) as schedule
-join (
-  select
-    max(if(col_name = 'channel_id',col_val,null)) as channel_id,
-    max(if(col_name = 'project_id',col_val,null)) as project_id,
-    max(if(col_name = 'product_id',col_val,null)) as product_id
-  from dim.data_conf
-  where col_type = 'ac'
-  group by col_id
-) as bizconf
-on schedule.product_id = bizconf.product_id
-where bizconf.channel_id = '0006'
-group by project_id,loan_active_date,should_repay_date
-order by project_id,should_repa
+select * from ods.t_10_basic_asset
+where repayment_type = '等额本息'
+limit 10
+;
+
+

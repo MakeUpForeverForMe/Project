@@ -16,8 +16,15 @@ object JDBCUtils {
    * @return
    */
   def executeSQL(sql:String,conn:Connection):List[Map[String,String]]= {
+    executeSQL(sql,conn,"")
+  }
+
+  def executeSQL(sql:String,conn:Connection,db_name:String):List[Map[String,String]]= {
     var resultDataList = List[Map[String,String]]()
     val statement = conn.createStatement()
+    if(!StringUtils.isEmpty(db_name)){
+      statement.execute(s"use ${db_name}")
+    }
     val resultSet = statement.executeQuery(sql)
     while (resultSet.next()) {
       val data = resultSet.getMetaData // 获取sql 执行完的结果元数据信息
@@ -47,6 +54,9 @@ object JDBCUtils {
       resultDataList=data_map::resultDataList
     }
     resultDataList
+
+
+
   }
 
   /**

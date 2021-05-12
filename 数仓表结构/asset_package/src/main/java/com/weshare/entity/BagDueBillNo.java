@@ -8,6 +8,7 @@ import java.math.BigDecimal;
  */
 public class BagDueBillNo implements Serializable {
     private static final long serialVersionUID = 1L;
+    private String projectId;
     private String dueBillNo;
     private String bagId;
     private BigDecimal packageRemainPrincipal;
@@ -18,11 +19,26 @@ public class BagDueBillNo implements Serializable {
     public BagDueBillNo() {
     }
 
-    public BagDueBillNo(String dueBillNo, String bagId, BigDecimal packageRemainPrincipal, Integer packageRemainPeriods) {
+    public BagDueBillNo(String projectId, String dueBillNo, String bagId, BigDecimal packageRemainPrincipal, Integer packageRemainPeriods, String relatedProjectId, String relatedDate) {
+        this.projectId = projectId;
         this.dueBillNo = dueBillNo;
         this.bagId = bagId;
         this.packageRemainPrincipal = packageRemainPrincipal;
         this.packageRemainPeriods = packageRemainPeriods;
+        this.relatedProjectId = relatedProjectId;
+        this.relatedDate = relatedDate;
+    }
+
+    public static long getSerialVersionUID() {
+        return serialVersionUID;
+    }
+
+    public String getProjectId() {
+        return projectId;
+    }
+
+    public void setProjectId(String projectId) {
+        this.projectId = projectId;
     }
 
     public String getDueBillNo() {
@@ -76,10 +92,13 @@ public class BagDueBillNo implements Serializable {
     @Override
     public String toString() {
         return "BagDueBillNo{" +
-                "dueBillNo='" + dueBillNo + '\'' +
+                "projectId='" + projectId + '\'' +
+                ", dueBillNo='" + dueBillNo + '\'' +
                 ", bagId='" + bagId + '\'' +
                 ", packageRemainPrincipal=" + packageRemainPrincipal +
                 ", packageRemainPeriods=" + packageRemainPeriods +
+                ", relatedProjectId='" + relatedProjectId + '\'' +
+                ", relatedDate='" + relatedDate + '\'' +
                 '}';
     }
 }

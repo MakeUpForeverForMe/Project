@@ -5,6 +5,11 @@ set tez.am.resource.memory.mb=2048;
 set hive.merge.tezfiles=true;
 set hive.merge.size.per.task=64000000;      -- 64M
 set hive.merge.smallfiles.avgsize=64000000; -- 64M
+-- 设置动态分区
+set hive.exec.dynamic.partition=true;
+set hive.exec.dynamic.partition.mode=nonstrict;
+set hive.exec.max.dynamic.partitions=200000;
+set hive.exec.max.dynamic.partitions.pernode=50000;
 -- 禁用 Hive 矢量执行
 set hive.vectorized.execution.enabled=false;
 set hive.vectorized.execution.reduce.enabled=false;
@@ -13,11 +18,10 @@ set hive.vectorized.execution.reduce.groupby.enabled=false;
 
 
 
-insert overwrite table ods.t_10_basic_asset_stage
+insert overwrite table ods.t_10_basic_asset_stage partition(project_id)
 select
   0                                             as id,
   cast(null as string)                          as import_id,
-  loan_info.project_id                          as project_id,
   loan_info.asset_type                          as asset_type,
   loan_info.due_bill_no                         as serial_number,
   lending.contract_no                           as contract_code,
@@ -93,7 +97,8 @@ select
   cast(null as string)                          as update_time,
   loan_info.data_source                         as data_source,
   cust.resident_address                         as address,
-  lending.mortgage_rate                         as mortgage_rates
+  lending.mortgage_rate                         as mortgage_rates,
+  loan_info.project_id                          as project_id
 from (
   select * from ods.loan_info_abs
   where e_d_date = '3000-12-31'

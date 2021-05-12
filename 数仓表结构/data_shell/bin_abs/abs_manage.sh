@@ -102,12 +102,12 @@ then
         print_log "start to packet ! "
         bag_date=$(parse_json "`cat ${import_file_dir}/bag_info/bag_info@${input_file_suffix_arr[0]}.json`" "bag_date")
         end_date=$(parse_json "`cat ${import_file_dir}/bag_info/bag_info@${input_file_suffix_arr[0]}.json`" "insert_date")
-        sh /root/data_shell/bin_abs/abs-submit.sh ${input_file_prefix_arr[0]} ${input_file_suffix_arr[0]}
+        sh $bin_abs/abs-submit.sh ${input_file_prefix_arr[0]} ${input_file_suffix_arr[0]} $bin_abs/pro_cos.properties
         get_result "packet" "first file : ${input_file_prefix_arr[0]}"
-        impala-shell -q "refresh dim_new.${input_file_prefix_arr[0]};"
-        sh /root/data_shell/bin_abs/abs-submit.sh ${input_file_prefix_arr[1]} ${input_file_suffix_arr[1]}
+        $impala -q "refresh dim.${input_file_prefix_arr[0]};"
+        sh $bin_abs/abs-submit.sh ${input_file_prefix_arr[1]} ${input_file_suffix_arr[1]} $bin_abs/pro_cos.properties
         get_result "packet" "second file : ${input_file_prefix_arr[1]}"
-        impala-shell -q "refresh dim_new.${input_file_prefix_arr[1]};"
+        $impala -q "refresh dim.${input_file_prefix_arr[1]};"
         # 封包任务
         sh $bin_abs/data_abs_dm_eagle_snapshot.sh $bag_date $bag_date ${input_file_suffix_arr[0]} >> $log_file
         # sh $bin_abs/data_abs_dm_eagle.sh $bag_date $end_date ${input_file_suffix_arr[0]} >> $log_file
@@ -125,7 +125,7 @@ then
     else
     print_log "packet finished,bag id is ${input_file_suffix} ! "
     sh $bin_abs/data_abs_dm_eagle_update.sh $bag_date $bag_date ${input_file_suffix_arr[0]} >> $log_file
-    impala-shell -q "refresh dim_new.bag_info;"
+    $impala -q "refresh dim.bag_info;"
     curl -d "assetBagId=${input_file_suffix}" --connect-timeout 30 -m 60 ${call_back_address}/uabs-core/callback/packageSuccessConfirm >> $log_file
     fi
 elif [ $# -eq 1 ]
@@ -143,25 +143,25 @@ then
         # 先校验是否有当前fileid的任务正在执行，若有，则等待
         status_before_execute_job ${input_file_suffix}
         print_log "start to unpacket ! "
-        sh /root/data_shell/bin_abs/abs-submit.sh ${input_file_prefix} ${input_file_suffix}
+        sh $bin_abs/abs-submit.sh ${input_file_prefix} ${input_file_suffix} $bin_abs/pro_cos.properties
         bag_date=$(parse_json "`cat ${import_file_dir}/bag_info/bag_info@${input_file_suffix}.json`" "bag_date")
         # 解包任务 : 删除对应bag_id分区
         sh $bin_abs/data_abs_dm_eagle_unpacket.sh $bag_date $bag_date ${input_file_suffix} >> $log_file
-        impala-shell -q "refresh dim_new.${input_file_prefix};"
-        # 解包成功回调
+        $impala -q "refresh dim.${input_file_prefix};"
+       # 解包成功回调
         print_log "unpacket finished,bag id is ${input_file_suffix} ! "
         curl -d "assetBagId=${input_file_suffix}" --connect-timeout 30 -m 60 ${call_back_address}/uabs-core/callback/unPackageSuccessConfirm >> $log_file
     else
       # 先校验是否有当前fileid的任务正在执行，若有，则等待
       status_before_execute_job ${input_file_suffix}
       print_log "normal job start !"
-      sh /root/data_shell/bin_abs/abs-submit.sh ${input_file_prefix} ${input_file_suffix}
-      impala-shell -q "refresh dim_new.${input_file_prefix};"
+      sh $bin_abs/abs-submit.sh ${input_file_prefix} ${input_file_suffix} $bin_abs/pro_cos.properties
+      $impala -q "refresh dim.${input_file_prefix};"
       # 如果为债转文件,则处理完毕后调用债转回调接口,需要解析出文件中的import_id
       if [[ ${input_file_prefix} = 'project_due_bill_no' && ${row_type} = 'insert' ]]
       then
           import_id=$(parse_json "`cat ${import_file_dir}/${input_file_prefix}/$input_file`" "import_id")
-	  echo "import_id : ${import_id}"
+    echo "import_id : ${import_id}"
           curl -d "importId=${import_id}" --connect-timeout 30 -m 60 ${call_back_address}/uabs-core/callback/assetTransferSuccessConfirm >> $log_file
           print_log "asset transfer finished,project id is ${input_file_suffix} ! "
       fi
@@ -169,4 +169,3 @@ then
 else
   print_log "illegal arguments : the size of arguments is not one or two ! "
 fi
-

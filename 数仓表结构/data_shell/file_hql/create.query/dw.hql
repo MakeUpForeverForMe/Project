@@ -593,7 +593,44 @@ CREATE VIEW IF NOT EXISTS `dw.abs_due_info_day_abs`(
   -- 分区
   `biz_date`                   COMMENT '观察日期',
   `project_id`                 COMMENT '项目编号'
-) COMMENT '星云宽表（借据级）' AS select t1.*
+) COMMENT '星云宽表（借据级）' AS select
+  t1.due_bill_no,
+  t1.loan_init_term,
+  t1.loan_init_principal,
+  t1.account_age,
+  t1.loan_term_remain,
+  t1.loan_term_repaid,
+  t1.remain_principal,
+  t1.remain_interest,
+  t1.remain_principal_yesterday,
+  t1.loan_status,
+  t1.paid_out_date,
+  t1.paid_out_type,
+  t1.overdue_due_bill_no,
+  t1.overdue_user_hash_no,
+  t1.overdue_date_start,
+  t1.is_first_overdue_day,
+  t1.overdue_days,
+  t1.overdue_days_dpd,
+  t1.overdue_principal,
+  t1.overdue_remain_principal,
+  t1.min_date,
+  t1.contract_no,
+  t1.loan_init_interest_rate,
+  t1.loan_type_cn,
+  t1.contract_term,
+  t1.mortgage_rate,
+  t1.user_hash_no,
+  t1.age,
+  t1.job_type,
+  t1.income_year,
+  t1.idcard_area,
+  t1.due_bill_no_guaranty,
+  t1.pawn_value,
+  t1.guarantee_type,
+  t1.distribution_array,
+  t1.biz_date,
+  t2.project_id
 from dw.abs_due_info_day as t1
 join dim.project_due_bill_no as t2
 on  t1.project_id  = nvl(t2.related_project_id,t2.project_id)

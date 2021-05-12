@@ -26,13 +26,13 @@ set hive.auto.convert.join.noconditionaltask=false;
 
 
 
-set hivevar:ST9=2018-11-10;
+-- set hivevar:ST9=2018-11-10;
 
-set hivevar:bag_id=
-  select distinct bag_id
-  from dim.bag_info
-  where 1 > 0
-;
+-- set hivevar:bag_id=
+--   select distinct bag_id
+--   from dim.bag_info
+--   where 1 > 0
+-- ;
 
 
 
@@ -114,12 +114,7 @@ left join (
 on  bag_total.project_id  = repay_detail_accu.project_id
 and bag_total.due_bill_no = repay_detail_accu.due_bill_no
 group by bag_total.biz_date,bag_total.project_id
--- limit 10
--- ;
-
 union all
-
--- insert overwrite table dm_eagle.abs_early_payment_asset_statistic partition(biz_date,project_id,bag_id)
 select
   'N'                                                                                                                                                as is_allBag,
   sum(if(bag_total.pre_settle_due_bill_no            is not null and repay_detail.due_bill_no      is not null,repay_detail.repay_amount,     0))    as early_payment_principal,

@@ -1700,7 +1700,6 @@ where biz_date between s_d_date and date_sub(e_d_date,1);
 CREATE TABLE IF NOT EXISTS `ods.t_10_basic_asset_stage`(
   `id`                                                int            COMMENT '主键id',
   `import_id`                                         string         COMMENT '导入记录编号',
-  `project_id`                                        string         COMMENT '项目编号',
   `asset_type`                                        string         COMMENT '资产类型',
   `serial_number`                                     string         COMMENT '借据号',
   `contract_code`                                     string         COMMENT '贷款合同编号',
@@ -1777,6 +1776,7 @@ CREATE TABLE IF NOT EXISTS `ods.t_10_basic_asset_stage`(
   `address`                                           string         COMMENT '居住地址',
   `mortgage_rates`                                    decimal(20,4)  COMMENT '抵押率(%)'
 ) COMMENT '基础资产缓冲表'
+PARTITIONED BY (`project_id` string COMMENT '项目编号')
 STORED AS PARQUET;
 
 

@@ -17,9 +17,8 @@ log=$log/${base_file_name}.${e_date}.log
 
 echo -e "${date_s_aa:=$(date +'%F %T')} abs资产 dim_new封包更新状态  开始\n" &>> $log
 # dm 层
-yuheng=$wy
 
-sh $data_manage -s ${s_date} -e ${e_date} -f $dim_new_hql/dim_new.abs_asset_information_update.hql -i $param_dir/dm_eagle_abs.param.hql -k bag_id="${bag_id}" -b "AssetFileToHive-${bag_id}" -a $yuheng &
+sh $data_manage -a $rd -s ${s_date} -e ${e_date} -f $dim_new_hql/dim.abs_asset_information_update.hql -k bag_id="${bag_id}" -b "AssetFileToHive-${bag_id}" &
 
 wait_jobs
 

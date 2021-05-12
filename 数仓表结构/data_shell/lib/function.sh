@@ -168,14 +168,14 @@ export_file_from_hive(){
   # $impala -q "refresh ${db_tb};"
 
   # echo \
-  $impala -B --output_delimiter='\t' -q "${1};" > "${export_file}"
+  $impala -B --output_delimiter='\t' -q "${1};" | sed 's/NULL/\\N/g' > "${export_file}"
 
   # $beeline \
   # --color=true \
   # --nullemptystring=true \
   # --showHeader=false \
   # --outputformat=tsv2 \
-  # -e "${1};" > "${export_file}"
+  # -e "${1};" | sed 's/NULL/\\N/g' > "${export_file}"
 
   echo "${e_date_export:=$(date +'%F %T')} 从 Hive 拉取数据 结束 ${export_file}  用时：$(during "$e_date_export" "$s_date_export")"
 }

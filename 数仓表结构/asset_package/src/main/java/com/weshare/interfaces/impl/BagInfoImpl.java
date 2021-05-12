@@ -41,7 +41,7 @@ public class BagInfoImpl implements AssetFiles, Serializable {
     public void insertData(Dataset<String> dataset, SparkSession sparkSession, String fileId) {
         Dataset<BagInfo> processDS = process(dataset);
         processDS.registerTempTable("temp_bag_info");
-        sparkSession.sql("insert into table dim.bag_info partition (bag_id = '" + fileId + "') " +
+        sparkSession.sql("insert overwrite table dim.bag_info partition (bag_id = '" + fileId + "') " +
                 "select projectId,bagName,bagStatus,bagRemainPrincipal,bagDate,insertDate from " +
                 "temp_bag_info ");
     }

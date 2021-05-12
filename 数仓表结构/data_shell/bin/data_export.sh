@@ -103,6 +103,10 @@ p_num=30
 export_all_data_tbl=(
   dm_eagle.eagle_title_info
   dm_eagle_cps.eagle_title_info
+
+  dm_eagle.abs_asset_information_bag_snapshot
+  dm_eagle.abs_asset_distribution_bag_snapshot_day
+  dm_eagle.abs_asset_information_cash_flow_bag_snapshot
 )
 
 echo -e "${date_a_aa:=$(date +'%F %T')} 导出数据 从 Hive 导出数据 开始  当前脚本进程ID为：$(pid)"
@@ -114,7 +118,9 @@ for db_tb in ${!tables[@]};do
     if [[ "${export_all_data_tbl[@]}" =~ "${db_tb}" ]]; then
       hql[$current_date]="select * from ${db_tb};"
     elif [[ "${db_tb}" = 'dm_eagle.abs_asset_information_cash_flow_bag_day' ]]; then
-      hql[$current_date]="select * from dm_eagle.abs_asset_information_cash_flow_bag_day where biz_date = '${e_date}';"
+      hql[$current_date]="
+        select * from dm_eagle.abs_asset_information_cash_flow_bag_day where biz_date = '${e_date}';
+      "
     else
       for (( excute_date = $(date -d "${s_date}" +%Y%m%d); excute_date <= $(date -d "${e_date}" +%Y%m%d); excute_date = $(date -d "1 day ${excute_date}" +%Y%m%d) )); do
         hql[$excute_date]="select * from ${db_tb} where biz_date = '$(date -d "${excute_date}" +%F)';"

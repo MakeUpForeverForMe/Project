@@ -1176,7 +1176,10 @@ done
 
 
 
-impala-shell -i node20:21000 -u hive -B --output_delimiter=',' -q "select * from dm_eagle.eagle_title_info"
+impala-shell -u hadoop -i 10.80.1.43:27001 -B --output_delimiter=',' -q "
+  select * from dm_eagle.abs_asset_information_cash_flow_bag_day where biz_date = '2021-05-10';
+  select * from dm_eagle.abs_asset_information_cash_flow_bag_day where biz_date = '2021-04-14' and project_id = 'WS0006200001';
+" > aa.tsv
 
 
 
@@ -1213,7 +1216,8 @@ aa=$(select_data "${aa:-"$(
   ;"
 )"}")
 
-beeline -n hive -u jdbc:hive2://node233:10000 --nullemptystring=true --outputformat=tsv2 -e "
+beeline -n hadoop -u "jdbc:hive2://10.80.0.46:2181,10.80.0.255:2181,10.80.1.113:2181/;serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=hiveserver2" \
+--nullemptystring=true --outputformat=tsv2 -e "
   select
     due_bill_no,
     overdue_days,
@@ -1436,10 +1440,26 @@ done
 
 
 
+host=10.80.1.67
+html=$(curl http://$host:27004/queries 2> /dev/null)
+close_queries=$(echo $html | xmllint --html --xpath '//h3[2]/text()' - 2> /dev/null | sed '/^\s*$/d' | grep -Po '\K[\d]+')
+
+[[ $close_queries != 0 ]] && {
+  href_list=($(echo $html | xmllint --html --xpath '//table[2]/tr/td[a="Close"]/a/@href' - 2> /dev/null | grep -Po 'href[=" /]+\K[\w?=:]*'))
+
+  echo "$close_queries 个程序需要关闭"
+  for href in ${href_list[@]}; do
+    echo "#---------------------------------------- $host  close_tab  Close  $href ----------------------------------------#"
+    curl http://$host:27004/$href 2> /dev/null | xmllint --html --xpath '//pre/text()' - 2> /dev/null
+    echo
+  done
+} || echo "$close_queries 没有需要关闭的程序"
 
 
 
-host=10.80.1.43
+
+
+host=10.80.1.67
 
 host_list=(
   # 10.80.240.5

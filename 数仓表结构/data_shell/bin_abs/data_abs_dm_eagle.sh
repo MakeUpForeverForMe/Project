@@ -18,39 +18,29 @@ log=$log/${base_file_name}.${e_date}.log
 echo -e "${date_s_aa:=$(date +'%F %T')} abs资产 dm_eagle封包统计  开始\n" &>> $log
 # dm 层
 
-yuheng=$wy
 
-sh $data_manage -s ${s_date} -e ${e_date} -f $dm_eagle_hql/dm_eagle.abs_asset_information_bag.hql -i $param_dir/dm_eagle_abs.param.hql -k bag_id="where bag_id='${bag_id}'" -a $yuheng &
-sh $data_manage -s ${s_date} -e ${e_date} -f $dm_eagle_hql/dm_eagle.abs_asset_information_project.hql -i $param_dir/dm_eagle_abs.param.hql -k bag_id="where bag_id='${bag_id}'" -a $yuheng &
+sh $data_manage -a $rd -s ${s_date} -e ${e_date} -f $dm_eagle_hql/dm_eagle.abs_asset_information_bag.hql -i $param_dir/dm_eagle.abs-param.hql &
+sh $data_manage -a $rd -s ${s_date} -e ${e_date} -f $dm_eagle_hql/dm_eagle.abs_asset_information_project.hql -i $param_dir/dm_eagle.abs-param.hql &
 # 早偿，逾期，现金流
-sh $data_manage -s ${s_date} -e ${e_date} -f $dm_eagle_hql/dm_eagle.abs_early_payment_asset_details.hql -i $param_dir/dm_eagle_abs.param.hql -k bag_id="where bag_id='${bag_id}'" -a $yuheng &
-sh $data_manage -s ${s_date} -e ${e_date} -f $dm_eagle_hql/dm_eagle.abs_early_payment_asset_statistic.hql -i $param_dir/dm_eagle_abs.param.hql -k bag_id="where bag_id='${bag_id}'" -a $yuheng &
-sh $data_manage -s ${s_date} -e ${e_date} -f $dm_eagle_hql/dm_eagle.abs_asset_information_cash_flow_bag_day.hql -i $param_dir/dm_eagle_abs.param.hql -k bag_id="where bag_id='${bag_id}'" -a $yuheng &
-sh $data_manage -s ${s_date} -e ${e_date} -f $dm_eagle_hql/dm_eagle.abs_overdue_rate_day.hql -i $param_dir/dm_eagle_abs.param.hql -k bag_id="and bag_id='${bag_id}'" -a $yuheng &
+# sh $data_manage -a $rd -s ${s_date} -e ${e_date} -f $dm_eagle_hql/dm_eagle.abs_early_payment_asset_details.hql &
+# sh $data_manage -a $rd -s ${s_date} -e ${e_date} -f $dm_eagle_hql/dm_eagle.abs_early_payment_asset_statistic.hql &
+sh $data_manage -a $rd -s ${s_date} -e ${e_date} -f $dm_eagle_hql/dm_eagle.abs_asset_information_cash_flow_bag_day.hql -i $param_dir/dm_eagle.abs-param.hql &
+sh $data_manage -a $rd -s ${s_date} -e ${e_date} -f $dm_eagle_hql/dm_eagle.abs_overdue_rate_day.hql -k bag_id='' &
 
 
 wait_jobs
 
-tables['dm_eagle.abs_asset_information_bag']=$dm_eagle_uabs_core
-tables['dm_eagle.abs_asset_information_project']=$dm_eagle_uabs_core
-# tables['dm_eagle.abs_asset_information_cash_flow_bag_snapshot']=$dm_eagle_uabs_core
-tables['dm_eagle.abs_early_payment_asset_details']=$dm_eagle_uabs_core
-tables['dm_eagle.abs_early_payment_asset_statistic']=$dm_eagle_uabs_core
-tables['dm_eagle.abs_asset_information_cash_flow_bag_day']=$dm_eagle_uabs_core
-tables['dm_eagle.abs_overdue_rate_day']=$dm_eagle_uabs_core
+table_list=(
+  dm_eagle.abs_asset_information_bag-$dm_eagle_uabs_core
+  dm_eagle.abs_asset_information_project-$dm_eagle_uabs_core
 
+  dm_eagle.abs_asset_information_cash_flow_bag_day-$dm_eagle_uabs_core
 
-for db_tb in ${!tables[@]};do
-  {
-    export_file="$file_export/${db_tb}.tsv"
-    mysql="$($mysql_cmd ${tables[$db_tb]})"
+  dm_eagle.abs_overdue_rate_day-$dm_eagle_uabs_core
+)
 
-    export_file_from_hive "select * from ${db_tb};" &>> $log
-    import_file_to_mysql &>> $log
-  } &
-  p_opera 5 &>> $log
-  # break
-done
+sh $bin/data_export.sh $s_date $e_date "${table_list[*]}" &>> $log
+
 
 wait_jobs
 

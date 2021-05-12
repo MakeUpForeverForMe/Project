@@ -58,7 +58,7 @@ public class ProjectInfoImpl implements AssetFiles, Serializable {
     public void insertData(Dataset<String> dataset, SparkSession sparkSession, String fileId) {
         Dataset<ProjectInfo> processDS = process(dataset);
         processDS.registerTempTable("temp_project_info");
-        sparkSession.sql("insert into table dim.project_info partition (project_id = '" + fileId + "') " +
+        sparkSession.sql("insert overwrite table dim.project_info partition (project_id = '" + fileId + "') " +
                 "select " +
                 "projectName,projectStage,assetSide,fundSide,year,term,remarks,projectFullName," +
                 "assetType,projectType,mode,projectTime,projectBeginDate,projectEndDate," +

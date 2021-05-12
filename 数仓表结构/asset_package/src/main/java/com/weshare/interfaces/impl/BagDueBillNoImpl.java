@@ -52,8 +52,8 @@ public class BagDueBillNoImpl implements AssetFiles, Serializable {
     public void insertData(Dataset<String> dataSet, SparkSession sparkSession, String fileId) {
         Dataset<BagDueBillNo> processDS = process(dataSet);
         processDS.registerTempTable("temp_dim_bag_due_bill_no");
-        sparkSession.sql("insert into table dim.bag_due_bill_no partition(bag_id = '" + fileId + "') " +
-                "select dueBillNo,packageRemainPrincipal,packageRemainPeriods from temp_dim_bag_due_bill_no ");
+        sparkSession.sql("insert overwrite table dim.bag_due_bill_no partition(bag_id = '" + fileId + "') " +
+                "select projectId,dueBillNo,packageRemainPrincipal,packageRemainPeriods from temp_dim_bag_due_bill_no ");
     }
 
     @Override
@@ -61,7 +61,7 @@ public class BagDueBillNoImpl implements AssetFiles, Serializable {
         Dataset<BagDueBillNo> processDS = process(dataSet);
         processDS.registerTempTable("temp_dim_bag_due_bill_no");
         sparkSession.sql("insert overwrite table dim.bag_due_bill_no partition(bag_id = '" + fileId + "') " +
-                "select dueBillNo,packageRemainPrincipal,packageRemainPeriods from temp_dim_bag_due_bill_no ");
+                "select projectId,dueBillNo,packageRemainPrincipal,packageRemainPeriods from temp_dim_bag_due_bill_no ");
     }
 
     @Override

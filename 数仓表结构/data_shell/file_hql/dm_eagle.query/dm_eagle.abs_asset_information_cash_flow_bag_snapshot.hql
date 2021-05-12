@@ -19,7 +19,12 @@ set hive.exec.max.dynamic.partitions.pernode=50000;
 set hive.vectorized.execution.enabled=false;
 set hive.vectorized.execution.reduce.enabled=false;
 set hive.vectorized.execution.reduce.groupby.enabled=false;
+-- 关闭自动 MapJoin （ Hive3 的 bug，引发 No work found for tablescan ）
+set hive.auto.convert.join=false;
+set hive.auto.convert.join.noconditionaltask=false;
 
+
+-- set hivevar:bag_id='PL202105120104_1';
 
 -- set hivevar:bag_id=
 --   select distinct bag_id
@@ -73,19 +78,19 @@ from (
     ) as bag_info
     join (
       select
+        project_id,
         due_bill_no,
         bag_id
       from dim.bag_due_bill_no
-      where 1 > 0
-        and bag_id in (${bag_id})
     ) as bag_due
-    on bag_info.bag_id = bag_due.bag_id
+    on  bag_info.project_id = bag_due.project_id
+    and bag_info.bag_id     = bag_due.bag_id
     join (
       select
-        sum(should_repay_amount) as should_repay_amount,
-        sum(should_repay_principal) as should_repay_principal,
-        sum(should_repay_interest) as should_repay_interest,
-        sum(should_repay_term_fee + should_repay_svc_fee + should_repay_penalty + should_repay_mult_amt) as should_repay_cost,
+        sum(is_empty(should_repay_amount,nvl(should_repay_principal,0) + nvl(should_repay_interest,0) + nvl(should_repay_term_fee,0) + nvl(should_repay_svc_fee,0) + nvl(should_repay_penalty,0) + nvl(should_repay_mult_amt,0),0)) as should_repay_amount,
+        sum(nvl(should_repay_principal,0)) as should_repay_principal,
+        sum(nvl(should_repay_interest,0)) as should_repay_interest,
+        sum(nvl(should_repay_term_fee,0) + nvl(should_repay_svc_fee,0) + nvl(should_repay_penalty,0) + nvl(should_repay_mult_amt,0)) as should_repay_cost,
         should_repay_date,
         due_bill_no,
         s_d_date,
@@ -93,15 +98,15 @@ from (
         project_id
       from ods.repay_schedule_abs
       where 1 > 0
+        -- and project_id = 'PL202105120104'
         -- and due_bill_no = '1000682129'
       group by should_repay_date,due_bill_no,s_d_date,e_d_date,project_id
       -- order by project_id,due_bill_no,should_repay_date,s_d_date
     ) as repay_schedule
-    on  repay_schedule.project_id  = bag_info.project_id
+    on  repay_schedule.project_id  = bag_due.project_id
     and repay_schedule.due_bill_no = bag_due.due_bill_no
-    where 1 > 0
-      and if(bag_info.bag_date < s_d_date,s_d_date,bag_info.bag_date) between s_d_date and date_sub(e_d_date,1)
-      and bag_info.bag_date <= should_repay_date
+    and if(bag_info.bag_date < s_d_date,s_d_date,bag_info.bag_date) between s_d_date and date_sub(e_d_date,1)
+    and bag_info.bag_date <= should_repay_date
   ) as tmp
 ) as tmp
 group by project_id,should_repay_date,bag_id

@@ -939,9 +939,9 @@ from (
       from stage.kafka_credit_msg
         lateral view outer explode(reqdata) kv as k,v
       where 1 > 0
-        and p_type ='WS0012200001'
+        and p_type = 'WS0012200001'
         and batch_date between date_sub('${ST9}',2) and '${ST9}'
-        group by reqdata["loanDate"],reqdata,resdata
+      group by reqdata["loanDate"],reqdata,resdata
     ) as loan_apply
     left join (
       select

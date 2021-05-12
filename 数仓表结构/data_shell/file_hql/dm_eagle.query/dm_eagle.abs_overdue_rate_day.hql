@@ -25,11 +25,24 @@ set hive.auto.convert.join.noconditionaltask=false;  -- 关闭自动 MapJoin
 
 
 
--- set hivevar:bag_id=;
--- set hivevar:ST9=2021-01-11;
+
+-- set hivevar:ST9=2020-10-16;
+-- set hivevar:ST9=2020-10-17;
+
+-- set hivevar:ST9=2021-05-10;
+
+-- set hivevar:bag_id='PL202105120104_1';
+
+-- set hivevar:bag_id=
+--   select distinct bag_id
+--   from dim.bag_info
+--   where 1 > 0
+-- ;
 
 
-with dpds as ( -- 获取到多种dpd的码值
+with
+-- 获取到多种dpd的码值
+dpds as (
   -- select '0'       as dpd union all
   select '1+'      as dpd union all
   select '7+'      as dpd union all
@@ -49,102 +62,79 @@ with dpds as ( -- 获取到多种dpd的码值
   select '151_180' as dpd union all
   select '180+'    as dpd
 ),
-loan_base as ( -- 取封包日期至当前时间为止的数据
+
+-- 取封包日期至当前时间为止的数据
+loan_base as (
   select
-    bag_info.project_id                                                              as project_id,
-    bag_info.bag_id                                                                  as bag_id,
-    bag_due.due_bill_no                                                              as due_bill_no,
-    customer_info.user_hash_no                                                       as user_hash_no,
-    loan_info.overdue_days                                                           as overdue_days,
-    if(loan_info.overdue_date_start = loan_info.overdue_days_min_start_date,'y','n') as is_first_overdue_day,
-    loan_info.overdue_days_dpd                                                       as overdue_days_dpd,
-    loan_info.remain_principal                                                       as remain_principal,
-    loan_info.overdue_principal                                                      as overdue_principal,
-    if(loan_info.overdue_days > 0,loan_info.remain_principal,0)                      as overdue_remain_principal,
-    if(loan_info.overdue_days > 0,loan_info.due_bill_no,null)                        as overdue_due_bill_no,
-    if(loan_info.overdue_days > 0,customer_info.user_hash_no,null)                   as overdue_user_hash_no,
-    bag_info.bag_date                                                                as bag_date,
-    if(bag_info.bag_date < loan_info.min_date,loan_info.min_date,bag_info.bag_date)  as min_date,
-    '${ST9}'                                                                         as biz_date,
-    loan_info.s_d_date                                                               as s_d_date,
-    loan_info.e_d_date                                                               as e_d_date
+    abs_due.biz_date                                                          as biz_date,
+    abs_due.project_id                                                        as project_id,
+    abs_due.due_bill_no                                                       as due_bill_no,
+    abs_due.user_hash_no                                                      as user_hash_no,
+    abs_due.overdue_days                                                      as overdue_days,
+    abs_due.is_first_overdue_day                                              as is_first_overdue_day,
+    abs_due.overdue_days_dpd                                                  as overdue_days_dpd,
+    abs_due.remain_principal                                                  as remain_principal,
+    abs_due.overdue_principal                                                 as overdue_principal,
+    abs_due.overdue_remain_principal                                          as overdue_remain_principal,
+    abs_due.overdue_due_bill_no                                               as overdue_due_bill_no,
+    abs_due.overdue_user_hash_no                                              as overdue_user_hash_no,
+    if(bag_due.bag_date < abs_due.min_date,abs_due.min_date,bag_due.bag_date) as min_date,
+    bag_due.bag_date                                                          as bag_date,
+    bag_due.bag_id                                                            as bag_id
   from (
     select
-      project_id,bag_date,bag_id
-    from dim.bag_info
-    where 1 > 0
-      and bag_date <= '${ST9}'
-      ${bag_id}
-  ) as bag_info
-  join (
-    select due_bill_no,bag_id
-    from dim.bag_due_bill_no
-    where 1 > 0
-      ${bag_id}
-  ) as bag_due
-  on bag_info.bag_id = bag_due.bag_id
-  join (
-    select
+      biz_date,
       project_id,
+      user_hash_no,
       due_bill_no,
       overdue_days,
       overdue_date_start,
-      split(concat_ws(',',
-        if(overdue_days = 0,  '0',   null),
-        if(overdue_days >= 1, '1+',  null),
-        if(overdue_days > 7,  '7+',  null),
-        if(overdue_days > 14, '14+', null),
-        if(overdue_days > 30, '30+', null),
-        if(overdue_days > 60, '60+', null),
-        if(overdue_days > 90, '90+', null),
-        if(overdue_days > 120,'120+',null),
-        if(overdue_days > 150,'150+',null),
-        case
-        when overdue_days between 1   and 7   then '1_7'
-        when overdue_days between 8   and 14  then '8_14'
-        when overdue_days between 15  and 30  then '15_30'
-        when overdue_days between 31  and 60  then '31_60'
-        when overdue_days between 61  and 90  then '61_90'
-        when overdue_days between 91  and 120 then '91_120'
-        when overdue_days between 121 and 150 then '121_150'
-        when overdue_days between 151 and 180 then '151_180'
-        else null end,
-        if(overdue_days > 180,'180+',null)
-      ),',') as overdue_days_dpd,
+      overdue_days_dpd,
       overdue_principal,
       remain_principal,
-      min(overdue_date_start) over(partition by due_bill_no,overdue_days) as overdue_days_min_start_date,
-      min(s_d_date)           over(partition by due_bill_no) as min_date,
-      s_d_date,
-      e_d_date
-    from ods.loan_info_abs
+      is_first_overdue_day,
+      overdue_due_bill_no,
+      overdue_user_hash_no,
+      overdue_remain_principal,
+      min_date
+    from dw.abs_due_info_day_abs
     where 1 > 0
-      and s_d_date <= '${ST9}'
-      -- and overdue_days = 0
-      -- and overdue_days > 60
-      -- and overdue_days > 180
-      -- and due_bill_no = '004102b282c14d8590c442d78089edd1'
-  ) as loan_info
-  on  loan_info.project_id  = bag_info.project_id
-  and loan_info.due_bill_no = bag_due.due_bill_no
-  join (
+      and biz_date = '${ST9}'
+      and project_id  = 'CL202011090089'
+      and due_bill_no = '1000002321'
+  ) as abs_due
+  left join (
     select
-      project_id,
-      due_bill_no,
-      user_hash_no
-    from ods.customer_info_abs
-    where 1 > 0
-      -- and user_hash_no = 'a_7836af23d8bc3d641933b6ed459945d964bbbf975cecc7a9ae09293c28fd53a3'
-  ) as customer_info
-  on  customer_info.project_id  = bag_info.project_id
-  and customer_info.due_bill_no = bag_due.due_bill_no
-  where 1 > 0
-    and loan_info.e_d_date > bag_info.bag_date
-    -- and overdue_days > 30 and overdue_days < 60
-  -- order by due_bill_no,s_d_date
-  -- limit 10
+      bag_info.project_id,
+      bag_info.bag_id,
+      bag_info.bag_date,
+      bag_due.due_bill_no
+    from (
+      select
+        project_id,
+        bag_id,
+        bag_date
+      from dim.bag_info
+      where 1 > 0
+        and bag_id in (${bag_id})
+    ) as bag_info
+    inner join (
+      select
+        project_id,
+        bag_id,
+        due_bill_no
+      from dim.bag_due_bill_no
+    ) as bag_due
+    on  bag_info.project_id  = bag_due.project_id
+    and bag_info.bag_id      = bag_due.bag_id
+  ) as bag_due
+  on  abs_due.project_id  = bag_due.project_id
+  and abs_due.due_bill_no = bag_due.due_bill_no
+  and abs_due.biz_date    >= bag_due.bag_date
 ),
-loan_due as ( -- 将符合条件的dpd数据做行列转换
+
+-- 将符合条件的dpd数据做行列转换
+loan_due as (
   select
     project_id,
     bag_id,

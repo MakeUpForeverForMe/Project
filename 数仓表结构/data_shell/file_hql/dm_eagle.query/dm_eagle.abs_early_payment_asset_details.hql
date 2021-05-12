@@ -45,7 +45,6 @@ select
   loan_settle.biz_date                   as biz_date,
   bag_due.project_id                     as project_id,
   bag_due.bag_id                         as bag_id
-select *
 from (
   select
     *

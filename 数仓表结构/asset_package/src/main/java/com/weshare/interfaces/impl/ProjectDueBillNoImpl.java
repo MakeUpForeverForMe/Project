@@ -54,7 +54,7 @@ public class ProjectDueBillNoImpl implements AssetFiles, Serializable {
     public void insertData(Dataset<String> dataset, SparkSession sparkSession, String fileId) {
         Dataset<ProjectDueBillNo> processDS = process(dataset);
         processDS.registerTempTable("temp_dim_project_due_bill_no");
-        sparkSession.sql("insert into table dim.project_due_bill_no partition(project_id='" + fileId + "',import_id) " +
+        sparkSession.sql("insert overwrite table dim.project_due_bill_no partition(project_id='" + fileId + "',import_id) " +
                 "select " +
                 "temp.dueBillNo, " +
                 "temp.relatedProjectId, " +

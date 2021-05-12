@@ -409,6 +409,9 @@ invalidate metadata dm_eagle.abs_asset_information_bag_snapshot;
 invalidate metadata dm_eagle.abs_overdue_rate_details_day;
 invalidate metadata dm_eagle.abs_early_payment_asset_details;
 
+invalidate metadata dm_eagle.abs_asset_information_cash_flow_bag_day;
+invalidate metadata dm_eagle.abs_asset_information_cash_flow_bag_snapshot;
+
 invalidate metadata dm_eagle.abs_early_payment_asset_statistic;
 
 

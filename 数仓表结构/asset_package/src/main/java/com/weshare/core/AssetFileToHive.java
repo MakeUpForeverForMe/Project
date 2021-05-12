@@ -36,7 +36,8 @@ public class AssetFileToHive {
         }
         LOGGER.info("========== AssetFileToHive begin!");
         try {
-            prop.load(new FileInputStream("pro_cos.properties"));
+            String proCosName = args[2];
+            prop.load(new FileInputStream(proCosName));
         } catch (Exception e) {
             LOGGER.error("load properties failed : ",e);
         }

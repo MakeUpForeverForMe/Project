@@ -25,7 +25,7 @@ set hive.auto.convert.join.noconditionaltask=false;
 
 
 
--- set hivevar:ST9=2020-10-01;
+-- set hivevar:ST9=2021-05-10;
 -- set hivevar:project_id=
 --   select distinct project_id
 --   from dim.project_info
