@@ -23,20 +23,21 @@ public class BagDueBillNoImpl implements AssetFiles, Serializable {
     private static final long serialVersionUID = 1L;
 
     public Dataset<BagDueBillNo> process(Dataset<String> dataSet) {
-        Dataset<BagDueBillNo> flatMapDS = dataSet.flatMap(new FlatMapFunction<String, BagDueBillNo>() {
-            ArrayList<BagDueBillNo> list = new ArrayList<BagDueBillNo>();
+        return dataSet.flatMap(new FlatMapFunction<String, BagDueBillNo>() {
+            ArrayList<BagDueBillNo> list = new ArrayList<>();
 
             @Override
             public Iterator<BagDueBillNo> call(String s) {
                 JsonObject jsonObject = new JsonParser().parse(s).getAsJsonObject();
+                String projectId = jsonObject.get("project_id").getAsString();
                 String bagId = jsonObject.get("bag_id").getAsString();
                 JsonArray due_bill_nos = jsonObject.getAsJsonArray("due_bill_no");
                 Gson gson = new Gson();
                 for (JsonElement due_bill_no : due_bill_nos) {
                     BagDueBillNo bagDueBillNo = new BagDueBillNo();
+                    bagDueBillNo.setBagId(projectId);
                     bagDueBillNo.setBagId(bagId);
-                    BagDueBillNoHelper helper = gson.fromJson(due_bill_no, new TypeToken<BagDueBillNoHelper>() {
-                    }.getType());
+                    BagDueBillNoHelper helper = gson.fromJson(due_bill_no, new TypeToken<BagDueBillNoHelper>(){ }.getType());
                     bagDueBillNo.setDueBillNo(helper.getSerialNumber());
                     bagDueBillNo.setPackageRemainPrincipal(helper.getPackageRemainPrincipal());
                     bagDueBillNo.setPackageRemainPeriods(helper.getPackageRemainPeriods());
@@ -45,7 +46,6 @@ public class BagDueBillNoImpl implements AssetFiles, Serializable {
                 return list.iterator();
             }
         }, Encoders.bean(BagDueBillNo.class));
-        return flatMapDS;
     }
 
     @Override

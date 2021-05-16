@@ -1,97 +1,140 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 . /etc/profile
 . ~/.bash_profile
+export HADOOP_CLIENT_OPTS="-Djline.terminal=jline.UnsupportedTerminal"
 
-base_dir=$(cd `dirname "${BASH_SOURCE[0]}"`/..;pwd)
-
-
-ip=$(ifconfig | grep -Po 'inet[ ]\K[^ ]+' | grep -v '127')
-
-case $ip in
+case $(ifconfig | grep -Po 'inet[ ]\K[^ ]+' | grep -v '127') in
   (10.80.* )
     is_test=n
     hive_host='10.80.0.46:2181,10.80.0.255:2181,10.80.1.113:2181/;serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=hiveserver2'
-    impala_host=10.80.3.61:21050
+    # impala_host=10.80.2.51:21050 # 两台 Task
+    impala_host=10.80.3.61:21050 # 三台 Core
     impala_clb='--protoco=hs2'
+    abs_call_back_addr=https://uabs-server.weshareholdings.com # 10.80.1.25
     ;;
   (10.83.* )
     is_test=y
     hive_host=node123:10000
-    impala_host=node47
+    impala_host=10.83.1.43:27000
+    abs_call_back_addr=10.83.0.69:8210
     ;;
 esac
 
 
-# 目录
+# 系统命令
+# Python 系统命令
+python=/usr/bin/python3
+# Hive 客户端 Beeline 命令
+beeline="beeline -n hadoop -u 'jdbc:hive2://$hive_host'"
+# Impala 命令
+impala="impala-shell -u hadoop -i $impala_host ${impala_clb}"
+# MySQL 命令
+mysql_cmd="mysql_fun"
+# HDFS 命令
+hdfs='sudo -u hadoop hdfs dfs'
+# HDFS URI
+hdfs_uri=cosn://bigdata-center-prod-1253824322
+
+
+
+
+# 根目录
+base_dir=$(cd `dirname "${BASH_SOURCE[0]}"`/..;pwd)
+
+# 一级目录
+# 引用资源目录
 lib=$base_dir/lib
+# 日志目录
 log=$base_dir/log
 
+# 基础命令目录
 bin=$base_dir/bin
+# 看管命令目录
 bin_abn=$base_dir/bin_abn
+# 星云命令目录
 bin_abs=$base_dir/bin_abs
 
+# 基础配置目录
 conf_env=$base_dir/conf_env
-dm_eagle_dm_eagle=$([[ ${is_test} == 'n' ]] && echo $conf_env/prod_dm_eagle_dm_eagle.mysql_conf || echo $conf_env/test_dm_eagle_dm_eagle.mysql_conf)
-dm_eagle_dm_eagle_cps=$([[ ${is_test} == 'n' ]] && echo $conf_env/prod_dm_eagle_dm_eagle_cps.mysql_conf || echo $conf_env/test_dm_eagle_dm_eagle_cps.mysql_conf)
-dm_eagle_uabs_core=$([[ ${is_test} == 'n' ]] && echo $conf_env/prod_dm_eagle_uabs_core.mysql_conf || echo $conf_env/test_dm_eagle_uabs_core.mysql_conf)
+# 邮箱配置目录
+conf_mail=$base_dir/conf_mail
 
-
+# 数仓执行脚本目录
 file_hql=$base_dir/file_hql
-reload_hql=$file_hql/ods_reload.query
-dim_new_hql=$file_hql/dim.query
-ods_new_s_hql=$file_hql/ods.query
-ods_cloud_hql=$file_hql/ods_cloud.query
-dw_new_hql=$file_hql/dw.query
-dm_eagle_hql=$file_hql/dm_eagle.query
-asset_report_hql=$file_hql/asset_report.query
-dm_operation_hql=$file_hql/dm_operation.query
-eagle_hql=$file_hql/eagle.query
+# 校验执行脚本目录
 file_check=$base_dir/file_check
-file_export=$base_dir/file_export
-file_import=$base_dir/file_import
+# 修数执行脚本目录
 file_repaired=$base_dir/file_repaired
 
+# 导入文件目录
+file_import=$base_dir/file_import
+# 导出文件目录
+file_export=$base_dir/file_export
+
+# Hive 配置文件目录
 param_dir=$base_dir/param_beeline
 
 
-# 执行命令基础
-python=/usr/bin/python3
+# 基础命令
+# 邮箱命令
 mail="$python $bin/send_mail.py"
-
-export HADOOP_CLIENT_OPTS="-Djline.terminal=jline.UnsupportedTerminal"
-
-beeline="beeline -n hadoop -u 'jdbc:hive2://$hive_host'"
-impala="impala-shell -u hadoop -i $impala_host ${impala_clb}"
-
-mysql_cmd="mysql_fun"
-
-hdfs='sudo -u hadoop hdfs dfs'
-hdfs_root_dir=cosn://bigdata-center-prod-1253824322
-
+# 执行脚本命令
 data_manage=$bin/data_manage.sh
+# 独立校验脚本命令
 data_check=$bin/data_check.sh
+# 联合校验脚本命令
 data_check_all=$bin/data_check_all.sh
 
 
+# MySQL 配置文件
+# 看管 MySQL 配置文件
+dm_eagle_dm_eagle=$(    [[ ${is_test} == 'n' ]] && echo $conf_env/prod_dm_eagle_dm_eagle.mysql_conf     || echo $conf_env/test_dm_eagle_dm_eagle.mysql_conf)
+dm_eagle_dm_eagle_cps=$([[ ${is_test} == 'n' ]] && echo $conf_env/prod_dm_eagle_dm_eagle_cps.mysql_conf || echo $conf_env/test_dm_eagle_dm_eagle_cps.mysql_conf)
+# 星云 MySQL 配置文件
+dm_eagle_uabs_core=$(   [[ ${is_test} == 'n' ]] && echo $conf_env/prod_dm_eagle_uabs_core.mysql_conf    || echo $conf_env/test_dm_eagle_uabs_core.mysql_conf)
 
-# 邮箱
-conf_mail=$base_dir/conf_mail
 
+# 邮箱 配置文件
+# 邮箱 配置文件 整组级别
 funds=$conf_mail/data_receives_mail_funds.config
 pm_rd=$conf_mail/data_receives_mail_pm_rd.config
 rd=$conf_mail/data_receives_mail_rd.config
 
-guochao=$conf_mail/data_receives_mail_guochao.config
-liuhuan=$conf_mail/data_receives_mail_liuhuan.config
-ximing=$conf_mail/data_receives_mail_ximing.config
-yuheng=$conf_mail/data_receives_mail_yuheng.config
-
+# 邮箱 配置文件 组合级别
 wh=$conf_mail/data_receives_mail_weihuang.config
 wgt=$conf_mail/data_receives_mail_wgt.config
 wg=$conf_mail/data_receives_mail_wg.config
 wy=$conf_mail/data_receives_mail_wy.config
 
+# 邮箱 配置文件 个人级别
+guochao=$conf_mail/data_receives_mail_guochao.config
+liuhuan=$conf_mail/data_receives_mail_liuhuan.config
+ximing=$conf_mail/data_receives_mail_ximing.config
+yuheng=$conf_mail/data_receives_mail_yuheng.config
+
+
+
+
+# 二级目录
+# dim 目录
+dim_new_hql=$file_hql/dim.query
+
+# ods 目录
+ods_new_s_hql=$file_hql/ods.query
+reload_hql=$file_hql/ods_reload.query
+ods_cloud_hql=$file_hql/ods_cloud.query
+
+# dw 目录
+dw_new_hql=$file_hql/dw.query
+# dm 目录
+dm_eagle_hql=$file_hql/dm_eagle.query
+dm_operation_hql=$file_hql/dm_operation.query
+
+eagle_hql=$file_hql/eagle.query
+asset_report_hql=$file_hql/asset_report.query
+
 
 # 变量设置
 declare -A tables
+root_level=DEBU

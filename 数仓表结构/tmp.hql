@@ -11,7 +11,7 @@ set hivevar:ST9=2020-04-20;
 
 set hivevar:ST9=2021-01-25;
 
-set hivevar:ST9=2021-03-10;
+set hivevar:ST9=2021-05-13;
 
 set hive.execution.engine=mr;
 
@@ -401,6 +401,48 @@ invalidate metadata ods.t_10_basic_asset;
 invalidate metadata ods_cps.order_info;
 
 
+
+
+refresh dm_eagle.abs_asset_information_bag_snapshot;
+refresh dm_eagle.abs_asset_distribution_bag_snapshot_day;
+
+refresh dm_eagle.abs_early_payment_asset_statistic;
+refresh dm_eagle.abs_early_payment_asset_details;
+
+
+refresh dim.bag_due_bill_no;
+
+refresh ods.customer_info;
+refresh ods.guaranty_info;
+refresh ods.enterprise_info;
+refresh ods.risk_control;
+refresh ods.loan_lending;
+refresh ods.loan_info;
+refresh ods.repay_schedule;
+refresh ods.repay_detail;
+refresh ods.order_info;
+refresh ods.t_10_basic_asset_stage;
+
+
+
+refresh dm_eagle.abs_asset_information_bag_snapshot;
+refresh dm_eagle.abs_asset_distribution_bag_snapshot_day;
+refresh dm_eagle.abs_asset_information_cash_flow_bag_snapshot;
+
+refresh dm_eagle.abs_asset_information_project;
+refresh dm_eagle.abs_asset_information_bag;
+refresh dm_eagle.abs_asset_information_cash_flow_bag_day;
+refresh dm_eagle.abs_asset_distribution_day;
+refresh dm_eagle.abs_asset_distribution_bag_day;
+refresh dm_eagle.abs_overdue_rate_day;
+refresh dm_eagle.abs_overdue_rate_details_day;
+refresh dm_eagle.abs_early_payment_asset_statistic;
+refresh dm_eagle.abs_early_payment_asset_details;
+
+
+
+
+
 invalidate metadata dm_eagle.abs_asset_information_bag;
 invalidate metadata dm_eagle.abs_asset_information_project;
 invalidate metadata dm_eagle.abs_asset_information_bag_snapshot;
@@ -413,7 +455,13 @@ invalidate metadata dm_eagle.abs_asset_information_cash_flow_bag_day;
 invalidate metadata dm_eagle.abs_asset_information_cash_flow_bag_snapshot;
 
 invalidate metadata dm_eagle.abs_early_payment_asset_statistic;
+invalidate metadata dm_eagle.abs_early_payment_asset_details;
 
+invalidate metadata dm_eagle.abs_early_payment_asset_details;
+
+
+
+invalidate metadata hivemetastore.dbs;
 
 
 
@@ -1190,6 +1238,13 @@ set hivevar:ST9=2021-02-01;
 
 
 set hivevar:ST9=2021-04-14;
+
+
+
+
+set tez.am.container.reuse.enabled=false;
+
+
 
 -- HBase 插入数据前加这个配置（Hive官网）
 set hive.hbase.wal.enabled=false;

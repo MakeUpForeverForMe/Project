@@ -277,7 +277,7 @@ STORED AS TEXTFILE;
 CREATE TABLE IF NOT EXISTS `dim.bag_info`(
   `project_id`                    string         COMMENT '项目编号',
   `bag_name`                      string         COMMENT '包名称',
-  `bag_status`                    string         COMMENT '包状态',
+  `bag_status`                    string         COMMENT '包状态（1：未封包，2：已封包，3：已解包，4：封包中，5：封包失败，6：已发行）',
   `bag_remain_principal`          string         COMMENT '封包总本金余额',
   `bag_date`                      string         COMMENT '封包日期',
   `insert_date`                   string         COMMENT '封包操作日期'

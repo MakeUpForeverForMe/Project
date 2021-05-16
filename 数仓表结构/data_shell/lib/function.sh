@@ -1,7 +1,10 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 
 # -------------------- 基础函数 -------------------- #
+# 当前脚本的PID
+pid(){ echo $$;}
+
 # 去除数据前后的字符（默认空格等）
 trim(){ echo $1 | sed "s/^${2:-\s}*//; s/${2:-\s}*$//"; }
 
@@ -65,6 +68,35 @@ c_l_l(){ echo ${1%% *}; } # 取最左侧的 空格   的左侧内容
 e_l_l(){ echo ${1%%=*}; } # 取最左侧的 等号   的左侧内容
 u_l_l(){ echo ${1%%_*}; } # 取最左侧的 下划线 的左侧内容
 
+# 打印日志
+log_base(){
+  level(){
+    case $1 in
+      ( DEBU )  echo 1 ;;
+      ( INFO )  echo 2 ;;
+      ( WARN )  echo 3 ;;
+      ( ERRO )  echo 4 ;;
+      ( *    )  echo 9 ;;
+    esac
+  }
+  log_level=$1 shift 1
+  case $log_level in
+    ( DEBU )  level_color='\033[36m%4s\033[0m' ;;
+    ( INFO )  level_color='\033[32m%4s\033[0m' ;;
+    ( WARN )  level_color='\033[33m%4s\033[0m' ;;
+    ( ERRO )  level_color='\033[31m%4s\033[0m' ;;
+    ( *    )  echo "未匹配的日志级别"; exit 1   ;;
+  esac
+  [[ $(level $log_level) -ge $(level $root_level) ]] && {
+    printf "$(date +'%F %T') [ %-6s ] - [ $level_color ] %s\n" "$(pid)" "$log_level" "$*" 2>&1 | tee -a $log_file
+  }
+}
+
+debug(){ log_base DEBU "$*"; }
+info(){ log_base INFO "$*"; }
+warn(){ log_base WARN "$*"; }
+erro(){ log_base ERRO "$*"; }
+
 
 # 获取两个时间之间的时长（不区分两个参数大小，返回都是正数）
 during(){
@@ -77,9 +109,6 @@ during(){
   d=$(( $u / 24 ))
   printf '%d天%02d时%02d分%02d秒' $d $h $m $s
 }
-
-# 当前脚本的PID
-pid(){ echo $$;}
 
 # 并行限制（默认可以并行数为5个）
 p_opera(){

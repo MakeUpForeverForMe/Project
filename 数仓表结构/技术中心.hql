@@ -15603,13 +15603,15 @@ MSCK REPAIR TABLE dm_eagle.abs_early_payment_asset_statistic_c;
 
 
 
-
 ALTER TABLE dm_eagle.abs_asset_information_cash_flow_bag_snapshot DROP IF EXISTS PARTITION (biz_date = '${ST9}');
 
+ALTER TABLE ods_cps.repay_schedule_inter DROP IF EXISTS PARTITION (biz_date >= '2021-04-20');
+ALTER TABLE ods_cps.loan_info_inter      DROP IF EXISTS PARTITION (biz_date >= '2021-04-20');
 
 
 
-select * from dim.bag_info where project_id = 'PL202105120104';
+
+select * from dim.project_info where project_id = 'WS0006200001';
 
 
 select * from dm_eagle.abs_asset_information_cash_flow_bag_snapshot where bag_id = 'PL202105120104_1';
@@ -15620,10 +15622,248 @@ select distinct repayment_type from ods.t_10_basic_asset;
 
 
 
+select * from dim.project_due_bill_no where project_id = 'CL202104080105';
 
-select * from ods.t_10_basic_asset
-where repayment_type = '等额本息'
+
+
+select count(distinct due_bill_no)
+from dw.abs_due_info_day_abs
+where 1 > 0
+  and biz_date = '2021-05-11'
+  and project_id = 'CL202104010103'
+;
+
+
+
+select * from dm_eagle.abs_asset_information_project where biz_date = '2021-05-11' and project_id = 'CL202104010103' limit 10;
+
+
+alter table dim.dim_encrypt_info set TBLPROPERTIES('EXTERNAL'='true');
+
+
+insert into table dim.dim_encrypt_info
+select 'a_e6688c6761527a37f597fafa5f0d3415d5ea9ade3f56ad29448c4d4d77aec087','18812345678' union all
+select 'b_e6688c6761527a37f597fafa5f0d3415d5ea9ade3f56ad29448c4d4d77aec087','18812345678' union all
+select 'c_e6688c6761527a37f597fafa5f0d3415d5ea9ade3f56ad29448c4d4d77aec087','18812345678' union all
+select 'd_e6688c6761527a37f597fafa5f0d3415d5ea9ade3f56ad29448c4d4d77aec087','18812345678' union all
+select 'e_e6688c6761527a37f597fafa5f0d3415d5ea9ade3f56ad29448c4d4d77aec087','18812345678';
+
+
+
+select * from dm_eagle.abs_early_payment_asset_statistic
+where project_id = 'CL202011090089'
+and biz_date = '2021-05-11'
+limit 10;
+
+
+select * from dm_eagle.abs_early_payment_asset_details   limit 10;
+
+select * from ods.t_10_basic_asset where false;
+
+
+
+select * from ods.loan_info_abs where project_id = 'CL202104010103' limit 10;
+
+select * from dw.abs_due_info_day where project_id = 'CL202104010103' limit 10;
+
+
+select * from dim.project_due_bill_no where project_id = 'CL202104010103';
+
+select * from dim.bag_info where bag_id = 'CL202102240100_3' limit 10;
+
+select * from dim.bag_due_bill_no where project_id = 'CL202104010103' limit 10;
+
+select * from dim.bag_due_bill_no where due_bill_no = '1103531490' limit 10;
+
+select * from dim.bag_info where project_id in (
+  'CL202102010097',
+  'CL202103260102',
+  'CL202104080105',
+  'CL202104160106',
+  'CL202104300107',
+  'CL202105060108',
+  ''
+);
+
+
+select distinct bag_status from dim.bag_info;
+
+
+
+select * from ods.t_10_basic_asset_stage where serial_number = '1103531490' limit 10;
+
+select * from ods.t_10_basic_asset where project_id = 'CL202102240100' and serial_number = '1103531490' limit 10;
+
+select status,asset_bag_id from ods.t_10_basic_asset where project_id = 'CL202104080105' limit 10;
+
+
+select distinct package_remain_principal,biz_date from dm_eagle.abs_early_payment_asset_statistic
+where project_id = 'CL202011090089'
+  and is_allbag = 'Y'
+order by biz_date desc
+limit 100;
+
+
+
+
+select
+  *
+from dim.bag_info
+where 1 > 0
+  and project_id = 'CL202104080105'
+;
+
+
+
+
+select
+  *
+from dim.bag_due_bill_no
+where 1 > 0
+  and project_id = 'CL202104080105'
 limit 10
 ;
 
 
+
+select
+  *
+from
+dm_eagle.abs_asset_information_bag_snapshot
+-- dm_eagle.abs_asset_information_cash_flow_bag_snapshot
+-- dm_eagle.abs_asset_distribution_bag_snapshot_day
+where 1 > 0
+  and project_id = 'CL202104080105'
+limit 10
+;
+
+
+
+
+
+
+
+
+
+
+
+alter table dm_eagle.abs_asset_distribution_bag_day               set tblproperties('EXTERNAL' = 'false');
+alter table dm_eagle.abs_asset_distribution_bag_snapshot_day      set tblproperties('EXTERNAL' = 'false');
+alter table dm_eagle.abs_asset_distribution_day                   set tblproperties('EXTERNAL' = 'false');
+alter table dm_eagle.abs_asset_information_bag                    set tblproperties('EXTERNAL' = 'false');
+alter table dm_eagle.abs_asset_information_bag_snapshot           set tblproperties('EXTERNAL' = 'false');
+alter table dm_eagle.abs_asset_information_cash_flow_bag_day      set tblproperties('EXTERNAL' = 'false');
+alter table dm_eagle.abs_asset_information_cash_flow_bag_day_old  set tblproperties('EXTERNAL' = 'false');
+alter table dm_eagle.abs_asset_information_cash_flow_bag_snapshot set tblproperties('EXTERNAL' = 'false');
+alter table dm_eagle.abs_asset_information_project                set tblproperties('EXTERNAL' = 'false');
+alter table dm_eagle.abs_early_payment_asset_details              set tblproperties('EXTERNAL' = 'false');
+alter table dm_eagle.abs_early_payment_asset_statistic            set tblproperties('EXTERNAL' = 'false');
+alter table dm_eagle.abs_overdue_rate_day                         set tblproperties('EXTERNAL' = 'false');
+alter table dm_eagle.abs_overdue_rate_details_day                 set tblproperties('EXTERNAL' = 'false');
+
+
+ALTER TABLE dm_eagle.abs_asset_distribution_bag_day               DROP IF EXISTS PARTITION (biz_date < '2021-05-16');
+ALTER TABLE dm_eagle.abs_asset_distribution_bag_snapshot_day      DROP IF EXISTS PARTITION (biz_date < '2021-05-16');
+ALTER TABLE dm_eagle.abs_asset_distribution_day                   DROP IF EXISTS PARTITION (biz_date < '2021-05-16');
+ALTER TABLE dm_eagle.abs_asset_information_bag                    DROP IF EXISTS PARTITION (biz_date < '2021-05-16');
+ALTER TABLE dm_eagle.abs_asset_information_bag_snapshot           DROP IF EXISTS PARTITION (biz_date < '2021-05-16');
+ALTER TABLE dm_eagle.abs_asset_information_cash_flow_bag_day      DROP IF EXISTS PARTITION (biz_date < '2021-05-16');
+ALTER TABLE dm_eagle.abs_asset_information_cash_flow_bag_day_old  DROP IF EXISTS PARTITION (biz_date < '2021-05-16');
+ALTER TABLE dm_eagle.abs_asset_information_cash_flow_bag_snapshot DROP IF EXISTS PARTITION (biz_date < '2021-05-16');
+ALTER TABLE dm_eagle.abs_asset_information_project                DROP IF EXISTS PARTITION (biz_date < '2021-05-16');
+ALTER TABLE dm_eagle.abs_early_payment_asset_details              DROP IF EXISTS PARTITION (biz_date < '2021-05-16');
+ALTER TABLE dm_eagle.abs_early_payment_asset_statistic            DROP IF EXISTS PARTITION (biz_date < '2021-05-16');
+ALTER TABLE dm_eagle.abs_overdue_rate_day                         DROP IF EXISTS PARTITION (biz_date < '2021-05-16');
+ALTER TABLE dm_eagle.abs_overdue_rate_details_day                 DROP IF EXISTS PARTITION (biz_date < '2021-05-16');
+
+
+show create TABLE dm_eagle.abs_asset_distribution_bag_day;
+show create TABLE dm_eagle.abs_asset_distribution_bag_snapshot_day;
+show create TABLE dm_eagle.abs_asset_distribution_day;
+show create TABLE dm_eagle.abs_asset_information_bag;
+show create TABLE dm_eagle.abs_asset_information_bag_snapshot;
+show create TABLE dm_eagle.abs_asset_information_cash_flow_bag_day;
+show create TABLE dm_eagle.abs_asset_information_cash_flow_bag_day_old;
+show create TABLE dm_eagle.abs_asset_information_cash_flow_bag_snapshot;
+show create TABLE dm_eagle.abs_asset_information_project;
+show create TABLE dm_eagle.abs_early_payment_asset_details;
+show create TABLE dm_eagle.abs_early_payment_asset_statistic;
+show create TABLE dm_eagle.abs_overdue_rate_day;
+show create TABLE dm_eagle.abs_overdue_rate_details_day;
+
+
+MSCK REPAIR TABLE dm_eagle.abs_asset_distribution_bag_day;
+MSCK REPAIR TABLE dm_eagle.abs_asset_distribution_bag_snapshot_day;
+MSCK REPAIR TABLE dm_eagle.abs_asset_distribution_day;
+MSCK REPAIR TABLE dm_eagle.abs_asset_information_bag;
+MSCK REPAIR TABLE dm_eagle.abs_asset_information_bag_snapshot;
+MSCK REPAIR TABLE dm_eagle.abs_asset_information_cash_flow_bag_day;
+MSCK REPAIR TABLE dm_eagle.abs_asset_information_cash_flow_bag_day_old;
+MSCK REPAIR TABLE dm_eagle.abs_asset_information_cash_flow_bag_snapshot;
+MSCK REPAIR TABLE dm_eagle.abs_asset_information_project;
+MSCK REPAIR TABLE dm_eagle.abs_early_payment_asset_details;
+MSCK REPAIR TABLE dm_eagle.abs_early_payment_asset_statistic;
+MSCK REPAIR TABLE dm_eagle.abs_overdue_rate_day;
+MSCK REPAIR TABLE dm_eagle.abs_overdue_rate_details_day;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+select
+  project_id,
+  due_bill_no,
+  js2str(concat('{"',concat_ws(',"',collect_list(concat_ws('":',dpd_x,str_map))),'}')) as tt
+from (
+  select
+    project_id,
+    due_bill_no,
+    dpd_x,
+    concat('{"',concat_ws(',"',collect_list(concat_ws('":',overdue_date_start,cast(remain_principal as string)))),'}') as str_map
+  from ods.loan_info_abs
+  lateral view explode(
+    split(concat_ws(',',
+      if(overdue_days >= 1, '1+',  null),
+      if(overdue_days > 7,  '7+',  null),
+      if(overdue_days > 14, '14+', null),
+      if(overdue_days > 30, '30+', null),
+      if(overdue_days > 60, '60+', null),
+      if(overdue_days > 90, '90+', null),
+      if(overdue_days > 120,'120+',null),
+      if(overdue_days > 150,'150+',null),
+      if(overdue_days > 180,'180+',null),
+      case
+        when overdue_days between 1   and 7   then '1_7'
+        when overdue_days between 8   and 14  then '8_14'
+        when overdue_days between 15  and 30  then '15_30'
+        when overdue_days between 31  and 60  then '31_60'
+        when overdue_days between 61  and 90  then '61_90'
+        when overdue_days between 91  and 120 then '91_120'
+        when overdue_days between 121 and 150 then '121_150'
+        when overdue_days between 151 and 180 then '151_180'
+        else null
+      end
+    ),',')
+  ) dpd as dpd_x
+  where 1 > 0
+    -- and project_id = 'CL202011090089'
+    -- and due_bill_no = '1000000054'
+    and s_d_date <= '2021-05-15'
+    and overdue_days in (1,8,15,31,61,91,121,151,181)
+    -- and dpd_key is not null
+    -- and overdue_days = 15
+  group by project_id,due_bill_no,dpd_x
+) as tmp
+group by project_id,due_bill_no
+order by project_id,due_bill_no
+limit 50
+;

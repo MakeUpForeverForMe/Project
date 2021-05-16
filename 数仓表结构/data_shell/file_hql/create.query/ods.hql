@@ -1946,13 +1946,7 @@ CREATE VIEW IF NOT EXISTS `ods.t_10_basic_asset`(
   stage.virtual_asset_bag_id,
   bag_snapshot.package_remain_principal,
   bag_snapshot.package_remain_periods,
-  cast(
-    case
-      when bag_snapshot.bag_status = '已封包'   then 2
-      when bag_snapshot.bag_status = '已发行'   then 3
-      else 1
-    end as int
-  ) as status,
+  cast(bag_snapshot.bag_status as int) as status,
   stage.wind_control_status,
   stage.wind_control_status_pool,
   stage.cheat_level,
@@ -1965,9 +1959,7 @@ CREATE VIEW IF NOT EXISTS `ods.t_10_basic_asset`(
   stage.mortgage_rates,
   bag_snapshot.bag_date,
   bag_snapshot.insert_date
-from (
-  select * from ods.t_10_basic_asset_stage
-) as stage
+from ods.t_10_basic_asset_stage as stage
 left join (
   select
     bag_due.project_id               as project_id,

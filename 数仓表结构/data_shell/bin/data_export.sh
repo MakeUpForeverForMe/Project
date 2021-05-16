@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
 
 . ${data_export_dir:=$(cd `dirname "${BASH_SOURCE[0]}"`;pwd)}/../conf_env/env.sh
 . $lib/function.sh
@@ -85,8 +85,8 @@ table_list=(
 s_date=$(date -d '-1 day' +%F)
 e_date=$(date -d '-1 day' +%F)
 
-s_date="${1:-${s_date}}"
-e_date="${2:-${e_date}}"
+s_date="$(date -d "${1:-${s_date}}" +%F)"
+e_date="$(date -d "${2:-${e_date}}" +%F)"
 table_list=(${3:-${table_list[@]}})
 
 
@@ -115,7 +115,7 @@ for db_tb in ${!tables[@]};do
     hql=()
     current_date=$(date +%Y%m%d)
 
-    if [[ "${export_all_data_tbl[@]}" =~ "${db_tb}" ]]; then
+    if [[ -n $(echo "${export_all_data_tbl[@]}" | grep -ow "${db_tb}") ]]; then
       hql[$current_date]="select * from ${db_tb};"
     elif [[ "${db_tb}" = 'dm_eagle.abs_asset_information_cash_flow_bag_day' ]]; then
       hql[$current_date]="
@@ -160,7 +160,7 @@ for db_tb in ${!tables[@]};do
   echo "$(date +'%F %T') 删除数据 all_file 结束 ${db_tb}"
 
   tb=$(p_r_r ${db_tb})
-  if [[ "${export_all_data_tbl[@]}" =~ "${db_tb}" ]]; then
+  if [[ -n $(echo "${export_all_data_tbl[@]}" | grep -ow "${db_tb}") || "${db_tb}" = 'dm_eagle.abs_asset_information_cash_flow_bag_day' ]]; then
     delete_sql="truncate table ${tb};"
   else
     delete_sql="DELETE FROM ${tb} WHERE biz_date BETWEEN '${1}' and '${2}';"

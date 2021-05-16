@@ -5,6 +5,9 @@ set tez.am.resource.memory.mb=4096;
 set hive.vectorized.execution.enabled=false;
 set hive.vectorized.execution.reduce.enabled=false;
 set hive.vectorized.execution.reduce.groupby.enabled=false;
+-- 关闭自动 MapJoin （ Hive3 的 bug，引发 No work found for tablescan ）
+set hive.auto.convert.join=false;
+set hive.auto.convert.join.noconditionaltask=false;
 
 
 -- 滴滴
@@ -19,7 +22,9 @@ from (
     get_json_object(js2str(original_msg),'$.userInfo.ocrInfo.address') as col_5,
     get_json_object(js2str(original_msg),'$.userInfo.address')         as col_6
   from stage.ecas_msg_log
-  where msg_type = 'CREDIT_APPLY'
+  where 1 > 0
+    and is_his = 'N'
+    and msg_type = 'CREDIT_APPLY'
     and original_msg is not null
     and datefmt(update_time,'ms','yyyy-MM-dd') = '${ST9}'
 ) as log
@@ -99,7 +104,7 @@ from (
       ) as original_msg
     from stage.ecas_msg_log
     where 1 > 0
-      -- and is_his = 'N'
+      and is_his = 'N'
       -- and is_his = 'Y'
       and msg_type = 'WIND_CONTROL_CREDIT'
       and original_msg is not null
@@ -134,6 +139,7 @@ from (
     get_json_object(js2str(original_msg),'$.data.borrower.homeAddress')   as col_5
   from stage.ecas_msg_log
   where 1 > 0
+    and is_his = 'N'
     and msg_type = 'GZ_CREDIT_APPLY'
     and original_msg is not null
     and datefmt(update_time,'ms','yyyy-MM-dd') = '${ST9}'

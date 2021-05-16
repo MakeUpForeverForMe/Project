@@ -34,17 +34,17 @@ set hive.vectorized.execution.reduce.groupby.enabled=false;
 
 insert overwrite table dm_eagle.abs_early_payment_asset_details partition(biz_date,project_id,bag_id)
 select
-  loan_settle.due_bill_no                as serial_number,
-  loan_settle.contract_no                as contract_no,
-  loan_settle.remain_principal_yesterday as remain_principal_before_payment,
-  loan_settle.paid_out_date              as early_payment_date,
-  repay_detail.early_payment_amount      as early_payment_amount,
-  repay_detail.early_payment_principal   as early_payment_principal,
-  repay_detail.early_payment_interest    as early_payment_interest,
-  repay_detail.early_payment_fee         as early_payment_fee,
-  loan_settle.biz_date                   as biz_date,
-  bag_due.project_id                     as project_id,
-  bag_due.bag_id                         as bag_id
+  loan_info_abs.due_bill_no            as serial_number,
+  loan_lending_abs.contract_no         as contract_no,
+  yesterday.remain_principal           as remain_principal_before_payment,
+  loan_info_abs.paid_out_date          as early_payment_date,
+  repay_detail.early_payment_amount    as early_payment_amount,
+  repay_detail.early_payment_principal as early_payment_principal,
+  repay_detail.early_payment_interest  as early_payment_interest,
+  repay_detail.early_payment_fee       as early_payment_fee,
+  '${ST9}'                             as biz_date,
+  bag_due.project_id                   as project_id,
+  bag_due.bag_id                       as bag_id
 from (
   select
     *
@@ -52,22 +52,19 @@ from (
   where 1 > 0
     and bag_id in (${bag_id})
 ) as bag_due
-inner join (
-  select
-    biz_date,
-    project_id,
-    due_bill_no,
-    contract_no,
-    paid_out_date,
-    remain_principal_yesterday
-  from dw.abs_due_info_day_abs
-  where 1 > 0
-    and biz_date = '${ST9}'
-    and loan_status = 'F'
-    and paid_out_type = 'PRE_SETTLE'
-) as loan_settle
-on  bag_due.project_id  = loan_settle.project_id
-and bag_due.due_bill_no = loan_settle.due_bill_no
+inner join ods.loan_lending_abs
+on  bag_due.project_id  = loan_lending_abs.project_id
+and bag_due.due_bill_no = loan_lending_abs.due_bill_no
+inner join ods.loan_info_abs
+on  bag_due.project_id  = loan_info_abs.project_id
+and bag_due.due_bill_no = loan_info_abs.due_bill_no
+and '${ST9}' between loan_info_abs.s_d_date and date_sub(loan_info_abs.e_d_date,1)
+and loan_info_abs.loan_status = 'F'
+and loan_info_abs.paid_out_type = 'PRE_SETTLE'
+inner join ods.loan_info_abs as yesterday
+on  bag_due.project_id  = yesterday.project_id
+and bag_due.due_bill_no = yesterday.due_bill_no
+and date_sub('${ST9}',1) between yesterday.s_d_date and date_sub(yesterday.e_d_date,1)
 inner join (
   select
     project_id,
@@ -82,7 +79,7 @@ inner join (
     and bnp_type in ('Pricinpal','Interest','TXNFee')
   group by project_id,due_bill_no
 ) as repay_detail
-on  loan_settle.project_id  = repay_detail.project_id
-and loan_settle.due_bill_no = repay_detail.due_bill_no
--- limit 10
+on  loan_info_abs.project_id  = repay_detail.project_id
+and loan_info_abs.due_bill_no = repay_detail.due_bill_no
+limit 10
 ;

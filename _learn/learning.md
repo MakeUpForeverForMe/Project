@@ -5,8 +5,9 @@
 |                                                                                                      Hive 交互式命令                                                                                                      |                                可选参数                               |
 |---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------|
 | beeline -n hadoop -u "jdbc:hive2://10.80.0.46:2181,10.80.0.255:2181,10.80.1.113:2181/;serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=hiveserver2" --color=true --hiveconf hive.resultset.use.unique.column.names=false | --hiveconf spark.app.name=HiveSpark --hiveconf mapred.job.name=HiveMR |
-| beeline -n hadoop -u "jdbc:hive2://10.83.1.9:7001" --color=true --hiveconf hive.resultset.use.unique.column.names=false                                                                                                   | --hiveconf spark.app.name=HiveSpark --hiveconf mapred.job.name=HiveMR |
+| beeline -n hadoop -u "jdbc:hive2://10.83.1.157:7001" --color=true --hiveconf hive.resultset.use.unique.column.names=false                                                                                                 | --hiveconf spark.app.name=HiveSpark --hiveconf mapred.job.name=HiveMR |
 | hive --hiveconf hive.cli.print.current.db=true --hiveconf hive.cli.print.header=true --hiveconf hive.resultset.use.unique.column.names=false                                                                              | --hiveconf spark.app.name=HiveSpark --hiveconf mapred.job.name=HiveMR |
+| sudo -u hadoop hive --hiveconf hive.root.logger=DEBUG,console                                                                                                                                                             | 查看hive的日志                                                        |
 | impala-shell -u hadoop -i 10.80.1.13:27001                                                                                                                                                                                | emr 普通版                                                            |
 | impala-shell -u hadoop -i 10.80.2.51:21050 --protocol=hs2                                                                                                                                                                 | emr clb版                                                             |
 
@@ -1216,6 +1217,8 @@ CREATE TEMPORARY TABLE IF NOT EXISTS test(
 ) COMMENT '测试表'
 ;
 
+-- 修改数据库地址
+ALTER DATABASE dm_eagle SET location 'hdfs:///user/hadoop/warehouse/dm_eagle.db';
 -- 修改数据库配置
 ALTER DATABASE db_hive SET dbproperties('createtime'='20170830');
 -- 表重命名
@@ -1238,6 +1241,10 @@ ALTER TABLE test ADD IF NOT EXISTS PARTITION (year_month='201911',day_of_month='
 ALTER TABLE test DROP IF EXISTS PARTITION (year_month = '201911',day_of_month = 8);
 -- 修改 location
 ALTER TABLE stage.ecas_msg_log SET location 'cosn://bigdata-center-prod-1253824322/user/hadoop/warehouse/stage.db/ecas_msg_log';
+-- 内部转外部
+ALTER TABLE tableA SET TBLPROPERTIES('EXTERNAL' = 'true');
+-- 外部转内部
+ALTER TABLE tableA SET TBLPROPERTIES('EXTERNAL' = 'false');
 -- 修复有分区的表（主要是修复 hdfs put 后读取不到分区数据问题。无分区表用不了）
 MSCK REPAIR TABLE table_name;
 -- 修复表
@@ -2067,10 +2074,10 @@ analyze table table_name compute statistics;
 ALTER MATERIALIZED VIEW [db_name.]materialized_view_name REBUILD; -- 更新物化视图
 
 SHOW FUNCTIONS LIKE 'default*';
-DESC FUNCTION EXTENDED js2str;
+DESC FUNCTION EXTENDED row_sequence;
 
 SHOW FUNCTIONS LIKE '*json*';
-DESC FUNCTION EXTENDED json_tuple;
+DESC FUNCTION EXTENDED concat_ws;
 ```
 
 
@@ -2562,7 +2569,7 @@ hbase shell
 # 查看所有表
 list
 # 创建表
-create 'default:decrypttab', 'cf:c1'
+create 'default:decrypttab', 'cf'
 # 只展示10条数据 LIMIT 要大写
 scan "table_name",{LIMIT => 10}
 ```

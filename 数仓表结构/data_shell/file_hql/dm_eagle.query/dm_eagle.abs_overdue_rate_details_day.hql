@@ -19,95 +19,96 @@ set hive.exec.max.dynamic.partitions.pernode=50000;
 set hive.vectorized.execution.enabled=false;
 set hive.vectorized.execution.reduce.enabled=false;
 set hive.vectorized.execution.reduce.groupby.enabled=false;
+-- 关闭自动 MapJoin （ Hive3 的 bug，引发 No work found for tablescan ）
+set hive.auto.convert.join=false;
+set hive.auto.convert.join.noconditionaltask=false;
 
-set hive.auto.convert.join=false;                    -- 关闭自动 MapJoin
-set hive.auto.convert.join.noconditionaltask=false;  -- 关闭自动 MapJoin
 
+-- set hivevar:ST9=2021-05-10;
 
+-- set hivevar:bag_id=
+--   select distinct bag_id
+--   from dim.bag_info
+--   where 1 > 0
+-- ;
 
--- set hivevar:bag_id=;
--- set hivevar:ST9=2021-01-11;
 
 
 with loan_base as ( -- 取封包日期至当前时间为止的数据
   select
-    bag_info.project_id                                                             as project_id,
-    bag_info.bag_id                                                                 as bag_id,
-    bag_due.due_bill_no                                                             as due_bill_no,
-    loan_lending.contract_no                                                        as contract_no,
-    loan_info.overdue_days                                                          as overdue_days,
-    if(loan_info.s_d_date = loan_info.overdue_days_min_start_date,'y','n')          as is_first_overdue_day,
-    bag_info.bag_date                                                               as bag_date,
-    if(bag_info.bag_date < loan_info.min_date,loan_info.min_date,bag_info.bag_date) as min_date,
-    '${ST9}'                                                                        as biz_date,
-    loan_info.s_d_date                                                              as s_d_date,
-    loan_info.e_d_date                                                              as e_d_date
+    loan_info.project_id           as project_id,
+    loan_info.due_bill_no          as due_bill_no,
+    loan_info.contract_no          as contract_no,
+    loan_info.overdue_days         as overdue_days,
+    loan_info.is_first_overdue_day as is_first_overdue_day,
+    loan_info.s_d_date             as s_d_date,
+    loan_info.e_d_date             as e_d_date,
+    loan_info.biz_date             as biz_date,
+    bag_due.due_bill_no            as bag_due_bill_no,
+    bag_due.bag_date               as bag_date,
+    bag_due.bag_id                 as bag_id
   from (
     select
-      project_id,bag_date,bag_id
-    from dim.bag_info
-    where 1 > 0
-      and bag_date <= '${ST9}'
-      ${bag_id}
-  ) as bag_info
-  join (
-    select
-      due_bill_no,bag_id
-    from dim.bag_due_bill_no
-    where 1 > 0
-      ${bag_id}
-  ) as bag_due
-  on bag_info.bag_id = bag_due.bag_id
-  join (
-    select
-      project_id,
-      due_bill_no,
-      overdue_days,
-      min(overdue_date_start) over(partition by due_bill_no,overdue_days) as overdue_days_min_start_date,
-      min(s_d_date)           over(partition by due_bill_no) as min_date,
-      s_d_date,
-      e_d_date
-    from ods.loan_info_abs
-    where 1 > 0
-      and s_d_date <= '${ST9}'
-      -- and overdue_days = 0
-      -- and overdue_days > 60
-      -- and overdue_days > 180
-      -- and due_bill_no = '004102b282c14d8590c442d78089edd1'
+      loan.*,
+      '${ST9}' as biz_date,
+      lending.contract_no
+    from (
+      select
+        project_id                                                                                                      as project_id,
+        due_bill_no                                                                                                     as due_bill_no,
+        overdue_days                                                                                                    as overdue_days,
+        if(overdue_date_start = min(overdue_date_start) over(partition by project_id,due_bill_no,overdue_days),'y','n') as is_first_overdue_day,
+        s_d_date                                                                                                        as s_d_date,
+        e_d_date                                                                                                        as e_d_date
+      from ods.loan_info_abs
+      where 1 > 0
+        and s_d_date <= '${ST9}'
+        -- and project_id  = 'CL202011090089'
+        -- and due_bill_no = '1000002321'
+    ) as loan
+    join (
+      select
+        project_id,
+        due_bill_no,
+        contract_no
+      from ods.loan_lending_abs
+    ) as lending
+    on  loan.project_id  = lending.project_id
+    and loan.due_bill_no = lending.due_bill_no
   ) as loan_info
-  on  loan_info.project_id  = bag_info.project_id
-  and loan_info.due_bill_no = bag_due.due_bill_no
-  left join (
-    select distinct
-      project_id,
-      due_bill_no,
-      contract_no
-    from ods.loan_lending_abs
-  ) as loan_lending
-  on  loan_info.project_id  = loan_lending.project_id
-  and loan_info.due_bill_no = loan_lending.due_bill_no
-  join (
+  inner join (
     select
-      project_id,
-      due_bill_no,
-      user_hash_no
-    from ods.customer_info_abs
-    where 1 > 0
-      -- and user_hash_no = 'a_7836af23d8bc3d641933b6ed459945d964bbbf975cecc7a9ae09293c28fd53a3'
-  ) as customer_info
-  on  customer_info.project_id  = bag_info.project_id
-  and customer_info.due_bill_no = bag_due.due_bill_no
-  where 1 > 0
-    and loan_info.e_d_date > bag_info.bag_date
-    -- and overdue_days > 30 and overdue_days < 60
-  -- order by due_bill_no,s_d_date
-  -- limit 10
+      bag_info.project_id,
+      bag_info.bag_id,
+      bag_info.bag_date,
+      bag_due.due_bill_no
+    from (
+      select
+        project_id,
+        bag_id,
+        bag_date
+      from dim.bag_info
+      where 1 > 0
+        and bag_id in (${bag_id})
+    ) as bag_info
+    inner join (
+      select
+        project_id,
+        bag_id,
+        due_bill_no
+      from dim.bag_due_bill_no
+    ) as bag_due
+    on  bag_info.project_id = bag_due.project_id
+    and bag_info.bag_id     = bag_due.bag_id
+  ) as bag_due
+  on  loan_info.project_id  = bag_due.project_id
+  and loan_info.due_bill_no = bag_due.due_bill_no
+  and loan_info.e_d_date    > bag_due.bag_date
 )
 
 
 insert overwrite table dm_eagle.abs_overdue_rate_details_day partition(biz_date,project_id,bag_id)
 select
-  molecular_once.is_allbag          as is_allbag,
   molecular_once.due_bill_no        as due_bill_no,
   molecular_once.contract_no        as contract_no,
   loan_info.overdue_days            as overdue_days,
@@ -126,26 +127,10 @@ select
   molecular_once.project_id         as project_id,
   molecular_once.bag_id             as bag_id
 from ( -- 累计
-  select distinct -- 封包时累计所有包
-    biz_date,
-    project_id,
-    'default_all_bag' as bag_id,
-    'y' as is_allbag,
-    'y' as type_once,
-    due_bill_no,
-    contract_no
-  from loan_base
-  where 1 > 0
-    and is_first_overdue_day = 'y'
-    and overdue_days in (1,8,15,31,61,91,121,151,181)
-    -- and project_id = 'CL201911130070'
-    -- and bag_id = 'CL201911130070_12'
-  union all
-  select distinct -- 封包时累计单个包
+  select distinct
     biz_date,
     project_id,
     bag_id,
-    'n' as is_allbag,
     'y' as type_once,
     due_bill_no,
     contract_no
@@ -157,21 +142,9 @@ from ( -- 累计
     -- and bag_id = 'CL201911130070_12'
 ) as molecular_once
 left join ( -- 当前
-  select distinct -- 封包时当前所有包
-    project_id,
-    'default_all_bag' as bag_id,
-    'y' as is_allbag,
-    'y' as type_curr,
-    due_bill_no
-  from loan_base
-  where 1 > 0
-    and biz_date between s_d_date and date_sub(e_d_date,1)
-    -- and if(bag_date < min_date,min_date,bag_date) between s_d_date and date_sub(e_d_date,1)
-  union all
-  select distinct -- 封包时当前单个包
+  select distinct
     project_id,
     bag_id,
-    'n' as is_allbag,
     'y' as type_curr,
     due_bill_no
   from loan_base
@@ -181,25 +154,11 @@ left join ( -- 当前
 ) as molecular_curr
 on  molecular_once.project_id  = molecular_curr.project_id
 and molecular_once.bag_id      = molecular_curr.bag_id
-and molecular_once.is_allbag   = molecular_curr.is_allbag
 and molecular_once.due_bill_no = molecular_curr.due_bill_no
 left join ( -- 新增
-  select distinct -- 封包时新增所有包
-    project_id,
-    'default_all_bag' as bag_id,
-    'y' as is_allbag,
-    'y' as type_new,
-    due_bill_no
-  from loan_base
-  where 1 > 0
-    and biz_date between s_d_date and date_sub(e_d_date,1)
-    and overdue_days in (1,8,15,31,61,91,121,151,181)
-    and is_first_overdue_day = 'y'
-  union all
-  select distinct -- 封包时新增单个包
+  select distinct
     project_id,
     bag_id,
-    'n' as is_allbag,
     'y' as type_new,
     due_bill_no
   from loan_base
@@ -210,7 +169,6 @@ left join ( -- 新增
 ) as molecular_new
 on  molecular_once.project_id  = molecular_new.project_id
 and molecular_once.bag_id      = molecular_new.bag_id
-and molecular_once.is_allbag   = molecular_new.is_allbag
 and molecular_once.due_bill_no = molecular_new.due_bill_no
 left join (
   select * from ods.loan_info_abs

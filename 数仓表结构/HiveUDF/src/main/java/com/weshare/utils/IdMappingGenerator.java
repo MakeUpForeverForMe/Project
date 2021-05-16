@@ -15,22 +15,23 @@ public class IdMappingGenerator {
      * 生成内部唯一ID
      *
      * @param encrypt   传入需要 Hash 的字段
-     * @param fieldType idNumber          // 身份证号
-     *                  passport          // 护照编号
-     *                  address           // 详细地址
-     *                  userName          // 用户姓名
-     *                  phone             // 手机号码
-     *                  bankCard          // 银行卡号码或信用卡号码
-     *                  imsi              // imsi、meid 手机唯一id
-     *                  imei              // imei、idfa、idfv
-     *                  plateNumber       // 车牌号码
-     *                  houseNum          // 房产编号
-     *                  frameNumber       // 车架号码
-     *                  engineNumber      // 发动机号码
-     *                  businessNumber    // 工商注册号
-     *                  organizateCode    // 组织机构代码
-     *                  taxpayerNumber    // 纳税人识别号
-     *                  unifiedCreditCode // 统一信用代码
+     * @param fieldType @: default           // 默认值（当没有匹配成功时）
+     *                  a: idNumber          // 身份证号
+     *                  b: passport          // 护照编号
+     *                  c: address           // 详细地址
+     *                  d: userName          // 用户姓名
+     *                  e: phone             // 手机号码
+     *                  f: bankCard          // 银行卡号码或信用卡号码
+     *                  g: imsi              // imsi、meid 手机唯一id
+     *                  h: imei              // imei、idfa、idfv
+     *                  i: plateNumber       // 车牌号码
+     *                  j: houseNum          // 房产编号
+     *                  k: frameNumber       // 车架号码
+     *                  l: engineNumber      // 发动机号码
+     *                  m: businessNumber    // 工商注册号
+     *                  n: organizateCode    // 组织机构代码
+     *                  o: taxpayerNumber    // 纳税人识别号
+     *                  p: unifiedCreditCode // 统一信用代码
      * @param type      1:明文  2:SHA-256密文
      * @return 返回密文
      */

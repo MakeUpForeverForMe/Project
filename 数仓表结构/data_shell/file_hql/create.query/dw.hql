@@ -511,6 +511,7 @@ CREATE TABLE IF NOT EXISTS `dw.abs_due_info_day`(
   `is_first_overdue_day`         decimal(2,0)   COMMENT '此逾期天数是否是首次逾期到这个天数（0：否，1：是）',
   `overdue_days`                 decimal(5,0)   COMMENT '逾期天数',
   `overdue_days_dpd`             array<string>  COMMENT 'DPD时期（1+、7+、14+、30+、60+、90+、120+、150+、180+、1_7、8_15、15_30、31_60、61_90、91_120、121_150、151_180）',
+  `dpd_map`                      string         COMMENT '曾有逾期的借据DPD汇总（格式：{"1+":{"2021-01-01":1200}}：{"dpd时期":{"开始逾期日期":逾期借据剩余本金}}）',
   `overdue_principal`            decimal(20,5)  COMMENT '逾期本金',
   `overdue_remain_principal`     decimal(20,5)  COMMENT '逾期借据剩余本金',
   `min_date`                     string         COMMENT '借据的最小日期',

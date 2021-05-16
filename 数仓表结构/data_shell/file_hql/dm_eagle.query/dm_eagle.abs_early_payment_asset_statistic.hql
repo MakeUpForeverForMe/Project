@@ -48,8 +48,8 @@ select
   sum(bag_total.unsettled_remain_principal)                                                                                                          as remain_principal,
   count(bag_total.unsettled_due_bill_no)                                                                                                             as asset_count,
   count(distinct bag_total.unsettled_user_hash_no)                                                                                                   as cust_count,
-  min(bag_info.bag_date)                                                                                                                             as bag_date,
-  sum(cast(bag_info.bag_remain_principal as decimal(25,5)))                                                                                          as package_remain_principal,
+  min(bag_total.bag_date)                                                                                                                            as bag_date,
+  sum(bag_total.package_remain_principal)                                                                                                            as package_remain_principal,
   count(bag_total.due_bill_no)                                                                                                                       as package_asset_count,
   count(distinct bag_total.user_hash_no)                                                                                                             as package_cust_count,
   bag_total.biz_date                                                                                                                                 as biz_date,
@@ -57,36 +57,56 @@ select
   'default_all_bag'                                                                                                                                  as bag_id
 from (
   select
-    *
-  from dim.bag_info
-  where 1 > 0
-    and bag_id in (${bag_id})
-) as bag_info
-inner join (
-  select
-    *
-  from dim.bag_due_bill_no
-) as bag_due
-on bag_info.bag_id = bag_due.bag_id
-inner join (
-  select
-    biz_date                                                                 as biz_date,
-    project_id                                                               as project_id,
-    due_bill_no                                                              as due_bill_no,
-    user_hash_no                                                             as user_hash_no,
+    loan.biz_date                                                                               as biz_date,
+    loan.bag_date                                                                               as bag_date,
+    loan.project_id                                                                             as project_id,
+    loan.bag_id                                                                                 as bag_id,
+    loan.due_bill_no                                                                            as due_bill_no,
+    loan.package_remain_principal                                                               as package_remain_principal,
+    customer.user_hash_no                                                                       as user_hash_no,
 
-    if(loan_status <> 'F',due_bill_no,     null)                             as unsettled_due_bill_no,
-    if(loan_status <> 'F',user_hash_no,    null)                             as unsettled_user_hash_no,
-    if(loan_status <> 'F',remain_principal,0)                                as unsettled_remain_principal,
+    if(loan.loan_status <> 'F',loan.due_bill_no,     null)                                      as unsettled_due_bill_no,
+    if(loan.loan_status <> 'F',customer.user_hash_no,null)                                      as unsettled_user_hash_no,
+    if(loan.loan_status <> 'F',loan.remain_principal,0)                                         as unsettled_remain_principal,
 
-    if(loan_status = 'F' and paid_out_type = 'PRE_SETTLE',due_bill_no, null) as pre_settle_due_bill_no,
-    if(loan_status = 'F' and paid_out_type = 'PRE_SETTLE',user_hash_no,null) as pre_settle_user_hash_no
-  from dw.abs_due_info_day_abs
-  where 1 > 0
-    and biz_date = '${ST9}'
+    if(loan.loan_status = 'F' and loan.paid_out_type = 'PRE_SETTLE',loan.due_bill_no,     null) as pre_settle_due_bill_no,
+    if(loan.loan_status = 'F' and loan.paid_out_type = 'PRE_SETTLE',customer.user_hash_no,null) as pre_settle_user_hash_no
+  from (
+    select
+      '${ST9}' as biz_date,
+      bag_info.bag_date as bag_date,
+      bag_info.bag_id,
+      bag_due_bill_no.package_remain_principal,
+      loan_info_abs.project_id,
+      loan_info_abs.due_bill_no,
+      loan_info_abs.loan_status,
+      loan_info_abs.paid_out_type,
+      loan_info_abs.remain_principal
+    from (
+      select
+        *
+      from dim.bag_info
+      where 1 > 0
+        and bag_id in (${bag_id})
+    ) as bag_info
+    inner join dim.bag_due_bill_no
+    on  bag_info.project_id = bag_due_bill_no.project_id
+    and bag_info.bag_id     = bag_due_bill_no.bag_id
+    inner join ods.loan_info_abs
+    on  bag_due_bill_no.project_id  = loan_info_abs.project_id
+    and bag_due_bill_no.due_bill_no = loan_info_abs.due_bill_no
+    and '${ST9}' between loan_info_abs.s_d_date and date_sub(loan_info_abs.e_d_date,1)
+  ) as loan
+  inner join (
+    select
+      project_id,
+      due_bill_no,
+      user_hash_no
+    from ods.customer_info_abs
+  ) as customer
+  on  loan.project_id  = customer.project_id
+  and loan.due_bill_no = customer.due_bill_no
 ) as bag_total
-on  bag_info.project_id = bag_total.project_id
-and bag_due.due_bill_no = bag_total.due_bill_no
 left join (
   select
     project_id,
@@ -114,7 +134,13 @@ left join (
 on  bag_total.project_id  = repay_detail_accu.project_id
 and bag_total.due_bill_no = repay_detail_accu.due_bill_no
 group by bag_total.biz_date,bag_total.project_id
-union all
+-- limit 10
+;
+
+
+
+
+insert overwrite table dm_eagle.abs_early_payment_asset_statistic partition(biz_date,project_id,bag_id)
 select
   'N'                                                                                                                                                as is_allBag,
   sum(if(bag_total.pre_settle_due_bill_no            is not null and repay_detail.due_bill_no      is not null,repay_detail.repay_amount,     0))    as early_payment_principal,
@@ -126,45 +152,65 @@ select
   sum(bag_total.unsettled_remain_principal)                                                                                                          as remain_principal,
   count(bag_total.unsettled_due_bill_no)                                                                                                             as asset_count,
   count(distinct bag_total.unsettled_user_hash_no)                                                                                                   as cust_count,
-  min(bag_info.bag_date)                                                                                                                             as bag_date,
-  sum(bag_info.bag_remain_principal)                                                                                                                 as package_remain_principal,
+  min(bag_total.bag_date)                                                                                                                            as bag_date,
+  sum(bag_total.package_remain_principal)                                                                                                            as package_remain_principal,
   count(bag_total.due_bill_no)                                                                                                                       as package_asset_count,
   count(distinct bag_total.user_hash_no)                                                                                                             as package_cust_count,
   bag_total.biz_date                                                                                                                                 as biz_date,
   bag_total.project_id                                                                                                                               as project_id,
-  bag_info.bag_id                                                                                                                                    as bag_id
+  bag_total.bag_id                                                                                                                                   as bag_id
 from (
   select
-    *
-  from dim.bag_info
-  where 1 > 0
-    and bag_id in (${bag_id})
-) as bag_info
-inner join (
-  select
-    *
-  from dim.bag_due_bill_no
-) as bag_due
-on bag_info.bag_id = bag_due.bag_id
-inner join (
-  select
-    biz_date                                                                 as biz_date,
-    project_id                                                               as project_id,
-    due_bill_no                                                              as due_bill_no,
-    user_hash_no                                                             as user_hash_no,
+    loan.biz_date                                                                               as biz_date,
+    loan.bag_date                                                                               as bag_date,
+    loan.project_id                                                                             as project_id,
+    loan.bag_id                                                                                 as bag_id,
+    loan.due_bill_no                                                                            as due_bill_no,
+    loan.package_remain_principal                                                               as package_remain_principal,
+    customer.user_hash_no                                                                       as user_hash_no,
 
-    if(loan_status <> 'F',due_bill_no,     null)                             as unsettled_due_bill_no,
-    if(loan_status <> 'F',user_hash_no,    null)                             as unsettled_user_hash_no,
-    if(loan_status <> 'F',remain_principal,0)                                as unsettled_remain_principal,
+    if(loan.loan_status <> 'F',loan.due_bill_no,     null)                                      as unsettled_due_bill_no,
+    if(loan.loan_status <> 'F',customer.user_hash_no,null)                                      as unsettled_user_hash_no,
+    if(loan.loan_status <> 'F',loan.remain_principal,0)                                         as unsettled_remain_principal,
 
-    if(loan_status = 'F' and paid_out_type = 'PRE_SETTLE',due_bill_no, null) as pre_settle_due_bill_no,
-    if(loan_status = 'F' and paid_out_type = 'PRE_SETTLE',user_hash_no,null) as pre_settle_user_hash_no
-  from dw.abs_due_info_day_abs
-  where 1 > 0
-    and biz_date = '${ST9}'
+    if(loan.loan_status = 'F' and loan.paid_out_type = 'PRE_SETTLE',loan.due_bill_no,     null) as pre_settle_due_bill_no,
+    if(loan.loan_status = 'F' and loan.paid_out_type = 'PRE_SETTLE',customer.user_hash_no,null) as pre_settle_user_hash_no
+  from (
+    select
+      '${ST9}' as biz_date,
+      bag_info.bag_date as bag_date,
+      bag_info.bag_id,
+      bag_due_bill_no.package_remain_principal,
+      loan_info_abs.project_id,
+      loan_info_abs.due_bill_no,
+      loan_info_abs.loan_status,
+      loan_info_abs.paid_out_type,
+      loan_info_abs.remain_principal
+    from (
+      select
+        *
+      from dim.bag_info
+      where 1 > 0
+        and bag_id in (${bag_id})
+    ) as bag_info
+    inner join dim.bag_due_bill_no
+    on  bag_info.project_id = bag_due_bill_no.project_id
+    and bag_info.bag_id     = bag_due_bill_no.bag_id
+    inner join ods.loan_info_abs
+    on  bag_due_bill_no.project_id  = loan_info_abs.project_id
+    and bag_due_bill_no.due_bill_no = loan_info_abs.due_bill_no
+    and '${ST9}' between loan_info_abs.s_d_date and date_sub(loan_info_abs.e_d_date,1)
+  ) as loan
+  inner join (
+    select
+      project_id,
+      due_bill_no,
+      user_hash_no
+    from ods.customer_info_abs
+  ) as customer
+  on  loan.project_id  = customer.project_id
+  and loan.due_bill_no = customer.due_bill_no
 ) as bag_total
-on  bag_due.project_id  = bag_total.project_id
-and bag_due.due_bill_no = bag_total.due_bill_no
 left join (
   select
     project_id,
@@ -191,6 +237,6 @@ left join (
 ) as repay_detail_accu
 on  bag_total.project_id  = repay_detail_accu.project_id
 and bag_total.due_bill_no = repay_detail_accu.due_bill_no
-group by bag_total.biz_date,bag_total.project_id,bag_info.bag_id
+group by bag_total.biz_date,bag_total.project_id,bag_total.bag_id
 -- limit 10
 ;

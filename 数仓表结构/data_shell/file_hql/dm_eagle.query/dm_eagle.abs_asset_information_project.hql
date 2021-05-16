@@ -19,21 +19,102 @@ set hive.exec.max.dynamic.partitions.pernode=50000;
 set hive.vectorized.execution.enabled=false;
 set hive.vectorized.execution.reduce.enabled=false;
 set hive.vectorized.execution.reduce.groupby.enabled=false;
+-- 关闭自动 MapJoin （ Hive3 的 bug，引发 No work found for tablescan ）
+set hive.auto.convert.join=false;
+set hive.auto.convert.join.noconditionaltask=false;
 
 
--- set hivevar:ST9=2021-04-14;
+-- set hivevar:ST9=2021-05-12;
 -- set hivevar:project_id=
 --   select distinct project_id
 --   from dim.project_info
 --   where 1 > 0
 -- ;
 
+with base_due as (
+  select
+    -- 借据级
+    loan.biz_date,
+    loan.project_id,
+    loan.due_bill_no,
+    loan.account_age,
+    loan.loan_init_principal,
+    loan.loan_init_term,
+    loan.loan_term_remain,
+    loan.loan_term_repaid,
+    loan.remain_interest,
+    loan.remain_principal,
+
+    -- 合同级
+    lending.contract_term,
+    lending.loan_init_interest_rate,
+
+    -- 客户级
+    cust.user_hash_no,
+    cust.income_year,
+    cust.age,
+
+    -- 抵押物级
+    guaranty.pawn_value,
+    guaranty.guarantee_type
+  from (
+    select
+      project_id,
+      due_bill_no,
+      account_age,
+      loan_init_principal,
+      loan_init_term,
+      loan_term_remain,
+      loan_term_repaid,
+      remain_interest,
+      remain_principal,
+      '${ST9}' as biz_date
+    from ods.loan_info_abs
+    where 1 > 0
+      and '${ST9}' between s_d_date and date_sub(e_d_date,1)
+      and project_id in (${project_id})
+      and loan_status <> 'F'
+  ) as loan
+  inner join (
+    select
+      project_id,
+      due_bill_no,
+      contract_term,
+      loan_init_interest_rate
+    from ods.loan_lending_abs
+  ) as lending
+  on  loan.project_id  = lending.project_id
+  and loan.due_bill_no = lending.due_bill_no
+  inner join (
+    select
+      project_id,
+      due_bill_no,
+      user_hash_no,
+      income_year,
+      age
+    from ods.customer_info_abs
+  ) as cust
+  on  loan.project_id  = cust.project_id
+  and loan.due_bill_no = cust.due_bill_no
+  left join (
+    select
+      project_id,
+      due_bill_no,
+      pawn_value,
+      guarantee_type
+    from ods.guaranty_info_abs
+  ) as guaranty
+  on  loan.project_id  = guaranty.project_id
+  and loan.due_bill_no = guaranty.due_bill_no
+)
+
+
 insert overwrite table dm_eagle.abs_asset_information_project partition(biz_date,project_id)
 select
   count(dw_abs.due_bill_no)                                                                                                          as asset_count,
   count(distinct dw_abs.user_hash_no)                                                                                                as customer_count,
   sum(dw_abs.remain_principal)                                                                                                       as remain_principal,
-  sum(dw_abs.remain_interest)                                                                                                        as remain_interest,
+  sum(dw_abs.remain_principal) + sum(dw_abs.remain_interest)                                                                         as remain_interest,
   sum(dw_abs.remain_principal) / count(distinct dw_abs.user_hash_no)                                                                 as customer_remain_principal_avg,
   max(dw_abs.remain_principal)                                                                                                       as remain_principal_max,
   min(dw_abs.remain_principal)                                                                                                       as remain_principal_min,
@@ -92,15 +173,7 @@ select
   'n'                                                                                                                                as is_allBag,
   dw_abs.biz_date                                                                                                                    as biz_date,
   dw_abs.project_id                                                                                                                  as project_id
-from (
-  select
-    *
-  from dw.abs_due_info_day_abs
-  where 1 > 0
-    and biz_date = '${ST9}'
-    and project_id in (${project_id})
-    and loan_status <> 'F'
-) as dw_abs
+from base_due as dw_abs
 left join (
   select
     bag_info.project_id,
@@ -130,12 +203,98 @@ on  dw_abs.project_id  = bag_due.project_id
 and dw_abs.due_bill_no = bag_due.due_bill_no
 and dw_abs.biz_date >= bag_due.bag_date
 group by dw_abs.biz_date,dw_abs.project_id
-union all
+-- limit 10
+;
+
+
+
+
+
+
+
+with base_due as (
+  select
+    -- 借据级
+    loan.biz_date,
+    loan.project_id,
+    loan.due_bill_no,
+    loan.account_age,
+    loan.loan_init_principal,
+    loan.loan_init_term,
+    loan.loan_term_remain,
+    loan.loan_term_repaid,
+    loan.remain_interest,
+    loan.remain_principal,
+
+    -- 合同级
+    lending.contract_term,
+    lending.loan_init_interest_rate,
+
+    -- 客户级
+    cust.user_hash_no,
+    cust.income_year,
+    cust.age,
+
+    -- 抵押物级
+    guaranty.pawn_value,
+    guaranty.guarantee_type
+  from (
+    select
+      project_id,
+      due_bill_no,
+      account_age,
+      loan_init_principal,
+      loan_init_term,
+      loan_term_remain,
+      loan_term_repaid,
+      remain_interest,
+      remain_principal,
+      '${ST9}' as biz_date
+    from ods.loan_info_abs
+    where 1 > 0
+      and '${ST9}' between s_d_date and date_sub(e_d_date,1)
+      and project_id in (${project_id})
+      and loan_status <> 'F'
+  ) as loan
+  inner join (
+    select
+      project_id,
+      due_bill_no,
+      contract_term,
+      loan_init_interest_rate
+    from ods.loan_lending_abs
+  ) as lending
+  on  loan.project_id  = lending.project_id
+  and loan.due_bill_no = lending.due_bill_no
+  inner join (
+    select
+      project_id,
+      due_bill_no,
+      user_hash_no,
+      income_year,
+      age
+    from ods.customer_info_abs
+  ) as cust
+  on  loan.project_id  = cust.project_id
+  and loan.due_bill_no = cust.due_bill_no
+  left join (
+    select
+      project_id,
+      due_bill_no,
+      pawn_value,
+      guarantee_type
+    from ods.guaranty_info_abs
+  ) as guaranty
+  on  loan.project_id  = guaranty.project_id
+  and loan.due_bill_no = guaranty.due_bill_no
+)
+
+insert overwrite table dm_eagle.abs_asset_information_project partition(biz_date,project_id)
 select
   count(dw_abs.due_bill_no)                                                                                                   as asset_count,
   count(distinct dw_abs.user_hash_no)                                                                                         as customer_count,
   sum(dw_abs.remain_principal)                                                                                                as remain_principal,
-  sum(dw_abs.remain_interest)                                                                                                 as remain_interest,
+  sum(dw_abs.remain_principal) + sum(dw_abs.remain_interest)                                                                  as remain_interest,
   sum(dw_abs.remain_principal) / count(distinct dw_abs.user_hash_no)                                                          as customer_remain_principal_avg,
   max(dw_abs.remain_principal)                                                                                                as remain_principal_max,
   min(dw_abs.remain_principal)                                                                                                as remain_principal_min,
@@ -194,15 +353,7 @@ select
   'y'                                                                                                                         as is_allBag,
   dw_abs.biz_date                                                                                                             as biz_date,
   dw_abs.project_id                                                                                                           as project_id
-from (
-  select
-    *
-  from dw.abs_due_info_day_abs
-  where 1 > 0
-    and biz_date = '${ST9}'
-    and project_id in (${project_id})
-    and loan_status <> 'F'
-) as dw_abs
+from base_due as dw_abs
 inner join (
   select
     bag_info.project_id,

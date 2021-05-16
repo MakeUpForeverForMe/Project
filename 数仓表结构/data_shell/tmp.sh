@@ -3,7 +3,7 @@
 . /etc/profile
 . ~/.bash_profile
 
-. /root/data_shell/lib/function.sh
+. /data/data_shell/lib/function.sh
 
 
 aa="$([[ -n $1 ]] && cat "${1}")"

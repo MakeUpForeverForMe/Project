@@ -1,12 +1,15 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
 
-. ${abs_manage_dir:=$(cd `dirname "${BASH_SOURCE[0]}"`;pwd)}/../lib/function.sh
-. ${data_manage_dir:=$(cd `dirname "${BASH_SOURCE[0]}"`;pwd)}/../conf_env/env.sh
+. ${abs_manage_dir:=$(cd `dirname "${BASH_SOURCE[0]}"`;pwd)}/../conf_env/env.sh
+. $lib/function.sh
 
-import_file_dir=/data/data_shell/file_import/abs_cloud
+
+file_import=${abs_manage_dir}/file_import/abs_cloud
 log_file=${abs_manage_dir}/../log/abs_bag_project/logs/spark-driver.log
 input_file_list=(project_info project_due_bill_no bag_info bag_due_bill_no)
 call_back_address=$([[ ${is_test} == 'y' ]] && echo '10.83.0.69:8210' || echo 'https://uabs-server.weshareholdings.com')
+
+
 
 # 解析json
 parse_json(){
@@ -56,8 +59,8 @@ status_before_execute_job(){
   done
 }
 
-[[ -z $@ ]] && {
-  echo "$(date +'%F %T') 请输入至少一个参数！"
+[[ $# != 1 && $# != 2 ]] && {
+  echo "$(date +'%F %T') 输入的参数为一个或两个！"
   exit 1
 }
 
@@ -75,18 +78,22 @@ then
       # 解析传入参数filename@id.json
       input_file_name_arr=($(a_a $(s_r_r $input_file)))
       input_file_name_arr_len=${#input_file_name_arr[@]}
-      input_file_prefix=${input_file_name_arr[0]}
-      input_file_suffix=$(p_l_l ${input_file_name_arr[1]})
+
       # 文件校验
       [[ $input_file_name_arr_len != 2 ]] && {
-        echo "$(date +'%F %T') 传入的参数【${input_file}，解析后为：${input_file_name_arr[@]}】长度【默认：2；实际：${input_file_name_arr_len}】不正确！" >> ${abs_manage_dir}/../log/abs_bag_project/$(date +'%F').log
+        echo "$(date +'%F %T') 传入的参数【${input_file}，解析后为：${input_file_name_arr[@]}】长度【默认：2；实际：${input_file_name_arr_len}】不正确！"
         exit 1
       }
-      #echo ${input_file_name_arr[@]} $input_file $input_file_prefix $input_file_suffix >> ${abs_manage_dir}/../log/abs_bag_project/$(date +'%F').log
+
+      input_file_prefix=${input_file_name_arr[0]}
+      input_file_suffix=$(p_l_l ${input_file_name_arr[1]})
+
+      # echo ${input_file_name_arr[@]} $input_file $input_file_prefix $input_file_suffix >> ${abs_manage_dir}/../log/abs_bag_project/$(date +'%F').log
       # 将文件前缀和后缀放入数组
       input_file_prefix_arr[index]=${input_file_prefix}
       input_file_suffix_arr[index]=${input_file_suffix}
-      row_type=$(parse_json "`cat ${import_file_dir}/${input_file_prefix}/$input_file`" "row_type")
+
+      row_type=$(parse_json "`cat ${file_import}/${input_file_prefix}/$input_file`" "row_type")
       print_log "row_type $index : ${row_type}"
       input_file_type_arr[index]=${row_type}
       let index++
@@ -100,8 +107,8 @@ then
         # 先校验是否有当前fileid的任务正在执行，若有，则等待
         status_before_execute_job ${input_file_suffix_arr[0]}
         print_log "start to packet ! "
-        bag_date=$(parse_json "`cat ${import_file_dir}/bag_info/bag_info@${input_file_suffix_arr[0]}.json`" "bag_date")
-        end_date=$(parse_json "`cat ${import_file_dir}/bag_info/bag_info@${input_file_suffix_arr[0]}.json`" "insert_date")
+        bag_date=$(parse_json "`cat ${file_import}/bag_info/bag_info@${input_file_suffix_arr[0]}.json`" "bag_date")
+        end_date=$(parse_json "`cat ${file_import}/bag_info/bag_info@${input_file_suffix_arr[0]}.json`" "insert_date")
         sh $bin_abs/abs-submit.sh ${input_file_prefix_arr[0]} ${input_file_suffix_arr[0]} $bin_abs/pro_cos.properties
         get_result "packet" "first file : ${input_file_prefix_arr[0]}"
         $impala -q "refresh dim.${input_file_prefix_arr[0]};"
@@ -135,7 +142,7 @@ then
     input_file_name_arr_len=${#input_file_name_arr[@]}
     input_file_prefix=${input_file_name_arr[0]}
     input_file_suffix=$(p_l_l ${input_file_name_arr[1]})
-    row_type=$(parse_json "`cat ${import_file_dir}/${input_file_prefix}/$input_file`" "row_type")
+    row_type=$(parse_json "`cat ${file_import}/${input_file_prefix}/$input_file`" "row_type")
     print_log "row_type : ${row_type}"
     # 满足此条件时，为解包 : bag_info
     if [[ ${input_file_prefix} = 'bag_info' && ${row_type} = 'delete' ]]
@@ -144,7 +151,7 @@ then
         status_before_execute_job ${input_file_suffix}
         print_log "start to unpacket ! "
         sh $bin_abs/abs-submit.sh ${input_file_prefix} ${input_file_suffix} $bin_abs/pro_cos.properties
-        bag_date=$(parse_json "`cat ${import_file_dir}/bag_info/bag_info@${input_file_suffix}.json`" "bag_date")
+        bag_date=$(parse_json "`cat ${file_import}/bag_info/bag_info@${input_file_suffix}.json`" "bag_date")
         # 解包任务 : 删除对应bag_id分区
         sh $bin_abs/data_abs_dm_eagle_unpacket.sh $bag_date $bag_date ${input_file_suffix} >> $log_file
         $impala -q "refresh dim.${input_file_prefix};"
@@ -160,7 +167,7 @@ then
       # 如果为债转文件,则处理完毕后调用债转回调接口,需要解析出文件中的import_id
       if [[ ${input_file_prefix} = 'project_due_bill_no' && ${row_type} = 'insert' ]]
       then
-          import_id=$(parse_json "`cat ${import_file_dir}/${input_file_prefix}/$input_file`" "import_id")
+          import_id=$(parse_json "`cat ${file_import}/${input_file_prefix}/$input_file`" "import_id")
     echo "import_id : ${import_id}"
           curl -d "importId=${import_id}" --connect-timeout 30 -m 60 ${call_back_address}/uabs-core/callback/assetTransferSuccessConfirm >> $log_file
           print_log "asset transfer finished,project id is ${input_file_suffix} ! "

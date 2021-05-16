@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
 
 . /etc/profile
 . ~/.bash_profile

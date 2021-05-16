@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
 
 . ${data_manage_dir:=$(cd `dirname "${BASH_SOURCE[0]}"`;pwd)}/../conf_env/env.sh
 . $lib/function.sh
@@ -229,8 +229,10 @@ done
 [[ -n $manage_kv_tmp_file ]] && trap $(rm -f $manage_kv_tmp_file) 1 2 9 15 19 20
 
 echo -e "${date_impala_s:=$(date +'%F %T')} Impala 刷新任务 执行开始  表名为：$app_name 当前脚本进程ID为：$(pid)"                                                                             &>> $manage_log
-$impala -q "invalidate metadata $app_name;"                                                                                                                                                   &>> $manage_log
-$impala -q "COMPUTE STATS $app_name;"                                                                                                                                                         &>> $manage_log
+# $impala -q "refresh $app_name;"                                                                                                                                                               &>> $manage_log
+# $impala -q "invalidate metadata $app_name;"                                                                                                                                                   &>> $manage_log
+# $impala -q "COMPUTE STATS $app_name;"                                                                                                                                                         &>> $manage_log
+# $impala -q "select * from $app_name where false;"                                                                                                                                             &>> $manage_log
 echo -e "${date_impala_e:=$(date +'%F %T')} Impala 刷新任务 执行结束  表名为：$app_name 当前脚本进程ID为：$(pid)  用时：$(during "$date_impala_e" "$date_impala_s")"                          &>> $manage_log
 
 echo -e "${date_e:=$(date +'%F %T')} 任务 $app_name 执行  结束 当前脚本进程ID为：$(pid)    用时：$(during "$date_e" "$date_s")\n\n"                                                           &>> $manage_log
