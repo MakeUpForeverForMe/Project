@@ -15704,26 +15704,64 @@ order by biz_date desc
 limit 100;
 
 
+select
+  case project_id when 'Cl00333' then 'cl00333' else project_id end as project_id,
+  asset_bag_name            as bag_name,
+  status                    as bag_status,
+  package_principal_balance as bag_remain_principal,
+  bag_date                  as bag_date,
+  to_date(update_time)      as insert_date,
+  asset_bag_id              as bag_id
+from stage.abs_t_asset_bag
+where 1 > 0
+  and project_id = 'CL202102010097'
+-- limit 100
+;
 
 
+invalidate metadata dim.bag_info;
 select
   *
 from dim.bag_info
 where 1 > 0
-  and project_id = 'CL202104080105'
+  -- and project_id = 'CL202102010097'
 ;
 
 
 
-
-select
-  *
-from dim.bag_due_bill_no
+select distinct
+  case project_id when 'Cl00333' then 'cl00333' else project_id end as project_id,
+  asset_bag_id
+from stage.abs_t_basic_asset
 where 1 > 0
-  and project_id = 'CL202104080105'
+  and asset_bag_id is not null
+  and project_id = 'CL202102010097'
 limit 10
 ;
 
+
+
+invalidate metadata dim.bag_due_bill_no;
+select *
+  -- distinct
+  -- project_id,
+  -- bag_id
+from dim.bag_due_bill_no
+where 1 > 0
+  and project_id = 'CL202101260095'
+limit 10
+;
+
+
+
+
+
+select distinct
+  asset_bag_id
+from stage.abs_t_basic_asset
+where asset_bag_id is not null
+and project_id = 'CL202102010097'
+;
 
 
 select
@@ -15739,36 +15777,49 @@ limit 10
 
 
 
+invalidate metadata ods.loan_lending;
+select distinct product_id,loan_usage from ods.loan_lending;
+
+
+
+select distinct product_code from stage.ecas_loan;
+select distinct product_code from stage.ecas_loan_asset;
 
 
 
 
 
 
+invalidate metadata ods.customer_info;
 
 
-alter table dm_eagle.abs_asset_distribution_bag_day               set tblproperties('EXTERNAL' = 'false');
-alter table dm_eagle.abs_asset_distribution_bag_snapshot_day      set tblproperties('EXTERNAL' = 'false');
-alter table dm_eagle.abs_asset_distribution_day                   set tblproperties('EXTERNAL' = 'false');
-alter table dm_eagle.abs_asset_information_bag                    set tblproperties('EXTERNAL' = 'false');
-alter table dm_eagle.abs_asset_information_bag_snapshot           set tblproperties('EXTERNAL' = 'false');
-alter table dm_eagle.abs_asset_information_cash_flow_bag_day      set tblproperties('EXTERNAL' = 'false');
-alter table dm_eagle.abs_asset_information_cash_flow_bag_day_old  set tblproperties('EXTERNAL' = 'false');
-alter table dm_eagle.abs_asset_information_cash_flow_bag_snapshot set tblproperties('EXTERNAL' = 'false');
-alter table dm_eagle.abs_asset_information_project                set tblproperties('EXTERNAL' = 'false');
-alter table dm_eagle.abs_early_payment_asset_details              set tblproperties('EXTERNAL' = 'false');
-alter table dm_eagle.abs_early_payment_asset_statistic            set tblproperties('EXTERNAL' = 'false');
-alter table dm_eagle.abs_overdue_rate_day                         set tblproperties('EXTERNAL' = 'false');
-alter table dm_eagle.abs_overdue_rate_details_day                 set tblproperties('EXTERNAL' = 'false');
+select distinct
+  product_id,
+  job_type
+from ods.customer_info
+where 1 > 0
+  -- and is_empty(job_type) is null
+;
+
+
+
+select distinct
+  product_id,
+  car_type
+from ods.guaranty_info
+where 1 > 0
+  -- and is_empty(car_brand) is null
+;
+
+
+
+
 
 
 ALTER TABLE dm_eagle.abs_asset_distribution_bag_day               DROP IF EXISTS PARTITION (biz_date < '2021-05-16');
-ALTER TABLE dm_eagle.abs_asset_distribution_bag_snapshot_day      DROP IF EXISTS PARTITION (biz_date < '2021-05-16');
 ALTER TABLE dm_eagle.abs_asset_distribution_day                   DROP IF EXISTS PARTITION (biz_date < '2021-05-16');
 ALTER TABLE dm_eagle.abs_asset_information_bag                    DROP IF EXISTS PARTITION (biz_date < '2021-05-16');
-ALTER TABLE dm_eagle.abs_asset_information_bag_snapshot           DROP IF EXISTS PARTITION (biz_date < '2021-05-16');
 ALTER TABLE dm_eagle.abs_asset_information_cash_flow_bag_day      DROP IF EXISTS PARTITION (biz_date < '2021-05-16');
-ALTER TABLE dm_eagle.abs_asset_information_cash_flow_bag_day_old  DROP IF EXISTS PARTITION (biz_date < '2021-05-16');
 ALTER TABLE dm_eagle.abs_asset_information_cash_flow_bag_snapshot DROP IF EXISTS PARTITION (biz_date < '2021-05-16');
 ALTER TABLE dm_eagle.abs_asset_information_project                DROP IF EXISTS PARTITION (biz_date < '2021-05-16');
 ALTER TABLE dm_eagle.abs_early_payment_asset_details              DROP IF EXISTS PARTITION (biz_date < '2021-05-16');
@@ -15778,10 +15829,8 @@ ALTER TABLE dm_eagle.abs_overdue_rate_details_day                 DROP IF EXISTS
 
 
 show create TABLE dm_eagle.abs_asset_distribution_bag_day;
-show create TABLE dm_eagle.abs_asset_distribution_bag_snapshot_day;
 show create TABLE dm_eagle.abs_asset_distribution_day;
 show create TABLE dm_eagle.abs_asset_information_bag;
-show create TABLE dm_eagle.abs_asset_information_bag_snapshot;
 show create TABLE dm_eagle.abs_asset_information_cash_flow_bag_day;
 show create TABLE dm_eagle.abs_asset_information_cash_flow_bag_day_old;
 show create TABLE dm_eagle.abs_asset_information_cash_flow_bag_snapshot;
@@ -15793,10 +15842,8 @@ show create TABLE dm_eagle.abs_overdue_rate_details_day;
 
 
 MSCK REPAIR TABLE dm_eagle.abs_asset_distribution_bag_day;
-MSCK REPAIR TABLE dm_eagle.abs_asset_distribution_bag_snapshot_day;
 MSCK REPAIR TABLE dm_eagle.abs_asset_distribution_day;
 MSCK REPAIR TABLE dm_eagle.abs_asset_information_bag;
-MSCK REPAIR TABLE dm_eagle.abs_asset_information_bag_snapshot;
 MSCK REPAIR TABLE dm_eagle.abs_asset_information_cash_flow_bag_day;
 MSCK REPAIR TABLE dm_eagle.abs_asset_information_cash_flow_bag_day_old;
 MSCK REPAIR TABLE dm_eagle.abs_asset_information_cash_flow_bag_snapshot;
@@ -15819,51 +15866,24 @@ MSCK REPAIR TABLE dm_eagle.abs_overdue_rate_details_day;
 
 
 
-select
-  project_id,
-  due_bill_no,
-  js2str(concat('{"',concat_ws(',"',collect_list(concat_ws('":',dpd_x,str_map))),'}')) as tt
-from (
-  select
-    project_id,
-    due_bill_no,
-    dpd_x,
-    concat('{"',concat_ws(',"',collect_list(concat_ws('":',overdue_date_start,cast(remain_principal as string)))),'}') as str_map
-  from ods.loan_info_abs
-  lateral view explode(
-    split(concat_ws(',',
-      if(overdue_days >= 1, '1+',  null),
-      if(overdue_days > 7,  '7+',  null),
-      if(overdue_days > 14, '14+', null),
-      if(overdue_days > 30, '30+', null),
-      if(overdue_days > 60, '60+', null),
-      if(overdue_days > 90, '90+', null),
-      if(overdue_days > 120,'120+',null),
-      if(overdue_days > 150,'150+',null),
-      if(overdue_days > 180,'180+',null),
-      case
-        when overdue_days between 1   and 7   then '1_7'
-        when overdue_days between 8   and 14  then '8_14'
-        when overdue_days between 15  and 30  then '15_30'
-        when overdue_days between 31  and 60  then '31_60'
-        when overdue_days between 61  and 90  then '61_90'
-        when overdue_days between 91  and 120 then '91_120'
-        when overdue_days between 121 and 150 then '121_150'
-        when overdue_days between 151 and 180 then '151_180'
-        else null
-      end
-    ),',')
-  ) dpd as dpd_x
-  where 1 > 0
-    -- and project_id = 'CL202011090089'
-    -- and due_bill_no = '1000000054'
-    and s_d_date <= '2021-05-15'
-    and overdue_days in (1,8,15,31,61,91,121,151,181)
-    -- and dpd_key is not null
-    -- and overdue_days = 15
-  group by project_id,due_bill_no,dpd_x
-) as tmp
-group by project_id,due_bill_no
-order by project_id,due_bill_no
-limit 50
-;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

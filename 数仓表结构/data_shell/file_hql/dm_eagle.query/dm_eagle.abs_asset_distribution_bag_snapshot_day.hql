@@ -1,3 +1,7 @@
+set hive.execution.engine=spark;
+set spark.executor.memory=4g;
+set spark.executor.memoryOverhead=4g;
+
 set hive.exec.input.listing.max.threads=50;
 set tez.grouping.min-size=50000000;
 set tez.grouping.max-size=50000000;
@@ -26,7 +30,6 @@ set hive.auto.convert.join.noconditionaltask=false;
 
 
 
--- set hivevar:ST9=2021-05-10;
 -- set hivevar:bag_id=
 --   select distinct bag_id
 --   from dim.bag_info
@@ -268,7 +271,7 @@ with bill_info as (
 )
 
 -- 插入数据
-insert overwrite table dm_eagle.abs_asset_distribution_bag_snapshot_day partition(biz_date,bag_id)
+insert overwrite table dm_eagle.abs_asset_distribution_bag_snapshot_day partition(bag_id)
 select
   asset_project_id                                       as project_id,
   asset_tab_name                                         as asset_tab_name,
@@ -279,7 +282,6 @@ select
   nvl(asset_loan_num,0)                                  as loan_num,
   nvl(asset_loan_num / total_loan_num,0)                 as loan_numratio,
   nvl(asset_remain_principal / asset_loan_num,0)         as remain_principal_loan_num_avg,
-  asset_bag_date                                         as biz_date,
   asset_bag_id                                           as bag_id
 from (
   select
@@ -306,7 +308,4 @@ inner join (
   from bill_info
   group by project_id,bag_id
 ) as project_total
-on  asset_total.asset_project_id = project_total.total_project_id
-and asset_total.asset_bag_id     = project_total.total_bag_id
--- limit 10
-;
+on  asset_total.asset_project_id = proje

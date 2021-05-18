@@ -271,7 +271,7 @@ with bill_info as (
 )
 
 -- 插入数据
-insert overwrite table dm_eagle.abs_asset_distribution_bag_snapshot_day partition(biz_date,bag_id)
+insert overwrite table dm_eagle.abs_asset_distribution_bag_day partition(biz_date,bag_id)
 select
   asset_project_id                                       as project_id,
   asset_tab_name                                         as asset_tab_name,

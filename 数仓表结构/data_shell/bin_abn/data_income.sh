@@ -28,8 +28,8 @@ sh $data_manage -s ${s_date} -e ${e_date} -f $dim_new_hql/dim.dim_encrypt_info.h
 
 wait_jobs
 
-sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw.dw_credit_apply_stat_day.hql -i $param_dir/dw_new.param.hql -a $rd &
-sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw.dw_credit_ret_msg_day.hql -i $param_dir/dw_new.param.hql -a $rd &
+sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw.dw_credit_apply_stat_day.hql -i $param_dir/dw.param.hql -a $rd &
+sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw.dw_credit_ret_msg_day.hql -i $param_dir/dw.param.hql -a $rd &
 sh $data_manage -s ${s_date} -e ${e_date} -f $ods_new_s_hql/ods.loan_apply.hql -a $rd &
 
 # sh $data_manage -s ${s_date} -e ${e_date} -f $ods_new_s_hql/ods_new_s.user_info.hql -a $rd &
@@ -37,10 +37,10 @@ sh $data_manage -s ${s_date} -e ${e_date} -f $ods_new_s_hql/ods.loan_apply.hql -
 wait_jobs
 
 
-sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw.dw_credit_approval_stat_day.hql -i $param_dir/dw_new.param.hql -a $rd &
-sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw.dw_loan_apply_stat_day.hql -i $param_dir/dw_new.param.hql -a $rd &
-sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw.dw_loan_approval_stat_day.hql -i $param_dir/dw_new.param.hql -a $rd &
-sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw.dw_loan_ret_msg_day.hql -i $param_dir/dw_new.param.hql -a $rd &
+sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw.dw_credit_approval_stat_day.hql -i $param_dir/dw.param.hql -a $rd &
+sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw.dw_loan_apply_stat_day.hql -i $param_dir/dw.param.hql -a $rd &
+sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw.dw_loan_approval_stat_day.hql -i $param_dir/dw.param.hql -a $rd &
+sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw.dw_loan_ret_msg_day.hql -i $param_dir/dw.param.hql -a $rd &
 
 sh $data_manage -s ${e_date} -e ${e_date} -f $ods_new_s_hql/ods.user_label.hql -a $rd &
 

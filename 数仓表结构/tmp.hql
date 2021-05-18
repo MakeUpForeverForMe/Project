@@ -53,6 +53,9 @@ set hive.support.quoted.identifiers=None;     -- 设置可以使用正则表达�
 -- set hive.groupby.orderby.position.alias=true; -- 设置 Hive 可以使用 group by 1,2,3
 set hive.optimize.index.filter=true;
 set hive.stats.fetch.column.stats=true;
+
+set spark.dynamicAllocation.maxExecutors=1000; -- 最大 Executor 数量
+
 -- 关闭自动 MapJoin
 -- set hive.auto.convert.join=false;
 -- set hive.auto.convert.join.noconditionaltask=false;  -- Hive在基于输入文件大小的前提下将普通JOIN转换成MapJoin，并是否将多个MJ合并成一个
@@ -357,6 +360,7 @@ invalidate metadata dim.bag_due_bill_no;
 
 
 invalidate metadata stage.abs_t_related_assets;
+invalidate metadata stage.abs_t_basic_asset;
 invalidate metadata stage.ecas_loan;
 
 
@@ -1242,6 +1246,16 @@ set hivevar:ST9=2021-04-14;
 
 
 
+
+set hive.execution.engine=spark;
+set spark.executor.memory=4g;
+set spark.executor.memoryOverhead=4g;
+
+
+
+
+
+
 set tez.am.container.reuse.enabled=false;
 
 
@@ -1254,9 +1268,13 @@ set tez.grouping.min-size=50000000;
 set tez.grouping.max-size=50000000;
 set hive.exec.reducers.max=500;
 
+
+
 set hive.execution.engine=mr;
 set mapreduce.map.memory.mb=4096;
 set mapreduce.reduce.memory.mb=4096;
+
+
 
 set mapreduce.map.java.opts=-Xmx4096m;
 set mapreduce.reduce.java.opts=-Xmx4096m;
@@ -1296,6 +1314,9 @@ set mapreduce.input.fileinputformat.split.maxsize=1024000000;
 -- 关闭自动 MapJoin （ Hive3 的 bug，引发 No work found for tablescan ）
 set hive.auto.convert.join=false;
 set hive.auto.convert.join.noconditionaltask=false;
+
+
+
 
 -- 设置 Container 大小
 set hive.tez.container.size=4096;
@@ -1615,14 +1636,4 @@ where age = -1
     -- '001901',
     '001902',
     '001906',
-    -- '002001',
-    '002002',
-    '002006',
-    '002401',
-    '002402',
-
-    '001701',
-    '001702',
-    ''
-  )
-limit 10;
+    -- '002001'

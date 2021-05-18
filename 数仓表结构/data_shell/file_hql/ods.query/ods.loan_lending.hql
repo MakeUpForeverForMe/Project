@@ -21,7 +21,7 @@ set hive.vectorized.execution.reduce.enabled=false;
 set hive.vectorized.execution.reduce.groupby.enabled=false;
 
 
--- set hivevar:ST9=2021-04-12;
+-- set hivevar:ST9=2021-05-16;
 
 -- 乐信代偿前
 -- set hivevar:db_suffix=;set hivevar:tb_suffix=_asset;
@@ -65,8 +65,25 @@ select
       else log.guaranty_type
     end,
     lending.guarantee_type
-  ) as guarantee_type,
-  lending.loan_usage                            as loan_usage,
+  )                                             as guarantee_type,
+  case is_empty(log.loan_usage,lending.loan_usage)
+    when 'LAU99' then '其他类消费'
+    when 'LAU01' then '购车'
+    when 'LAU02' then '购房'
+    when 'LAU03' then '医疗'
+    when 'LAU04' then '国内教育'
+    when 'LAU05' then '出境留学'
+    when 'LAU06' then '装修'
+    when 'LAU07' then '婚庆'
+    when 'LAU08' then '旅游'
+    when 'LAU09' then '租赁'
+    when 'LAU10' then '美容'
+    when 'LAU11' then '家具'
+    when 'LAU12' then '生活用品'
+    when 'LAU13' then '家用电器'
+    when 'LAU14' then '数码产品'
+    else is_empty(log.loan_usage,lending.loan_usage,'未知')
+  end                                           as loan_usage,
   lending.loan_issue_date                       as loan_issue_date,
   lending.loan_expiry_date                      as loan_expiry_date,
   lending.loan_active_date                      as loan_active_date,
@@ -138,6 +155,7 @@ left join (
   select distinct
     get_json_object(standard_req_msg,'$.product.product_no')     as product_id,
     map_from_str(standard_req_msg)['apply_no']                   as due_bill_no,
+    get_json_object(standard_req_msg,'$.product.loan_apply_use') as loan_usage,
     get_json_object(standard_req_msg,'$.product.guarantee_type') as guaranty_type
   from stage.nms_interface_resp_log
   where 1 > 0
@@ -147,6 +165,7 @@ left join (
   select distinct
     get_json_object(original_msg,'$.data.product.productNo')     as product_id,
     get_json_object(original_msg,'$.data.applyNo')               as due_bill_no,
+    get_json_object(original_msg,'$.data.product.loanApplyUse')  as loan_usage,
     get_json_object(original_msg,'$.data.product.guaranteeType') as guaranty_type
   from stage.ecas_msg_log
   where 1 > 0

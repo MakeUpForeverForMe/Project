@@ -19,19 +19,19 @@ log=$log/${base_file_name}.${e_date}.log
 echo -e "${date_s_aa:=$(date +'%F %T')} 资产dw_dm  开始 当前脚本进程ID为：$(pid)\n" &>> $log
 
 
-sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw_new.dw_loan_base_stat_loan_num_day.hql -i $param_dir/dw_new.param.hql -a $rd &
-sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw_new.dw_loan_base_stat_loan_num_day.hql -i $param_dir/dw_new_cps.param.hql -a $rd &
+sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw.dw_loan_base_stat_loan_num_day.hql -i $param_dir/dw.param.hql -a $rd &
+sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw.dw_loan_base_stat_loan_num_day.hql -i $param_dir/dw_cps.param.hql -a $rd &
 
-sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw_new.dw_loan_base_stat_overdue_num_day.hql -i $param_dir/dw_new.param.hql -a $rd &
-sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw_new.dw_loan_base_stat_overdue_num_day.hql -i $param_dir/dw_new_cps.param.hql -a $rd &
+sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw.dw_loan_base_stat_overdue_num_day.hql -i $param_dir/dw.param.hql -a $rd &
+sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw.dw_loan_base_stat_overdue_num_day.hql -i $param_dir/dw_cps.param.hql -a $rd &
 
 wait_jobs
 
-sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw_new.dw_loan_base_stat_repay_detail_day.hql -i $param_dir/dw_new.param.hql -a $rd &
-sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw_new.dw_loan_base_stat_repay_detail_day.hql -i $param_dir/dw_new_cps.param.hql -a $rd &
+sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw.dw_loan_base_stat_repay_detail_day.hql -i $param_dir/dw.param.hql -a $rd &
+sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw.dw_loan_base_stat_repay_detail_day.hql -i $param_dir/dw_cps.param.hql -a $rd &
 
-sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw_new.dw_loan_base_stat_should_repay_day.hql -i $param_dir/dw_new.param.hql -a $rd &
-sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw_new.dw_loan_base_stat_should_repay_day.hql -i $param_dir/dw_new_cps.param.hql -a $rd &
+sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw.dw_loan_base_stat_should_repay_day.hql -i $param_dir/dw.param.hql -a $rd &
+sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw.dw_loan_base_stat_should_repay_day.hql -i $param_dir/dw_cps.param.hql -a $rd &
 
 
 wait_jobs

@@ -85,7 +85,7 @@ object RunJob {
 
     /* println("还款计划条数:",result.count())*/
     //result.show(100,false)
-   // spark.sql(s"alter table eagle.predict_schedule drop partition(biz_date='${pmmlParam.batch_date}',project_id='${pmmlParam.projectId}',cycle_key='${pmmlParam.cycle_key}')")
+  //spark.sql(s"alter table eagle.predict_schedule drop if exists partition(biz_date <='${pmmlParam.batch_date}',project_id='${pmmlParam.projectId}')")
      result.
       withColumn("biz_date", functions.lit(pmmlParam.batch_date))
       .withColumnRenamed("product_id_vt", "product_id")

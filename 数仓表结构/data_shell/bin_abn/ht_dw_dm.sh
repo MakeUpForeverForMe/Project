@@ -30,16 +30,16 @@ sh $data_manage -s ${s_date} -e ${e_date} -f $dm_eagle_hql/dm_eagle.eagle_repaym
 
 wait_jobs
 
-sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw_new.dw_loan_base_stat_loan_num_day.hql -i $param_dir/dw_new.param_ht.hql -a $rd &
-sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw_new.dw_loan_base_stat_overdue_num_day.hql -i $param_dir/dw_new.param_ht.hql -a $rd &
-sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw_new.dw_loan_base_stat_repay_detail_day.hql -i $param_dir/dw_new.param_ht.hql -a $rd &
-sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw_new.dw_loan_base_stat_should_repay_day.hql -i $param_dir/dw_new.param_ht.hql -a $rd &
+sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw.dw_loan_base_stat_loan_num_day.hql -i $param_dir/dw.param_ht.hql -a $rd &
+sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw.dw_loan_base_stat_overdue_num_day.hql -i $param_dir/dw.param_ht.hql -a $rd &
+sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw.dw_loan_base_stat_repay_detail_day.hql -i $param_dir/dw.param_ht.hql -a $rd &
+sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw.dw_loan_base_stat_should_repay_day.hql -i $param_dir/dw.param_ht.hql -a $rd &
 
 wait_jobs
 
 #sh /root/data_shell/bin/data_manage.sh -s '2020-12-25' -e '2020-12-28' -f /root/data_shell/file_hql/dw_new.query/dw_new_cps.dw_asset_info_day.hql -i /root/data_shell/param_beeline/dw_new_cps.param.hql -a  /root/data_shell/conf_mail/data_receives_mail_guochao.config &
-sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw_new_cps.dw_asset_info_day.hql -i $param_dir/dw_new_cps.param.hql -a $rd &
-sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw_new.dw_asset_info_day.hql -i $param_dir/dw_new_cps.param.hql -a $rd &
+sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw_cps.dw_asset_info_day.hql -i $param_dir/dw_cps.param.hql -a $rd &
+sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw.dw_asset_info_day.hql -i $param_dir/dw_cps.param.hql -a $rd &
 wait_jobs
 # dm 层
 

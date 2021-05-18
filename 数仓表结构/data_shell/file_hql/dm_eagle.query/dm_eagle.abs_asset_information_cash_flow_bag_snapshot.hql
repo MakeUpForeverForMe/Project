@@ -93,19 +93,33 @@ from (
         sum(nvl(should_repay_term_fee,0) + nvl(should_repay_svc_fee,0) + nvl(should_repay_penalty,0) + nvl(should_repay_mult_amt,0)) as should_repay_cost,
         should_repay_date,
         due_bill_no,
+        min(s_d_date) over(partition by project_id,due_bill_no) as min_date,
         s_d_date,
         e_d_date,
         project_id
       from ods.repay_schedule_abs
       where 1 > 0
-        -- and project_id = 'PL202105120104'
-        -- and due_bill_no = '1000682129'
+        -- and project_id = 'CL202011090089'
+        -- and due_bill_no in (
+        --   '1000682129',
+        --   '1000682129',
+        --   '1000682129',
+        --   '1000682129',
+        --   '1000682129',
+        --   '1000682129',
+        --   '1000682129',
+        --   '1000682129',
+        --   '1000682129',
+        --   '1000682129',
+        --   '1000682129',
+        --   ''
+        -- )
       group by should_repay_date,due_bill_no,s_d_date,e_d_date,project_id
       -- order by project_id,due_bill_no,should_repay_date,s_d_date
     ) as repay_schedule
     on  repay_schedule.project_id  = bag_due.project_id
     and repay_schedule.due_bill_no = bag_due.due_bill_no
-    and if(bag_info.bag_date < s_d_date,s_d_date,bag_info.bag_date) between s_d_date and date_sub(e_d_date,1)
+    and if(bag_info.bag_date < repay_schedule.min_date,repay_schedule.min_date,bag_info.bag_date) between s_d_date and date_sub(e_d_date,1)
     and bag_info.bag_date <= should_repay_date
   ) as tmp
 ) as tmp

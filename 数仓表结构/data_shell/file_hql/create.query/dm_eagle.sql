@@ -818,7 +818,6 @@ create table if not exists `abs_asset_information_bag_snapshot`(
   `pledged_asset_count_ratio`             decimal(20,8) COMMENT '抵押资产笔数占比',
   `pawn_value`                            decimal(20,8) COMMENT '抵押初始评估价值',
   `pledged_asset_rate_avg_weighted`       decimal(20,8) COMMENT '加权平均抵押率', -- basicAssetInformationVo 中也要
-  `biz_date`                              varchar(255)  COMMENT '观察日期',
   `bag_id`                                varchar(255)  COMMENT '包编号'
 ) COMMENT '资产总体信息（包、封包时）'
 ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
@@ -845,6 +844,9 @@ ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 create table if not exists `abs_asset_information_cash_flow_bag_day`(
   `bag_date`                                      varchar(255)   COMMENT '封包日期',
   `data_extraction_day`                           varchar(255)   COMMENT '最新数据提取日',
+
+  `remain_principal_term_begin`                   decimal(30,10) COMMENT '期初本金余额',
+  `remain_principal_term_end`                     decimal(30,10) COMMENT '期末本金余额',
 
   `should_repay_amount`                           decimal(30,10) COMMENT '应收金额',
   `should_repay_principal`                        decimal(30,10) COMMENT '应收本金',
@@ -936,7 +938,6 @@ create table if not exists `abs_asset_distribution_bag_snapshot_day`(
   `loan_num`                      decimal(15,0)  COMMENT '借据笔数',
   `loan_numratio`                 decimal(25,10) COMMENT '借据笔数占比（分布项借据笔数/借据笔数）',
   `remain_principal_loan_num_avg` decimal(20,5)  COMMENT '平均每笔余额（本金余额/借据笔数）',
-  `biz_date`                      varchar(255)   COMMENT '观察日期',
   `bag_id`                        varchar(255)   COMMENT '包编号'
 ) COMMENT 'abs分布表（包、封包时）'
 ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;

@@ -48,24 +48,24 @@ from (
     cast(least(nvl(loan_result.issuetime,'9999-99-99 00:00:00'),nvl(loan_apply.create_time,'9999-99-99 00:00:00')) as timestamp) as loan_apply_time,
     loan_apply.loan_amount                           as loan_amount_apply,
     cast(loan_apply.loan_terms as decimal(3,0))      as loan_terms,
-    loan_apply.loan_usage                            as loan_usage,
+    is_empty(loan_apply.loan_usage)                  as loan_usage,
     case loan_apply.loan_usage
-    when 1 then '日常消费'
-    when 2 then '汽车加油'
-    when 3 then '修车保养'
-    when 4 then '购买汽车'
-    when 5 then '医疗支出'
-    when 6 then '教育深造'
-    when 7 then '房屋装修'
-    when 8 then '旅游出行'
-    when 9 then '其他消费'
-    else loan_apply.loan_usage
+      when 1 then '日常消费'
+      when 2 then '汽车加油'
+      when 3 then '修车保养'
+      when 4 then '购买汽车'
+      when 5 then '医疗支出'
+      when 6 then '教育深造'
+      when 7 then '房屋装修'
+      when 8 then '旅游出行'
+      when 9 then '其他消费'
+      else is_empty(loan_apply.loan_usage,'未知')
     end                                              as loan_usage_cn,
     loan_apply.repay_type                            as repay_type,
     case loan_apply.repay_type
-    when 1 then '等额本金'
-    when 2 then '等额本息'
-    else loan_apply.repay_type
+      when 1 then '等额本金'
+      when 2 then '等额本息'
+      else loan_apply.repay_type
     end                                              as repay_type_cn,
     loan_apply.loan_rating                           as interest_rate,
     loan_apply.loan_rating                           as credit_coef,
@@ -112,7 +112,10 @@ from (
       get_json_object(original_msg,'$.loanOrderId')      as loan_order_id,
       get_json_object(original_msg,'$.issueTime')        as issuetime,
       case get_json_object(original_msg,'$.status')
-      when '1' then 1 when '3' then 3 else 2 end         as status,
+        when '1' then 1
+        when '3' then 3
+        else 2
+      end                                                as status,
       get_json_object(original_msg,'$.message')          as message,
       get_json_object(original_msg,'$.loanAmount') / 100 as loan_amount,
       original_msg                                       as original_msg
@@ -242,7 +245,7 @@ from (
       cast(nvl(nms_apply.deal_date,nms_loan.deal_date) as timestamp)                             as loan_apply_time,
       cast(nms_apply.apply_amount as decimal(15,4))                                              as loan_amount_apply,
       cast(nms_apply.loan_terms as decimal(3,0))                                                 as loan_terms,
-      nms_apply.loan_apply_use                                                                   as loan_usage,
+      is_empty(nms_apply.loan_apply_use)                                                         as loan_usage,
       case nms_apply.loan_apply_use
         when 'LAU99' then '其他类消费'
         when 'LAU01' then '购车'
@@ -259,7 +262,7 @@ from (
         when 'LAU12' then '生活用品'
         when 'LAU13' then '家用电器'
         when 'LAU14' then '数码产品'
-        else nms_apply.loan_apply_use
+        else is_empty(nms_apply.loan_apply_use,'未知')
       end                                                                                        as loan_usage_cn,
       nms_apply.repay_type                                                                       as repay_type,
       case nms_apply.repay_type
@@ -321,7 +324,10 @@ from (
         nvl(due_bills['LOAN_PENALTY_RATE'],due_bills['loan_penalty_rate'])                  as loan_penalty_rate,
         nvl(due_bills['product_no'],       due_bills['PRODUCT_NO'])                         as product_no,
         datefmt(nvl(due_bills['LOAN_DATE'],due_bills['loan_date']),'yyyyMMdd','yyyy-MM-dd') as loan_date,
-        case resp_code when '0000' then 4 else 5 end                                        as apply_status,
+        case resp_code
+          when '0000' then 4
+          else 5
+        end                                                                                 as apply_status,
         resp_desc                                                                           as apply_resut_msg,
         deal_date                                                                           as deal_date,
         regexp_replace(regexp_replace(regexp_replace(standard_req_msg,'\\\\',''),'\\\"\\\[','\\\['),'\\\]\\\"','\\\]') as standard_req_msg
@@ -436,23 +442,23 @@ from (
       cast(get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.loanTime') as timestamp)     as loan_apply_time,
       cast(get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.pactAmt') as decimal(15,4))  as loan_amount_apply,
       cast(get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.loanTerm') as decimal(3,0))  as loan_terms,
-      get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.appUse')                          as loan_usage,
+      is_empty(get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.appUse'))                as loan_usage,
       case get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.appUse')
-      when '01' then '企业经营'
-      when '02' then '购置车辆'
-      when '03' then '装修'
-      when '04' then '子女教育(出国留学)'
-      when '05' then '购置古玩字画'
-      when '06' then '股票/期货等金融工具投资'
-      when '07' then '其他消费类'
-      else is_empty(get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.appUse'))
+        when '01' then '企业经营'
+        when '02' then '购置车辆'
+        when '03' then '装修'
+        when '04' then '子女教育(出国留学)'
+        when '05' then '购置古玩字画'
+        when '06' then '股票/期货等金融工具投资'
+        when '07' then '其他消费类'
+        else is_empty(get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.appUse'),'未知')
       end                                                                                                             as loan_usage_cn,
       get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.rpyMethod')                       as repay_type,
       case get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.rpyMethod')
-      when '01' then '等本等息'
-      when '02' then '随借随还'
-      when '03' then '等额本息'
-      else is_empty(get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.rpyMethod'))
+        when '01' then '等本等息'
+        when '02' then '随借随还'
+        when '03' then '等额本息'
+        else is_empty(get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.rpyMethod'))
       end                                                                                                             as repay_type_cn,
       get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.lnRate') * 12 /100                as interest_rate,
       cast(
@@ -463,19 +469,22 @@ from (
       ) * 12 /100                                                                                                     as credit_coef,
       0                                                                                                               as penalty_rate,
       case
-      when ecas_loan.loan_init_prin is not null then 1
-      when get_json_object(loan_apply.original_msg,'$.reqContent.jsonResp.rspData.pass') = 'Yes' then 4
-      when get_json_object(loan_apply.original_msg,'$.reqContent.jsonResp.rspData.pass') != 'Yes' then 5
-      else 2 end                                                                                                      as apply_status,
+        when ecas_loan.loan_init_prin is not null then 1
+        when get_json_object(loan_apply.original_msg,'$.reqContent.jsonResp.rspData.pass') = 'Yes' then 4
+        when get_json_object(loan_apply.original_msg,'$.reqContent.jsonResp.rspData.pass') != 'Yes' then 5
+        else 2
+      end                                                                                                             as apply_status,
       case
-      when ecas_loan.loan_init_prin is not null then '放款成功'
-      when get_json_object(loan_apply.original_msg,'$.reqContent.jsonResp.rspData.pass') = 'Yes' then '用信通过'
-      when get_json_object(loan_apply.original_msg,'$.reqContent.jsonResp.rspData.pass') != 'Yes' then '用信失败'
-      else '放款失败' end                                                                                             as apply_resut_msg,
+        when ecas_loan.loan_init_prin is not null then '放款成功'
+        when get_json_object(loan_apply.original_msg,'$.reqContent.jsonResp.rspData.pass') = 'Yes' then '用信通过'
+        when get_json_object(loan_apply.original_msg,'$.reqContent.jsonResp.rspData.pass') != 'Yes' then '用信失败'
+        else '放款失败'
+      end                                                                                                             as apply_resut_msg,
       cast(nvl(ecas_loan.active_date,get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.loanTime')) as timestamp) as issue_time,
       case get_json_object(loan_apply.original_msg,'$.reqContent.jsonResp.rspData.pass')
-      when 'Yes' then cast(get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.pactAmt') as decimal(15,4))
-      else 0 end                                                                                                      as loan_amount_approval,
+        when 'Yes' then cast(get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.pactAmt') as decimal(15,4))
+        else 0
+      end                                                                                                             as loan_amount_approval,
       cast(is_empty(ecas_loan.loan_init_prin,0) as decimal(15,4))                                                     as loan_amount,
       get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.scoreLevel')                      as risk_level,
       null                                                                                                            as risk_score,
@@ -576,7 +585,7 @@ from (
     cast(least(loan_apply.create_time,datefmt(get_json_object(loan_apply.original_msg,'$.timeStamp'),'ms','yyyy-MM-dd HH:mm:ss')) as timestamp) as loan_apply_time,
     cast(get_json_object(credit_apply.original_msg,'$.data.product.currencyAmt') as decimal(15,4))                                              as loan_amount_apply,
     cast(get_json_object(credit_apply.original_msg,'$.data.product.loanTerms') as decimal(3,0))                                                 as loan_terms,
-    get_json_object(credit_apply.original_msg,'$.data.product.loanApplyUse')                                                                    as loan_usage,
+    is_empty(get_json_object(credit_apply.original_msg,'$.data.product.loanApplyUse'))                                                          as loan_usage,
     case get_json_object(credit_apply.original_msg,'$.data.product.loanApplyUse')
       when 'LAU01' then '购车'
       when 'LAU02' then '购房'
@@ -596,18 +605,23 @@ from (
       when 'LAU16' then '企业经营'
       when 'LAU17' then '日常消费'
       when 'LAU99' then '其他类消费'
-      else get_json_object(credit_apply.original_msg,'$.data.product.loanApplyUse')
+      else is_empty(get_json_object(credit_apply.original_msg,'$.data.product.loanApplyUse'),'未知')
     end                                                                                                                                         as loan_usage_cn,
     get_json_object(credit_apply.original_msg,'$.data.product.repayType')                                                                       as repay_type,
-    case get_json_object(credit_apply.original_msg,'$.data.product.repayType') when 'RT01' then '等额本息'
-    else get_json_object(credit_apply.original_msg,'$.data.product.repayType') end                                                              as repay_type_cn,
+    case get_json_object(credit_apply.original_msg,'$.data.product.repayType')
+      when 'RT01' then '等额本息'
+      else get_json_object(credit_apply.original_msg,'$.data.product.repayType')
+    end                                                                                                                                         as repay_type_cn,
     cast(get_json_object(credit_apply.original_msg,'$.data.product.loanRate') as decimal(15,8))                                                 as interest_rate,
     cast(get_json_object(credit_apply.original_msg,'$.data.product.loanRate') as decimal(15,8))                                                 as credit_coef,
     cast(get_json_object(credit_apply.original_msg,'$.data.product.loanPenaltyRate') as decimal(15,8))                                          as penalty_rate,
     nvl(loan_result.apply_status,5)                                                                                                             as apply_status,
     nvl(loan_result.apply_resut_msg,'用信失败 - 自填')                                                                                          as apply_resut_msg,
     loan_result.issue_time                                                                                                                      as issue_time,
-    case loan_result.apply_status when 4 then cast(get_json_object(credit_apply.original_msg,'$.data.product.loanAmt') as decimal(15,4)) else 0 end as loan_amount_approval,
+    case loan_result.apply_status
+      when 4 then cast(get_json_object(credit_apply.original_msg,'$.data.product.loanAmt') as decimal(15,4))
+      else 0
+    end                                                                                                                                         as loan_amount_approval,
     cast(get_json_object(credit_apply.original_msg,'$.data.product.loanAmt') as decimal(15,4))                                                  as loan_amount,
     null                                                                                                                                        as risk_level,
     null                                                                                                                                        as risk_score,
@@ -747,7 +761,7 @@ from (
       cast(loan_apply.reqdata["loanDate"] as timestamp)                                                   as loan_apply_time,
       cast(loan_apply.reqdata["pactAmt"] as decimal(15,4))                                                as loan_amount_apply,
       cast(loan_apply.reqdata["loanTerm"] as decimal(3,0))                                                as loan_terms,
-      loan_apply.reqdata["appUse"]                                                                        as loan_usage,
+      is_empty(loan_apply.reqdata["appUse"])                                                              as loan_usage,
       case loan_apply.reqdata["appUse"]
         when '01' then '企业经营'
         when '02' then '购置车辆'
@@ -757,7 +771,7 @@ from (
         when '06' then '股票/期货等金融工具投资'
         when '07' then '其他消费类'
         when '08' then '医美消费'
-        else is_empty(loan_apply.reqdata["appUse"])
+        else is_empty(loan_apply.reqdata["appUse"],'未知')
       end                                                                                                 as loan_usage_cn,
       loan_apply.reqdata["rpyMethod"]                                                                     as repay_type,
       case loan_apply.reqdata["rpyMethod"]
@@ -880,7 +894,7 @@ from (
       cast(loan_apply.reqdata["loanDate"] as timestamp)                                                   as loan_apply_time,
       cast(loan_apply.reqdata["pactAmt"] as decimal(15,4))                                                as loan_amount_apply,
       cast(loan_apply.reqdata["loanTerm"] as decimal(3,0))                                                as loan_terms,
-      loan_apply.reqdata["appUse"]                                                                        as loan_usage,
+      is_empty(loan_apply.reqdata["appUse"])                                                              as loan_usage,
       case loan_apply.reqdata["appUse"]
         when '01' then '企业经营'
         when '02' then '购置车辆'
@@ -890,7 +904,7 @@ from (
         when '06' then '股票/期货等金融工具投资'
         when '07' then '其他消费类'
         when '08' then '医美消费'
-        else is_empty(loan_apply.reqdata["appUse"])
+        else is_empty(loan_apply.reqdata["appUse"],'未知')
       end                                                                                                 as loan_usage_cn,
       loan_apply.reqdata["rpyMethod"]                                                                     as repay_type,
       case loan_apply.reqdata["rpyMethod"]

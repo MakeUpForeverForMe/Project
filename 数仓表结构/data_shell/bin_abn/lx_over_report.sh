@@ -30,10 +30,10 @@ log=$log/${base_file_name}.${e_date}.log
 echo -e "${date_s:=$(date +'%F %T')} 任务执行 $base_file_name 开始 当前脚本进程ID为：$(pid)\n" &>> $log
 
 # beeline -u jdbc:hive2://node47:10000 -n hive -f /root/data_shell/data_report/dim_new.dim_static_overdue_bill.hql --hivevar ST9=${ST9}  >> /root/data_shell/data_report/log/dw_report_cal_day$(date +%F).log
-sh $data_manage -s ${s_date} -e ${e_date} -f $asset_report_hql/dim_new.dim_static_overdue_bill.hql -i  $param_dir/dim_new.param_lx.hql -a $guochao
+sh $data_manage -s ${s_date} -e ${e_date} -f $asset_report_hql/dim.dim_static_overdue_bill.hql -i  $param_dir/dim.param_lx.hql -a $guochao
 
 # beeline -u jdbc:hive2://node47:10000 -n hive -f /root/data_shell/data_report/dw_new.dw_report_cal_day.hql --hivevar ST9=${ST9} >> /root/data_shell/data_report/log/$(date +%F).log
-sh $data_manage -s ${s_date} -e ${e_date} -f $asset_report_hql/dw_new.dw_report_cal_day.hql -a $guochao
+sh $data_manage -s ${s_date} -e ${e_date} -f $asset_report_hql/dw.dw_report_cal_day.hql -a $guochao
 
 # impala-shell -q "refresh dw_new.dw_report_cal_day;!exit"
 

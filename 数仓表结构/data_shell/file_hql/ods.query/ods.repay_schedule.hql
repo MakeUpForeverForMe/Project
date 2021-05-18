@@ -63,7 +63,7 @@ set hive.support.quoted.identifiers=None;
 --   product_id
 -- from ods${db_suffix}.repay_schedule_inter
 -- where 1 > 0
---   ${product_id}
+--   and product_id in (${product_id})
 -- -- limit 10
 -- ;
 

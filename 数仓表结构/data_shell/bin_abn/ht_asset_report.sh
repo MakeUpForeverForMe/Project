@@ -22,7 +22,7 @@ log=$log/${base_file_name}.${e_date}.log
 
 echo -e "${date_s:=$(date +'%F %T')} 任务执行 $base_file_name 开始 当前脚本进程ID为：$(pid)\n" &>> $log
 
-sh $data_manage -s ${s_date} -e ${e_date} -f $asset_report_hql/dim_new.dim_static_overdue_bill.hql -i $param_dir/dim_new.param_ht.hql   -a $rd
+sh $data_manage -s ${s_date} -e ${e_date} -f $asset_report_hql/dim.dim_static_overdue_bill.hql -i $param_dir/dim.param_ht.hql   -a $rd
 
 
 

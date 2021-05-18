@@ -58,8 +58,6 @@ select distinct
   null                                                                                              as resident_county,
   null                                                                                              as resident_township,
   case borrower_industry
-    when 'NIL'  then '空'
-    when 'NULL' then '空'
     when 'A'    then '农、林、牧、渔业'
     when 'B'    then '采掘业'
     when 'C'    then '制造业'
@@ -81,7 +79,7 @@ select distinct
     when 'S'    then '公共管理和社会组织'
     when 'T'    then '国际组织'
     when 'Z'    then '其他'
-    else borrower_industry
+    else is_empty(borrower_industry,'空')
   end                                                                                               as job_type,
   work_years                                                                                        as job_year,
   annual_income / 12                                                                                as income_month,

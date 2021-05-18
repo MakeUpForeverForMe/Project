@@ -120,9 +120,9 @@ CREATE TABLE IF NOT EXISTS `ods.linkman_info`(
   `user_hash_no`                                      string         COMMENT '用户编号',
   `due_bill_no`                                       string         COMMENT '借据编号',
   `linkman_id`                                        string         COMMENT '联系人编号',
-  `relational_type`                                   string         COMMENT '关联人类型（英文原值）',
+  `relational_type`                                   string         COMMENT '关联人类型（英文原值）（RHT01：借款人联系人，RHT02：共同借款人，RHT03：抵押人，RHT04：抵押人家庭成员信息，RHT05：保证人-个人信用保证）',
   `relational_type_cn`                                string         COMMENT '关联人类型（汉语解释）',
-  `relationship`                                      string         COMMENT '联系人关系（英文原值）（如：1：父母、2：配偶、3：子女、4：兄弟姐妹、5：亲属、6：同事、7：朋友、8：其他）',
+  `relationship`                                      string         COMMENT '联系人关系（英文原值）（1：父母、2：配偶、3：子女、4：兄弟姐妹、5：亲属、6：同事、7：朋友、8：其他）',
   `relationship_cn`                                   string         COMMENT '联系人关系（汉语解释）',
   `relation_idcard_type`                              string         COMMENT '联系人证件类型',
   `relation_idcard_no`                                string         COMMENT '联系人证件号码',
@@ -285,11 +285,11 @@ STORED AS PARQUET;
 
 
 -- 企业信息表
--- DROP TABLE IF EXISTS `ods.t_enterprise_info`;
+-- DROP TABLE IF EXISTS `ods.enterprise_info`;
 CREATE TABLE IF NOT EXISTS `ods.enterprise_info`(
   `due_bill_no`                                       string         COMMENT '资产借据号',
   `contract_role`                                     string         COMMENT '合同角色（0：主借款企业，1：共同借款企业，2：担保企业，3：无）',
-  `enterprise_name`                                   string         COMMENT '企业，名称',
+  `enterprise_name`                                   string         COMMENT '企业名称',
   `business_number`                                   string         COMMENT '工商注册号',
   `organizate_code`                                   string         COMMENT '组织机构代码',
   `taxpayer_number`                                   string         COMMENT '纳税人识别号',
@@ -750,7 +750,7 @@ CREATE VIEW IF NOT EXISTS `ods.linkman_info_abs`(
   `user_hash_no`                       COMMENT '用户编号',
   `due_bill_no`                        COMMENT '借据编号',
   `linkman_id`                         COMMENT '联系人编号',
-  `relational_type`                    COMMENT '关联人类型（英文原值）',
+  `relational_type`                    COMMENT '关联人类型（英文原值）（RHT01：借款人联系人，RHT02：共同借款人，RHT03：抵押人，RHT04：抵押人家庭成员信息，RHT05：保证人',
   `relational_type_cn`                 COMMENT '关联人类型（汉语解释）',
   `relationship`                       COMMENT '联系人关系（英文原值）（如：1：父母、2：配偶、3：子女、4：兄弟姐妹、5：亲属、6：同事、7：朋友、8：其他）',
   `relationship_cn`                    COMMENT '联系人关系（汉语解释）',

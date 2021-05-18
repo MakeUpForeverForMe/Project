@@ -19,24 +19,28 @@ log=$log/${base_file_name}.${e_date}.log
 
 echo -e "${date_s_aa:=$(date +'%F %T')} EMR 汇通 ods_new_s  开始 当前脚本进程ID为：$(pid)\n" &>> $log
 ##修数的表
-sh $data_manage -s ${repair_date} -e ${repair_date} -f $file_repaired/abn_repaired/ods.schedule_repay_order_info_ddht.hql -i $param_dir/ods_new_s.param_ht.hql -a $guochao
+sh $data_manage -s ${repair_date} -e ${repair_date} -f $file_repaired/abn_repaired/ods.schedule_repay_order_info_ddht.hql -i $param_dir/ods.param_ht.hql -a $guochao
 wait_jobs
 
-sh $data_manage -s ${repair_date} -e ${repair_date} -f $ods_new_s_hql/ods_new_s.repay_detail_ddhtgz.hql -i $param_dir/ods_new_s.param_ht.hql -a $guochao &
+sh $data_manage -s ${repair_date} -e ${repair_date} -f $ods_new_s_hql/ods.repay_detail_ddhtgz.hql -i $param_dir/ods.param_ht.hql -a $guochao &
 
 
-sh $data_manage -s ${repair_date} -e ${repair_date} -f $ods_new_s_hql/ods_new_s.loan_lending.hql -i $param_dir/ods_new_s.param_ht.hql -a $guochao &
+sh $data_manage -s ${repair_date} -e ${repair_date} -f $ods_new_s_hql/ods.loan_lending.hql -i $param_dir/ods.param_ht.hql -a $guochao &
 
 
-sh $data_manage -s ${repair_date} -e ${repair_date} -f $ods_new_s_hql/ods_new_s.order_info.hql -i $param_dir/ods_new_s.param_ht.hql -a $guochao &
+sh $data_manage -s ${repair_date} -e ${repair_date} -f $ods_new_s_hql/ods.order_info.hql -i $param_dir/ods.param_ht.hql -a $guochao &
 
 
 
 
-sh $data_manage -s ${s_date} -e ${e_date} -f $reload_hql/ods.reload_loan_info_ht_iter.hql -i $param_dir/ods_new_s.param_ht.hql  -k d_date=$repair_date -a $guochao &
+sh $data_manage -s ${s_date} -e ${e_date} -f $reload_hql/ods.reload_loan_info_ht_iter.hql -i $param_dir/ods.param_ht.hql  -k d_date=$repair_date -a $guochao &
 
-sh $data_manage -s ${s_date} -e ${e_date} -f $reload_hql/ods.reload_repay_schedule_ht_iter.hql -i $param_dir/ods_new_s.param_ht.hql -k d_date=$repair_date  -a $guochao &
+sh $data_manage -s ${s_date} -e ${e_date} -f $reload_hql/ods.reload_repay_schedule_ht_iter.hql -i $param_dir/ods.param_ht.hql -k d_date=$repair_date  -a $guochao &
 
+wait_jobs
+sh $data_manage -s ${s_date} -e ${e_date} -f $ods_new_s_hql/ods.loan_info.hql -i $param_dir/ods.param_ht.hql -a $guochao &
+
+sh $data_manage -s ${s_date} -e ${e_date} -f $ods_new_s_hql/ods.repay_schedule.hql -i $param_dir/ods.param_ht.hql -a $guochao &
 wait_jobs
 
 echo -e "${date_e_aa:=$(date +'%F %T')} EMR 汇通 ods_new_s ods_new_s层 结束 当前脚本进程ID为：$(pid)    用时：${during_time:=$(during "$date_e_aa" "$date_s_aa")}\n\n" &>> $log
@@ -50,3 +54,4 @@ $mail $pm_rd 'EMR 数据 4.0 汇通 ods_new_s 执行结束' "
   执行结束时间： $date_e_aa
   执行执行时长： $during_time
 " &>> $log
+

@@ -20,8 +20,8 @@ echo -e "${date_s_aa:=$(date +'%F %T')} 资金页面资产任务  开始 当前�
 
 # dw 层
 
-sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw_new_cps.dw_asset_info_day.hql -i $param_dir/dw_new_cps.param.hql -a $rd &
-sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw_new.dw_asset_info_day.hql -i $param_dir/dw_new.param.hql -a $rd &
+sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw_cps.dw_asset_info_day.hql -i $param_dir/dw_cps.param.hql -a $rd &
+sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw.dw_asset_info_day.hql -i $param_dir/dw.param.hql -a $rd &
 
 
 wait_jobs

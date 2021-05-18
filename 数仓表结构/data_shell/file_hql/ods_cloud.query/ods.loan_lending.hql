@@ -63,7 +63,23 @@ from (
     is_empty(map_from_str(extra_info)['贷款合同编号'],contract_code)                             as contract_no,
     is_empty(map_from_str(extra_info)['借据号'],asset_id)                                        as due_bill_no,
     is_empty(map_from_str(extra_info)['担保方式'],guarantee_type)                                as guarantee_type,
-    is_empty(map_from_str(extra_info)['贷款用途'],loan_use)                                      as loan_usage,
+    case is_empty(map_from_str(extra_info)['贷款用途'],loan_use)
+      when 'LAU99' then '其他类消费'
+      when 'LAU01' then '购车'
+      when 'LAU02' then '购房'
+      when 'LAU03' then '医疗'
+      when 'LAU04' then '国内教育'
+      when 'LAU05' then '出境留学'
+      when 'LAU06' then '装修'
+      when 'LAU07' then '婚庆'
+      when 'LAU08' then '旅游'
+      when 'LAU09' then '租赁'
+      when 'LAU10' then '美容'
+      when 'LAU11' then '家具'
+      when 'LAU12' then '生活用品'
+      when 'LAU13' then '家用电器'
+      else is_empty(map_from_str(extra_info)['贷款用途'],loan_use,'未知')
+    end                                                                                          as loan_usage,
     case
       when length(map_from_str(extra_info)['合同开始时间']) = 19 then to_date(map_from_str(extra_info)['合同开始时间'])
       else is_empty(datefmt(map_from_str(extra_info)['合同开始时间'],'','yyyy-MM-dd'))

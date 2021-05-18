@@ -65,9 +65,10 @@ CREATE  TABLE eagle.one_million_random_risk_data(
   `idcard_area`                                                       string,
   `risklevel`                                                         string,
   `scorerange`                                                        string,
-  `rn`                                                                int
+  `rn`                                                                int,
+    biz_date STRING comment '数据抽取时间'
   )comment '风控模型输入数据表'
-  partitioned by (biz_date STRING comment '数据抽取时间',project_id STRING comment  '项目Id',cycle_key string comment '循环次数')
+  partitioned by (project_id STRING comment  '项目Id',cycle_key string comment '循环次数')
 STORED AS PARQUET;
 
 CREATE  TABLE eagle.one_million_random_risk_data_txt(
@@ -149,7 +150,6 @@ load data local inpath '/root/guochao/test/new20000'  OVERWRITE INTO  TABLE eagl
 
 
 
-
 drop table eagle.predict_schedule;
 create   table eagle.predict_schedule(
 due_bill_no                                                               string,
@@ -191,9 +191,10 @@ reduce_svc_fee                                                            decima
 reduce_penalty                                                            decimal(15,4),
 reduce_mult_amt                                                           decimal(15,4),
 range_rate                                                                string,
-product_id                                                                string
+product_id                                                                string,
+biz_date string comment '数据抽取时间'
 )comment '模型预测完还款计划'
-partitioned by (biz_date string comment '数据抽取时间' ,project_id string comment '项目id',cycle_key string comment '循环次数')
+partitioned by (project_id string comment '项目id',cycle_key string comment '循环次数')
 STORED AS PARQUET;
 
 drop table eagle.predict_repay_day;
@@ -291,9 +292,11 @@ STORED AS textfile
    `overdue_terms_count` decimal(3,0) COMMENT '累计逾期期数',  
    `overdue_terms_max` decimal(3,0) COMMENT '历史单次最长逾期期数',  
    `overdue_principal_accumulate` decimal(15,4) COMMENT '累计逾期本金',  
-   `overdue_principal_max` decimal(15,4) COMMENT '历史最大逾期本金') 
+   `overdue_principal_max` decimal(15,4) COMMENT '历史最大逾期本金',
+    `biz_date` string COMMENT '观察日')
+
  PARTITIONED BY (                                   
-   `biz_date` string COMMENT '观察日',`product_id` string comment '产品Id')
+`product_id` string comment '产品Id')
   STORED AS PARQUET;
 
 

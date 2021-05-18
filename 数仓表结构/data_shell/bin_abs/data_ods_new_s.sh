@@ -57,12 +57,7 @@ sh $data_manage -s ${s_date} -e ${e_date} -f $dm_eagle_hql/dm_eagle.abs_early_pa
 sh $data_manage -s ${s_date} -e ${e_date} -f $dm_eagle_hql/dm_eagle.abs_overdue_rate_day.hql -k bag_id='' -a $yuheng &
 sh $data_manage -s ${s_date} -e ${e_date} -f $dm_eagle_hql/dm_eagle.abs_overdue_rate_details_day.hql -k bag_id='' -a $yuheng &
 
-
-
 wait_jobs
-
-
-
 
 echo -e "${date_e_aa:=$(date +'%F %T')} abs资产 ods_new_s  结束    用时：${during_time:=$(during "$date_e_aa" "$date_s_aa")}\n\n" &>> $log
 

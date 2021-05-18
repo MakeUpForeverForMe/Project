@@ -73,7 +73,7 @@ from (
     null                                                                                   as resident_county,
     null                                                                                   as resident_township,
     null                                                                                   as job_type,
-    null                                                                                   as job_year,
+    is_empty(null,'空')                                                                    as job_year,
     null                                                                                   as income_month,
     null                                                                                   as income_year,
     '未知'                                                                                 as customer_type,
@@ -213,8 +213,6 @@ from (
     resp_log.resident_county                                                        as resident_county,
     null                                                                            as resident_township,
     case resp_log.job_type
-      when 'NIL'  then '空'
-      when 'NULL' then '空'
       when 'A'    then '农、林、牧、渔业'
       when 'B'    then '采掘业'
       when 'C'    then '制造业'
@@ -236,7 +234,7 @@ from (
       when 'S'    then '公共管理和社会组织'
       when 'T'    then '国际组织'
       when 'Z'    then '其他'
-      else resp_log.job_type
+      else is_empty(resp_log.job_type,'空')
     end                                                                             as job_type,
     null                                                                            as job_year,
     null                                                                            as income_month,
@@ -464,8 +462,6 @@ from (
     null                                                                                                                  as resident_county,
     null                                                                                                                  as resident_township,
     case get_json_object(msg_log.original_msg,'$.reqContent.jsonReq.content.reqData.workWay')
-      when 'NIL'  then '空'
-      when 'NULL' then '空'
       when 'A'    then '农、林、牧、渔业'
       when 'B'    then '采掘业'
       when 'C'    then '制造业'
@@ -487,7 +483,7 @@ from (
       when 'S'    then '公共管理和社会组织'
       when 'T'    then '国际组织'
       when 'Z'    then '其他'
-      else is_empty(get_json_object(msg_log.original_msg,'$.reqContent.jsonReq.content.reqData.workWay'))
+      else is_empty(get_json_object(msg_log.original_msg,'$.reqContent.jsonReq.content.reqData.workWay'),'空')
     end                                                                                                                   as job_type,
     cast(is_empty(get_json_object(msg_log.original_msg,'$.reqContent.jsonReq.content.reqData.workYear')) as decimal(2,0)) as job_year,
     cast(get_json_object(msg_log.original_msg,'$.reqContent.jsonReq.content.reqData.mincome') as decimal(25,5))           as income_month,
@@ -637,8 +633,6 @@ from (
     get_json_object(msg_log.original_msg,'$.data.borrower.homeArea')                                                  as resident_county,
     null                                                                                                              as resident_township,
     case get_json_object(msg_log.original_msg,'$.data.borrower.industry')
-      when 'NIL'  then '空'
-      when 'NULL' then '空'
       when 'A'    then '农、林、牧、渔业'
       when 'B'    then '采掘业'
       when 'C'    then '制造业'
@@ -660,7 +654,7 @@ from (
       when 'S'    then '公共管理和社会组织'
       when 'T'    then '国际组织'
       when 'Z'    then '其他'
-      else is_empty(get_json_object(msg_log.original_msg,'$.data.borrower.industry'))
+      else is_empty(get_json_object(msg_log.original_msg,'$.data.borrower.industry'),'空')
     end                                                                                                               as job_type,
     0                                                                                                                 as job_year,
     (
@@ -842,7 +836,7 @@ from (
     null                                                                                                                             as resident_city,
     null                                                                                                                             as resident_county,
     null                                                                                                                             as resident_township,
-    null                                                                                                                             as job_type,
+    is_empty(null,'空')                                                                                                              as job_type,
     null                                                                                                                             as job_year,
     0                                                                                                                                as income_month,
     0                                                                                                                                as income_year,
@@ -973,7 +967,7 @@ from (
     null                                                                                                                      as resident_city,
     null                                                                                                                      as resident_county,
     null                                                                                                                      as resident_township,
-    null                                                                                                                      as job_type,
+    is_empty(null,'空')                                                                                                       as job_type,
     null                                                                                                                      as job_year,
     0                                                                                                                         as income_month,
     0                                                                                                                         as income_year,

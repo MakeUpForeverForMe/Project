@@ -1,8 +1,8 @@
 -- DROP DATABASE IF EXISTS `dm_eagle`;
-CREATE DATABASE IF NOT EXISTS `dm_eagle` COMMENT 'dm_eagle层数据（代偿前）' location 'cosn://bigdata-center-prod-1253824322/user/hadoop/warehouse/dm_eagle.db';
+CREATE DATABASE IF NOT EXISTS `dm_eagle` COMMENT 'dm_eagle层数据（代偿前）';
 
 -- DROP DATABASE IF EXISTS `dm_eagle_cps`;
-CREATE DATABASE IF NOT EXISTS `dm_eagle_cps` COMMENT 'dm_eagle层数据（代偿后）' location 'cosn://bigdata-center-prod-1253824322/user/hadoop/warehouse/dm_eagle_cps.db';
+CREATE DATABASE IF NOT EXISTS `dm_eagle_cps` COMMENT 'dm_eagle层数据（代偿后）';
 
 
 
@@ -1361,27 +1361,11 @@ CREATE TABLE IF NOT EXISTS `dm_eagle.abs_asset_information_bag_snapshot`(
   `pawn_value`                                    decimal(30,10) COMMENT '抵押初始评估价值',
   `pledged_asset_rate_avg_weighted`               decimal(30,10) COMMENT '加权平均抵押率' -- basicAssetInformationVo 中也要
 ) COMMENT '资产总体信息（包、封包时）'
-PARTITIONED BY(`biz_date` string COMMENT '观察日期',`bag_id` string COMMENT '包编号')
-STORED AS PARQUET;
-
-
-
-
-
--- 现金流分析（包、封包时）
--- DROP TABLE IF EXISTS `dm_eagle.abs_asset_information_cash_flow_bag_snapshot`;
-CREATE TABLE IF NOT EXISTS `dm_eagle.abs_asset_information_cash_flow_bag_snapshot`(
-  `project_id`                                    string         COMMENT '项目编号',
-  `should_repay_date`                             string         COMMENT '应还日期',
-  `remain_principal_term_begin`                   decimal(30,10) COMMENT '期初本金余额',
-  `remain_principal_term_end`                     decimal(30,10) COMMENT '期末本金余额',
-  `should_repay_amount`                           decimal(30,10) COMMENT '应还金额',
-  `should_repay_principal`                        decimal(30,10) COMMENT '应还本金',
-  `should_repay_interest`                         decimal(30,10) COMMENT '应还利息',
-  `should_repay_cost`                             decimal(30,10) COMMENT '应还费用'
-) COMMENT '现金流分析（包、封包时）'
 PARTITIONED BY(`bag_id` string COMMENT '包编号')
 STORED AS PARQUET;
+
+
+
 
 
 -- 现金流分析（项目、所有包、包）
@@ -1389,6 +1373,9 @@ STORED AS PARQUET;
 CREATE TABLE IF NOT EXISTS `dm_eagle.abs_asset_information_cash_flow_bag_day`(
   `bag_date`                                      string         COMMENT '封包日期',
   `data_extraction_day`                           string         COMMENT '最新数据提取日',
+
+  `remain_principal_term_begin`                   decimal(30,10) COMMENT '期初本金余额',
+  `remain_principal_term_end`                     decimal(30,10) COMMENT '期末本金余额',
 
   `should_repay_amount`                           decimal(30,10) COMMENT '应收金额',
   `should_repay_principal`                        decimal(30,10) COMMENT '应收本金',
@@ -1426,6 +1413,22 @@ CREATE TABLE IF NOT EXISTS `dm_eagle.abs_asset_information_cash_flow_bag_day`(
   `collect_date`                                  string         COMMENT '统计日期'
 ) COMMENT '现金流分析（项目、所有包、包）'
 PARTITIONED BY(`biz_date` string COMMENT '观察日期',`project_id` string COMMENT '项目编号',`bag_id` string COMMENT '包编号（包编号、default_project、default_all_bag）')
+STORED AS PARQUET;
+
+
+-- 现金流分析（包、封包时）
+-- DROP TABLE IF EXISTS `dm_eagle.abs_asset_information_cash_flow_bag_snapshot`;
+CREATE TABLE IF NOT EXISTS `dm_eagle.abs_asset_information_cash_flow_bag_snapshot`(
+  `project_id`                                    string         COMMENT '项目编号',
+  `should_repay_date`                             string         COMMENT '应还日期',
+  `remain_principal_term_begin`                   decimal(30,10) COMMENT '期初本金余额',
+  `remain_principal_term_end`                     decimal(30,10) COMMENT '期末本金余额',
+  `should_repay_amount`                           decimal(30,10) COMMENT '应还金额',
+  `should_repay_principal`                        decimal(30,10) COMMENT '应还本金',
+  `should_repay_interest`                         decimal(30,10) COMMENT '应还利息',
+  `should_repay_cost`                             decimal(30,10) COMMENT '应还费用'
+) COMMENT '现金流分析（包、封包时）'
+PARTITIONED BY(`bag_id` string COMMENT '包编号')
 STORED AS PARQUET;
 
 
@@ -1467,7 +1470,7 @@ STORED AS PARQUET;
 
 
 -- abs分布表（包、封包时）
--- DROP TABLE IF EXISTS `dm_eagle.abs_asset_distribution_snapshot_day`;
+-- DROP TABLE IF EXISTS `dm_eagle.abs_asset_distribution_bag_snapshot_day`;
 CREATE TABLE IF NOT EXISTS `dm_eagle.abs_asset_distribution_bag_snapshot_day`(
   `project_id`                                    string         COMMENT '项目编号',
   `asset_tab_name`                                decimal(4,0)   COMMENT '分布标签名称（1：未偿本金余额分布，2：资产利率分布，3：资产合同期限分布，4：资产剩余期限分布，5：资产已还期数分布，6：账龄分布，7：合同剩余期限分布（账龄相关），8：还款方式分布，9：借款人年龄分布，10：借款人行业分布，11：借款人年收入分布，12：借款人风控结果分布，13：借款人信用等级分布，14：借款人反欺诈等级分布，15：借款人资产等级分布，16：借款人地区分布，17：抵押率分布，18：车辆品牌分布，19：新旧车辆分布）',
@@ -1479,7 +1482,7 @@ CREATE TABLE IF NOT EXISTS `dm_eagle.abs_asset_distribution_bag_snapshot_day`(
   `loan_numratio`                                 decimal(30,10) COMMENT '借据笔数占比（分布项借据笔数/借据笔数）',
   `remain_principal_loan_num_avg`                 decimal(25,5)  COMMENT '平均每笔余额（本金余额/借据笔数）'
 ) COMMENT 'abs分布表（包、封包时）'
-PARTITIONED BY(`biz_date` string COMMENT '观察日期',`bag_id` string COMMENT '包编号')
+PARTITIONED BY(`bag_id` string COMMENT '包编号')
 STORED AS PARQUET;
 
 

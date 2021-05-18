@@ -471,11 +471,9 @@ CREATE EXTERNAL TABLE `dw.dw_transaction_blend_record`(
   `ch_diff_explain` string COMMENT '',
   `en_diff_explain` string COMMENT '')
 COMMENT '资金打标流水表'
-PARTITIONED BY (
-  `biz_date` string COMMENT '????')
-stored as parquet
-LOCATION
-  'cosn://bigdatacenter-sit-1253824322/user/hadoop/warehouse/dw.db/dw_transaction_blend_record';
+PARTITIONED BY (`biz_date` string COMMENT '计算日期')
+STORED AS PARQUET
+LOCATION 'cosn://bigdatacenter-sit-1253824322/user/hadoop/warehouse/dw.db/dw_transaction_blend_record';
 
 
 
@@ -508,13 +506,11 @@ CREATE TABLE IF NOT EXISTS `dw.abs_due_info_day`(
   `overdue_due_bill_no`          string         COMMENT '逾期借据借据编号',
   `overdue_user_hash_no`         string         COMMENT '逾期借据用户编号',
   `overdue_date_start`           string         COMMENT '逾期起始日期',
-  `is_first_overdue_day`         decimal(2,0)   COMMENT '此逾期天数是否是首次逾期到这个天数（0：否，1：是）',
   `overdue_days`                 decimal(5,0)   COMMENT '逾期天数',
   `overdue_days_dpd`             array<string>  COMMENT 'DPD时期（1+、7+、14+、30+、60+、90+、120+、150+、180+、1_7、8_15、15_30、31_60、61_90、91_120、121_150、151_180）',
   `dpd_map`                      string         COMMENT '曾有逾期的借据DPD汇总（格式：{"1+":{"2021-01-01":1200}}：{"dpd时期":{"开始逾期日期":逾期借据剩余本金}}）',
   `overdue_principal`            decimal(20,5)  COMMENT '逾期本金',
   `overdue_remain_principal`     decimal(20,5)  COMMENT '逾期借据剩余本金',
-  `min_date`                     string         COMMENT '借据的最小日期',
 
   -- 合同级
   `contract_no`                  string         COMMENT '借据编号',
@@ -562,12 +558,11 @@ CREATE VIEW IF NOT EXISTS `dw.abs_due_info_day_abs`(
   `overdue_due_bill_no`        COMMENT '逾期借据借据编号',
   `overdue_user_hash_no`       COMMENT '逾期借据用户编号',
   `overdue_date_start`         COMMENT '逾期起始日期',
-  `is_first_overdue_day`       COMMENT '此逾期天数是否是首次逾期到这个天数（0：否，1：是）',
   `overdue_days`               COMMENT '逾期天数',
   `overdue_days_dpd`           COMMENT 'DPD时期（1+、7+、14+、30+、60+、90+、120+、150+、180+、1_7、8_15、15_30、31_60、61_90、91_120、121_150、151_180）',
+  `dpd_map`                    COMMENT '曾有逾期的借据DPD汇总（格式：{"1+":{"2021-01-01":1200}}：{"dpd时期":{"开始逾期日期":逾期借据剩余本金}}）',
   `overdue_principal`          COMMENT '逾期本金',
   `overdue_remain_principal`   COMMENT '逾期借据剩余本金',
-  `min_date`                   COMMENT '借据的最小日期',
 
   -- 合同级
   `contract_no`                COMMENT '借据编号',
@@ -610,12 +605,11 @@ CREATE VIEW IF NOT EXISTS `dw.abs_due_info_day_abs`(
   t1.overdue_due_bill_no,
   t1.overdue_user_hash_no,
   t1.overdue_date_start,
-  t1.is_first_overdue_day,
   t1.overdue_days,
   t1.overdue_days_dpd,
+  t1.dpd_map,
   t1.overdue_principal,
   t1.overdue_remain_principal,
-  t1.min_date,
   t1.contract_no,
   t1.loan_init_interest_rate,
   t1.loan_type_cn,

@@ -3,7 +3,7 @@ insert overwrite table dim.bag_info partition(bag_id = '${bag_id}')
 select
   project_id,
   bag_name,
-  '已封包' as bag_status,
+  '2' as bag_status,
   bag_remain_principal,
   bag_date,
   insert_date
