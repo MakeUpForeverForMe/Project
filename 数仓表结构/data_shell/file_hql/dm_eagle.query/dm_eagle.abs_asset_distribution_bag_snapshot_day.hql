@@ -1,7 +1,3 @@
-set hive.execution.engine=spark;
-set spark.executor.memory=4g;
-set spark.executor.memoryOverhead=4g;
-
 set hive.exec.input.listing.max.threads=50;
 set tez.grouping.min-size=50000000;
 set tez.grouping.max-size=50000000;
@@ -308,4 +304,7 @@ inner join (
   from bill_info
   group by project_id,bag_id
 ) as project_total
-on  asset_total.asset_project_id = proje
+on  asset_total.asset_project_id = project_total.total_project_id
+and asset_total.asset_bag_id     = project_total.total_bag_id
+-- limit 10
+;

@@ -92,19 +92,21 @@ from (
     nvl(asset.remain_interest,0) + nvl(asset.total_rel_interest,0)                                as loan_init_interest,
     nvl(loan.loan_total_fee,0)                                                                    as loan_init_term_fee,
     0                                                                                             as loan_init_svc_fee,
-    case  when asset.assets_status = '正常'   then 'N'
-          when asset.assets_status = '已结清' then 'F'
-          when asset.assets_status = '逾期'   then 'O'
-          else '未知类型'
+    case
+      when asset.assets_status = '正常'   then 'N'
+      when asset.assets_status = '已结清' then 'F'
+      when asset.assets_status = '逾期'   then 'O'
+      else '未知类型'
     end                                                                                           as loan_status,
     asset.assets_status                                                                           as loan_status_cn,
     asset.settle_reason                                                                           as loan_out_reason,
-    case  when asset.settle_reason = '提前结清' then 'PRE_SETTLE'
-          when asset.settle_reason = '处置结清' then 'DISPOSAL'
-          when asset.settle_reason = '正常结清' then 'NORMAL_SETTLE'
-          when asset.settle_reason = '逾期结清' then 'OVERDUE_SETTLE'
-          when asset.settle_reason = '回购结清' then 'BUY_BACK'
-          else asset.settle_reason
+    case
+      when asset.settle_reason = '提前结清' then 'PRE_SETTLE'
+      when asset.settle_reason = '处置结清' then 'DISPOSAL'
+      when asset.settle_reason = '正常结清' then 'NORMAL_SETTLE'
+      when asset.settle_reason = '逾期结清' then 'OVERDUE_SETTLE'
+      when asset.settle_reason = '回购结清' then 'BUY_BACK'
+      else asset.settle_reason
     end                                                                                           as paid_out_type,
     asset.settle_reason                                                                           as paid_out_type_cn,
     asset.loan_settlement_date                                                                    as paid_out_date,
@@ -220,19 +222,21 @@ left join (
     nvl(asset.remain_interest,0) + nvl(asset.total_rel_interest,0)                                        as loan_init_interest,
     nvl(loan.loan_total_fee,0)                                                                            as loan_init_term_fee,
     0                                                                                                     as loan_init_svc_fee,
-    case  when asset.assets_status = '正常'   then 'N'
-          when asset.assets_status = '已结清' then 'F'
-          when asset.assets_status = '逾期'   then 'O'
-          else '未知类型'
+    case
+      when asset.assets_status = '正常'   then 'N'
+      when asset.assets_status = '已结清' then 'F'
+      when asset.assets_status = '逾期'   then 'O'
+      else '未知类型'
     end                                                                                                   as loan_status,
     asset.assets_status                                                                                   as loan_status_cn,
     asset.settle_reason                                                                                   as loan_out_reason,
-    case  when asset.settle_reason = '提前结清' then 'PRE_SETTLE'
-          when asset.settle_reason = '处置结清' then 'DISPOSAL'
-          when asset.settle_reason = '正常结清' then 'NORMAL_SETTLE'
-          when asset.settle_reason = '逾期结清' then 'OVERDUE_SETTLE'
-          when asset.settle_reason = '回购结清' then 'BUY_BACK'
-          else asset.settle_reason
+    case
+      when asset.settle_reason = '提前结清' then 'PRE_SETTLE'
+      when asset.settle_reason = '处置结清' then 'DISPOSAL'
+      when asset.settle_reason = '正常结清' then 'NORMAL_SETTLE'
+      when asset.settle_reason = '逾期结清' then 'OVERDUE_SETTLE'
+      when asset.settle_reason = '回购结清' then 'BUY_BACK'
+      else asset.settle_reason
     end                                                                                                   as paid_out_type,
     asset.settle_reason                                                                                   as paid_out_type_cn,
     asset.loan_settlement_date                                                                            as paid_out_date,

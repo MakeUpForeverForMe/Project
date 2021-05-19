@@ -82,8 +82,12 @@ select distinct
     else is_empty(borrower_industry,'空')
   end                                                                                               as job_type,
   work_years                                                                                        as job_year,
+  0                                                                                                 as job_year_max,
+  0                                                                                                 as job_year_min,
   annual_income / 12                                                                                as income_month,
   annual_income                                                                                     as income_year,
+  0                                                                                                 as income_year_max,
+  0                                                                                                 as income_year_min,
   if(loan_type = '企业','企业',is_empty(customer_type,'未知'))                                      as customer_type,
   loan_type                                                                                         as loan_type,
   cust_rating                                                                                       as cust_rating,

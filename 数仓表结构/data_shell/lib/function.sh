@@ -201,7 +201,6 @@ export_file_from_hive(){
 
   # $beeline \
   # --color=true \
-  # --nullemptystring=true \
   # --showHeader=false \
   # --outputformat=tsv2 \
   # -e "${1};" | sed 's/NULL/\\N/g' > "${export_file}"

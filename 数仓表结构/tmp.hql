@@ -416,6 +416,8 @@ refresh dm_eagle.abs_early_payment_asset_details;
 
 refresh dim.bag_due_bill_no;
 
+refresh dw.abs_due_info_day;
+
 refresh ods.customer_info;
 refresh ods.guaranty_info;
 refresh ods.enterprise_info;
@@ -1636,4 +1638,14 @@ where age = -1
     -- '001901',
     '001902',
     '001906',
-    -- '002001'
+    -- '002001',
+    '002002',
+    '002006',
+    '002401',
+    '002402',
+
+    '001701',
+    '001702',
+    ''
+  )
+limit 10;

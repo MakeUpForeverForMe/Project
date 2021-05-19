@@ -1369,7 +1369,7 @@ STORED AS PARQUET;
 
 
 -- 现金流分析（项目、所有包、包）
--- DROP TABLE IF EXISTS `dm_eagle.abs_asset_information_cash_flow_bag_day`;
+DROP TABLE IF EXISTS `dm_eagle.abs_asset_information_cash_flow_bag_day`;
 CREATE TABLE IF NOT EXISTS `dm_eagle.abs_asset_information_cash_flow_bag_day`(
   `bag_date`                                      string         COMMENT '封包日期',
   `data_extraction_day`                           string         COMMENT '最新数据提取日',

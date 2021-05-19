@@ -524,6 +524,8 @@ CREATE TABLE IF NOT EXISTS `dw.abs_due_info_day`(
   `age`                          decimal(3,0)   COMMENT '客户年龄',
   `job_type`                     decimal(5,0)   COMMENT '工作年限',
   `income_year`                  decimal(25,5)  COMMENT '年收入',
+  `income_year_max`              decimal(25,5)  COMMENT '年收入上限',
+  `income_year_min`              decimal(25,5)  COMMENT '年收入下限',
   `idcard_area`                  string         COMMENT '身份证大区（东北地区、华北地区、西北地区、西南地区、华南地区、华东地区、华中地区、港澳台地区）',
 
   -- 抵押物级

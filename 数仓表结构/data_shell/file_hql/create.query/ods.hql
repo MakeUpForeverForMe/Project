@@ -102,9 +102,13 @@ CREATE TABLE IF NOT EXISTS `ods.customer_info`(
   `resident_county`                                   string         COMMENT '常住地县级（区县）',
   `resident_township`                                 string         COMMENT '常住地乡级（乡/镇/街）（预留）',
   `job_type`                                          string         COMMENT '借款人行业',
-  `job_year`                                          decimal(5,0)   COMMENT '工作年限',
-  `income_month`                                      decimal(25,5)  COMMENT '月收入',
-  `income_year`                                       decimal(25,5)  COMMENT '年收入',
+  `job_year`                                          decimal(5,0)   COMMENT '工作年限（默认值：0）',
+  `job_year_max`                                      decimal(5,0)   COMMENT '工作年限上限（默认值：0）',
+  `job_year_min`                                      decimal(5,0)   COMMENT '工作年限下限（默认值：0）',
+  `income_month`                                      decimal(25,5)  COMMENT '月收入（默认值：0）',
+  `income_year`                                       decimal(25,5)  COMMENT '年收入（默认值：0）',
+  `income_year_max`                                   decimal(25,5)  COMMENT '年收入上限（默认值：0）',
+  `income_year_min`                                   decimal(25,5)  COMMENT '年收入下限（默认值：0）',
   `customer_type`                                     string         COMMENT '客戶类型（中文值：个体工商户、学生、企业、未知等）',
   `borrower_type`                                     string         COMMENT '借款方类型（个人或企业）',
   `cust_rating`                                       string         COMMENT '内部信用等级'
@@ -681,9 +685,13 @@ CREATE VIEW IF NOT EXISTS `ods.customer_info_abs`(
   `resident_county`                    COMMENT '常住地县级（区县）',
   `resident_township`                  COMMENT '常住地乡级（乡/镇/街）（预留）',
   `job_type`                           COMMENT '工作类型',
-  `job_year`                           COMMENT '工作年限',
-  `income_month`                       COMMENT '月收入',
-  `income_year`                        COMMENT '年收入',
+  `job_year`                           COMMENT '工作年限（默认值：0）',
+  `job_year_max`                       COMMENT '工作年限上限（默认值：0）',
+  `job_year_min`                       COMMENT '工作年限下限（默认值：0）',
+  `income_month`                       COMMENT '月收入（默认值：0）',
+  `income_year`                        COMMENT '年收入（默认值：0）',
+  `income_year_max`                    COMMENT '年收入上限（默认值：0）',
+  `income_year_min`                    COMMENT '年收入下限（默认值：0）',
   `customer_type`                      COMMENT '客戶类型（中文值：个体工商户、学生、企业、未知等）',
   `borrower_type`                      COMMENT '借款方类型（个人或企业）',
   `cust_rating`                        COMMENT '内部信用等级',
@@ -724,8 +732,12 @@ CREATE VIEW IF NOT EXISTS `ods.customer_info_abs`(
   t1.resident_township as resident_township,
   t1.job_type          as job_type,
   t1.job_year          as job_year,
+  t1.job_year_max      as job_year_max,
+  t1.job_year_min      as job_year_min,
   t1.income_month      as income_month,
   t1.income_year       as income_year,
+  t1.income_year_max   as income_year_max,
+  t1.income_year_min   as income_year_min,
   t1.customer_type     as customer_type,
   t1.borrower_type     as borrower_type,
   t1.cust_rating       as cust_rating,
@@ -1523,177 +1535,31 @@ from ods.repay_schedule_abs
 where effective_date between s_d_date and date_sub(e_d_date,1);
 
 
--- DROP VIEW IF EXISTS `ods.t_07_actualrepayinfo`;
-CREATE VIEW IF NOT EXISTS `ods.t_07_actualrepayinfo`(
-  `project_id`                         COMMENT '项目编号',
-  `serial_number`                      COMMENT '借据号',
-  `term`                               COMMENT '期次',
-  `is_borrowers_oneself_repayment`     COMMENT '是否借款人本人还款（预定义字段：Y、N，默认：Y）',
-  `actual_repay_time`                  COMMENT '实际还清日期（若没有还清传还款日期，若还清就传实际还清的日期）',
-  `current_period_loan_balance`        COMMENT '当期贷款余额（各期还款日（T+1）更新该字段，即截至当期还款日资产的剩余（未偿还）贷款本金余额）',
-  `repay_type`                         COMMENT '还款类型 1，提前还款 2，正常还款 3，部分还款 4，逾期还款',
-  `current_account_status`             COMMENT '当期账户状态（各期还款日（T+1）更新该字段，正常：在还款日前该期应还已还清，提前还清（早偿）：贷款在该期还款日前提前全部还清，逾期：贷款在该期还款日时，实还金额小于应还金额）',
-  `actual_repay_principal`             COMMENT '实还本金（元）',
-  `actual_repay_interest`              COMMENT '实还利息（元）',
-  `actual_repay_fee`                   COMMENT '实还费用（元）',
-  `penalbond`                          COMMENT '违约金',
-  `penalty_interest`                   COMMENT '罚息',
-  `compensation`                       COMMENT '赔偿金（提前还款/逾期所产生的赔偿金）',
-  `advanced_commission_charge`         COMMENT '提前还款手续费',
-  `other_fee`                          COMMENT '其他相关费用 （违约金、罚款、赔偿金和提前还款手续费以外的费用）',
-  `actual_work_interest_rate`          COMMENT '实际还款执行利率',
-  `data_source`                        COMMENT '数据来源（1：startLink，2：excelImport）',
-  `import_id`                          COMMENT '导入Id',
-  `create_time`                        COMMENT '创建时间',
-  `update_time`                        COMMENT '更新时间'
-) COMMENT '实际还款信息表-文件七' as select
-  project_id                     as project_id,
-  due_bill_no                    as serial_number,
-  term                           as term,
-  is_borrowers_oneself_repayment as is_borrowers_oneself_repayment,
-  biz_date                       as actual_repay_time,
-  remain_principal               as current_period_loan_balance,
-  repay_type                     as repay_type,
-  loan_status_cn                 as current_account_status,
-  actual_repay_principal         as actual_repay_principal,
-  actual_repay_interest          as actual_repay_interest,
-  actual_repay_fee               as actual_repay_fee,
-  penalbond                      as penalbond,
-  penalty_interest               as penalty_interest,
-  compensation                   as compensation,
-  advanced_commission_charge     as advanced_commission_charge,
-  other_fee                      as other_fee,
-  actual_work_interest_rate      as actual_work_interest_rate,
-  import_id                      as import_id,
-  data_source                    as data_source,
-  create_time                    as create_time,
-  update_time                    as update_time
-from (
-  select
-    project_id                                         as project_id,
-    due_bill_no                                        as due_bill_no,
-    repay_term                                         as term,
-    'Y'                                                as is_borrowers_oneself_repayment,
-    biz_date                                           as biz_date,
-    repay_type                                         as repay_type,
-    sum(if(bnp_type = 'Pricinpal',    repay_amount,0)) as actual_repay_principal,
-    sum(if(bnp_type = 'Interest',     repay_amount,0)) as actual_repay_interest,
-    sum(if(bnp_type = 'RepayFee',     repay_amount,0)) as actual_repay_fee,
-    sum(if(bnp_type = 'Damages',      repay_amount,0)) as penalbond,
-    sum(if(bnp_type = 'Penalty',      repay_amount,0)) as penalty_interest,
-    sum(if(bnp_type = 'Compensation', repay_amount,0)) as compensation,
-    sum(if(bnp_type = 'EarlyRepayFee',repay_amount,0)) as advanced_commission_charge,
-    sum(if(bnp_type = 'OtherFee',     repay_amount,0)) as other_fee,
-    0                                                  as actual_work_interest_rate,
-    data_source                                        as data_source,
-    import_id                                          as import_id,
-    create_time                                        as create_time,
-    update_time                                        as update_time
-  from ods.repay_detail_abs
-  group by
-    project_id,
-    due_bill_no,
-    repay_term,
-    biz_date,
-    repay_type,
-    data_source,
-    import_id,
-    create_time,
-    update_time
-) as repay_detail_abs
-left join (
-  select
-    project_id       as loan_project_id,
-    due_bill_no      as loan_due_bill_no,
-    remain_principal,
-    loan_status_cn,
-    s_d_date,
-    e_d_date
-  from ods.loan_info_abs
-) as loan_info
-on  project_id  = loan_project_id
-and due_bill_no = loan_due_bill_no
-where biz_date between s_d_date and date_sub(e_d_date,1);
-
-
--- DROP MATERIALIZED VIEW IF EXISTS `ods.t_07_actualrepayinfo`;
-CREATE MATERIALIZED VIEW IF NOT EXISTS `ods.t_07_actualrepayinfo`
-COMMENT '实际还款信息表-文件七'
-STORED AS PARQUET AS select
-  project_id                     as project_id,
-  due_bill_no                    as serial_number,
-  term                           as term,
-  is_borrowers_oneself_repayment as is_borrowers_oneself_repayment,
-  biz_date                       as actual_repay_time,
-  remain_principal               as current_period_loan_balance,
-  repay_type                     as repay_type,
-  loan_status_cn                 as current_account_status,
-  actual_repay_principal         as actual_repay_principal,
-  actual_repay_interest          as actual_repay_interest,
-  actual_repay_fee               as actual_repay_fee,
-  penalbond                      as penalbond,
-  penalty_interest               as penalty_interest,
-  compensation                   as compensation,
-  advanced_commission_charge     as advanced_commission_charge,
-  other_fee                      as other_fee,
-  actual_work_interest_rate      as actual_work_interest_rate,
-  import_id                      as import_id,
-  data_source                    as data_source,
-  create_time                    as create_time,
-  update_time                    as update_time
-from (
-  select
-    project_id                                         as project_id,
-    due_bill_no                                        as due_bill_no,
-    repay_term                                         as term,
-    'Y'                                                as is_borrowers_oneself_repayment,
-    biz_date                                           as biz_date,
-    repay_type                                         as repay_type,
-    sum(if(bnp_type = 'Pricinpal',    repay_amount,0)) as actual_repay_principal,
-    sum(if(bnp_type = 'Interest',     repay_amount,0)) as actual_repay_interest,
-    sum(if(bnp_type = 'RepayFee',     repay_amount,0)) as actual_repay_fee,
-    sum(if(bnp_type = 'Damages',      repay_amount,0)) as penalbond,
-    sum(if(bnp_type = 'Penalty',      repay_amount,0)) as penalty_interest,
-    sum(if(bnp_type = 'Compensation', repay_amount,0)) as compensation,
-    sum(if(bnp_type = 'EarlyRepayFee',repay_amount,0)) as advanced_commission_charge,
-    sum(if(bnp_type = 'OtherFee',     repay_amount,0)) as other_fee,
-    0                                                  as actual_work_interest_rate,
-    data_source                                        as data_source,
-    import_id                                          as import_id,
-    create_time                                        as create_time,
-    update_time                                        as update_time
-  from ods.repay_detail_abs
-  group by
-    project_id,
-    due_bill_no,
-    repay_term,
-    biz_date,
-    repay_type,
-    data_source,
-    import_id,
-    create_time,
-    update_time
-) as repay_detail_abs
-left join (
-  select
-    project_id       as loan_project_id,
-    due_bill_no      as loan_due_bill_no,
-    remain_principal,
-    loan_status_cn,
-    s_d_date,
-    e_d_date
-  from ods.loan_info_abs
-) as loan_info
-on  project_id  = loan_project_id
-and due_bill_no = loan_due_bill_no
-where biz_date between s_d_date and date_sub(e_d_date,1);
-
-
-
-
-
-
-
+-- DROP TABLE IF EXISTS `ods.t_07_actualrepayinfo`;
+CREATE TABLE IF NOT EXISTS `ods.t_07_actualrepayinfo`(
+  `serial_number`                                     string        COMMENT '借据号',
+  `term`                                              int           COMMENT '期次',
+  `is_borrowers_oneself_repayment`                    string        COMMENT '是否借款人本人还款（预定义字段：Y、N，默认：Y）',
+  `actual_repay_time`                                 string        COMMENT '实际还清日期（若没有还清传还款日期，若还清就传实际还清的日期）',
+  `current_period_loan_balance`                       decimal(25,5) COMMENT '当期贷款余额（各期还款日（T+1）更新该字段，即截至当期还款日资产的剩余（未偿还）贷款本金余额）',
+  `repay_type`                                        string        COMMENT '还款类型 1，提前还款 2，正常还款 3，部分还款 4，逾期还款',
+  `current_account_status`                            string        COMMENT '当期账户状态（各期还款日（T+1）更新该字段，正常：在还款日前该期应还已还清，提前还清（早偿）：贷款在该期还款日前提前全部还清，逾期：贷款在该期还款日时，实还金额小于应还金额）',
+  `actual_repay_principal`                            decimal(25,5) COMMENT '实还本金（元）',
+  `actual_repay_interest`                             decimal(25,5) COMMENT '实还利息（元）',
+  `actual_repay_fee`                                  decimal(25,5) COMMENT '实还费用（元）',
+  `penalbond`                                         decimal(25,5) COMMENT '违约金',
+  `penalty_interest`                                  decimal(25,5) COMMENT '罚息',
+  `compensation`                                      decimal(25,5) COMMENT '赔偿金（提前还款/逾期所产生的赔偿金）',
+  `advanced_commission_charge`                        decimal(25,5) COMMENT '提前还款手续费',
+  `other_fee`                                         decimal(25,5) COMMENT '其他相关费用 （违约金、罚款、赔偿金和提前还款手续费以外的费用）',
+  `actual_work_interest_rate`                         decimal(25,5) COMMENT '实际还款执行利率',
+  `data_source`                                       int           COMMENT '数据来源（1：startLink，2：excelImport）',
+  `import_id`                                         int           COMMENT '导入Id',
+  `create_time`                                       timestamp     COMMENT '创建时间',
+  `update_time`                                       timestamp     COMMENT '更新时间'
+) COMMENT '实际还款信息表-文件七'
+PARTITIONED BY (`project_id` string COMMENT '项目编号')
+STORED AS PARQUET;
 
 
 -- DROP TABLE IF EXISTS `ods.t_10_basic_asset_stage`;

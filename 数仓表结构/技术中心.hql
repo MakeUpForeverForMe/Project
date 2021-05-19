@@ -15832,7 +15832,6 @@ show create TABLE dm_eagle.abs_asset_distribution_bag_day;
 show create TABLE dm_eagle.abs_asset_distribution_day;
 show create TABLE dm_eagle.abs_asset_information_bag;
 show create TABLE dm_eagle.abs_asset_information_cash_flow_bag_day;
-show create TABLE dm_eagle.abs_asset_information_cash_flow_bag_day_old;
 show create TABLE dm_eagle.abs_asset_information_cash_flow_bag_snapshot;
 show create TABLE dm_eagle.abs_asset_information_project;
 show create TABLE dm_eagle.abs_early_payment_asset_details;
@@ -15845,7 +15844,6 @@ MSCK REPAIR TABLE dm_eagle.abs_asset_distribution_bag_day;
 MSCK REPAIR TABLE dm_eagle.abs_asset_distribution_day;
 MSCK REPAIR TABLE dm_eagle.abs_asset_information_bag;
 MSCK REPAIR TABLE dm_eagle.abs_asset_information_cash_flow_bag_day;
-MSCK REPAIR TABLE dm_eagle.abs_asset_information_cash_flow_bag_day_old;
 MSCK REPAIR TABLE dm_eagle.abs_asset_information_cash_flow_bag_snapshot;
 MSCK REPAIR TABLE dm_eagle.abs_asset_information_project;
 MSCK REPAIR TABLE dm_eagle.abs_early_payment_asset_details;
@@ -15863,16 +15861,26 @@ MSCK REPAIR TABLE dm_eagle.abs_overdue_rate_details_day;
 
 
 
+-- 删除分区
+ALTER TABLE dm_eagle.abs_asset_information_cash_flow_bag_day DROP IF EXISTS PARTITION (biz_date = '2017-06-01');
+
+
+ALTER TABLE dm_eagle.abs_asset_information_cash_flow_bag_day DROP IF EXISTS PARTITION (biz_date <= '2019-03-31');
+
+ALTER TABLE dm_eagle.abs_asset_information_cash_flow_bag_day DROP IF EXISTS PARTITION (biz_date <= '2021-05-10');
 
 
 
 
 
-
-
-
-
-
+select
+  *
+from ods.t_07_actualrepayinfo
+where 1 > 0
+  and project_id  = 'CL202104080105'
+  and serial_number = 'GALC-HL-1705040105'
+order by term
+;
 
 
 

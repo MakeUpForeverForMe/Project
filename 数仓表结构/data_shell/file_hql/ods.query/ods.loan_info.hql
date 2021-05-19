@@ -125,7 +125,8 @@ set hive.support.quoted.identifiers=None;
      product_id as dpd_product_id,
      due_bill_no as dpd_due_bill_no,
      dpd_overdue_date_start,
-     dpd_overdue_date_next,--     dpd_dpd_days_count as dpd_dpd_days_count_n,
+     dpd_overdue_date_next,
+     dpd_dpd_days_count as dpd_dpd_days_count_n,
      lag(dpd_dpd_days_count,1,0) over(partition by product_id,due_bill_no order by dpd_overdue_date_start) as dpd_dpd_days_count
  from
    (

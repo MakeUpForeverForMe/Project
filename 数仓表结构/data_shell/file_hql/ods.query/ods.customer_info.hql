@@ -72,10 +72,14 @@ from (
     null                                                                                   as resident_city,
     null                                                                                   as resident_county,
     null                                                                                   as resident_township,
-    null                                                                                   as job_type,
-    is_empty(null,'空')                                                                    as job_year,
-    null                                                                                   as income_month,
-    null                                                                                   as income_year,
+    is_empty(null,'空')                                                                    as job_type,
+    0                                                                                      as job_year,
+    0                                                                                      as job_year_max,
+    0                                                                                      as job_year_min,
+    0                                                                                      as income_month,
+    0                                                                                      as income_year,
+    0                                                                                      as income_year_max,
+    0                                                                                      as income_year_min,
     '未知'                                                                                 as customer_type,
     '个人'                                                                                 as loan_type,
     null                                                                                   as cust_rating,
@@ -236,11 +240,15 @@ from (
       when 'Z'    then '其他'
       else is_empty(resp_log.job_type,'空')
     end                                                                             as job_type,
-    null                                                                            as job_year,
-    null                                                                            as income_month,
-    null                                                                            as income_year,
-    if(company_loan_bool = 'true','企业','未知')                                    as customer_type,
-    if(company_loan_bool = 'true','企业','个人')                                    as loan_type,
+    0                                                                               as job_year,
+    0                                                                               as job_year_max,
+    0                                                                               as job_year_min,
+    0                                                                               as income_month,
+    0                                                                               as income_year,
+    is_empty(resp_log.income_year_max,0)                                            as income_year_max,
+    is_empty(resp_log.income_year_min,0)                                            as income_year_min,
+    if(resp_log.company_loan_bool = 'true','企业','未知')                           as customer_type,
+    if(resp_log.company_loan_bool = 'true','企业','个人')                           as loan_type,
     null                                                                            as cust_rating,
     resp_log.product_id                                                             as product_id
   from (
@@ -262,6 +270,8 @@ from (
       resident_city,
       resident_county,
       job_type,
+      income_year_max,
+      income_year_min,
       idcard_area,
       company_loan_bool,
       product_id
@@ -284,6 +294,8 @@ from (
         get_json_object(standard_req_msg,'$.borrower.city')                                                  as resident_city,
         get_json_object(standard_req_msg,'$.borrower.area')                                                  as resident_county,
         get_json_object(standard_req_msg,'$.borrower.industry')                                              as job_type,
+        get_json_object(standard_req_msg,'$.borrower.annual_income_max')                                     as income_year_max,
+        get_json_object(standard_req_msg,'$.borrower.annual_income_min')                                     as income_year_min,
         substring(get_json_object(standard_req_msg,'$.borrower.id_no'),1,6)                                  as idcard_area,
         get_json_object(standard_req_msg,'$.company_loan_bool')                                              as company_loan_bool,
         get_json_object(standard_req_msg,'$.product.product_no')                                             as product_id,
@@ -485,9 +497,21 @@ from (
       when 'Z'    then '其他'
       else is_empty(get_json_object(msg_log.original_msg,'$.reqContent.jsonReq.content.reqData.workWay'),'空')
     end                                                                                                                   as job_type,
-    cast(is_empty(get_json_object(msg_log.original_msg,'$.reqContent.jsonReq.content.reqData.workYear')) as decimal(2,0)) as job_year,
+    if(is_empty(get_json_object(msg_log.original_msg,'$.reqContent.jsonReq.content.reqData.workYear')) is null,null,
+      age_birth(
+        is_empty(
+          ecas_loan.active_date,
+          msg_log.deal_date
+        ),
+        is_empty(get_json_object(msg_log.original_msg,'$.reqContent.jsonReq.content.reqData.workYear'))
+      )
+    )                                                                                                                     as job_year,
+    0                                                                                                                     as job_year_max,
+    0                                                                                                                     as job_year_min,
     cast(get_json_object(msg_log.original_msg,'$.reqContent.jsonReq.content.reqData.mincome') as decimal(25,5))           as income_month,
     get_json_object(msg_log.original_msg,'$.reqContent.jsonReq.content.reqData.mincome') * 12                             as income_year,
+    0                                                                                                                     as income_year_max,
+    0                                                                                                                     as income_year_min,
     case get_json_object(msg_log.original_msg,'$.reqContent.jsonReq.content.reqData.custType')
       when '01' then '农户'
       when '02' then '工薪（包括白领、蓝领）'
@@ -501,6 +525,7 @@ from (
     get_json_object(msg_log.original_msg,'$.reqContent.jsonReq.content.reqData.proCode')                                  as product_id
   from (
     select
+      deal_date,
       regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(original_msg,'\\\\\"\\\{','\\\{'),'\\\}\\\\\"','\\\}'),'\\\"\\\{','\\\{'),'\\\}\\\"','\\\}'),'\\\\','') as original_msg
     from stage.ecas_msg_log
     where msg_type = 'WIND_CONTROL_CREDIT'
@@ -657,14 +682,12 @@ from (
       else is_empty(get_json_object(msg_log.original_msg,'$.data.borrower.industry'),'空')
     end                                                                                                               as job_type,
     0                                                                                                                 as job_year,
-    (
-      is_empty(get_json_object(msg_log.original_msg,'$.data.borrower.annualIncomeMin'),0) +
-      is_empty(get_json_object(msg_log.original_msg,'$.data.borrower.annualIncomeMax'),0)
-    ) / 2 / 12                                                                                                        as income_month,
-    (
-      is_empty(get_json_object(msg_log.original_msg,'$.data.borrower.annualIncomeMin'),0) +
-      is_empty(get_json_object(msg_log.original_msg,'$.data.borrower.annualIncomeMax'),0)
-    ) / 2                                                                                                             as income_year,
+    0                                                                                                                 as job_year_max,
+    0                                                                                                                 as job_year_min,
+    is_empty(get_json_object(msg_log.original_msg,'$.data.borrower.annualIncome'),0) / 12                             as income_month,
+    is_empty(get_json_object(msg_log.original_msg,'$.data.borrower.annualIncome'),0)                                  as income_year,
+    is_empty(get_json_object(msg_log.original_msg,'$.data.borrower.annualIncomeMin'),0)                               as income_year_max,
+    is_empty(get_json_object(msg_log.original_msg,'$.data.borrower.annualIncomeMax'),0)                               as income_year_min,
     if(is_empty(get_json_object(msg_log.original_msg,'$.companyLoanBool')) = '企业','企业','未知')                    as customer_type,
     is_empty(get_json_object(msg_log.original_msg,'$.companyLoanBool'),'个人')                                        as loan_type,
     null                                                                                                              as cust_rating,
@@ -741,9 +764,9 @@ from (
 
 
 
+msck repair table stage.kafka_credit_msg;
 
 -- 新核心 乐信云信
-msck repair table stage.kafka_credit_msg;
 insert overwrite table ods.customer_info partition(product_id)
 select distinct *
 from (
@@ -824,11 +847,11 @@ from (
       when resdata["edu"] = '99'                                  then '未知'
       else is_empty(resdata["edu"])
     end                                                                                                                              as education_ws,
-    concat(c.idno_province_cn,c.idno_city_cn,c.idno_county_cn)                                                                       as idcard_address,
-    c.idno_area_cn                                                                                                                   as idcard_area,
-    c.idno_province_cn                                                                                                               as idcard_province,
-    c.idno_city_cn                                                                                                                   as idcard_city,
-    c.idno_county_cn                                                                                                                 as idcard_county,
+    concat(dim_idno.idno_province_cn,dim_idno.idno_city_cn,dim_idno.idno_county_cn)                                                  as idcard_address,
+    dim_idno.idno_area_cn                                                                                                            as idcard_area,
+    dim_idno.idno_province_cn                                                                                                        as idcard_province,
+    dim_idno.idno_city_cn                                                                                                            as idcard_city,
+    dim_idno.idno_county_cn                                                                                                          as idcard_county,
     null                                                                                                                             as idcard_township,
     null                                                                                                                             as resident_address,
     null                                                                                                                             as resident_area,
@@ -837,9 +860,13 @@ from (
     null                                                                                                                             as resident_county,
     null                                                                                                                             as resident_township,
     is_empty(null,'空')                                                                                                              as job_type,
-    null                                                                                                                             as job_year,
+    0                                                                                                                                as job_year,
+    0                                                                                                                                as job_year_max,
+    0                                                                                                                                as job_year_min,
     0                                                                                                                                as income_month,
     0                                                                                                                                as income_year,
+    0                                                                                                                                as income_year_max,
+    0                                                                                                                                as income_year_min,
     case msg_log.reqdata["custType"]
       when '01' then '农户'
       when '02' then '工薪（包括白领、蓝领）'
@@ -880,7 +907,7 @@ from (
       idno_province_cn,
       idno_city_cn,
       idno_county_cn
-    from dim_new.dim_idno
+    from dim.dim_idno
   ) as dim_idno
   on substring(msg_log.reqdata["idNo"],1,6) = dim_idno.idno_addr
   union all
@@ -902,16 +929,15 @@ from (
 
 
 -- 新核心 百度医美
-msck repair table stage.kafka_credit_msg;
 insert overwrite table ods.customer_info partition(product_id)
 select distinct *
 from (
   select
-    msg_log.reqdata["applyNo"]                                                                                                as apply_id,
-    msg_log.reqdata["applyNo"]                                                                                                as due_bill_no,
-    concat_ws('_',b.channel_id,sha256(msg_log.reqdata["idNo"],'idNumber',1),sha256(msg_log.reqdata["custName"],'userName',1)) as cust_id,
-    sha256(msg_log.reqdata["idNo"],'idNumber',1)                                                                              as user_hash_no,
-    null                                                                                                                      as outer_cust_id,
+    msg_log.reqdata["applyNo"]                                                      as apply_id,
+    msg_log.reqdata["applyNo"]                                                      as due_bill_no,
+    concat_ws('_',biz_conf.channel_id,sha256(msg_log.reqdata["idNo"],'idNumber',1),sha256(msg_log.reqdata["custName"],'userName',1)) as cust_id,
+    sha256(msg_log.reqdata["idNo"],'idNumber',1)                                    as user_hash_no,
+    null                                                                            as outer_cust_id,
     case msg_log.reqdata["idType"]
       when '0' then '身份证'
       when '1' then '户口簿'
@@ -928,11 +954,11 @@ from (
       when 'C' then '台湾身份证'
       when 'X' then '其他证件'
       else is_empty(msg_log.reqdata["idType"])
-    end                                                                                                                       as idcard_type,
-    sha256(msg_log.reqdata["idNo"],'idNumber',1)                                                                              as idcard_no,
-    sha256(msg_log.reqdata["custName"],'userName',1)                                                                          as name,
-    sha256(msg_log.reqdata["phoneNo"],'phone',1)                                                                              as mobie,
-    null                                                                                                                      as card_phone,
+    end                                                                             as idcard_type,
+    sha256(msg_log.reqdata["idNo"],'idNumber',1)                                    as idcard_no,
+    sha256(msg_log.reqdata["custName"],'userName',1)                                as name,
+    sha256(msg_log.reqdata["phoneNo"],'phone',1)                                    as mobie,
+    null                                                                            as card_phone,
     is_empty(
       case msg_log.reqdata["sex"]
         when '1' then '男'
@@ -940,41 +966,45 @@ from (
         else null
       end,
       sex_idno(msg_log.reqdata["idNo"])
-    )                                                                                                                         as sex,
+    )                                                                               as sex,
     is_empty(
       datefmt(msg_log.reqdata["birth"],'yyyyMMdd','yyyy-MM-dd'),
       datefmt(substring(msg_log.reqdata["idNo"],7,8),'yyyyMMdd','yyyy-MM-dd')
-    )                                                                                                                         as birthday,
+    )                                                                               as birthday,
     age_birth(
       msg_log.reqdata["loanDate"],
       is_empty(
         datefmt(msg_log.reqdata["birth"],'yyyyMMdd','yyyy-MM-dd'),
         datefmt(substring(msg_log.reqdata["idNo"],7,8),'yyyyMMdd','yyyy-MM-dd')
       )
-    )                                                                                                                         as age,
-    null                                                                                                                      as marriage_status,
-    null                                                                                                                      as education,
-    null                                                                                                                      as education_ws,
-    concat(dim_idno.idno_province_cn,dim_idno.idno_city_cn,dim_idno.idno_county_cn)                                           as idcard_address,
-    dim_idno.idno_area_cn                                                                                                     as idcard_area,
-    dim_idno.idno_province_cn                                                                                                 as idcard_province,
-    dim_idno.idno_city_cn                                                                                                     as idcard_city,
-    dim_idno.idno_county_cn                                                                                                   as idcard_county,
-    null                                                                                                                      as idcard_township,
-    null                                                                                                                      as resident_address,
-    null                                                                                                                      as resident_area,
-    null                                                                                                                      as resident_province,
-    null                                                                                                                      as resident_city,
-    null                                                                                                                      as resident_county,
-    null                                                                                                                      as resident_township,
-    is_empty(null,'空')                                                                                                       as job_type,
-    null                                                                                                                      as job_year,
-    0                                                                                                                         as income_month,
-    0                                                                                                                         as income_year,
-    '未知'                                                                                                                    as customer_type,
-    '个人'                                                                                                                    as loan_type,
-    null                                                                                                                      as cust_rating,
-    msg_log.reqdata["proCode"]                                                                                                as product_id
+    )                                                                               as age,
+    null                                                                            as marriage_status,
+    null                                                                            as education,
+    null                                                                            as education_ws,
+    concat(dim_idno.idno_province_cn,dim_idno.idno_city_cn,dim_idno.idno_county_cn) as idcard_address,
+    dim_idno.idno_area_cn                                                           as idcard_area,
+    dim_idno.idno_province_cn                                                       as idcard_province,
+    dim_idno.idno_city_cn                                                           as idcard_city,
+    dim_idno.idno_county_cn                                                         as idcard_county,
+    null                                                                            as idcard_township,
+    null                                                                            as resident_address,
+    null                                                                            as resident_area,
+    null                                                                            as resident_province,
+    null                                                                            as resident_city,
+    null                                                                            as resident_county,
+    null                                                                            as resident_township,
+    is_empty(null,'空')                                                             as job_type,
+    0                                                                               as job_year,
+    0                                                                               as job_year_max,
+    0                                                                               as job_year_min,
+    0                                                                               as income_month,
+    0                                                                               as income_year,
+    0                                                                               as income_year_max,
+    0                                                                               as income_year_min,
+    '未知'                                                                          as customer_type,
+    '个人'                                                                          as loan_type,
+    null                                                                            as cust_rating,
+    msg_log.reqdata["proCode"]                                                      as product_id
   from (
     select
       *
@@ -1004,7 +1034,7 @@ from (
       idno_province_cn,
       idno_city_cn,
       idno_county_cn
-    from dim_new.dim_idno
+    from dim.dim_idno
   ) as dim_idno
   on substring(msg_log.reqdata["idNo"],1,6) = dim_idno.idno_addr
   union all

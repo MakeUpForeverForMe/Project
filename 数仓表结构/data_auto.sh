@@ -1015,7 +1015,7 @@ sed -n '
 
 
 db=dm_eagle
-tb=assets_distribution
+tb=abs_asset_information_cash_flow_bag_day
 root_dir=/root/data_shell/file_export
 
 p_opera(){

@@ -300,8 +300,8 @@ from (
     project_id                   as asset_project_id,
     biz_date                     as asset_biz_date,
     split(part_info,'\\|')[0]    as asset_tab_name,
-    split(part_info,'\\|')[2]    as asset_name_order,
     split(part_info,'\\|')[1]    as asset_name,
+    split(part_info,'\\|')[2]    as asset_name_order,
     count(distinct due_bill_no)  as asset_loan_num,
     sum(nvl(remain_principal,0)) as asset_remain_principal
   from bill_info
@@ -340,8 +340,8 @@ from (
     project_id                   as asset_project_id,
     biz_date                     as asset_biz_date,
     split(part_info,'\\|')[0]    as asset_tab_name,
-    split(part_info,'\\|')[2]    as asset_name_order,
     split(part_info,'\\|')[1]    as asset_name,
+    split(part_info,'\\|')[2]    as asset_name_order,
     count(distinct due_bill_no)  as asset_loan_num,
     sum(nvl(remain_principal,0)) as asset_remain_principal
   from bill_info
