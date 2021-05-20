@@ -25,38 +25,40 @@ set hive.vectorized.execution.reduce.groupby.enabled=false;
 
 insert overwrite table ods.loan_lending partition(product_id)
 select distinct
-  apply_no,
-  contract_no,
+  apply_no                                    as apply_no,
+  contract_no                                 as contract_no,
   if(dayofmonth(loan_expiry_date) - dayofmonth(loan_issue_date) > 27,
     (year(loan_expiry_date) - year(loan_issue_date)) * 12 + month(loan_expiry_date) - month(loan_issue_date) + 1,
     (year(loan_expiry_date) - year(loan_issue_date)) * 12 + month(loan_expiry_date) - month(loan_issue_date)
-  ) as contract_term,
-  due_bill_no,
-  guarantee_type,
-  loan_usage,
-  loan_issue_date,
-  loan_expiry_date,
-  is_empty(loan_active_date,loan_issue_date) as loan_active_date,
+  )                                           as contract_term,
+  due_bill_no                                 as due_bill_no,
+  guarantee_type                              as guarantee_type,
+  loan_usage                                  as loan_usage,
+  loan_issue_date                             as loan_issue_date,
+  loan_expiry_date                            as loan_expiry_date,
+  is_empty(loan_active_date,loan_issue_date)  as loan_active_date,
   is_empty(loan_expire_date,loan_expiry_date) as loan_expire_date,
-  cycle_day,
-  loan_type,
-  loan_type_cn,
-  contract_daily_interest_rate_basis,
-  interest_rate_type,
-  loan_init_interest_rate,
-  loan_init_term_fee_rate,
-  loan_init_svc_fee_rate,
-  loan_init_penalty_rate,
-  tail_amount,
-  tail_amount_rate,
-  bus_product_id,
-  bus_product_name,
-  is_empty(mortgage_rate,0) as mortgage_rate,
-  is_empty(loan_active_date,loan_issue_date) as biz_date,
-  loan_init_principal as loan_original_principal,
+  cycle_day                                   as cycle_day,
+  loan_type                                   as loan_type,
+  loan_type_cn                                as loan_type_cn,
+  contract_daily_interest_rate_basis          as contract_daily_interest_rate_basis,
+  interest_rate_type                          as interest_rate_type,
+  loan_init_interest_rate                     as loan_init_interest_rate,
+  loan_init_term_fee_rate                     as loan_init_term_fee_rate,
+  loan_init_svc_fee_rate                      as loan_init_svc_fee_rate,
+  loan_init_penalty_rate                      as loan_init_penalty_rate,
+  tail_amount                                 as tail_amount,
+  tail_amount_rate                            as tail_amount_rate,
+  bus_product_id                              as bus_product_id,
+  bus_product_name                            as bus_product_name,
+  is_empty(mortgage_rate,0)                   as mortgage_rate,
+  is_empty(loan_active_date,loan_issue_date)  as biz_date,
+  loan_init_principal                         as loan_original_principal,
+  shoufu_amount                               as shoufu_amount,
   case product_id
-  when 'Cl00333' then 'cl00333'
-  else product_id end as product_id
+    when 'Cl00333' then 'cl00333'
+    else product_id
+  end                                         as product_id
 from (
   select
     is_empty(map_from_str(extra_info)['借据号'],asset_id)                                        as apply_no,
@@ -156,7 +158,8 @@ from (
     is_empty(map_from_str(extra_info)['尾付比例'])                                               as tail_amount_rate,
     is_empty(map_from_str(extra_info)['产品编号'])                                               as bus_product_id,
     is_empty(map_from_str(extra_info)['产品方案名称'])                                           as bus_product_name,
-    is_empty(map_from_str(extra_info)['抵押率(%)'])                                              as mortgage_rate,
+    is_empty(map_from_str(extra_info)['抵押率(%)'],0)                                            as mortgage_rate,
+    is_empty(map_from_str(extra_info)['首付款金额(元)'],0)                                       as shoufu_amount,
     is_empty(map_from_str(extra_info)['项目编号'],project_id)                                    as product_id
   from stage.asset_01_t_loan_contract_info
   where 1 > 0

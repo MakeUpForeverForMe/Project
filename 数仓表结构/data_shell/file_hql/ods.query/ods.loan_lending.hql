@@ -104,6 +104,7 @@ select
   0                                             as mortgage_rate,
   lending.biz_date                              as biz_date,
   lending.loan_init_principal                   as loan_original_principal,
+  0                                             as shoufu_amount,
   lending.product_id                            as product_id
 from (
   select

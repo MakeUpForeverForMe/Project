@@ -15862,7 +15862,7 @@ MSCK REPAIR TABLE dm_eagle.abs_overdue_rate_details_day;
 
 
 -- 删除分区
-ALTER TABLE dm_eagle.abs_asset_information_cash_flow_bag_day DROP IF EXISTS PARTITION (biz_date = '2017-06-01');
+ALTER TABLE dm_eagle.abs_asset_information_cash_flow_bag_day DROP IF EXISTS PARTITION (biz_date <= '2017-12-31');
 
 
 ALTER TABLE dm_eagle.abs_asset_information_cash_flow_bag_day DROP IF EXISTS PARTITION (biz_date <= '2019-03-31');
@@ -15884,6 +15884,103 @@ order by term
 
 
 
+
+select *
+from dm_eagle.abs_asset_information_cash_flow_bag_day
+where biz_date = '__HIVE_DEFAULT_PARTITION__'
+limit 10;
+
+
+
+
+
+计算公式：sum 【单笔借据合同金额/单笔借据(首付金额+合同金额)*单笔借据本金余额】/sum（本金余额）
+
+
+
+
+
+
+    select distinct
+      due_bill_no,
+      product_id,
+      if(map_key = 'wind_control_status',map_val,null) as wind_control_status,
+      if(map_key = 'cheat_level',map_val,null)         as cheat_level,
+      if(map_key = 'score_range',map_val,null)         as score_range
+    from ods.risk_control_abs
+    where source_table in ('t_asset_wind_control_history')
+      and map_key in ('wind_control_status','cheat_level','score_range')
+
+
+select * from ods.risk_control_abs limit 1;
+
+named_struct('map_key','score_range',   'map_val',score_range,   'map_com','资产等级'),
+named_struct('map_key','inner_black',   'map_val',inner_black,   'map_com','内部黑名单（1：命中，2：未命中）'),
+
+
+
+
+
+insert overwrite table dw.abs_due_info_day_new partition(biz_date,project_id)
+select
+  abs_due.due_bill_no,
+  abs_due.loan_init_term,
+  abs_due.loan_init_principal,
+  abs_due.account_age,
+  abs_due.loan_term_remain,
+  abs_due.loan_term_repaid,
+  abs_due.remain_principal,
+  abs_due.remain_interest,
+  abs_due.remain_principal_yesterday,
+  abs_due.loan_status,
+  abs_due.paid_out_date,
+  abs_due.paid_out_type,
+  abs_due.overdue_due_bill_no,
+  abs_due.overdue_user_hash_no,
+  abs_due.overdue_date_start,
+  abs_due.overdue_days,
+  abs_due.overdue_days_dpd,
+  abs_due.dpd_map,
+  abs_due.overdue_principal,
+  abs_due.overdue_remain_principal,
+  abs_due.contract_no,
+  abs_due.loan_init_interest_rate,
+  abs_due.loan_type_cn,
+  abs_due.contract_term,
+  abs_due.mortgage_rate,
+  abs_due.shoufu_amount,
+  abs_due.user_hash_no,
+  abs_due.age,
+  abs_due.job_type,
+  abs_due.income_year,
+  abs_due.income_year_max,
+  abs_due.income_year_min,
+  abs_due.idcard_area,
+  abs_due.due_bill_no_guaranty,
+  abs_due.pawn_value,
+  abs_due.guarantee_type,
+  abs_due.distribution_array,
+  abs_due.biz_date,
+  abs_due.project_id
+from dw.abs_due_info_day as abs_due
+left join
+
+
+;
+
+
+
+
+
+select
+  is_empty(map_from_str(extra_info)['首付款金额(元)'],0)    as shoufu_amount,
+  is_empty(map_from_str(extra_info)['项目编号'],project_id) as product_id
+from stage.asset_01_t_loan_contract_info
+where 1 > 0
+  and is_empty(map_from_str(extra_info)['项目编号'],project_id) = '001601'
+  and is_empty(map_from_str(extra_info)['首付款金额(元)'],0) != 0
+limit 10
+;
 
 
 

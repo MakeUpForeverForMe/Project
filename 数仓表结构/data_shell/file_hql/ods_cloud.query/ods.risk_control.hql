@@ -93,3 +93,45 @@ where 1 > 0
   -- and to_date(update_time) = '${ST9}'
 -- limit 10
 ;
+
+
+
+
+insert overwrite table ods.risk_control partition(product_id,source_table)
+select
+  3                   as risk_control_type,
+  apply_no            as apply_id,
+  apply_no            as due_bill_no,
+  list_struct.map_key as map_key,
+  list_struct.map_com as map_com,
+  list_struct.map_val as map_val,
+  create_time         as create_time,
+  update_time         as update_time,
+  project_name        as project_id,
+  'duration_result'   as source_table
+from stage.duration_result
+lateral view explode(
+  array(
+    named_struct('map_key','id',            'map_val',id,            'map_com','主键'),
+    named_struct('map_key','request_id',    'map_val',request_id,    'map_com','存续期数据跑批申请表主键'),
+    named_struct('map_key','swift_no',      'map_val',swift_no,      'map_com','流水号'),
+    named_struct('map_key','name',          'map_val',name,          'map_com','姓名'),
+    named_struct('map_key','card_no',       'map_val',card_no,       'map_com','身份证号码'),
+    named_struct('map_key','mobile',        'map_val',mobile,        'map_com','手机号'),
+    named_struct('map_key','is_settle',     'map_val',is_settle,     'map_com','是否已结清'),
+    named_struct('map_key','execute_month', 'map_val',execute_month, 'map_com','执行月份（YYYY-MM）'),
+    named_struct('map_key','score_range_t1','map_val',score_range_t1,'map_com','T-1月资产等级'),
+    named_struct('map_key','score_range_t2','map_val',score_range_t2,'map_com','T-2月资产等级'),
+    named_struct('map_key','score_range',   'map_val',score_range,   'map_com','资产等级'),
+    named_struct('map_key','inner_black',   'map_val',inner_black,   'map_com','内部黑名单（1：命中，2：未命中）'),
+    named_struct('map_key','focus',         'map_val',focus,         'map_com','关注名单（1：关注，0：非关注）'),
+    named_struct('map_key','state',         'map_val',state,         'map_com','数据状态（0：无效，1：处理中，2：处理成功，3：处理失败）'),
+    named_struct('map_key','error_msg',     'map_val',error_msg,     'map_com','失败原因')
+  )
+) list as list_struct
+where 1 > 0
+  and list_struct.map_key is not null
+  and list_struct.map_val is not null
+  -- and to_date(update_time) = '${ST9}'
+-- limit 10
+;

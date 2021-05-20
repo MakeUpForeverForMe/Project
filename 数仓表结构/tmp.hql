@@ -429,6 +429,7 @@ refresh ods.repay_detail;
 refresh ods.order_info;
 refresh ods.t_10_basic_asset_stage;
 
+refresh ods.t_07_actualrepayinfo;
 
 
 refresh dm_eagle.abs_asset_information_bag_snapshot;
@@ -1561,7 +1562,7 @@ limit 100
 
 
 select distinct keys
-from stage.asset_07_t_repayment_info
+from stage.asset_01_t_loan_contract_info
 lateral view explode(map_keys(map_from_str(extra_info))) key as keys
 order by keys;
 

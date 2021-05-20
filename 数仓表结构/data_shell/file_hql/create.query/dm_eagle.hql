@@ -1223,6 +1223,9 @@ CREATE TABLE IF NOT EXISTS `dm_eagle.abs_asset_information_project`(
   `pledged_asset_count_ratio`                     decimal(30,10) COMMENT '抵押资产笔数占比',
   `pawn_value`                                    decimal(30,10) COMMENT '抵押初始评估价值',
   `pledged_asset_rate_avg_weighted`               decimal(30,10) COMMENT '加权平均抵押率', -- basicAssetInformationVo 中也要
+
+  `car_financing_rate_avg_weighted`               decimal(30,10) COMMENT '加权平均购车融资比例',
+
   `is_allbag`                                     string         COMMENT '是否是所有包(y: 是 , n : 否)'
 ) COMMENT '资产总体信息（项目——所有包）'
 PARTITIONED BY(`biz_date` string COMMENT '观察日期',`project_id` string COMMENT '项目编号')
@@ -1291,7 +1294,9 @@ CREATE TABLE IF NOT EXISTS `dm_eagle.abs_asset_information_bag`(
   `pledged_asset_balance_ratio`                   decimal(30,10) COMMENT '抵押资产余额占比',
   `pledged_asset_count_ratio`                     decimal(30,10) COMMENT '抵押资产笔数占比',
   `pawn_value`                                    decimal(30,10) COMMENT '抵押初始评估价值',
-  `pledged_asset_rate_avg_weighted`               decimal(30,10) COMMENT '加权平均抵押率' -- basicAssetInformationVo 中也要
+  `pledged_asset_rate_avg_weighted`               decimal(30,10) COMMENT '加权平均抵押率', -- basicAssetInformationVo 中也要
+
+  `car_financing_rate_avg_weighted`               decimal(30,10) COMMENT '加权平均购车融资比例'
 ) COMMENT '资产总体信息（包）'
 PARTITIONED BY(`biz_date` string COMMENT '观察日期',`bag_id` string COMMENT '包编号')
 STORED AS PARQUET;
@@ -1359,7 +1364,9 @@ CREATE TABLE IF NOT EXISTS `dm_eagle.abs_asset_information_bag_snapshot`(
   `pledged_asset_balance_ratio`                   decimal(30,10) COMMENT '抵押资产余额占比',
   `pledged_asset_count_ratio`                     decimal(30,10) COMMENT '抵押资产笔数占比',
   `pawn_value`                                    decimal(30,10) COMMENT '抵押初始评估价值',
-  `pledged_asset_rate_avg_weighted`               decimal(30,10) COMMENT '加权平均抵押率' -- basicAssetInformationVo 中也要
+  `pledged_asset_rate_avg_weighted`               decimal(30,10) COMMENT '加权平均抵押率', -- basicAssetInformationVo 中也要
+
+  `car_financing_rate_avg_weighted`               decimal(30,10) COMMENT '加权平均购车融资比例'
 ) COMMENT '资产总体信息（包、封包时）'
 PARTITIONED BY(`bag_id` string COMMENT '包编号')
 STORED AS PARQUET;
@@ -1369,7 +1376,7 @@ STORED AS PARQUET;
 
 
 -- 现金流分析（项目、所有包、包）
-DROP TABLE IF EXISTS `dm_eagle.abs_asset_information_cash_flow_bag_day`;
+-- DROP TABLE IF EXISTS `dm_eagle.abs_asset_information_cash_flow_bag_day`;
 CREATE TABLE IF NOT EXISTS `dm_eagle.abs_asset_information_cash_flow_bag_day`(
   `bag_date`                                      string         COMMENT '封包日期',
   `data_extraction_day`                           string         COMMENT '最新数据提取日',

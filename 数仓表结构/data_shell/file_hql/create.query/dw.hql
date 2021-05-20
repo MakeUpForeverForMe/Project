@@ -518,6 +518,7 @@ CREATE TABLE IF NOT EXISTS `dw.abs_due_info_day`(
   `loan_type_cn`                 string         COMMENT '分期类型（汉语解释）',
   `contract_term`                decimal(3,0)   COMMENT '合同期限（按照月份计算）',
   `mortgage_rate`                decimal(20,5)  COMMENT '抵押率',
+  `shoufu_amount`                decimal(20,5)  COMMENT '首付款金额（元）',
 
   -- 客户级
   `user_hash_no`                 string         COMMENT '用户编号',
@@ -572,6 +573,7 @@ CREATE VIEW IF NOT EXISTS `dw.abs_due_info_day_abs`(
   `loan_type_cn`               COMMENT '分期类型（汉语解释）',
   `contract_term`              COMMENT '合同期限（按照月份计算）',
   `mortgage_rate`              COMMENT '抵押率',
+  `shoufu_amount`              COMMENT '首付款金额（元）',
 
   -- 客户级
   `user_hash_no`               COMMENT '用户编号',
@@ -592,6 +594,7 @@ CREATE VIEW IF NOT EXISTS `dw.abs_due_info_day_abs`(
   `biz_date`                   COMMENT '观察日期',
   `project_id`                 COMMENT '项目编号'
 ) COMMENT '星云宽表（借据级）' AS select
+  -- 借据级
   t1.due_bill_no,
   t1.loan_init_term,
   t1.loan_init_principal,
@@ -612,20 +615,33 @@ CREATE VIEW IF NOT EXISTS `dw.abs_due_info_day_abs`(
   t1.dpd_map,
   t1.overdue_principal,
   t1.overdue_remain_principal,
+
+  -- 合同级
   t1.contract_no,
   t1.loan_init_interest_rate,
   t1.loan_type_cn,
   t1.contract_term,
   t1.mortgage_rate,
+  t1.shoufu_amount,
+
+  -- 客户级
   t1.user_hash_no,
   t1.age,
   t1.job_type,
   t1.income_year,
+  t1.income_year_max,
+  t1.income_year_min,
   t1.idcard_area,
+
+  -- 抵押物级
   t1.due_bill_no_guaranty,
   t1.pawn_value,
   t1.guarantee_type,
+
+  -- 分布
   t1.distribution_array,
+
+  -- 日期项目
   t1.biz_date,
   t2.project_id
 from dw.abs_due_info_day as t1

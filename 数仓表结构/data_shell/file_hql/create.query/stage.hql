@@ -1077,9 +1077,30 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `stage.asset_t_credit_loan`(
 STORED AS PARQUET;
 
 
-
-
-
+-- 星云风控数据
+-- DROP TABLE IF EXISTS `stage.duration_result`;
+CREATE EXTERNAL TABLE IF NOT EXISTS `stage.duration_result`(
+  `id`                                                int           COMMENT '主键',
+  `request_id`                                        int           COMMENT '存续期数据跑批申请表主键',
+  `swift_no`                                          string        COMMENT '流水号',
+  `apply_no`                                          string        COMMENT '借据号',
+  `project_name`                                      string        COMMENT '项目编号',
+  `name`                                              string        COMMENT '姓名',
+  `card_no`                                           string        COMMENT '身份证号码',
+  `mobile`                                            string        COMMENT '手机号',
+  `is_settle`                                         string        COMMENT '是否已结清',
+  `execute_month`                                     string        COMMENT '执行月份（YYYY-MM）',
+  `score_range_t1`                                    string        COMMENT 'T-1月资产等级',
+  `score_range_t2`                                    string        COMMENT 'T-2月资产等级',
+  `score_range`                                       string        COMMENT '资产等级',
+  `inner_black`                                       string        COMMENT '内部黑名单（1：命中，2：未命中）',
+  `focus`                                             string        COMMENT '关注名单（1：关注，0：非关注）',
+  `state`                                             string        COMMENT '数据状态（0：无效，1：处理中，2：处理成功，3：处理失败）',
+  `error_msg`                                         string        COMMENT '失败原因',
+  `create_time`                                       string        COMMENT '创建时间',
+  `update_time`                                       string        COMMENT '修改时间'
+) COMMENT '存续期数据跑批结果表'
+STORED AS PARQUET;
 
 
 

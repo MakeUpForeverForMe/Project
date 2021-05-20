@@ -46,7 +46,7 @@ where 1 > 0
   and is_empty(product_id_vt) is not null
   and is_empty(project_id)    is not null
   and is_empty(channel_id)    is not null
-;' 2> /dev/null > $temp_file
+;' > $temp_file
 echo '拉取 biz_conf 数据 结束'
 
 

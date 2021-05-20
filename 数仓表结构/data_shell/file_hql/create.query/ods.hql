@@ -370,7 +370,8 @@ CREATE TABLE IF NOT EXISTS `ods${db_suffix}.loan_lending`(
   `bus_product_name`                                  string         COMMENT '产品方案名称',
   `mortgage_rate`                                     decimal(20,5)  COMMENT '抵押率',
   `biz_date`                                          string         COMMENT '放款日期',
-  `loan_original_principal`                           decimal(20,5)  COMMENT '初始放款本金'
+  `loan_original_principal`                           decimal(20,5)  COMMENT '初始放款本金',
+  `shoufu_amount`                                     decimal(20,5)  COMMENT '首付款金额（元）'
 ) COMMENT '放款表'
 PARTITIONED BY (`product_id` string COMMENT '产品编号')
 STORED AS PARQUET;
@@ -1070,6 +1071,7 @@ CREATE VIEW IF NOT EXISTS `ods.loan_lending_abs`(
   `mortgage_rate`                      COMMENT '抵押率',
   `biz_date`                           COMMENT '放款日期',
   `loan_original_principal`            COMMENT '初始放款本金',
+  `shoufu_amount`                      COMMENT '首付款金额（元）',
   `project_full_name`                  COMMENT '项目全名称',
   `asset_type`                         COMMENT '资产类别（1：汽车贷，2：房贷，3：消费贷）',
   `project_type`                       COMMENT '业务模式（1：存量，2：增量）',
@@ -1104,6 +1106,7 @@ CREATE VIEW IF NOT EXISTS `ods.loan_lending_abs`(
   t1.mortgage_rate                      as mortgage_rate,
   t1.biz_date                           as biz_date,
   t1.loan_original_principal            as loan_original_principal,
+  t1.shoufu_amount                      as shoufu_amount,
   t3.project_full_name                  as project_full_name,
   t3.asset_type                         as asset_type,
   t3.project_type                       as project_type,
