@@ -1544,25 +1544,37 @@ host_list=(
 )
 
 for host in ${host_list[@]}; do
-  # echo $host
-  # echo '#----------------------- scp star -----------------------#'
-  # scp root@10.80.1.94:/data/data_shell/hive-exec-3.1.1.jar root@$host:/usr/local/service/hive/lib/hive-exec-3.1.1.jar.tmp
-  # echo '#----------------------- scp end -----------------------#'
-  echo '#----------------------- ssh star -----------------------#'
+  echo $host
+  echo "#----------------------- '$host' scp sta -----------------------#"
+  scp root@10.80.1.94:/data/data_shell/hive-exec-3.1.1.jar root@$host:/usr/local/service/hive/lib/hive-exec-3.1.1.jar.tmp
+  echo "#----------------------- '$host' scp end -----------------------#"
+
+  echo "#----------------------- '$host' ssh sta -----------------------#"
   ssh root@$host "
-    # echo '#----------------------- '$host' mv 1 star -----------------------#'
-    # mv -f /usr/local/service/hive/lib/hive-exec-3.1.1.jar /usr/local/service/hive/lib/hive-exec-3.1.1.jar-bak2
-    # echo '#----------------------- '$host' mv 1 end -----------------------#'
-    # echo '#----------------------- '$host' mv 2 star -----------------------#'
-    # mv -f /usr/local/service/hive/lib/hive-exec-3.1.1.jar.tmp /usr/local/service/hive/lib/hive-exec-3.1.1.jar
-    # echo '#----------------------- '$host' mv 2 end -----------------------#'
-    # echo '#----------------------- '$host' chown star -----------------------#'
-    # chown hadoop:hadoop /usr/local/service/hive/lib/hive-exec-3.1.1.jar
-    # echo '#----------------------- '$host' chown end -----------------------#'
+    export TIME_STYLE='+%F %T'      # 设置系统默认时间格式为：yyyy-MM-dd HH:mm:ss
+
+    echo '#----------------------- '$host' mv 1 sta -----------------------#'
+    mv /usr/local/service/hive/lib/hive-exec-3.1.1.jar /usr/local/service/hive/lib/hive-exec-3.1.1.jar-$(date +%F)
+    echo '#----------------------- '$host' mv 1 end -----------------------#'
+
+    echo '#----------------------- '$host' mv 2 sta -----------------------#'
+    mv /usr/local/service/hive/lib/hive-exec-3.1.1.jar.tmp /usr/local/service/hive/lib/hive-exec-3.1.1.jar
+    echo '#----------------------- '$host' mv 2 end -----------------------#'
+
+    echo '#----------------------- '$host' chown sta -----------------------#'
+    chown hadoop:hadoop /usr/local/service/hive/lib/hive-exec-3.1.1.jar
+    echo '#----------------------- '$host' chown end -----------------------#'
+
     echo $host
     ls -lh /usr/local/service/hive/lib/hive-exec-3.1.1.jar*
   "
-  echo '#----------------------- ssh end -----------------------#'
+  echo "#----------------------- '$host' ssh end -----------------------#"
+  echo
 done
+
+
+
+
+
 
 

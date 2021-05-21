@@ -23,12 +23,8 @@ set hive.vectorized.execution.reduce.groupby.enabled=false;
 set hive.auto.convert.join=false;
 set hive.auto.convert.join.noconditionaltask=false;
 
--- set tez.am.container.reuse.enabled=false;
 
--- set hivevar:ST9=2020-10-16;
--- set hivevar:ST9=2020-10-17;
-
--- set hivevar:ST9=2021-05-10;
+-- set hivevar:ST9=2021-05-20;
 
 -- set hivevar:bag_id=
 --   select distinct bag_id
@@ -69,7 +65,6 @@ loan_due as (
     customer.user_hash_no                                as user_hash_no,
     loan.overdue_days                                    as overdue_days,
     loan.is_first_overdue_day                            as is_first_overdue_day,
-    loan.dpd_x                                           as dpd_x,
     loan.overdue_principal                               as overdue_principal,
     loan.overdue_remain_principal                        as overdue_remain_principal,
     loan.overdue_due_bill_no                             as overdue_due_bill_no,
@@ -83,7 +78,6 @@ loan_due as (
       project_id                                                                                                      as project_id,
       due_bill_no                                                                                                     as due_bill_no,
       remain_principal                                                                                                as remain_principal,
-      dpd_x                                                                                                           as dpd_x,
       overdue_days                                                                                                    as overdue_days,
       overdue_principal                                                                                               as overdue_principal,
       overdue_date_start                                                                                              as overdue_date_start,
@@ -93,34 +87,14 @@ loan_due as (
       s_d_date                                                                                                        as s_d_date,
       e_d_date                                                                                                        as e_d_date
     from ods.loan_info_abs
-    lateral view explode(
-      split(concat_ws(',',
-        if(overdue_days = 0,  '0',   null),
-        if(overdue_days >= 1, '1+',  null),
-        if(overdue_days > 7,  '7+',  null),
-        if(overdue_days > 14, '14+', null),
-        if(overdue_days > 30, '30+', null),
-        if(overdue_days > 60, '60+', null),
-        if(overdue_days > 90, '90+', null),
-        if(overdue_days > 120,'120+',null),
-        if(overdue_days > 150,'150+',null),
-        case
-          when overdue_days between 1   and 7   then '1_7'
-          when overdue_days between 8   and 14  then '8_14'
-          when overdue_days between 15  and 30  then '15_30'
-          when overdue_days between 31  and 60  then '31_60'
-          when overdue_days between 61  and 90  then '61_90'
-          when overdue_days between 91  and 120 then '91_120'
-          when overdue_days between 121 and 150 then '121_150'
-          when overdue_days between 151 and 180 then '151_180'
-          else null
-        end,
-        if(overdue_days > 180,'180+',null)
-      ),',')) dpd as dpd_x
     where 1 > 0
       and s_d_date <= '${ST9}'
-      -- and project_id  = 'CL202011090089'
-      -- and due_bill_no = '1000002321'
+
+    --   and project_id  = 'CL202011090089'
+    --   and due_bill_no = '1000001858' -- overdue_days >= 61
+    --   and overdue_days > 0
+    --   and overdue_days in (1,8,15,31,61,91,121,151,181)
+    -- order by s_d_date
   ) as loan
   join (
     select
@@ -219,6 +193,31 @@ left join ( -- 累计分子
     count(overdue_due_bill_no)    as overdue_num_once,
     count(overdue_user_hash_no)   as overdue_person_num_once
   from loan_due
+  lateral view explode(
+    split(concat_ws(',',
+      case overdue_days
+        when 1   then '1+'
+        when 8   then '7+'
+        when 15  then '14+'
+        when 31  then '30+'
+        when 61  then '60+'
+        when 91  then '90+'
+        when 121 then '120+'
+        when 151 then '150+'
+        else '180+'
+      end,
+      case overdue_days
+        when 1   then '1_7'
+        when 8   then '8_14'
+        when 15  then '15_30'
+        when 31  then '31_60'
+        when 61  then '61_90'
+        when 91  then '91_120'
+        when 121 then '121_150'
+        when 151 then '151_180'
+        else null
+      end
+    ),',')) dpd as dpd_x
   where 1 > 0
     and is_first_overdue_day = 'y'
     and overdue_days in (1,8,15,31,61,91,121,151,181)
@@ -234,8 +233,33 @@ left join ( -- 当前分子
     count(overdue_due_bill_no)    as overdue_num,
     count(overdue_user_hash_no)   as overdue_person_num
   from loan_due
+  lateral view explode(
+    split(concat_ws(',',
+      if(overdue_days >= 1, '1+',  null),
+      if(overdue_days > 7,  '7+',  null),
+      if(overdue_days > 14, '14+', null),
+      if(overdue_days > 30, '30+', null),
+      if(overdue_days > 60, '60+', null),
+      if(overdue_days > 90, '90+', null),
+      if(overdue_days > 120,'120+',null),
+      if(overdue_days > 150,'150+',null),
+      if(overdue_days > 180,'180+',null),
+      case
+        when overdue_days > 180 then null
+        when overdue_days > 150 then '151_180'
+        when overdue_days > 120 then '121_150'
+        when overdue_days > 90  then '91_120'
+        when overdue_days > 60  then '61_90'
+        when overdue_days > 30  then '31_60'
+        when overdue_days > 14  then '15_30'
+        when overdue_days > 7   then '8_14'
+        when overdue_days > 0   then '1_7'
+        else null
+      end
+    ),',')) dpd as dpd_x
   where 1 > 0
     and biz_date between s_d_date and date_sub(e_d_date,1)
+    and overdue_days > 0
   group by project_id,dpd_x
 ) as molecular_curr
 on  denominator.project_id = molecular_curr.project_id
@@ -248,6 +272,31 @@ left join ( -- 新增分子
     count(overdue_due_bill_no)    as overdue_num_new,
     count(overdue_user_hash_no)   as overdue_person_num_new
   from loan_due
+  lateral view explode(
+    split(concat_ws(',',
+      case overdue_days
+        when 1   then '1+'
+        when 8   then '7+'
+        when 15  then '14+'
+        when 31  then '30+'
+        when 61  then '60+'
+        when 91  then '90+'
+        when 121 then '120+'
+        when 151 then '150+'
+        else '180+'
+      end,
+      case overdue_days
+        when 1   then '1_7'
+        when 8   then '8_14'
+        when 15  then '15_30'
+        when 31  then '31_60'
+        when 61  then '61_90'
+        when 91  then '91_120'
+        when 121 then '121_150'
+        when 151 then '151_180'
+        else null
+      end
+    ),',')) dpd as dpd_x
   where 1 > 0
     and biz_date between s_d_date and date_sub(e_d_date,1)
     and overdue_days in (1,8,15,31,61,91,121,151,181)
@@ -305,7 +354,6 @@ loan_due as (
     customer.user_hash_no                                as user_hash_no,
     loan.overdue_days                                    as overdue_days,
     loan.is_first_overdue_day                            as is_first_overdue_day,
-    loan.dpd_x                                           as dpd_x,
     loan.overdue_principal                               as overdue_principal,
     loan.overdue_remain_principal                        as overdue_remain_principal,
     loan.overdue_due_bill_no                             as overdue_due_bill_no,
@@ -319,7 +367,6 @@ loan_due as (
       project_id                                                                                                      as project_id,
       due_bill_no                                                                                                     as due_bill_no,
       remain_principal                                                                                                as remain_principal,
-      dpd_x                                                                                                           as dpd_x,
       overdue_days                                                                                                    as overdue_days,
       overdue_principal                                                                                               as overdue_principal,
       overdue_date_start                                                                                              as overdue_date_start,
@@ -329,30 +376,6 @@ loan_due as (
       s_d_date                                                                                                        as s_d_date,
       e_d_date                                                                                                        as e_d_date
     from ods.loan_info_abs
-    lateral view explode(
-      split(concat_ws(',',
-        if(overdue_days = 0,  '0',   null),
-        if(overdue_days >= 1, '1+',  null),
-        if(overdue_days > 7,  '7+',  null),
-        if(overdue_days > 14, '14+', null),
-        if(overdue_days > 30, '30+', null),
-        if(overdue_days > 60, '60+', null),
-        if(overdue_days > 90, '90+', null),
-        if(overdue_days > 120,'120+',null),
-        if(overdue_days > 150,'150+',null),
-        case
-          when overdue_days between 1   and 7   then '1_7'
-          when overdue_days between 8   and 14  then '8_14'
-          when overdue_days between 15  and 30  then '15_30'
-          when overdue_days between 31  and 60  then '31_60'
-          when overdue_days between 61  and 90  then '61_90'
-          when overdue_days between 91  and 120 then '91_120'
-          when overdue_days between 121 and 150 then '121_150'
-          when overdue_days between 151 and 180 then '151_180'
-          else null
-        end,
-        if(overdue_days > 180,'180+',null)
-      ),',')) dpd as dpd_x
     where 1 > 0
       and s_d_date <= '${ST9}'
       -- and project_id  = 'CL202011090089'
@@ -400,7 +423,7 @@ loan_due as (
 
 insert overwrite table dm_eagle.abs_overdue_rate_day partition(biz_date,project_id,bag_id)
 select
-  'n'                               as is_allbag,
+  'n'                                                 as is_allbag,
   denominator.dpd_x                                   as dpd,
 
   denominator.remain_principal                        as remain_principal,
@@ -453,12 +476,35 @@ left join ( -- 累计分子
   select -- 封包时累计分子单个包
     project_id,
     bag_id,
-    'n' as is_allbag,
     dpd_x,
     sum(overdue_remain_principal) as overdue_remain_principal_once,
     count(overdue_due_bill_no)    as overdue_num_once,
     count(overdue_user_hash_no)   as overdue_person_num_once
   from loan_due
+  lateral view explode(
+    split(concat_ws(',',
+      case overdue_days
+        when 1   then '1+'
+        when 8   then '7+'
+        when 15  then '14+'
+        when 31  then '30+'
+        when 61  then '60+'
+        when 91  then '90+'
+        when 121 then '120+'
+        when 151 then '150+'
+        else '180+'
+      end,
+      case overdue_days
+        when 1   then '1_7'
+        when 8   then '8_14'
+        when 15  then '15_30'
+        when 31  then '31_60'
+        when 61  then '61_90'
+        when 91  then '91_120'
+        when 121 then '121_150'
+        when 151 then '151_180'
+        else null
+    ),',')) dpd as dpd_x
   where 1 > 0
     and is_first_overdue_day = 'y'
     and overdue_days in (1,8,15,31,61,91,121,151,181)
@@ -466,36 +512,80 @@ left join ( -- 累计分子
 ) as molecular_once
 on  denominator.project_id = molecular_once.project_id
 and denominator.bag_id     = molecular_once.bag_id
-and denominator.is_allbag  = molecular_once.is_allbag
 and denominator.dpd_x      = molecular_once.dpd_x
 left join ( -- 当前分子
   select -- 封包时当前分子单个包
     project_id,
     bag_id,
-    'n' as is_allbag,
     dpd_x,
     sum(overdue_remain_principal) as overdue_remain_principal,
     count(overdue_due_bill_no)    as overdue_num,
     count(overdue_user_hash_no)   as overdue_person_num
   from loan_due
+  lateral view explode(
+    split(concat_ws(',',
+      if(overdue_days >= 1, '1+',  null),
+      if(overdue_days > 7,  '7+',  null),
+      if(overdue_days > 14, '14+', null),
+      if(overdue_days > 30, '30+', null),
+      if(overdue_days > 60, '60+', null),
+      if(overdue_days > 90, '90+', null),
+      if(overdue_days > 120,'120+',null),
+      if(overdue_days > 150,'150+',null),
+      if(overdue_days > 180,'180+',null),
+      case
+        when overdue_days between 1   and 7   then '1_7'
+        when overdue_days between 8   and 14  then '8_14'
+        when overdue_days between 15  and 30  then '15_30'
+        when overdue_days between 31  and 60  then '31_60'
+        when overdue_days between 61  and 90  then '61_90'
+        when overdue_days between 91  and 120 then '91_120'
+        when overdue_days between 121 and 150 then '121_150'
+        when overdue_days between 151 and 180 then '151_180'
+        else null
+      end
+    ),',')) dpd as dpd_x
   where 1 > 0
     and biz_date between s_d_date and date_sub(e_d_date,1)
+    and overdue_days > 0
   group by project_id,bag_id,dpd_x
 ) as molecular_curr
 on  denominator.project_id = molecular_curr.project_id
 and denominator.bag_id     = molecular_curr.bag_id
-and denominator.is_allbag  = molecular_curr.is_allbag
 and denominator.dpd_x      = molecular_curr.dpd_x
 left join ( -- 新增分子
   select -- 封包时新增分子单个包
     project_id,
     bag_id,
-    'n' as is_allbag,
     dpd_x,
     sum(overdue_remain_principal) as overdue_remain_principal_new,
     count(overdue_due_bill_no)    as overdue_num_new,
     count(overdue_user_hash_no)   as overdue_person_num_new
   from loan_due
+  lateral view explode(
+    split(concat_ws(',',
+      case overdue_days
+        when 1   then '1+'
+        when 8   then '7+'
+        when 15  then '14+'
+        when 31  then '30+'
+        when 61  then '60+'
+        when 91  then '90+'
+        when 121 then '120+'
+        when 151 then '150+'
+        else '180+'
+      end,
+      case overdue_days
+        when 1   then '1_7'
+        when 8   then '8_14'
+        when 15  then '15_30'
+        when 31  then '31_60'
+        when 61  then '61_90'
+        when 91  then '91_120'
+        when 121 then '121_150'
+        when 151 then '151_180'
+        else null
+    ),',')) dpd as dpd_x
   where 1 > 0
     and biz_date between s_d_date and date_sub(e_d_date,1)
     and overdue_days in (1,8,15,31,61,91,121,151,181)
@@ -504,7 +594,6 @@ left join ( -- 新增分子
 ) as molecular_new
 on  denominator.project_id = molecular_new.project_id
 and denominator.bag_id     = molecular_new.bag_id
-and denominator.is_allbag  = molecular_new.is_allbag
 and denominator.dpd_x      = molecular_new.dpd_x
 -- order by project_id,bag_id,cast(substring(dpd_x,0,if(dpd_x = 0,length(dpd_x),instr(dpd_x,'+') - 1)) as int),is_allbag
 -- limit 10

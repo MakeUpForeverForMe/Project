@@ -102,6 +102,9 @@ insert into table dim.dim_idno values('341232','3','华东地区','34','安徽�
 insert into table dim.dim_idno values('142411','1','华北地区','14','山西省','1424','晋中市','142411','晋中地区');
 insert into table dim.dim_idno values('150520','1','华北地区','15','内蒙古自治区','1505','通辽市','150520','通辽市');
 insert into table dim.dim_idno values('510055','5','西南地区','51','四川省','5100','四川省','510055','四川省');
+insert into table dim.dim_idno values('452531','4','中南地区','45','广西壮族自治区','4525','玉林市','452531','玉林地区');
+insert into table dim.dim_idno values('630126','6','西北地区','63','青海省','6301','西宁市','630126','西宁市');
+
 insert overwrite table dim.dim_idno
 select
 idno_addr               ,

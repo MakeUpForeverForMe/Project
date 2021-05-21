@@ -2077,8 +2077,8 @@ ALTER MATERIALIZED VIEW [db_name.]materialized_view_name REBUILD; -- 更新物�
 SHOW FUNCTIONS LIKE 'default*';
 DESC FUNCTION EXTENDED row_sequence;
 
-SHOW FUNCTIONS LIKE '*json*';
-DESC FUNCTION EXTENDED concat_ws;
+SHOW FUNCTIONS LIKE '*month*';
+DESC FUNCTION EXTENDED add_months;
 ```
 
 

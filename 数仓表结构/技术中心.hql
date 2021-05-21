@@ -15719,15 +15719,6 @@ where 1 > 0
 ;
 
 
-invalidate metadata dim.bag_info;
-select
-  *
-from dim.bag_info
-where 1 > 0
-  -- and project_id = 'CL202102010097'
-;
-
-
 
 select distinct
   case project_id when 'Cl00333' then 'cl00333' else project_id end as project_id,
@@ -15741,6 +15732,16 @@ limit 10
 
 
 
+
+invalidate metadata dim.bag_info;
+select
+  *
+from dim.bag_info
+where 1 > 0
+  and project_id = 'CL202104080105'
+;
+
+
 invalidate metadata dim.bag_due_bill_no;
 select *
   -- distinct
@@ -15748,12 +15749,28 @@ select *
   -- bag_id
 from dim.bag_due_bill_no
 where 1 > 0
-  and project_id = 'CL202101260095'
+  and project_id = 'CL202104080105'
 limit 10
 ;
 
 
+select *
+from dim.project_info
+where 1 > 0
+  and project_id = 'CL202104080105'
+limit 10
+;
 
+
+select *
+  -- distinct
+  -- project_id,
+  -- bag_id
+from dim.project_due_bill_no
+where 1 > 0
+  and project_id = 'CL202104080105'
+limit 10
+;
 
 
 select distinct
@@ -15787,6 +15804,18 @@ select distinct product_code from stage.ecas_loan_asset;
 
 
 
+select
+  -- project_id,
+  count(1) as nt
+  -- due_bill_no,
+  -- should_repay_date
+from ods.repay_schedule_abs
+where 1 > 0
+  and project_id = 'CL202104080105'
+limit 10
+;
+
+
 
 
 
@@ -15816,40 +15845,6 @@ where 1 > 0
 
 
 
-ALTER TABLE dm_eagle.abs_asset_distribution_bag_day               DROP IF EXISTS PARTITION (biz_date < '2021-05-16');
-ALTER TABLE dm_eagle.abs_asset_distribution_day                   DROP IF EXISTS PARTITION (biz_date < '2021-05-16');
-ALTER TABLE dm_eagle.abs_asset_information_bag                    DROP IF EXISTS PARTITION (biz_date < '2021-05-16');
-ALTER TABLE dm_eagle.abs_asset_information_cash_flow_bag_day      DROP IF EXISTS PARTITION (biz_date < '2021-05-16');
-ALTER TABLE dm_eagle.abs_asset_information_cash_flow_bag_snapshot DROP IF EXISTS PARTITION (biz_date < '2021-05-16');
-ALTER TABLE dm_eagle.abs_asset_information_project                DROP IF EXISTS PARTITION (biz_date < '2021-05-16');
-ALTER TABLE dm_eagle.abs_early_payment_asset_details              DROP IF EXISTS PARTITION (biz_date < '2021-05-16');
-ALTER TABLE dm_eagle.abs_early_payment_asset_statistic            DROP IF EXISTS PARTITION (biz_date < '2021-05-16');
-ALTER TABLE dm_eagle.abs_overdue_rate_day                         DROP IF EXISTS PARTITION (biz_date < '2021-05-16');
-ALTER TABLE dm_eagle.abs_overdue_rate_details_day                 DROP IF EXISTS PARTITION (biz_date < '2021-05-16');
-
-
-show create TABLE dm_eagle.abs_asset_distribution_bag_day;
-show create TABLE dm_eagle.abs_asset_distribution_day;
-show create TABLE dm_eagle.abs_asset_information_bag;
-show create TABLE dm_eagle.abs_asset_information_cash_flow_bag_day;
-show create TABLE dm_eagle.abs_asset_information_cash_flow_bag_snapshot;
-show create TABLE dm_eagle.abs_asset_information_project;
-show create TABLE dm_eagle.abs_early_payment_asset_details;
-show create TABLE dm_eagle.abs_early_payment_asset_statistic;
-show create TABLE dm_eagle.abs_overdue_rate_day;
-show create TABLE dm_eagle.abs_overdue_rate_details_day;
-
-
-MSCK REPAIR TABLE dm_eagle.abs_asset_distribution_bag_day;
-MSCK REPAIR TABLE dm_eagle.abs_asset_distribution_day;
-MSCK REPAIR TABLE dm_eagle.abs_asset_information_bag;
-MSCK REPAIR TABLE dm_eagle.abs_asset_information_cash_flow_bag_day;
-MSCK REPAIR TABLE dm_eagle.abs_asset_information_cash_flow_bag_snapshot;
-MSCK REPAIR TABLE dm_eagle.abs_asset_information_project;
-MSCK REPAIR TABLE dm_eagle.abs_early_payment_asset_details;
-MSCK REPAIR TABLE dm_eagle.abs_early_payment_asset_statistic;
-MSCK REPAIR TABLE dm_eagle.abs_overdue_rate_day;
-MSCK REPAIR TABLE dm_eagle.abs_overdue_rate_details_day;
 
 
 
@@ -15861,34 +15856,6 @@ MSCK REPAIR TABLE dm_eagle.abs_overdue_rate_details_day;
 
 
 
--- 删除分区
-ALTER TABLE dm_eagle.abs_asset_information_cash_flow_bag_day DROP IF EXISTS PARTITION (biz_date <= '2017-12-31');
-
-
-ALTER TABLE dm_eagle.abs_asset_information_cash_flow_bag_day DROP IF EXISTS PARTITION (biz_date <= '2019-03-31');
-
-ALTER TABLE dm_eagle.abs_asset_information_cash_flow_bag_day DROP IF EXISTS PARTITION (biz_date <= '2021-05-10');
-
-
-
-
-
-select
-  *
-from ods.t_07_actualrepayinfo
-where 1 > 0
-  and project_id  = 'CL202104080105'
-  and serial_number = 'GALC-HL-1705040105'
-order by term
-;
-
-
-
-
-select *
-from dm_eagle.abs_asset_information_cash_flow_bag_day
-where biz_date = '__HIVE_DEFAULT_PARTITION__'
-limit 10;
 
 
 
@@ -15898,97 +15865,106 @@ limit 10;
 
 
 
+13727647.39000
+43700296.12000
+129854890.52000
 
 
-
-    select distinct
-      due_bill_no,
-      product_id,
-      if(map_key = 'wind_control_status',map_val,null) as wind_control_status,
-      if(map_key = 'cheat_level',map_val,null)         as cheat_level,
-      if(map_key = 'score_range',map_val,null)         as score_range
-    from ods.risk_control_abs
-    where source_table in ('t_asset_wind_control_history')
-      and map_key in ('wind_control_status','cheat_level','score_range')
+469631407.16000
+149847389.57000
+960695651.14000
 
 
-select * from ods.risk_control_abs limit 1;
-
-named_struct('map_key','score_range',   'map_val',score_range,   'map_com','资产等级'),
-named_struct('map_key','inner_black',   'map_val',inner_black,   'map_com','内部黑名单（1：命中，2：未命中）'),
-
-
-
-
-
-insert overwrite table dw.abs_due_info_day_new partition(biz_date,project_id)
-select
-  abs_due.due_bill_no,
-  abs_due.loan_init_term,
-  abs_due.loan_init_principal,
-  abs_due.account_age,
-  abs_due.loan_term_remain,
-  abs_due.loan_term_repaid,
-  abs_due.remain_principal,
-  abs_due.remain_interest,
-  abs_due.remain_principal_yesterday,
-  abs_due.loan_status,
-  abs_due.paid_out_date,
-  abs_due.paid_out_type,
-  abs_due.overdue_due_bill_no,
-  abs_due.overdue_user_hash_no,
-  abs_due.overdue_date_start,
-  abs_due.overdue_days,
-  abs_due.overdue_days_dpd,
-  abs_due.dpd_map,
-  abs_due.overdue_principal,
-  abs_due.overdue_remain_principal,
-  abs_due.contract_no,
-  abs_due.loan_init_interest_rate,
-  abs_due.loan_type_cn,
-  abs_due.contract_term,
-  abs_due.mortgage_rate,
-  abs_due.shoufu_amount,
-  abs_due.user_hash_no,
-  abs_due.age,
-  abs_due.job_type,
-  abs_due.income_year,
-  abs_due.income_year_max,
-  abs_due.income_year_min,
-  abs_due.idcard_area,
-  abs_due.due_bill_no_guaranty,
-  abs_due.pawn_value,
-  abs_due.guarantee_type,
-  abs_due.distribution_array,
-  abs_due.biz_date,
-  abs_due.project_id
-from dw.abs_due_info_day as abs_due
-left join
-
-
-;
-
+1954864.20000
+8813695.06000
+170810.59000
 
 
 
 
 select
-  is_empty(map_from_str(extra_info)['首付款金额(元)'],0)    as shoufu_amount,
-  is_empty(map_from_str(extra_info)['项目编号'],project_id) as product_id
-from stage.asset_01_t_loan_contract_info
+  is_allbag,
+  dpd,
+  remain_principal,
+  overdue_remain_principal,
+  overdue_remain_principal_new,
+  overdue_remain_principal_once,
+  bag_due_num,
+  overdue_num,
+  overdue_num_new,
+  overdue_num_once,
+  bag_due_person_num,
+  overdue_person_num,
+  overdue_person_num_new,
+  overdue_person_num_once,
+  project_id,
+  bag_id
+from dm_eagle.abs_overdue_rate_day
 where 1 > 0
-  and is_empty(map_from_str(extra_info)['项目编号'],project_id) = '001601'
-  and is_empty(map_from_str(extra_info)['首付款金额(元)'],0) != 0
+  and biz_date = '2021-05-12'
+  and is_allbag = 'y'
+  and (
+    remain_principal < overdue_remain_principal      or
+    remain_principal < overdue_remain_principal_new  or
+    remain_principal < overdue_remain_principal_once or
+    false
+  )
 limit 10
 ;
 
 
 
 
+select * from (
+  select
+    project_id                                                                                                      as project_id,
+    due_bill_no                                                                                                     as due_bill_no,
+    remain_principal                                                                                                as remain_principal,
+    dpd_x                                                                                                           as dpd_x,
+    overdue_days                                                                                                    as overdue_days,
+    overdue_principal                                                                                               as overdue_principal,
+    overdue_date_start                                                                                              as overdue_date_start,
+    if(overdue_date_start = min(overdue_date_start) over(partition by project_id,due_bill_no,overdue_days),'y','n') as is_first_overdue_day,
+    if(overdue_days > 0,due_bill_no,null)                                                                           as overdue_due_bill_no,
+    if(overdue_days > 0,remain_principal,0)                                                                         as overdue_remain_principal,
+    s_d_date                                                                                                        as s_d_date,
+    e_d_date                                                                                                        as e_d_date
+  from ods.loan_info_abs
+  lateral view explode(
+    split(concat_ws(',',
+      if(overdue_days >= 1, '1+',  null),
+      if(overdue_days > 7,  '7+',  null),
+      if(overdue_days > 14, '14+', null),
+      if(overdue_days > 30, '30+', null),
+      if(overdue_days > 60, '60+', null),
+      if(overdue_days > 90, '90+', null),
+      if(overdue_days > 120,'120+',null),
+      if(overdue_days > 150,'150+',null),
+      if(overdue_days > 180,'180+',null),
+      case
+        when overdue_days between 1   and 7   then '1_7'
+        when overdue_days between 8   and 14  then '8_14'
+        when overdue_days between 15  and 30  then '15_30'
+        when overdue_days between 31  and 60  then '31_60'
+        when overdue_days between 61  and 90  then '61_90'
+        when overdue_days between 91  and 120 then '91_120'
+        when overdue_days between 121 and 150 then '121_150'
+        when overdue_days between 151 and 180 then '151_180'
+        else null
+      end
+    ),',')) dpd as dpd_x
+  where 1 > 0
+    and '2021-05-20' between s_d_date and date_sub(e_d_date,1)
+    and overdue_days > 0
+    and project_id  = 'CL202011090089'
+
+    and due_bill_no = '1000001858'
+    -- and due_bill_no = '1000002617'
+    -- and due_bill_no = '1000000293'
+    -- and due_bill_no = '1000000578'
+) as tmp
+order by s_d_date
+;
 
 
-
-
-
-
-
+select add_months('${ST9}',-4,'yyyy-MM') , add_months('${ST9}',-1,'yyyy-MM');

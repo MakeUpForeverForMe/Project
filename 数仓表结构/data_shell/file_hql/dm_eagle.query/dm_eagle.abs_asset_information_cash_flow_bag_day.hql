@@ -25,11 +25,11 @@ set hive.auto.convert.join.noconditionaltask=false;
 
 
 
--- set hivevar:ST9=2021-05-18;
+-- set hivevar:ST9=2021-05-20;
 -- set hivevar:project_id='CL202104080105';
 -- set hivevar:bag_id='CL202104080105_1';
 
--- set hivevar:date_extr=date_sub(next_day(current_date,'Sun'),8);
+set hivevar:date_extr=date_sub(next_day(current_date,'Sun'),8);
 
 -- set hivevar:project_id=
 --   select distinct project_id
@@ -90,7 +90,8 @@ select
 
   repay_schedule.collect_date                       as collect_date,
 
-  repay_schedule.biz_date                           as biz_date,
+  -- repay_schedule.biz_date                           as biz_date,
+  '2099-12-31'                                      as biz_date,
   repay_schedule.project_id                         as project_id,
   repay_schedule.bag_id                             as bag_id
 from (
@@ -329,7 +330,8 @@ select
 
   repay_schedule.collect_date                       as collect_date,
 
-  repay_schedule.biz_date                           as biz_date,
+  -- repay_schedule.biz_date                           as biz_date,
+  '2099-12-31'                                      as biz_date,
   repay_schedule.project_id                         as project_id,
   'default_all_bag'                                 as bag_id
 from (
@@ -560,7 +562,8 @@ select
 
   nvl(repay_schedule.collect_date,to_date(pmml_collect_date)) as collect_date,
 
-  nvl(repay_schedule.biz_date,pmml_biz_date)                  as biz_date,
+  -- nvl(repay_schedule.biz_date,pmml_biz_date)                  as biz_date,
+  '2099-12-31'                                                as biz_date,
   nvl(repay_schedule.project_id,pmml_project_id)              as project_id,
   'default_project'                                           as bag_id
 from (

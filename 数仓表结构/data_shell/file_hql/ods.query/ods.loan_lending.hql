@@ -104,7 +104,7 @@ select
   0                                             as mortgage_rate,
   lending.biz_date                              as biz_date,
   lending.loan_init_principal                   as loan_original_principal,
-  0                                             as shoufu_amount,
+  nvl(log.shoufu_amount,0)                      as shoufu_amount,
   lending.product_id                            as product_id
 from (
   select
@@ -154,23 +154,27 @@ from (
 left join (
   -- 汇通
   select distinct
-    get_json_object(standard_req_msg,'$.product.product_no')     as product_id,
-    map_from_str(standard_req_msg)['apply_no']                   as due_bill_no,
-    get_json_object(standard_req_msg,'$.product.loan_apply_use') as loan_usage,
-    get_json_object(standard_req_msg,'$.product.guarantee_type') as guaranty_type
+    get_json_object(standard_req_msg,'$.product.product_no')                                                                  as product_id,
+    map_from_str(standard_req_msg)['apply_no']                                                                                as due_bill_no,
+    get_json_object(standard_req_msg,'$.product.loan_apply_use')                                                              as loan_usage,
+    get_json_object(json_array_to_array(get_json_object(standard_req_msg,'$.guaranties'))[0]['car'],'$.first_payment_amount') as shoufu_amount,
+    get_json_object(standard_req_msg,'$.product.guarantee_type')                                                              as guaranty_type
   from stage.nms_interface_resp_log
   where 1 > 0
     and sta_service_method_name = 'setupCustCredit'
+    and ('${db_suffix}' = '' and '${tb_suffix}' = '')
   union all
   -- 瓜子
   select distinct
-    get_json_object(original_msg,'$.data.product.productNo')     as product_id,
-    get_json_object(original_msg,'$.data.applyNo')               as due_bill_no,
-    get_json_object(original_msg,'$.data.product.loanApplyUse')  as loan_usage,
-    get_json_object(original_msg,'$.data.product.guaranteeType') as guaranty_type
+    get_json_object(original_msg,'$.data.product.productNo')                                                                 as product_id,
+    get_json_object(original_msg,'$.data.applyNo')                                                                           as due_bill_no,
+    get_json_object(original_msg,'$.data.product.loanApplyUse')                                                              as loan_usage,
+    get_json_object(json_array_to_array(get_json_object(original_msg,'$.data.guaranties'))[0]['car'],'$.firstPaymentAmount') as shoufu_amount,
+    get_json_object(original_msg,'$.data.product.guaranteeType')                                                             as guaranty_type
   from stage.ecas_msg_log
   where 1 > 0
     and msg_type = 'GZ_CREDIT_APPLY'
+    and ('${db_suffix}' = '' and '${tb_suffix}' = '')
 ) as log
 on  lending.product_id  = log.product_id
 and lending.due_bill_no = log.due_bill_no

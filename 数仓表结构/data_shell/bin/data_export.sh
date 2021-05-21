@@ -118,9 +118,7 @@ for db_tb in ${!tables[@]};do
     if [[ -n $(echo "${export_all_data_tbl[@]}" | grep -ow "${db_tb}") ]]; then
       hql[$current_date]="select * from ${db_tb};"
     elif [[ "${db_tb}" = 'dm_eagle.abs_asset_information_cash_flow_bag_day' ]]; then
-      hql[$current_date]="
-        select * from dm_eagle.abs_asset_information_cash_flow_bag_day where biz_date = '${e_date}';
-      "
+      hql[$current_date]="select * from dm_eagle.abs_asset_information_cash_flow_bag_day where biz_date = '2099-12-31';"
     else
       for (( excute_date = $(date -d "${s_date}" +%Y%m%d); excute_date <= $(date -d "${e_date}" +%Y%m%d); excute_date = $(date -d "1 day ${excute_date}" +%Y%m%d) )); do
         hql[$excute_date]="select * from ${db_tb} where biz_date = '$(date -d "${excute_date}" +%F)';"
