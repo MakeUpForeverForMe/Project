@@ -508,7 +508,8 @@ CREATE TABLE IF NOT EXISTS `dw.abs_due_info_day`(
   `overdue_date_start`           string         COMMENT '逾期起始日期',
   `overdue_days`                 decimal(5,0)   COMMENT '逾期天数',
   `overdue_days_dpd`             array<string>  COMMENT 'DPD时期（1+、7+、14+、30+、60+、90+、120+、150+、180+、1_7、8_15、15_30、31_60、61_90、91_120、121_150、151_180）',
-  `dpd_map`                      string         COMMENT '曾有逾期的借据DPD汇总（格式：{"1+":{"2021-01-01":1200}}：{"dpd时期":{"开始逾期日期":逾期借据剩余本金}}）',
+  `overdue_days_once`            string         COMMENT '曾有逾期借据逾期天数',
+  `dpd_map`                  map<string,string> COMMENT '曾有逾期的借据逾期开始日期及剩余本金汇总（格式：{"2021-01-01":1200}：{"开始逾期日期":逾期借据剩余本金}）',
   `overdue_principal`            decimal(20,5)  COMMENT '逾期本金',
   `overdue_remain_principal`     decimal(20,5)  COMMENT '逾期借据剩余本金',
 
@@ -563,7 +564,8 @@ CREATE VIEW IF NOT EXISTS `dw.abs_due_info_day_abs`(
   `overdue_date_start`         COMMENT '逾期起始日期',
   `overdue_days`               COMMENT '逾期天数',
   `overdue_days_dpd`           COMMENT 'DPD时期（1+、7+、14+、30+、60+、90+、120+、150+、180+、1_7、8_15、15_30、31_60、61_90、91_120、121_150、151_180）',
-  `dpd_map`                    COMMENT '曾有逾期的借据DPD汇总（格式：{"1+":{"2021-01-01":1200}}：{"dpd时期":{"开始逾期日期":逾期借据剩余本金}}）',
+  `overdue_days_once`          COMMENT '曾有逾期借据逾期天数',
+  `dpd_map`                    COMMENT '曾有逾期的借据逾期开始日期及剩余本金汇总（格式：{"2021-01-01":1200}：{"开始逾期日期":逾期借据剩余本金}）',
   `overdue_principal`          COMMENT '逾期本金',
   `overdue_remain_principal`   COMMENT '逾期借据剩余本金',
 
@@ -580,6 +582,8 @@ CREATE VIEW IF NOT EXISTS `dw.abs_due_info_day_abs`(
   `age`                        COMMENT '客户年龄',
   `job_type`                   COMMENT '工作年限',
   `income_year`                COMMENT '年收入',
+  `income_year_max`            COMMENT '年收入上限',
+  `income_year_min`            COMMENT '年收入下限',
   `idcard_area`                COMMENT '身份证大区（东北地区、华北地区、西北地区、西南地区、华南地区、华东地区、华中地区、港澳台地区）',
 
   -- 抵押物级
@@ -612,6 +616,7 @@ CREATE VIEW IF NOT EXISTS `dw.abs_due_info_day_abs`(
   t1.overdue_date_start,
   t1.overdue_days,
   t1.overdue_days_dpd,
+  t1.overdue_days_once,
   t1.dpd_map,
   t1.overdue_principal,
   t1.overdue_remain_principal,

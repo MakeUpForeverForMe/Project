@@ -526,7 +526,7 @@ from (
   from (
     select
       deal_date,
-      regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(original_msg,'\\\\\"\\\{','\\\{'),'\\\}\\\\\"','\\\}'),'\\\"\\\{','\\\{'),'\\\}\\\"','\\\}'),'\\\\','') as original_msg
+      replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(original_msg,'\\\\\"\\\{','\\\{'),'\\\}\\\\\"','\\\}'),'\\\"\\\{','\\\{'),'\\\}\\\"','\\\}'),'\\\\\\\\\\\\\"','\\\"'),'\\\\\"','\\\"'),'\\\\\\\\','\\\\'),'\\\\\"',"") as original_msg
     from stage.ecas_msg_log
     where msg_type = 'WIND_CONTROL_CREDIT'
       and original_msg is not null
@@ -571,7 +571,7 @@ from (
   union all
   select customer_info.* from ods.customer_info
   join (
-    select distinct regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(original_msg,'\\\\\"\\\{','\\\{'),'\\\}\\\\\"','\\\}'),'\\\"\\\{','\\\{'),'\\\}\\\"','\\\}'),'\\\\','') as original_msg
+    select distinct  replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(original_msg,'\\\\\"\\\{','\\\{'),'\\\}\\\\\"','\\\}'),'\\\"\\\{','\\\{'),'\\\}\\\"','\\\}'),'\\\\\\\\\\\\\"','\\\"'),'\\\\\"','\\\"'),'\\\\\\\\','\\\\'),'\\\\\"',"") as original_msg
     from stage.ecas_msg_log
     where msg_type = 'WIND_CONTROL_CREDIT'
       and original_msg is not null

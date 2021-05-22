@@ -498,7 +498,7 @@ from (
       select
         datefmt(create_time,'ms','yyyy-MM-dd HH:mm:ss') as create_time,
         datefmt(update_time,'ms','yyyy-MM-dd HH:mm:ss') as update_time,
-        regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(original_msg,'\\\\\"\\\{','\\\{'),'\\\}\\\\\"','\\\}'),'\\\"\\\{','\\\{'),'\\\}\\\"','\\\}'),'\\\\\\\\\\\\\"','\\\"'),'\\\\\"','\\\"'),'\\\\\\\\','\\\\') as original_msg
+        replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(original_msg,'\\\\\"\\\{','\\\{'),'\\\}\\\\\"','\\\}'),'\\\"\\\{','\\\{'),'\\\}\\\"','\\\}'),'\\\\\\\\\\\\\"','\\\"'),'\\\\\"','\\\"'),'\\\\\\\\','\\\\'),'\\\\\"',"") as original_msg
       from stage.ecas_msg_log
       where 1 > 0
         and msg_type = 'WIND_CONTROL_CREDIT'

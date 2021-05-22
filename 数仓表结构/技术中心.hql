@@ -15914,57 +15914,131 @@ limit 10
 
 
 
+select
+  project_id,
+  product_id,
+  due_bill_no,
+  loan_active_date,
+  loan_init_term,
+  loan_init_principal,
+  loan_term,
+  should_repay_date,
+  loan_status,
+  paid_principal,
+  remain_principal,
+  overdue_date_start,
+  overdue_principal,
+  s_d_date,
+  e_d_date
+  -- project_id,
+  -- due_bill_no,
+  -- overdue_days,
+  -- concat('{"',concat_ws(',"',collect_list(concat_ws('":',overdue_date_start,cast(remain_principal as string)))),'}') as str_map
+from ods.loan_info_abs
+where 1 > 0
+  -- and project_id in (${project_id})
+  and s_d_date <= '${ST9}'
+  -- and overdue_days in (1,8,15,31,61,91,121,151,181)
 
-select * from (
+  and project_id  = '001601'
+  and due_bill_no = '1000000965' -- overdue_days >= 61
+
+group by project_id,due_bill_no,overdue_days
+
+;
+
+
+
+select add_months('${ST9}',-4,'yyyy-MM') , add_months('${ST9}',-1,'yyyy-MM');
+
+
+
+
+
+
+select least(array(1,2,3)) as aa;
+
+
+select
+  project_id,
+  due_bill_no,
+  overdue_days,
+  overdue_days_once,
+  loan_init_principal,
+  remain_principal,
+  overdue_principal,
+  min_dpd_date,
+  dpd_map[min_dpd_date] as overdue_date_start
+from (
   select
-    project_id                                                                                                      as project_id,
-    due_bill_no                                                                                                     as due_bill_no,
-    remain_principal                                                                                                as remain_principal,
-    dpd_x                                                                                                           as dpd_x,
-    overdue_days                                                                                                    as overdue_days,
-    overdue_principal                                                                                               as overdue_principal,
-    overdue_date_start                                                                                              as overdue_date_start,
-    if(overdue_date_start = min(overdue_date_start) over(partition by project_id,due_bill_no,overdue_days),'y','n') as is_first_overdue_day,
-    if(overdue_days > 0,due_bill_no,null)                                                                           as overdue_due_bill_no,
-    if(overdue_days > 0,remain_principal,0)                                                                         as overdue_remain_principal,
-    s_d_date                                                                                                        as s_d_date,
-    e_d_date                                                                                                        as e_d_date
-  from ods.loan_info_abs
-  lateral view explode(
-    split(concat_ws(',',
-      if(overdue_days >= 1, '1+',  null),
-      if(overdue_days > 7,  '7+',  null),
-      if(overdue_days > 14, '14+', null),
-      if(overdue_days > 30, '30+', null),
-      if(overdue_days > 60, '60+', null),
-      if(overdue_days > 90, '90+', null),
-      if(overdue_days > 120,'120+',null),
-      if(overdue_days > 150,'150+',null),
-      if(overdue_days > 180,'180+',null),
-      case
-        when overdue_days between 1   and 7   then '1_7'
-        when overdue_days between 8   and 14  then '8_14'
-        when overdue_days between 15  and 30  then '15_30'
-        when overdue_days between 31  and 60  then '31_60'
-        when overdue_days between 61  and 90  then '61_90'
-        when overdue_days between 91  and 120 then '91_120'
-        when overdue_days between 121 and 150 then '121_150'
-        when overdue_days between 151 and 180 then '151_180'
-        else null
-      end
-    ),',')) dpd as dpd_x
+    project_id,
+    due_bill_no,
+    overdue_days,
+    overdue_days_once,
+    loan_init_principal,
+    remain_principal,
+    overdue_principal,
+    dpd_map,
+    min(key) as min_dpd_date
+  from dw.abs_due_info_day_abs
+  lateral view explode(map_keys(dpd_map)) overdue_date_start as key
   where 1 > 0
-    and '2021-05-20' between s_d_date and date_sub(e_d_date,1)
-    and overdue_days > 0
-    and project_id  = 'CL202011090089'
-
+    and biz_date = '${ST9}'
+    and project_id = 'CL202011090089'
     and due_bill_no = '1000001858'
-    -- and due_bill_no = '1000002617'
-    -- and due_bill_no = '1000000293'
-    -- and due_bill_no = '1000000578'
+  group by
+    project_id,
+    due_bill_no,
+    overdue_days,
+    overdue_days_once,
+    loan_init_principal,
+    remain_principal,
+    overdue_principal,
+    dpd_map
 ) as tmp
+-- limit 20
+;
+
+
++-------------+-----------------------------------+---------------+--------------------+----------------------+-------------------+--------------------+---------------+---------------------+
+| project_id  |            due_bill_no            | overdue_days  | overdue_days_once  | loan_init_principal  | remain_principal  | overdue_principal  | min_dpd_date  | overdue_date_start  |
++-------------+-----------------------------------+---------------+--------------------+----------------------+-------------------+--------------------+---------------+---------------------+
+| 001504      | 87ca970be9f04e3bacf152d83a651e37  | 574           | 1                  | 10000.00000          | 10000.00000       | 10000.00000        | 2019-10-25    | 10000               |
+| 001504      | 87ca970be9f04e3bacf152d83a651e37  | 574           | 121                | 10000.00000          | 10000.00000       | 10000.00000        | 2019-10-25    | 10000               |
+| 001504      | 87ca970be9f04e3bacf152d83a651e37  | 574           | 15                 | 10000.00000          | 10000.00000       | 10000.00000        | 2019-10-25    | 10000               |
+| 001504      | 87ca970be9f04e3bacf152d83a651e37  | 574           | 151                | 10000.00000          | 10000.00000       | 10000.00000        | 2019-10-25    | 10000               |
+| 001504      | 87ca970be9f04e3bacf152d83a651e37  | 574           | 181                | 10000.00000          | 10000.00000       | 10000.00000        | 2019-10-25    | 10000               |
+| 001504      | 87ca970be9f04e3bacf152d83a651e37  | 574           | 31                 | 10000.00000          | 10000.00000       | 10000.00000        | 2019-10-25    | 10000               |
+| 001504      | 87ca970be9f04e3bacf152d83a651e37  | 574           | 61                 | 10000.00000          | 10000.00000       | 10000.00000        | 2019-10-25    | 10000               |
+| 001504      | 87ca970be9f04e3bacf152d83a651e37  | 574           | 8                  | 10000.00000          | 10000.00000       | 10000.00000        | 2019-10-25    | 10000               |
+| 001504      | 87ca970be9f04e3bacf152d83a651e37  | 574           | 91                 | 10000.00000          | 10000.00000       | 10000.00000        | 2019-10-25    | 10000               |
++-------------+-----------------------------------+---------------+--------------------+----------------------+-------------------+--------------------+---------------+---------------------+
+
++-----------------+--------------+---------------+--------------------+----------------------+-------------------+--------------------+---------------+---------------------+
+|   project_id    | due_bill_no  | overdue_days  | overdue_days_once  | loan_init_principal  | remain_principal  | overdue_principal  | min_dpd_date  | overdue_date_start  |
++-----------------+--------------+---------------+--------------------+----------------------+-------------------+--------------------+---------------+---------------------+
+| CL202011090089  | 1000001858   | 63            | 1                  | 149999.00000         | 131963.56000      | 11218.47000        | 2020-10-19    | 149999              |
+| CL202011090089  | 1000001858   | 63            | 8                  | 149999.00000         | 131963.56000      | 11218.47000        | 2020-10-19    | 149999              |
+| CL202011090089  | 1000001858   | 63            | 15                 | 149999.00000         | 131963.56000      | 11218.47000        | 2020-10-19    | 149999              |
+| CL202011090089  | 1000001858   | 63            | 31                 | 149999.00000         | 131963.56000      | 11218.47000        | 2021-01-19    | 149999              |
+| CL202011090089  | 1000001858   | 63            | 61                 | 149999.00000         | 131963.56000      | 11218.47000        | 2021-03-19    | 131963.56           |
++-----------------+--------------+---------------+--------------------+----------------------+-------------------+--------------------+---------------+---------------------+
+
+
+
+select *
+from ods.loan_info_abs
+where 1 > 0
+  -- and project_id in (${project_id})
+  and s_d_date <= '${ST9}'
+  and overdue_days in (1,8,15,31,61,91,121,151,181)
+
+  -- and project_id  = '001601'
+  -- and due_bill_no = '1000000965'
+
+  and project_id  = 'CL202011090089'
+  and due_bill_no = '1000001858' -- overdue_days >= 61
 order by s_d_date
 ;
 
 
-select add_months('${ST9}',-4,'yyyy-MM') , add_months('${ST9}',-1,'yyyy-MM');

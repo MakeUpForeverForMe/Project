@@ -91,6 +91,7 @@ from (
     )                                                                             as col_5
   from (
     select
+    replace(
       regexp_replace(
         regexp_replace(
           regexp_replace(
@@ -101,7 +102,7 @@ from (
             ),'\\\"\\\{','\\\{'
           ),'\\\}\\\"','\\\}'
         ),'\\\\',''
-      ) as original_msg
+      ),'\\\\\"',"") as original_msg
     from stage.ecas_msg_log
     where 1 > 0
       and is_his = 'N'

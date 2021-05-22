@@ -59,6 +59,60 @@ dpds as (
 
 loan_due as (
   select
+    dw_abs.biz_date                                        as biz_date,
+    dw_abs.project_id                                      as project_id,
+    dw_abs.due_bill_no                                     as due_bill_no,
+    dw_abs.user_hash_no                                as user_hash_no,
+    dw_abs.overdue_days                                    as overdue_days,
+    loan.is_first_overdue_day                            as is_first_overdue_day,
+    loan.overdue_principal                               as overdue_principal,
+    loan.overdue_remain_principal                        as overdue_remain_principal,
+    loan.overdue_due_bill_no                             as overdue_due_bill_no,
+    if(loan.overdue_days > 0,customer.user_hash_no,null) as overdue_user_hash_no,
+    loan.s_d_date                                        as s_d_date,
+    loan.e_d_date                                        as e_d_date,
+    bag_due.bag_id                                       as bag_id
+  from (
+    select
+      *
+    from dw.abs_due_info_day_abs
+    where 1 > 0
+      and biz_date = '${ST9}'
+  ) as dw_abs
+  inner join (
+    select
+      bag_info.project_id,
+      bag_info.bag_id,
+      bag_info.bag_date,
+      bag_due.due_bill_no
+    from (
+      select
+        project_id,
+        bag_id,
+        bag_date
+      from dim.bag_info
+      where 1 > 0
+        and bag_id in (${bag_id})
+        and '${ST9}' >= bag_due.bag_date
+    ) as bag_info
+    inner join (
+      select
+        project_id,
+        bag_id,
+        due_bill_no
+      from dim.bag_due_bill_no
+    ) as bag_due
+    on  bag_info.project_id = bag_due.project_id
+    and bag_info.bag_id     = bag_due.bag_id
+  ) as bag_due
+  on  dw_abs.project_id  = bag_due.project_id
+  and dw_abs.due_bill_no = bag_due.due_bill_no
+)
+
+
+
+loan_due as (
+  select
     loan.biz_date                                        as biz_date,
     loan.project_id                                      as project_id,
     loan.due_bill_no                                     as due_bill_no,
@@ -119,6 +173,7 @@ loan_due as (
       from dim.bag_info
       where 1 > 0
         and bag_id in (${bag_id})
+        and '${ST9}' >= bag_due.bag_date
     ) as bag_info
     inner join (
       select
@@ -132,7 +187,6 @@ loan_due as (
   ) as bag_due
   on  loan.project_id  = bag_due.project_id
   and loan.due_bill_no = bag_due.due_bill_no
-  and loan.e_d_date    > bag_due.bag_date
 )
 
 
