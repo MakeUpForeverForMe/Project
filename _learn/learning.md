@@ -2078,7 +2078,7 @@ SHOW FUNCTIONS LIKE 'default*';
 DESC FUNCTION EXTENDED row_sequence;
 
 SHOW FUNCTIONS LIKE '*map*';
-DESC FUNCTION EXTENDED str_to_map;
+DESC FUNCTION EXTENDED histogram_numeric;
 ```
 
 

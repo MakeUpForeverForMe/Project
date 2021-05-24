@@ -59,19 +59,19 @@ dpds as (
 
 loan_due as (
   select
-    dw_abs.biz_date                                        as biz_date,
-    dw_abs.project_id                                      as project_id,
-    dw_abs.due_bill_no                                     as due_bill_no,
-    dw_abs.user_hash_no                                as user_hash_no,
-    dw_abs.overdue_days                                    as overdue_days,
-    loan.is_first_overdue_day                            as is_first_overdue_day,
-    loan.overdue_principal                               as overdue_principal,
-    loan.overdue_remain_principal                        as overdue_remain_principal,
-    loan.overdue_due_bill_no                             as overdue_due_bill_no,
-    if(loan.overdue_days > 0,customer.user_hash_no,null) as overdue_user_hash_no,
-    loan.s_d_date                                        as s_d_date,
-    loan.e_d_date                                        as e_d_date,
-    bag_due.bag_id                                       as bag_id
+    dw_abs.biz_date                 as biz_date,
+    dw_abs.project_id               as project_id,
+    dw_abs.due_bill_no              as due_bill_no,
+    dw_abs.user_hash_no             as user_hash_no,
+    dw_abs.overdue_days             as overdue_days,
+    dw_abs.overdue_days_dpd         as overdue_days_dpd,
+    dw_abs.dpd_map                  as dpd_map,
+    dw_abs.overdue_principal        as overdue_principal,
+    dw_abs.overdue_remain_principal as overdue_remain_principal,
+    dw_abs.overdue_due_bill_no      as overdue_due_bill_no,
+    dw_abs.overdue_user_hash_no     as overdue_user_hash_no,
+    bag_due.bag_date                as bag_date,
+    bag_due.bag_id                  as bag_id
   from (
     select
       *
@@ -93,7 +93,7 @@ loan_due as (
       from dim.bag_info
       where 1 > 0
         and bag_id in (${bag_id})
-        and '${ST9}' >= bag_due.bag_date
+        and bag_date <= '${ST9}'
     ) as bag_info
     inner join (
       select
@@ -109,88 +109,7 @@ loan_due as (
   and dw_abs.due_bill_no = bag_due.due_bill_no
 )
 
-
-
-loan_due as (
-  select
-    loan.biz_date                                        as biz_date,
-    loan.project_id                                      as project_id,
-    loan.due_bill_no                                     as due_bill_no,
-    customer.user_hash_no                                as user_hash_no,
-    loan.overdue_days                                    as overdue_days,
-    loan.is_first_overdue_day                            as is_first_overdue_day,
-    loan.overdue_principal                               as overdue_principal,
-    loan.overdue_remain_principal                        as overdue_remain_principal,
-    loan.overdue_due_bill_no                             as overdue_due_bill_no,
-    if(loan.overdue_days > 0,customer.user_hash_no,null) as overdue_user_hash_no,
-    loan.s_d_date                                        as s_d_date,
-    loan.e_d_date                                        as e_d_date,
-    bag_due.bag_id                                       as bag_id
-  from (
-    select
-      '${ST9}'                                                                                                        as biz_date,
-      project_id                                                                                                      as project_id,
-      due_bill_no                                                                                                     as due_bill_no,
-      remain_principal                                                                                                as remain_principal,
-      overdue_days                                                                                                    as overdue_days,
-      overdue_principal                                                                                               as overdue_principal,
-      overdue_date_start                                                                                              as overdue_date_start,
-      if(overdue_date_start = min(overdue_date_start) over(partition by project_id,due_bill_no,overdue_days),'y','n') as is_first_overdue_day,
-      if(overdue_days > 0,due_bill_no,null)                                                                           as overdue_due_bill_no,
-      if(overdue_days > 0,remain_principal,0)                                                                         as overdue_remain_principal,
-      s_d_date                                                                                                        as s_d_date,
-      e_d_date                                                                                                        as e_d_date
-    from ods.loan_info_abs
-    where 1 > 0
-      and s_d_date <= '${ST9}'
-
-    --   and project_id  = 'CL202011090089'
-    --   and due_bill_no = '1000001858' -- overdue_days >= 61
-    --   and overdue_days > 0
-    --   and overdue_days in (1,8,15,31,61,91,121,151,181)
-    -- order by s_d_date
-  ) as loan
-  join (
-    select
-      project_id,
-      due_bill_no,
-      user_hash_no
-    from ods.customer_info_abs
-  ) as customer
-  on  loan.project_id  = customer.project_id
-  and loan.due_bill_no = customer.due_bill_no
-  inner join (
-    select
-      bag_info.project_id,
-      bag_info.bag_id,
-      bag_info.bag_date,
-      bag_due.due_bill_no
-    from (
-      select
-        project_id,
-        bag_id,
-        bag_date
-      from dim.bag_info
-      where 1 > 0
-        and bag_id in (${bag_id})
-        and '${ST9}' >= bag_due.bag_date
-    ) as bag_info
-    inner join (
-      select
-        project_id,
-        bag_id,
-        due_bill_no
-      from dim.bag_due_bill_no
-    ) as bag_due
-    on  bag_info.project_id = bag_due.project_id
-    and bag_info.bag_id     = bag_due.bag_id
-  ) as bag_due
-  on  loan.project_id  = bag_due.project_id
-  and loan.due_bill_no = bag_due.due_bill_no
-)
-
-
--- insert overwrite table dm_eagle.abs_overdue_rate_day partition(biz_date,project_id,bag_id)
+insert overwrite table dm_eagle.abs_overdue_rate_day partition(biz_date,project_id,bag_id)
 select
   'y'                                                 as is_allbag,
   denominator.dpd_x                                   as dpd,
@@ -246,10 +165,25 @@ left join ( -- 累计分子
     sum(overdue_remain_principal) as overdue_remain_principal_once,
     count(overdue_due_bill_no)    as overdue_num_once,
     count(overdue_user_hash_no)   as overdue_person_num_once
-  from loan_due
+  from (
+    select
+      project_id,
+      bag_id,
+      due_bill_no,
+      overdue_date_start,
+      overdue_days_once,
+      overdue_remain_principal_once as overdue_remain_principal,
+      due_bill_no      as overdue_due_bill_no,
+      user_hash_no     as overdue_user_hash_no,
+      min(overdue_date_start) over(partition by project_id,bag_id,due_bill_no,overdue_days_once) as min_overdue_date_start
+    from loan_due
+    lateral view explode(dpd_map) dpd_maps as overdue_days_once,dpd_val
+    lateral view explode(map_from_str(dpd_val)) dpd_vals as overdue_date_start,overdue_remain_principal_once
+    where overdue_date_start >= bag_date
+  ) as tmp
   lateral view explode(
     split(concat_ws(',',
-      case overdue_days
+      case overdue_days_once
         when 1   then '1+'
         when 8   then '7+'
         when 15  then '14+'
@@ -260,7 +194,7 @@ left join ( -- 累计分子
         when 151 then '150+'
         else '180+'
       end,
-      case overdue_days
+      case overdue_days_once
         when 1   then '1_7'
         when 8   then '8_14'
         when 15  then '15_30'
@@ -271,10 +205,9 @@ left join ( -- 累计分子
         when 151 then '151_180'
         else null
       end
-    ),',')) dpd as dpd_x
-  where 1 > 0
-    and is_first_overdue_day = 'y'
-    and overdue_days in (1,8,15,31,61,91,121,151,181)
+    ),',')
+  ) dpd as dpd_x
+  where overdue_date_start = min_overdue_date_start
   group by project_id,dpd_x
 ) as molecular_once
 on  denominator.project_id = molecular_once.project_id
@@ -312,7 +245,6 @@ left join ( -- 当前分子
       end
     ),',')) dpd as dpd_x
   where 1 > 0
-    and biz_date between s_d_date and date_sub(e_d_date,1)
     and overdue_days > 0
   group by project_id,dpd_x
 ) as molecular_curr
@@ -350,132 +282,19 @@ left join ( -- 新增分子
         when 151 then '151_180'
         else null
       end
-    ),',')) dpd as dpd_x
+    ),',')
+  ) dpd as dpd_x
+  lateral view explode(dpd_map) dpd_maps as overdue_days_once,dpd_val
   where 1 > 0
-    and biz_date between s_d_date and date_sub(e_d_date,1)
     and overdue_days in (1,8,15,31,61,91,121,151,181)
-    and is_first_overdue_day = 'y'
+    and overdue_days = overdue_days_once
+    and size(map_keys(map_from_str(dpd_val))) = 1
+    and map_keys(map_from_str(dpd_val))[0] = date_sub(biz_date,cast(overdue_days as int) - 1)
   group by project_id,dpd_x
 ) as molecular_new
 on  denominator.project_id = molecular_new.project_id
 and denominator.dpd_x      = molecular_new.dpd_x
--- order by project_id,bag_id,cast(substring(dpd_x,0,if(dpd_x = 0,length(dpd_x),instr(dpd_x,'+') - 1)) as int),is_allbag
-limit 10
-;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
--- 封包时分母单个包
-with
--- 获取到多种dpd的码值
-dpds as (
-  -- select '0'       as dpd union all
-  select '1+'      as dpd union all
-  select '7+'      as dpd union all
-  select '14+'     as dpd union all
-  select '30+'     as dpd union all
-  select '60+'     as dpd union all
-  select '90+'     as dpd union all
-  select '120+'    as dpd union all
-  select '150+'    as dpd union all
-  select '1_7'     as dpd union all
-  select '8_14'    as dpd union all
-  select '15_30'   as dpd union all
-  select '31_60'   as dpd union all
-  select '61_90'   as dpd union all
-  select '91_120'  as dpd union all
-  select '121_150' as dpd union all
-  select '151_180' as dpd union all
-  select '180+'    as dpd
-),
-
-loan_due as (
-  select
-    loan.biz_date                                        as biz_date,
-    loan.project_id                                      as project_id,
-    loan.due_bill_no                                     as due_bill_no,
-    customer.user_hash_no                                as user_hash_no,
-    loan.overdue_days                                    as overdue_days,
-    loan.is_first_overdue_day                            as is_first_overdue_day,
-    loan.overdue_principal                               as overdue_principal,
-    loan.overdue_remain_principal                        as overdue_remain_principal,
-    loan.overdue_due_bill_no                             as overdue_due_bill_no,
-    if(loan.overdue_days > 0,customer.user_hash_no,null) as overdue_user_hash_no,
-    loan.s_d_date                                        as s_d_date,
-    loan.e_d_date                                        as e_d_date,
-    bag_due.bag_id                                       as bag_id
-  from (
-    select
-      '${ST9}'                                                                                                        as biz_date,
-      project_id                                                                                                      as project_id,
-      due_bill_no                                                                                                     as due_bill_no,
-      remain_principal                                                                                                as remain_principal,
-      overdue_days                                                                                                    as overdue_days,
-      overdue_principal                                                                                               as overdue_principal,
-      overdue_date_start                                                                                              as overdue_date_start,
-      if(overdue_date_start = min(overdue_date_start) over(partition by project_id,due_bill_no,overdue_days),'y','n') as is_first_overdue_day,
-      if(overdue_days > 0,due_bill_no,null)                                                                           as overdue_due_bill_no,
-      if(overdue_days > 0,remain_principal,0)                                                                         as overdue_remain_principal,
-      s_d_date                                                                                                        as s_d_date,
-      e_d_date                                                                                                        as e_d_date
-    from ods.loan_info_abs
-    where 1 > 0
-      and s_d_date <= '${ST9}'
-      -- and project_id  = 'CL202011090089'
-      -- and due_bill_no = '1000002321'
-  ) as loan
-  join (
-    select
-      project_id,
-      due_bill_no,
-      user_hash_no
-    from ods.customer_info_abs
-  ) as customer
-  on  loan.project_id  = customer.project_id
-  and loan.due_bill_no = customer.due_bill_no
-  inner join (
-    select
-      bag_info.project_id,
-      bag_info.bag_id,
-      bag_info.bag_date,
-      bag_due.due_bill_no
-    from (
-      select
-        project_id,
-        bag_id,
-        bag_date
-      from dim.bag_info
-      where 1 > 0
-        and bag_id in (${bag_id})
-    ) as bag_info
-    inner join (
-      select
-        project_id,
-        bag_id,
-        due_bill_no
-      from dim.bag_due_bill_no
-    ) as bag_due
-    on  bag_info.project_id = bag_due.project_id
-    and bag_info.bag_id     = bag_due.bag_id
-  ) as bag_due
-  on  loan.project_id  = bag_due.project_id
-  and loan.due_bill_no = bag_due.due_bill_no
-  and loan.e_d_date    > bag_due.bag_date
-)
-
-
-insert overwrite table dm_eagle.abs_overdue_rate_day partition(biz_date,project_id,bag_id)
+union all
 select
   'n'                                                 as is_allbag,
   denominator.dpd_x                                   as dpd,
@@ -534,10 +353,25 @@ left join ( -- 累计分子
     sum(overdue_remain_principal) as overdue_remain_principal_once,
     count(overdue_due_bill_no)    as overdue_num_once,
     count(overdue_user_hash_no)   as overdue_person_num_once
-  from loan_due
+  from  (
+    select
+      project_id,
+      bag_id,
+      due_bill_no,
+      overdue_date_start,
+      overdue_days_once,
+      overdue_remain_principal_once as overdue_remain_principal,
+      due_bill_no      as overdue_due_bill_no,
+      user_hash_no     as overdue_user_hash_no,
+      min(overdue_date_start) over(partition by project_id,bag_id,due_bill_no,overdue_days_once) as min_overdue_date_start
+    from loan_due
+    lateral view explode(dpd_map) dpd_maps as overdue_days_once,dpd_val
+    lateral view explode(map_from_str(dpd_val)) dpd_vals as overdue_date_start,overdue_remain_principal_once
+    where overdue_date_start >= bag_date
+  ) as tmp
   lateral view explode(
     split(concat_ws(',',
-      case overdue_days
+      case overdue_days_once
         when 1   then '1+'
         when 8   then '7+'
         when 15  then '14+'
@@ -548,7 +382,7 @@ left join ( -- 累计分子
         when 151 then '150+'
         else '180+'
       end,
-      case overdue_days
+      case overdue_days_once
         when 1   then '1_7'
         when 8   then '8_14'
         when 15  then '15_30'
@@ -558,10 +392,10 @@ left join ( -- 累计分子
         when 121 then '121_150'
         when 151 then '151_180'
         else null
-    ),',')) dpd as dpd_x
-  where 1 > 0
-    and is_first_overdue_day = 'y'
-    and overdue_days in (1,8,15,31,61,91,121,151,181)
+      end
+    ),',')
+  ) dpd as dpd_x
+  where overdue_date_start = min_overdue_date_start
   group by project_id,bag_id,dpd_x
 ) as molecular_once
 on  denominator.project_id = molecular_once.project_id
@@ -588,19 +422,19 @@ left join ( -- 当前分子
       if(overdue_days > 150,'150+',null),
       if(overdue_days > 180,'180+',null),
       case
-        when overdue_days between 1   and 7   then '1_7'
-        when overdue_days between 8   and 14  then '8_14'
-        when overdue_days between 15  and 30  then '15_30'
-        when overdue_days between 31  and 60  then '31_60'
-        when overdue_days between 61  and 90  then '61_90'
-        when overdue_days between 91  and 120 then '91_120'
-        when overdue_days between 121 and 150 then '121_150'
-        when overdue_days between 151 and 180 then '151_180'
+        when overdue_days > 180 then null
+        when overdue_days > 150 then '151_180'
+        when overdue_days > 120 then '121_150'
+        when overdue_days > 90  then '91_120'
+        when overdue_days > 60  then '61_90'
+        when overdue_days > 30  then '31_60'
+        when overdue_days > 14  then '15_30'
+        when overdue_days > 7   then '8_14'
+        when overdue_days > 0   then '1_7'
         else null
       end
     ),',')) dpd as dpd_x
   where 1 > 0
-    and biz_date between s_d_date and date_sub(e_d_date,1)
     and overdue_days > 0
   group by project_id,bag_id,dpd_x
 ) as molecular_curr
@@ -639,11 +473,15 @@ left join ( -- 新增分子
         when 121 then '121_150'
         when 151 then '151_180'
         else null
-    ),',')) dpd as dpd_x
+      end
+    ),',')
+  ) dpd as dpd_x
+  lateral view explode(dpd_map) dpd_maps as overdue_days_once,dpd_val
   where 1 > 0
-    and biz_date between s_d_date and date_sub(e_d_date,1)
     and overdue_days in (1,8,15,31,61,91,121,151,181)
-    and is_first_overdue_day = 'y'
+    and overdue_days = overdue_days_once
+    and size(map_keys(map_from_str(dpd_val))) = 1
+    and map_keys(map_from_str(dpd_val))[0] = date_sub(biz_date,cast(overdue_days as int))
   group by project_id,bag_id,dpd_x
 ) as molecular_new
 on  denominator.project_id = molecular_new.project_id

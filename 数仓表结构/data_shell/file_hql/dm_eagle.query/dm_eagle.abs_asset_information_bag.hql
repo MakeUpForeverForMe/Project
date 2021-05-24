@@ -83,7 +83,7 @@ select
   max(if(dw_abs.income_year = 0,(dw_abs.income_year_max + dw_abs.income_year_min) / 2,dw_abs.income_year) / dw_abs.remain_principal) as income_debt_ratio_max,
   min(if(dw_abs.income_year = 0,(dw_abs.income_year_max + dw_abs.income_year_min) / 2,dw_abs.income_year) / dw_abs.remain_principal) as income_debt_ratio_min,
   nvl(sum(if(dw_abs.income_year = 0,(dw_abs.income_year_max + dw_abs.income_year_min) / 2,dw_abs.income_year) / dw_abs.remain_principal) / count(dw_abs.due_bill_no),0) as income_debt_ratio_avg,
-  0                                                                                                                                  as income_debt_ratio_avg_weighted,
+  nvl(sum(dw_abs.remain_principal * (if(dw_abs.income_year = 0,(dw_abs.income_year_max + dw_abs.income_year_min) / 2,dw_abs.income_year) / bag_due.package_remain_principal)) / sum(dw_abs.remain_principal),0) as income_debt_ratio_avg_weighted,
   nvl(sum(if(dw_abs.guarantee_type = '抵押担保',dw_abs.remain_principal,0)),0)                                                       as pledged_asset_balance,
   count(if(dw_abs.guarantee_type = '抵押担保',dw_abs.due_bill_no,null))                                                              as pledged_asset_count,
   sum(if(dw_abs.guarantee_type = '抵押担保',dw_abs.remain_principal,0)) / sum(dw_abs.remain_principal)                               as pledged_asset_balance_ratio,
@@ -95,12 +95,13 @@ select
       * (nvl(if(dw_abs.guarantee_type  = '抵押担保',dw_abs.loan_init_principal,0) / if(dw_abs.guarantee_type = '抵押担保',dw_abs.pawn_value,0),0))
     ) / sum(if(dw_abs.guarantee_type = '抵押担保',dw_abs.remain_principal,0))
   ,0)                                                                                                                                as pledged_asset_rate_avg_weighted,
+  nvl(sum(dw_abs.loan_init_principal / (dw_abs.loan_init_principal + dw_abs.shoufu_amount) * dw_abs.remain_principal) / sum(dw_abs.remain_principal),0) as car_financing_rate_avg_weighted,
   dw_abs.biz_date                                                                                                                    as biz_date,
   bag_due.bag_id                                                                                                                     as bag_id
 from (
   select
     *
-  from dw.abs_due_info_day_new
+  from dw.abs_due_info_day_abs
   where 1 > 0
     and biz_date = '${ST9}'
     and project_id in (${project_id})
@@ -137,5 +138,5 @@ inner join (
 on  dw_abs.project_id  = bag_due.project_id
 and dw_abs.due_bill_no = bag_due.due_bill_no
 group by dw_abs.biz_date,dw_abs.project_id,bag_due.bag_id
-limit 10
+-- limit 10
 ;
