@@ -2,7 +2,10 @@
 
 . /etc/profile
 . ~/.bash_profile
+export LANG=zh_CN.UTF-8
 export HADOOP_CLIENT_OPTS="-Djline.terminal=jline.UnsupportedTerminal"
+
+trap 'fatal 脚本 $(basename "${BASH_SOURCE[0]}") 出现错误了，在第 $LINENO 行' ERR
 
 case $(ifconfig | grep -Po 'inet[ ]\K[^ ]+' | grep -v '127') in
   (10.80.* )
@@ -15,8 +18,8 @@ case $(ifconfig | grep -Po 'inet[ ]\K[^ ]+' | grep -v '127') in
     ;;
   (10.83.* )
     is_test=y
-    hive_host=node123:10000
-    impala_host=10.83.1.43:27000
+    hive_host=10.83.1.157:7001
+    impala_host=10.83.1.43:27001 # 或 10.83.1.121:27001
     abs_call_back_addr=10.83.0.69:8210
     ;;
 esac
@@ -137,4 +140,3 @@ asset_report_hql=$file_hql/asset_report.query
 
 # 变量设置
 declare -A tables
-root_level=DEBU

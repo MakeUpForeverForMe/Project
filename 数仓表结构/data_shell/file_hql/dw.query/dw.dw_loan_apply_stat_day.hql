@@ -56,11 +56,11 @@ from
 (select
   loan_terms,
   loan_apply_date                                             as loan_apply_date,
-  count(due_bill_no)                                          as loan_apply_num,
-  count(distinct user_hash_no)                                as loan_apply_num_person,
+  count(apply_id)                                            as loan_apply_num,
+  count(distinct user_hash_no)                               as loan_apply_num_person,
   sum(loan_amount_apply)                                      as loan_apply_amount,
   loan_approval_date                                          as loan_approval_date,
-  count(if(apply_status in (1,4),due_bill_no,null))           as loan_approval_num,
+  count(if(apply_status in (1,4),apply_id,null))             as loan_approval_num,
   count(distinct if(apply_status in (1,4),user_hash_no,null)) as loan_approval_num_person,
   sum(if(apply_status in (1,4),loan_amount_approval,0))       as loan_approval_amount,
   loan_apply_date                                             as biz_date,
@@ -101,7 +101,7 @@ select
     loan_terms,
     '${ST9}'                                                    as loan_apply_date,
     product_id,
-    count(due_bill_no)                                          as loan_apply_num_count,
+    count(apply_id)                                             as loan_apply_num_count,
     count(distinct user_hash_no)                                as loan_apply_num_person_count,
     sum(loan_amount_apply)                                      as loan_apply_amount_count
     from ods.loan_apply

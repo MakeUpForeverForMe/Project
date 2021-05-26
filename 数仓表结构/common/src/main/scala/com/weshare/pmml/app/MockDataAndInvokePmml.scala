@@ -3,9 +3,10 @@ package com.weshare.pmml.app
 import java.text.SimpleDateFormat
 import java.util.{Calendar, UUID}
 
+import com.weshare.data_check.Handler.MesHandler
 import com.weshare.pmml.dao.PmmlDaoImpl
 import com.weshare.pmml.domain.{PmmlMode, PmmlParam, Scheduler}
-import com.weshare.utils.PropertiesUtils
+import com.weshare.utils.{PropertiesUtils, SentMessage}
 import io.netty.util.internal.ThreadLocalRandom
 import org.apache.spark.sql.{SaveMode, SparkSession, functions}
 import org.json4s.jackson.Json
@@ -114,7 +115,8 @@ object MockDataAndInvokePmml {
       }
     }
     sparkSession.close()
-
+    //发送邮件通知
+    SentMessage.sendMessage(s"EMR-模型预测（project_id：${project_id}）,biz_date:${batchDate}","text",pro,"select * from flink_config.robot_person_info where isEnable=1")
 
   }
 

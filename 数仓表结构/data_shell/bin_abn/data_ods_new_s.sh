@@ -52,7 +52,8 @@ sh $data_manage -s ${s_date} -e ${e_date} -f $ods_new_s_hql/ods.repay_schedule.h
 echo -e "${date_a_aa:=$(date +'%F %T')} 资产 EMR ods_new_s ods_new_s层 结束 当前脚本进程ID为：$(pid)    用时：$(during "$date_a_aa" "$date_s_aa")\n\n" &>> $log
 
 {
-  sh $data_check_all ${s_date} ${e_date} ods_new_s &>> $log &
+  sh $data_check_all ${s_date} ${e_date} ods       &>> $log &
+  sh $data_check_all ${s_date} ${e_date} ods_stage &>> $log &
 } &
 
 # dm 层

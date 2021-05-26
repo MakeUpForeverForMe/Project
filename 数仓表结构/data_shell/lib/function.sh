@@ -70,32 +70,23 @@ u_l_l(){ echo ${1%%_*}; } # 取最左侧的 下划线 的左侧内容
 
 # 打印日志
 log_base(){
-  level(){
-    case $1 in
-      ( DEBU )  echo 1 ;;
-      ( INFO )  echo 2 ;;
-      ( WARN )  echo 3 ;;
-      ( ERRO )  echo 4 ;;
-      ( *    )  echo 9 ;;
-    esac
-  }
   log_level=$1 shift 1
   case $log_level in
-    ( DEBU )  level_color='\033[36m%4s\033[0m' ;;
-    ( INFO )  level_color='\033[32m%4s\033[0m' ;;
-    ( WARN )  level_color='\033[33m%4s\033[0m' ;;
-    ( ERRO )  level_color='\033[31m%4s\033[0m' ;;
-    ( *    )  echo "未匹配的日志级别"; exit 1   ;;
+    ( DEBU ) level=1 ; level_color='36' ;;
+    ( INFO ) level=2 ; level_color='32' ;;
+    ( WARN ) level=3 ; level_color='33' ;;
+    ( ERRO ) level=4 ; level_color='31' ;;
+    ( FATA ) level=5 ; level_color='35' ;;
+    ( *    ) level=9 ; fatal "未匹配的日志级别"; exit 1 ;;
   esac
-  [[ $(level $log_level) -ge $(level $root_level) ]] && {
-    printf "$(date +'%F %T') [ %-6s ] - [ $level_color ] %s\n" "$(pid)" "$log_level" "$*" 2>&1 | tee -a $log_file
-  }
+  printf "$(date +'%F %T') [ \033[${level_color}m${log_level}\033[0m ] - [ ${BASH_SOURCE[-1]} ] - [ %03d ] - [ %-6s ] %s\n" "${BASH_LINENO[-2]}" "$(pid)" "$*" 2>&1 | tee -a $log_file
 }
 
-debug(){ log_base DEBU "$*"; }
-info(){ log_base INFO "$*"; }
-warn(){ log_base WARN "$*"; }
-erro(){ log_base ERRO "$*"; }
+debug(){ log_base DEBU "$*" ; }
+info(){ log_base INFO "$*" ; }
+warn(){ log_base WARN "$*" ; }
+error(){ log_base ERRO "$*" 1>&2 ; exit 1 ; }
+fatal(){ log_base FATA "$*" 1>&2 ; exit 1 ; }
 
 
 # 获取两个时间之间的时长（不区分两个参数大小，返回都是正数）
@@ -114,7 +105,7 @@ during(){
 p_opera(){
   p_num=${1:-5}
   pids=(${pids[@]:-} $!)
-  echo '并行限制输出显示' '并行任务的数量：'${#pids[@]} '并行任务的数组下标：'${!pids[@]} '并行任务的PID：'${pids[@]}
+  echo '并行限制输出显示' '并行任务的数量：'${#pids[@]} '并行任务的数组下标：'${!pids[@]} '并行任务的PID：'${pids[@]} 1>&2
   while [[ ${#pids[@]} -ge $p_num ]]; do
     pids_old=(${pids[@]})
     pids=()
@@ -212,7 +203,7 @@ export_file_from_hive(){
 import_file_to_mysql(){
   fields=$(
     # 获取字段名
-    $impala -B --print_header --output_delimiter=',' -q "select * from ${db_tb} where false;" 2> /dev/null
+    $impala -B --print_header --output_delimiter=',' -q "select * from ${db_tb} where false;"
 
     # $beeline --hiveconf hive.resultset.use.unique.column.names=false --color=true \
     # --outputformat=csv2 -e "select * from ${db_tb} where false;" 2> /dev/null

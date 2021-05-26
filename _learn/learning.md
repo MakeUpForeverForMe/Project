@@ -44,6 +44,8 @@
 | node47  | linux | 10.83.0.47                                      | root   | `(Ob!)Y#G3Anf`     |      |
 | node123 | linux | 10.83.0.123                                     | root   | `(Ob!)Y#G3Anf`     |      |
 | node129 | linux | 10.83.0.129                                     | root   | `(Ob!)Y#G3Anf`     |      |
+| master  | linux | 10.83.1.157                                     | root   | `Ws@Test!@E1#`     |      |
+| master  | linux | 10.83.1.157                                     | hadoop | `Ws@2021@Test`     |      |
 | cm6     | web   | http://10.83.0.47:7180/cmf/home                 | admin  | `admin`            |      |
 | hue6    | web   | http://10.83.0.123:8889/hue/editor/?type=impala | admin  | `admin`            |      |
 
@@ -108,17 +110,14 @@
 # 2、命令脚本操作
 ## 2.1 Shell 命令
 ### 2.1.1 基础 Shell 命令
+#### 2.1.1.1 新服务器添加以下操作 /etc/profile
 ```shell
-#!/bin/bash -e
-
-. /etc/profile
-. ~/.bash_profile
-export LANG=zh_CN.UTF-8
-
-base_dir=$(dirname "${BASH_SOURCE[0]}")
-
-# 添加启动视图
-# /etc/motd
+export TIME_STYLE='+%F %T'      # 设置系统默认时间格式为：yyyy-MM-dd HH:mm:ss
+alias ll='ls -lh --color=auto'  # 修改 ll 命令带有文件大小
+alias la='ll -A'                # 设置 la 命令可以查看到隐藏文件
+```
+#### 2.1.1.2 添加启动视图  /etc/motd
+```shell
                    _ooOoo_
                   o8888888o
                   88" . "88
@@ -142,18 +141,23 @@ base_dir=$(dirname "${BASH_SOURCE[0]}")
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
            佛祖保佑       永不死机
            心外无法       法外无心
-
+```
+#### 2.1.1.3 查看磁盘和文件大小
+```shell
 # 查看磁盘大小及使用率
 df -h
-
 # 查看当前目录下每个文件夹的大小
 du -sh *
+```
+#### 2.1.1.4 创建脚本后添加内容
+```shell
+#!/usr/bin/env bash
 
-# 添加基础操作命令
-# /etc/profile
-export TIME_STYLE='+%F %T'      # 设置系统默认时间格式为：yyyy-MM-dd HH:mm:ss
-alias ll='ls -lh --color=auto'  # 修改 ll 命令带有文件大小
-alias la='ll -A'                # 设置 la 命令可以查看到隐藏文件
+. /etc/profile
+. ~/.bash_profile
+export LANG=zh_CN.UTF-8
+
+base_dir=$(dirname "${BASH_SOURCE[0]}")
 ```
 
 ### 2.1.2 Shell 命令的练习
@@ -654,6 +658,9 @@ curl -v -G      http://10.10.18.48:60000/robot -H 'Content-Type:text/json; chars
 '
 ```
 
+### 2.1.17 Shell 中 jq 命令
+```shell
+```
 
 
 ## 2.2 Kafka 命令

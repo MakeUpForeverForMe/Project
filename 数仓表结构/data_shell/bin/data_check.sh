@@ -3,6 +3,9 @@
 . ${data_check_dir:=$(cd `dirname "${BASH_SOURCE[0]}"`;pwd)}/../conf_env/env.sh
 . $lib/function.sh
 
+trap 'rm -f "$temp_file"' EXIT
+
+
 q_file=$1
 s_date=${2:-'2020-06-01'}
 e_date=${3:-$(date -d '-1 day' +%F)}
@@ -29,5 +32,3 @@ for (( i = $(date -d "$s_date" +%s); $i <= $(date -d "$e_date" +%s); i = $(date 
   $impala --var=ST9=$date_st9 --var=db_suffix=$db_suffix --var=tb_suffix=$tb_suffix -f $q_file 2> $temp_file
   [[ $? != 0 ]] && { cat $temp_file 1>&2; exit 1; }
 done
-
-trap $(rm -f $temp_file) 1 2 9 15 19 20

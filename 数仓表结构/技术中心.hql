@@ -15841,29 +15841,6 @@ where 1 > 0
 ;
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 select
   project_id,
   due_bill_no,
@@ -15879,11 +15856,6 @@ limit 10
 ;
 
 
-
-
-
-
-
 select
   project_name,
   project_full_name,
@@ -15891,13 +15863,48 @@ select
 from dim.project_info
 where 1 > 0
   and project_id in (
-    'CL202104020104',
-    'CL202104160106',
-    'CL202104300107',
-    'CL202105060108',
+    -- 'CL202104020104',
+    -- 'CL202104160106',
+    -- 'CL202104300107',
+    -- 'CL202105060108',
+    'CL202102240099',
     ''
   )
 ;
+
+
+select biz_date from dm_eagle.abs_asset_information_project where project_id = 'CL202104010103' order by biz_date desc limit 10;
+
+
+select biz_date from dm_eagle.abs_overdue_rate_day where project_id = 'CL202102240099' order by biz_date desc limit 10;
+
+
+select * from ods.t_07_actualrepayinfo
+where project_id = 'CL202102240099'
+and serial_number = '1103551057'
+limit 10;
+
+
+
+
+select * from dim.project_due_bill_no
+where project_id = 'CL202102240099'
+limit 10;
+
+
+select * from dm_eagle.abs_early_payment_asset_statistic where project_id = 'CL202102010097' limit 10;
+
+
+select * from ods.t_10_basic_asset limit 10;
+
+
+select *
+from dim.dim_date as a
+join ods.loan_info as b
+on a.biz_date between b.s_d_date and b.e_d_date
+limit 10;
+
+
 
 
 

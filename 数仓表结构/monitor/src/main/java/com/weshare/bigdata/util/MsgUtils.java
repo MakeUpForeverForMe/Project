@@ -82,7 +82,43 @@ public class MsgUtils {
                 .append("}");
         return buffer.toString();
     }
+    public static String initMsgInfo(String context, String type,String user_phones,int isWarning){
+        StringBuffer buffer = new StringBuffer();
+        StringBuffer phoneBuffer = new StringBuffer();
+        String warning="@all";
+        Arrays.stream(user_phones.split(",")).forEach(it->{
+            phoneBuffer.append("\"").append(it).append("\"").append(",");
 
+        });
+        if(StringUtils.endsWith(phoneBuffer.toString(),",")){
+            warning=phoneBuffer.toString().substring(0,phoneBuffer.toString().lastIndexOf(","));
+        }
+        buffer.append("{").append("\n");
+        if(isWarning==0){
+            warning="";
+        }
+        switch (type) {
+            case "markdown":{
+                buffer.append("\"msgtype\":\"text\"").append(",").append("\n");
+                buffer.append("\"text\":{").append("\n");
+                buffer.append("\"content\":").append("\"").append(context).append("\"").append("\n");
+                break;
+            }
+            case "text":
+            {
+
+                buffer.append("\"msgtype\":\"text\"").append(",").append("\n");
+                buffer.append("\"text\":{").append("\n");
+                buffer.append("\"content\":").append("\"").append(context).append("\"").append(",").append("\n");
+                buffer.append("\"mentioned_list\":["+warning+"]").append(",").append("\n");
+                buffer.append("\"mentioned_mobile_list\":["+warning+"]").append("\n");
+                break;
+            }
+        }
+        buffer.append("}").append("\n")
+                .append("}");
+        return buffer.toString();
+    }
     /**
      * 发送消息给机器人
      */
@@ -95,6 +131,13 @@ public class MsgUtils {
         });
     }
 
-
+    public static void sendMessage(String context, String type, Properties pro,int isWarning) throws Exception {
+        List<RobootRerson> allRobootRerson = getAllRobootRerson(pro);
+        allRobootRerson.forEach(it->{
+            String msg = initMsgInfo(context, type,it.getUser_phones(),isWarning);
+            System.out.println(msg);
+            HTTPUtils.sendPost(it.getHookurl(),msg);
+        });
+    }
 
 }

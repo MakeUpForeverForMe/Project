@@ -25,7 +25,7 @@ set hive.auto.convert.join.noconditionaltask=false;
 
 
 
--- set hivevar:ST9=2021-05-12;
+-- set hivevar:ST9=2021-05-20;
 -- set hivevar:bag_id=
 --   select distinct bag_id
 --   from dim.bag_info

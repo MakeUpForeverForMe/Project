@@ -216,8 +216,6 @@ where dim_encrypt is not null
 
 
 
-
-
 -- 校验平台流水表
 insert into table dim.dim_encrypt_info
 select dim_encrypt,dim_decrypt
@@ -326,6 +324,69 @@ lateral view explode (map(
   sha256(col_7,'idNumber',         1),col_7,
   sha256(col_8,'phone',            1),col_8,
   sha256(col_9,'phone',            1),col_9
+)) tbl_map as dim_encrypt,dim_decrypt
+where dim_encrypt is not null
+-- limit 10
+;
+
+
+
+
+
+
+
+-- 百度医美
+msck repair table stage.kafka_credit_msg;
+insert into table dim.dim_encrypt_info
+select dim_encrypt,dim_decrypt
+from (
+  select
+    reqdata["idNo"]     as col_1,
+    reqdata["custName"] as col_2,
+    reqdata["phoneNo"]  as col_3,
+    reqdata["phoneNo"]  as col_4,
+    reqdata["idAddr"]   as col_5
+  from stage.kafka_credit_msg
+  where batch_date = '${ST9}'
+  and p_type = 'WS0012200001'
+) as log
+lateral view explode (map(
+  sha256(col_1,'idNumber',1),col_1,
+  sha256(col_2,'userName',1),col_2,
+  sha256(col_3,'phone',   1),col_3,
+  sha256(col_4,'phone',   1),col_4,
+  sha256(col_5,'address', 1),col_5
+)) tbl_map as dim_encrypt,dim_decrypt
+where dim_encrypt is not null
+-- limit 10
+;
+
+
+
+
+
+
+
+-- 乐信云信
+insert into table dim.dim_encrypt_info
+select dim_encrypt,dim_decrypt
+from (
+  select
+    reqdata["idNo"]     as col_1,
+    reqdata["custName"] as col_2,
+    reqdata["phoneNo"]  as col_3,
+    reqdata["phoneNo"]  as col_4,
+    reqdata["idAddr"]   as col_5
+  from stage.kafka_credit_msg
+  where batch_date = '${ST9}'
+    and p_type = 'WS0013200001'
+) as log
+lateral view explode (map(
+  sha256(col_1,'idNumber',1),col_1,
+  sha256(col_2,'userName',1),col_2,
+  sha256(col_3,'phone',   1),col_3,
+  sha256(col_4,'phone',   1),col_4,
+  sha256(col_5,'address', 1),col_5
 )) tbl_map as dim_encrypt,dim_decrypt
 where dim_encrypt is not null
 -- limit 10

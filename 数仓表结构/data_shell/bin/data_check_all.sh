@@ -3,6 +3,8 @@
 . ${data_check_all_dir:=$(cd `dirname "${BASH_SOURCE[0]}"`;pwd)}/../conf_env/env.sh
 . $lib/function.sh
 
+trap 'rm -f "$log1" "$log2"' EXIT
+
 aa=$1 # 传入校验的开始日期
 bb=$2 # 传入校验的结束日期
 cc=$3 # 传入校验的文件类别
@@ -35,6 +37,4 @@ for check_file in $file_check/$cc.*.hql; do
 
   [[ -s $log1 ]] && send_mail $(s_r_r $check_file) '前' "$(cat $log1)"
   [[ -s $log2 ]] && send_mail $(s_r_r $check_file) '后' "$(cat $log2)"
-
-  trap $(rm -f $log1 $log2) 1 2 9 15 19 20
 done

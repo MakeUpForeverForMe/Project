@@ -301,7 +301,7 @@ for line in results:
 
 
 file_path = "D:\\Users\\ximing.wei\\Desktop\\数仓 表设计.xlsx"
-after = '字段规范与解释'
+after = '案例与字段解释'
 """ 打开 Excel """
 excel = xlwings.Book(file_path)
 """ 获取 Excel 程序对象 """

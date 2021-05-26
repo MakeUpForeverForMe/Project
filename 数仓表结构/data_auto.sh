@@ -1462,11 +1462,11 @@ close_queries=$(echo $html | xmllint --html --xpath '//h3[2]/text()' - 2> /dev/n
 host=10.80.1.67
 
 host_list=(
-  # 10.80.240.5
-  # 10.80.240.7
+  10.80.240.5
+  10.80.240.7
 
-  # 10.80.1.13
-  # 10.80.1.43
+  10.80.1.13
+  10.80.1.43
   10.80.1.67
 )
 
@@ -1490,22 +1490,22 @@ for host in ${host_list[@]}; do
 
 
   # 再查看是否有程序在运行
-  flight_queries=$(echo $html | xmllint --html --xpath '//h3[1]/text()' - 2> /dev/null | sed '/^\s*$/d' | grep -Po '\K[\d]+')
+  # flight_queries=$(echo $html | xmllint --html --xpath '//h3[1]/text()' - 2> /dev/null | sed '/^\s*$/d' | grep -Po '\K[\d]+')
 
-  [[ $flight_queries != 0 ]] && {
-    flight_stat=$(echo $html | xmllint --html --xpath '//table[1]/tr/td[samp][3]/samp/text()' - 2> /dev/null)
-    echo "#---------------------------------------- $host  flight_stat  stat  $flight_stat ----------------------------------------#"
+  # [[ $flight_queries != 0 ]] && {
+  #   flight_stat=$(echo $html | xmllint --html --xpath '//table[1]/tr/td[samp][3]/samp/text()' - 2> /dev/null)
+  #   echo "#---------------------------------------- $host  flight_stat  stat  $flight_stat ----------------------------------------#"
 
-    href_list=($(echo $html | xmllint --html --xpath '//table[1]/tr/td[a="Cancel"]/a/@href' - 2> /dev/null | grep -Po 'href[=" /]+\K[\w?=:]*'))
+  #   href_list=($(echo $html | xmllint --html --xpath '//table[1]/tr/td[a="Cancel"]/a/@href' - 2> /dev/null | grep -Po 'href[=" /]+\K[\w?=:]*'))
 
-    for href in ${href_list[@]}; do
-      echo "#---------------------------------------- $host  flight_stat  Cancel  $href ----------------------------------------#"
-      # html=$(curl http://$host:27004/$href 2> /dev/null)
-      [[ $flight_stat = 'CREATED' ]] && {
-        echo $html | xmllint --html --xpath '//div[strong]/text()' - 2> /dev/null
-      }
-    done
-  } || echo '没有在运行的程序'
+  #   for href in ${href_list[@]}; do
+  #     echo "#---------------------------------------- $host  flight_stat  Cancel  $href ----------------------------------------#"
+  #     # html=$(curl http://$host:27004/$href 2> /dev/null)
+  #     [[ $flight_stat = 'CREATED' ]] && {
+  #       echo $html | xmllint --html --xpath '//div[strong]/text()' - 2> /dev/null
+  #     }
+  #   done
+  # } || echo '没有在运行的程序'
 done
 
 
@@ -1570,6 +1570,44 @@ for host in ${host_list[@]}; do
   "
   echo "#----------------------- '$host' ssh end -----------------------#"
   echo
+done
+
+
+
+
+
+
+
+source conf_env/env.sh
+source lib/function.sh
+
+db=dm_eagle
+tb=abs_early_payment_asset_statistic
+
+partitions=(
+  $(
+    beeline -n hadoop \
+    -u "jdbc:hive2://10.80.0.46:2181,10.80.0.255:2181,10.80.1.113:2181/;serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=hiveserver2" \
+    --showHeader=false \
+    --outputformat=tsv2 \
+    -e "show partitions ${db}.${tb};"
+  )
+)
+
+
+dd_date=''
+for partition in ${partitions[@]}; do
+  biz_date=$(e_r_r $(s_l_l $partition))
+  [[ $biz_date = $dd_date ]] && continue
+  [[ $(date -d "$biz_date" +%Y%m%d) -ge $(date -d "2021-05-16" +%Y%m%d) ]] && break
+  dd_date=$biz_date
+
+  # echo $biz_date &
+
+  beeline -n hadoop -u "jdbc:hive2://10.80.0.46:2181,10.80.0.255:2181,10.80.1.113:2181/;serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=hiveserver2" \
+  -e "ALTER TABLE ${db}.${tb} DROP IF EXISTS PARTITION (biz_date = '$biz_date');" &
+
+  p_opera 20 2> /dev/null
 done
 
 
