@@ -23,7 +23,7 @@ set hive.vectorized.execution.reduce.groupby.enabled=false;
 
 set hive.exec.parallel=true;
 set hive.exec.parallel.thread.number=10;
- 
+
 
 
 

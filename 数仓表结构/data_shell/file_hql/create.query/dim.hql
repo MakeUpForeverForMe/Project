@@ -255,8 +255,7 @@ CREATE TABLE IF NOT EXISTS `dim.project_info`(
   `update_time`                   string         COMMENT '更新时间'
 ) COMMENT '项目属性'
 PARTITIONED BY (`project_id` string COMMENT '项目编号')
-ROW FORMAT DELIMITED FIELDS TERMINATED BY ','
-STORED AS TEXTFILE;
+STORED AS PARQUET;
 
 
 -- 项目借据映射
@@ -268,8 +267,7 @@ CREATE TABLE IF NOT EXISTS `dim.project_due_bill_no`(
   `partition_id`                  string         COMMENT '数据分区编号'
 ) COMMENT '项目借据映射'
 PARTITIONED BY (`project_id` string COMMENT '项目编号',`import_id` string COMMENT '导入Id')
-ROW FORMAT DELIMITED FIELDS TERMINATED BY ','
-STORED AS TEXTFILE;
+STORED AS PARQUET;
 
 
 -- 包属性
@@ -283,8 +281,7 @@ CREATE TABLE IF NOT EXISTS `dim.bag_info`(
   `insert_date`                   string         COMMENT '封包操作日期'
 ) COMMENT '包属性'
 PARTITIONED BY (`bag_id` string COMMENT '包编号')
-ROW FORMAT DELIMITED FIELDS TERMINATED BY ','
-STORED AS TEXTFILE;
+STORED AS PARQUET;
 
 
 -- 包借据映射
@@ -296,8 +293,7 @@ CREATE TABLE IF NOT EXISTS `dim.bag_due_bill_no`(
   `package_remain_periods`        int            COMMENT '封包时剩余期数'
 ) COMMENT '包借据映射'
 PARTITIONED BY (`bag_id` string COMMENT '包编号')
-ROW FORMAT DELIMITED FIELDS TERMINATED BY ','
-STORED AS TEXTFILE;
+STORED AS PARQUET;
 
 
 
