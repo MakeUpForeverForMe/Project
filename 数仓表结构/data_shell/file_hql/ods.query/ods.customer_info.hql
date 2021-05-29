@@ -19,7 +19,7 @@ set hive.exec.max.dynamic.partitions.pernode=50000;
 set hive.vectorized.execution.enabled=false;
 set hive.vectorized.execution.reduce.enabled=false;
 set hive.vectorized.execution.reduce.groupby.enabled=false;
-
+--set hivevar:ST9=2021-05-25;
 
 
 
@@ -270,8 +270,8 @@ from (
       resident_city,
       resident_county,
       job_type,
-      income_year_max,
-      income_year_min,
+      cast(income_year_max as decimal(25,5)) as income_year_max,
+      cast(income_year_min as decimal(25,5)) as income_year_min,
       idcard_area,
       company_loan_bool,
       product_id

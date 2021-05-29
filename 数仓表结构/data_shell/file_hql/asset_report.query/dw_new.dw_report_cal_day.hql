@@ -84,7 +84,7 @@ sum(if(overdue_days=31,remain_interest,0)) as static_acc_30_iner,
 sum(if(overdue_days=91,if(remain_principal is null,0,remain_principal)+if(remain_interest is null,0,remain_interest),0)) as static_acc_90_amount,
 sum(if(overdue_days=91,remain_principal,0)) as static_acc_90_prin,
 sum(if(overdue_days=91,remain_interest,0)) as static_acc_90_iner
-from dim_new.dim_static_overdue_bill where prj_type in ('LXGM','LXZT','LXGM2') and biz_date<= '${ST9}' and overdue_days in (31,91)
+from dim_new.dim_static_overdue_bill where prj_type in ('LXGM','LXZT','LXGM2') and biz_date<= '${ST9}' and cast(overdue_days as int) in (31,91)
 group by  product_id
 )static_over_amount on  biz_conf.product_id = static_over_amount.product_id
 left join
@@ -105,7 +105,7 @@ sum(if(schedule.paid_out_date>=static_loan.biz_date and overdue_days=91,if(sched
 sum(if(schedule.paid_out_date>=static_loan.biz_date and overdue_days=91,if(schedule.paid_interest is not null,schedule.paid_interest,0),0)) as m4plus_recover_inter_acc
 from
 (
-select * from   dim_new.dim_static_overdue_bill where biz_date<='${ST9}' and prj_type in ('LXGM','LXZT','LXGM2')  and overdue_days in (31,91)
+select * from   dim_new.dim_static_overdue_bill where biz_date<='${ST9}' and prj_type in ('LXGM','LXZT','LXGM2')  and cast(overdue_days as int) in (31,91)
 )static_loan inner join
 (
 select
@@ -148,7 +148,7 @@ left join (
     sum(remain_principal)  as overdue_remain_principal
     from ods_new_s.loan_info
     where "${ST9}" between s_d_date and date_sub(e_d_date,1)
-    and overdue_days>=30 and loan_status='O' and product_id in (${product_id_list})
+    and cast(overdue_days as int)>=30 and loan_status='O' and product_id in (${product_id_list})
     and nvl(paid_out_type,"normal")!='BUY_BACK'
     group by product_id
 )loan_over on biz_conf.product_id=loan_over.product_id
@@ -175,7 +175,7 @@ left join(
             from ods_new_s.loan_info
             where
             "${ST9}" between s_d_date and date_sub(e_d_date,1)
-            and overdue_days>=180
+            and cast(overdue_days as int)>=180
             and product_id in (${product_id_list})
          )loan on schedule.due_bill_no=loan.due_bill_no
          group by loan.product_id
