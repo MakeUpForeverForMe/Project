@@ -658,6 +658,7 @@ STORED AS PARQUET;
 
 -- DROP VIEW IF EXISTS `ods.customer_info_abs`;
 CREATE VIEW IF NOT EXISTS `ods.customer_info_abs`(
+  `apply_id`                           COMMENT '申请编号',
   `due_bill_no`                        COMMENT '借据号',
   `cust_id`                            COMMENT '客户编号',
   `user_hash_no`                       COMMENT '用户编号',
@@ -704,6 +705,7 @@ CREATE VIEW IF NOT EXISTS `ods.customer_info_abs`(
   `product_id`                         COMMENT '产品编号',
   `project_id`                         COMMENT '项目编号'
 ) COMMENT '客户信息表' AS select
+  t1.apply_id          as apply_id,
   t1.due_bill_no       as due_bill_no,
   t1.cust_id           as cust_id,
   t1.user_hash_no      as user_hash_no,
@@ -1536,6 +1538,9 @@ CREATE VIEW IF NOT EXISTS `ods.t_05_repaymentplan`(
   e_d_date                                                                                    as e_d_date
 from ods.repay_schedule_abs
 where effective_date between s_d_date and date_sub(e_d_date,1);
+
+
+
 
 
 -- DROP TABLE IF EXISTS `ods.t_07_actualrepayinfo`;

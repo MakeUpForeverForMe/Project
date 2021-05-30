@@ -1,7 +1,5 @@
 package com.weshare.utils;
 
-import org.apache.hadoop.io.Text;
-
 import java.util.HashMap;
 import java.util.Map;
 

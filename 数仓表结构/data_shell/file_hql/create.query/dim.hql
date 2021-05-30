@@ -308,6 +308,9 @@ STORED AS PARQUET;
 -- DROP DATABASE IF EXISTS `hivemetastore`;
 CREATE DATABASE IF NOT EXISTS `hivemetastore` COMMENT 'Hive 元数据库';
 
+set hivevar:ip=10.80.1.104; set hivevar:user='root'; set hivevar:pass='Ws@ProEmr1QSC@'; set hivevar:db=hivemetastore; -- 生产
+set hivevar:ip=10.83.1.138; set hivevar:user='root'; set hivevar:pass='Ws@Test!@E1#';   set hivevar:db=hivemetastore;   -- 测试
+
 
 -- DROP TABLE IF EXISTS `hivemetastore.dbs`;
 CREATE EXTERNAL TABLE IF NOT EXISTS `hivemetastore.dbs`(
@@ -323,9 +326,9 @@ STORED BY 'org.apache.hive.storage.jdbc.JdbcStorageHandler'
 TBLPROPERTIES (
   "hive.sql.database.type"  = "MYSQL",
   "hive.sql.jdbc.driver"    = "com.mysql.jdbc.Driver",
-  "hive.sql.jdbc.url"       = "jdbc:mysql://10.80.1.104/hivemetastore",
-  "hive.sql.dbcp.username"  = "root",
-  "hive.sql.dbcp.password"  = "Ws@ProEmr1QSC@",
+  "hive.sql.jdbc.url"       = "jdbc:mysql://${ip}/${db}",
+  "hive.sql.dbcp.username"  = ${user},
+  "hive.sql.dbcp.password"  = ${pass},
   "hive.sql.table"          = "DBS",
   "hive.sql.dbcp.maxActive" = "1"
 );
@@ -351,9 +354,9 @@ STORED BY 'org.apache.hive.storage.jdbc.JdbcStorageHandler'
 TBLPROPERTIES (
   "hive.sql.database.type"  = "MYSQL",
   "hive.sql.jdbc.driver"    = "com.mysql.jdbc.Driver",
-  "hive.sql.jdbc.url"       = "jdbc:mysql://10.80.1.104/hivemetastore",
-  "hive.sql.dbcp.username"  = "root",
-  "hive.sql.dbcp.password"  = "Ws@ProEmr1QSC@",
+  "hive.sql.jdbc.url"       = "jdbc:mysql://${ip}/${db}",
+  "hive.sql.dbcp.username"  = ${user},
+  "hive.sql.dbcp.password"  = ${pass},
   "hive.sql.table"          = "TBLS",
   "hive.sql.dbcp.maxActive" = "1"
 );
@@ -369,9 +372,9 @@ STORED BY 'org.apache.hive.storage.jdbc.JdbcStorageHandler'
 TBLPROPERTIES (
   "hive.sql.database.type"  = "MYSQL",
   "hive.sql.jdbc.driver"    = "com.mysql.jdbc.Driver",
-  "hive.sql.jdbc.url"       = "jdbc:mysql://10.80.1.104/hivemetastore",
-  "hive.sql.dbcp.username"  = "root",
-  "hive.sql.dbcp.password"  = "Ws@ProEmr1QSC@",
+  "hive.sql.jdbc.url"       = "jdbc:mysql://${ip}/${db}",
+  "hive.sql.dbcp.username"  = ${user},
+  "hive.sql.dbcp.password"  = ${pass},
   "hive.sql.table"          = "TABLE_PARAMS",
   "hive.sql.dbcp.maxActive" = "1"
 );
@@ -393,9 +396,9 @@ STORED BY 'org.apache.hive.storage.jdbc.JdbcStorageHandler'
 TBLPROPERTIES (
   "hive.sql.database.type"  = "MYSQL",
   "hive.sql.jdbc.driver"    = "com.mysql.jdbc.Driver",
-  "hive.sql.jdbc.url"       = "jdbc:mysql://10.80.1.104/hivemetastore",
-  "hive.sql.dbcp.username"  = "root",
-  "hive.sql.dbcp.password"  = "Ws@ProEmr1QSC@",
+  "hive.sql.jdbc.url"       = "jdbc:mysql://${ip}/${db}",
+  "hive.sql.dbcp.username"  = ${user},
+  "hive.sql.dbcp.password"  = ${pass},
   "hive.sql.table"          = "SDS",
   "hive.sql.dbcp.maxActive" = "1"
 );
@@ -413,9 +416,9 @@ STORED BY 'org.apache.hive.storage.jdbc.JdbcStorageHandler'
 TBLPROPERTIES (
   "hive.sql.database.type"  = "MYSQL",
   "hive.sql.jdbc.driver"    = "com.mysql.jdbc.Driver",
-  "hive.sql.jdbc.url"       = "jdbc:mysql://10.80.1.104/hivemetastore",
-  "hive.sql.dbcp.username"  = "root",
-  "hive.sql.dbcp.password"  = "Ws@ProEmr1QSC@",
+  "hive.sql.jdbc.url"       = "jdbc:mysql://${ip}/${db}",
+  "hive.sql.dbcp.username"  = ${user},
+  "hive.sql.dbcp.password"  = ${pass},
   "hive.sql.table"          = "COLUMNS_V2",
   "hive.sql.dbcp.maxActive" = "1"
 );
@@ -433,9 +436,9 @@ STORED BY 'org.apache.hive.storage.jdbc.JdbcStorageHandler'
 TBLPROPERTIES (
   "hive.sql.database.type"  = "MYSQL",
   "hive.sql.jdbc.driver"    = "com.mysql.jdbc.Driver",
-  "hive.sql.jdbc.url"       = "jdbc:mysql://10.80.1.104/hivemetastore",
-  "hive.sql.dbcp.username"  = "root",
-  "hive.sql.dbcp.password"  = "Ws@ProEmr1QSC@",
+  "hive.sql.jdbc.url"       = "jdbc:mysql://${ip}/${db}",
+  "hive.sql.dbcp.username"  = ${user},
+  "hive.sql.dbcp.password"  = ${pass},
   "hive.sql.table"          = "PARTITION_KEYS",
   "hive.sql.dbcp.maxActive" = "1"
 );
@@ -458,20 +461,20 @@ select
 from (
   select
     db.name           as db_name,
-    db.desc           as db_comm,
+    db.`desc`         as db_comm,
     tb.tbl_type       as tb_type,
     tb.tbl_name       as tb_name,
-    tbl_param.comment as tb_comm,
+    tbl_param.comm    as tb_comm,
     col.column_name   as col_name,
     col.type_name     as col_type,
-    col.comment       as col_comm,
+    col.`comment`     as col_comm,
     col.integer_idx   as col_index,
     0                 as col
   from (
     select
       db_id,
       name,
-      desc
+      `desc`
     from hivemetastore.dbs
     where name in (
       'dim',
@@ -495,7 +498,7 @@ from (
   left join (
     select
       tbl_id,
-      max(if(param_key = 'comment',param_value,null)) as comment
+      max(if(param_key = 'comment',param_value,null)) as comm
     from hivemetastore.table_params
     group by tbl_id
   ) as tbl_param
@@ -512,7 +515,7 @@ from (
       cd_id,
       column_name,
       type_name,
-      comment,
+      `comment`,
       integer_idx
     from hivemetastore.columns_v2
   ) as col
@@ -520,10 +523,10 @@ from (
   union all
   select
     db.name           as db_name,
-    db.desc           as db_comm,
+    db.`desc`         as db_comm,
     tb.tbl_type       as tb_type,
     tb.tbl_name       as tb_name,
-    tbl_param.comment as tb_comm,
+    tbl_param.comm    as tb_comm,
     part.pkey_name    as col_name,
     part.pkey_type    as col_type,
     part.pkey_comment as col_comm,
@@ -533,7 +536,7 @@ from (
     select
       db_id,
       name,
-      desc
+      `desc`
     from hivemetastore.dbs
     where name in (
       'dim',
@@ -557,7 +560,7 @@ from (
   left join (
     select
       tbl_id,
-      max(if(param_key = 'comment',param_value,null)) as comment
+      max(if(param_key = 'comment',param_value,null)) as comm
     from hivemetastore.table_params
     group by tbl_id
   ) as tbl_param

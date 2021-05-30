@@ -1,5 +1,8 @@
+set hivevar:warehouse=cosn://bigdatacenter-sit-1253824322/user/hadoop/warehouse;   -- 测试
+set hivevar:warehouse=cosn://bigdata-center-prod-1253824322/user/hadoop/warehouse; -- 生产
+
 -- DROP DATABASE IF EXISTS `stage`;
-CREATE DATABASE IF NOT EXISTS `stage` COMMENT '数据缓冲层' location 'cosn://bigdata-center-prod-1253824322/user/hadoop/warehouse/stage.db';
+CREATE DATABASE IF NOT EXISTS `stage` COMMENT '数据缓冲层' location '${warehouse}/stage.db';
 
 
 

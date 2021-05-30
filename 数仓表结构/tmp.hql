@@ -1257,6 +1257,8 @@ set spark.executor.memoryOverhead=4g;
 
 
 
+set mapreduce.job.counters.limit=200;
+set tez.counters.max=1000;
 
 
 set tez.am.container.reuse.enabled=false;

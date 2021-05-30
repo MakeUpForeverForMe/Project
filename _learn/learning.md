@@ -78,6 +78,7 @@
 | 核心 | 10.83.16.43 | root        | `zU!ykpx3EG)$$1e6` | 新      |
 | H5   | 10.83.16.33 | UeserReader | `Ws2019!@`         |         |
 | CM6  | 10.83.16.32 | bgp_admin   | `3Mt%JjE#WJIt`     | MariaDB |
+| emr  | 10.83.1.138 | root        | `Ws@Test!@E1#`     | Hive    |
 
 ### 1.2.3 UAT
 | 系统 |      ip     | username |      password      | 备注 |

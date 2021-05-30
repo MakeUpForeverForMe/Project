@@ -1,8 +1,11 @@
+set hivevar:warehouse=cosn://bigdatacenter-sit-1253824322/user/hadoop/warehouse;   -- 测试
+-- set hivevar:warehouse=cosn://bigdata-center-prod-1253824322/user/hadoop/warehouse; -- 生产
+
 -- DROP DATABASE IF EXISTS `dw`;
-CREATE DATABASE IF NOT EXISTS `dw` COMMENT 'dw层数据（代偿前）' location 'cosn://bigdata-center-prod-1253824322/user/hadoop/warehouse/dw.db';
+CREATE DATABASE IF NOT EXISTS `dw` COMMENT 'dw层数据（代偿前）' location '${warehouse}/dw.db';
 
 -- DROP DATABASE IF EXISTS `dw_cps`;
-CREATE DATABASE IF NOT EXISTS `dw_cps` COMMENT 'dw层数据（代偿后）' location 'cosn://bigdata-center-prod-1253824322/user/hadoop/warehouse/dw_cps.db';
+CREATE DATABASE IF NOT EXISTS `dw_cps` COMMENT 'dw层数据（代偿后）' location '${warehouse}/dw_cps.db';
 
 
 -- DROP TABLE IF EXISTS `dw.dw_credit_apply_stat_day`;

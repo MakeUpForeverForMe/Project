@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 import_file_dir=/data/data_shell/file_import
-hdfs_file_dir=cosn://bigdata-center-prod-1253824322/user/hadoop/warehouse/dim.db
+hdfs_file_dir=/user/hadoop/warehouse/dim.db
 
 for year in {2001..2050}; do
   s_date=$(date -d "${year}-01-01" +%F)
@@ -24,4 +24,4 @@ cat ${import_file_dir}/dim.dim_date.csv.20* > ${import_file_dir}/dim.dim_date.cs
 rm -f ${import_file_dir}/dim.dim_date.csv.20*
 
 
-sudo -u hadoop hdfs dfs -put -f ${import_file_dir}/dim.dim_date.csv ${hdfs_file_dir}/dim_date
+hdfs dfs -put -f ${import_file_dir}/dim.dim_date.csv ${hdfs_file_dir}/dim_date
