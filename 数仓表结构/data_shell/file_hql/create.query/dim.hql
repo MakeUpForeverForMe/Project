@@ -299,6 +299,90 @@ STORED AS PARQUET;
 
 
 
+-- hdfs 上传文件表
+-- 项目属性
+-- DROP TABLE IF EXISTS `dim.project_info_json`;
+CREATE EXTERNAL TABLE IF NOT EXISTS `dim.project_info_json`(
+  `row_type`                      string         COMMENT '操作类型',
+  `project_name`                  string         COMMENT '项目名称',
+  `project_stage`                 string         COMMENT '项目阶段',
+  `asset_side`                    string         COMMENT '资产方',
+  `fund_side`                     string         COMMENT '资金方',
+  `year`                          string         COMMENT '年份',
+  `term`                          string         COMMENT '期数',
+  `remarks`                       string         COMMENT '备注',
+  `project_full_name`             string         COMMENT '项目全名称',
+  `asset_type`                    string         COMMENT '资产类别（1：汽车贷，2：房贷，3：消费贷）',
+  `project_type`                  string         COMMENT '业务模式（1：存量，2：增量）',
+  `mode`                          string         COMMENT '模型归属',
+  `project_time`                  string         COMMENT '立项时间',
+  `project_begin_date`            string         COMMENT '项目开始时间',
+  `project_end_date`              string         COMMENT '项目结束时间',
+  `asset_pool_type`               string         COMMENT '资产池类型（1：静态池，2：动态池）',
+  `public_offer`                  string         COMMENT '公募名称',
+  `data_source`                   string         COMMENT '数据来源',
+  `create_user`                   string         COMMENT '创建人',
+  `create_time`                   string         COMMENT '创建时间',
+  `update_time`                   string         COMMENT '更新时间',
+  `project_id`                    string         COMMENT '项目编号'
+) COMMENT '项目属性'
+ROW FORMAT SERDE 'org.apache.hive.hcatalog.data.JsonSerDe'
+STORED AS TEXTFILE;
+
+
+-- 项目借据映射
+-- DROP TABLE IF EXISTS `dim.project_due_bill_no_json`;
+CREATE EXTERNAL TABLE IF NOT EXISTS `dim.project_due_bill_no_json`(
+  `row_type`                      string         COMMENT '操作类型',
+  `project_id`                    string         COMMENT '项目编号',
+  `import_id`                     string         COMMENT '导入Id',
+  `due_bill_no`                   array<
+                                    struct<
+                                      serialNumber     : string COMMENT '借据编号',
+                                      relatedProjectId : string COMMENT '债转前项目编号',
+                                      relatedDate      : string COMMENT '债转日期'
+                                    >
+                                  >              COMMENT '借据信息数组'
+) COMMENT '项目借据映射'
+ROW FORMAT SERDE 'org.apache.hive.hcatalog.data.JsonSerDe'
+STORED AS TEXTFILE;
+
+
+-- 包属性
+-- DROP TABLE IF EXISTS `dim.bag_info_json`;
+CREATE EXTERNAL TABLE IF NOT EXISTS `dim.bag_info_json`(
+  `row_type`                      string         COMMENT '操作类型',
+  `project_id`                    string         COMMENT '项目编号',
+  `bag_name`                      string         COMMENT '包名称',
+  `bag_status`                    string         COMMENT '包状态（1：未封包，2：已封包，3：已解包，4：封包中，5：封包失败，6：已发行）',
+  `bag_remain_principal`          string         COMMENT '封包总本金余额',
+  `bag_date`                      string         COMMENT '封包日期',
+  `insert_date`                   string         COMMENT '封包操作日期',
+  `bag_id`                        string         COMMENT '包编号'
+) COMMENT '包属性'
+ROW FORMAT SERDE 'org.apache.hive.hcatalog.data.JsonSerDe'
+STORED AS TEXTFILE;
+
+
+-- 包借据映射
+-- DROP TABLE IF EXISTS `dim.bag_due_bill_no_json`;
+CREATE EXTERNAL TABLE IF NOT EXISTS `dim.bag_due_bill_no_json`(
+  `row_type`                      string         COMMENT '操作类型',
+  `project_id`                    string         COMMENT '项目编号',
+  `bag_id`                        string         COMMENT '包编号',
+  `due_bill_no`                   array<
+                                    struct<
+                                      serialNumber           : string COMMENT '借据编号',
+                                      packageRemainPrincipal : string COMMENT '封包剩余本金',
+                                      packageRemainPeriods   : string COMMENT '封包剩余期限'
+                                    >
+                                  >              COMMENT '借据信息数组'
+) COMMENT '包借据映射'
+ROW FORMAT SERDE 'org.apache.hive.hcatalog.data.JsonSerDe'
+STORED AS TEXTFILE;
+
+
+
 
 
 

@@ -15909,12 +15909,15 @@ limit 10;
 
 
 
-
-
-
-
-
-
+select
+  project_id,
+  bag_id,
+  aa.serialnumber,
+  aa.packageremainprincipal,
+  aa.packageremainperiods
+from dim.bag_due_bill_no_json
+lateral view explode(due_bill_no) due as aa
+where bag_id = 'CL202012140024_30';
 
 
 

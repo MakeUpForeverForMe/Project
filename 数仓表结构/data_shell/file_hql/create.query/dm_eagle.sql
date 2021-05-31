@@ -890,7 +890,7 @@ create table if not exists `abs_asset_information_cash_flow_bag_day`(
   `pmml_paid_principal`                           decimal(30,10) COMMENT '预测实收本金',
   `pmml_paid_interest`                            decimal(30,10) COMMENT '预测实收利息',
 
-  `collect_date`                                  varchar(255)   COMMENT '统计日期'
+  `collect_date`                                  varchar(255)   COMMENT '统计日期',
 
   `biz_date`                                      varchar(255)   COMMENT '观察日期',
   `project_id`                                    varchar(255)   COMMENT '项目编号',

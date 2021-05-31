@@ -3,7 +3,7 @@
 . ${data_manage_dir:=$(cd `dirname "${BASH_SOURCE[0]}"`;pwd)}/../conf_env/env.sh
 . $lib/function.sh
 
-trap 'rm -f "$manage_kv_tmp_file"' EXIT
+trap 'rm -f "$manage_kv_tmp_file"; info "执行 ${manage_hql} 退出时，删除 "$manage_kv_tmp_file""' EXIT
 
 title(){
   echo '****************************************'
@@ -174,7 +174,7 @@ app_name=$(
   fi
 )
 manage_type=${manage_type:-hive}
-manage_job_name=$([[ -n "${manage_job_name}" ]] && echo "${manage_job_name}-")
+manage_job_name=$([[ -n "${manage_job_name}" ]] && echo "${manage_job_name}-" || echo "${manage_job_name}")
 
 
 # echo $file ${file_db_tb[@]} ${param_db_tb[@]} $manage_type
@@ -200,9 +200,9 @@ manage_log_dir=$log/${file_db_tb[0]}
 manage_log=$manage_log_dir/${file_db_tb[1]}.${manage_e_date}.log
 # manage_log=$manage_log_dir/${file_db_tb[1]}.$(date +%F).log
 
-# &>> $manage_log
+# #&>> $manage_log
 
-echo -e "${date_s:=$(date +'%F %T')} 任务 $app_name 执行  开始 当前脚本进程ID为：$(pid)\n"                                                                                                    &>> $manage_log
+echo -e "${date_s:=$(date +'%F %T')} 任务 $app_name 执行  开始 当前脚本进程ID为：$(pid)\n"                                                                                                    #&>> $manage_log
 
 while [[ "$(date -d "$manage_s_date" +%s)" -le "$(date -d "${manage_e_date:=$2}" +%s)" ]]; do
   unset date_in_s date_in_e
@@ -218,20 +218,20 @@ while [[ "$(date -d "$manage_s_date" +%s)" -le "$(date -d "${manage_e_date:=$2}"
       --var=ST9=${manage_s_date}"
     }
 
-    echo -e "${date_in_s:=$(date +'%F %T')} 开始日期为：$manage_s_date 的数据任务 $app_name ${param_db_tb[1]} 执行开始 当前脚本进程ID为：$(pid)"                                              &>> $manage_log
-    execute_hql                                                                                                                                                                               &>> $manage_log
-    echo -e "${date_in_e:=$(date +'%F %T')} 结束日期为：$manage_s_date 的数据任务 $app_name ${param_db_tb[1]} $yarn_application_id 执行结束 当前脚本进程ID为：$(pid)  用时：$(during "$date_in_e" "$date_in_s")\n" &>> $manage_log
+    echo -e "${date_in_s:=$(date +'%F %T')} 开始日期为：$manage_s_date 的数据任务 $app_name ${param_db_tb[1]} 执行开始 当前脚本进程ID为：$(pid)"                                              #&>> $manage_log
+    execute_hql                                                                                                                                                                               #&>> $manage_log
+    echo -e "${date_in_e:=$(date +'%F %T')} 结束日期为：$manage_s_date 的数据任务 $app_name ${param_db_tb[1]} $yarn_application_id 执行结束 当前脚本进程ID为：$(pid)  用时：$(during "$date_in_e" "$date_in_s")\n" #&>> $manage_log
   } &
-  p_opera ${manage_parallel_num:-1}                                                                                                                                                           &>> $manage_log
+  p_opera ${manage_parallel_num:-1}                                                                                                                                                           #&>> $manage_log
   [[ $manage_s_date == $manage_e_date ]] && wait_jobs
   manage_s_date=$(date -d "$manage_s_date +1 day" +%F)
 done
 
-echo -e "${date_impala_s:=$(date +'%F %T')} Impala 刷新任务 执行开始  表名为：$app_name 当前脚本进程ID为：$(pid)"                                                                             &>> $manage_log
-# $impala -q "refresh $app_name;"                                                                                                                                                               &>> $manage_log
-# $impala -q "invalidate metadata $app_name;"                                                                                                                                                   &>> $manage_log
-# $impala -q "COMPUTE STATS $app_name;"                                                                                                                                                         &>> $manage_log
-# $impala -q "select * from $app_name where false;"                                                                                                                                             &>> $manage_log
-echo -e "${date_impala_e:=$(date +'%F %T')} Impala 刷新任务 执行结束  表名为：$app_name 当前脚本进程ID为：$(pid)  用时：$(during "$date_impala_e" "$date_impala_s")"                          &>> $manage_log
+echo -e "${date_impala_s:=$(date +'%F %T')} Impala 刷新任务 执行开始  表名为：$app_name 当前脚本进程ID为：$(pid)"                                                                             #&>> $manage_log
+# $impala -q "refresh $app_name;"                                                                                                                                                               #&>> $manage_log
+# $impala -q "invalidate metadata $app_name;"                                                                                                                                                   #&>> $manage_log
+# $impala -q "COMPUTE STATS $app_name;"                                                                                                                                                         #&>> $manage_log
+# $impala -q "select * from $app_name where false;"                                                                                                                                             #&>> $manage_log
+echo -e "${date_impala_e:=$(date +'%F %T')} Impala 刷新任务 执行结束  表名为：$app_name 当前脚本进程ID为：$(pid)  用时：$(during "$date_impala_e" "$date_impala_s")"                          #&>> $manage_log
 
-echo -e "${date_e:=$(date +'%F %T')} 任务 $app_name 执行  结束 当前脚本进程ID为：$(pid)    用时：$(during "$date_e" "$date_s")\n\n"                                                           &>> $manage_log
+echo -e "${date_e:=$(date +'%F %T')} 任务 $app_name 执行  结束 当前脚本进程ID为：$(pid)    用时：$(during "$date_e" "$date_s")\n\n"                                                           #&>> $manage_log
