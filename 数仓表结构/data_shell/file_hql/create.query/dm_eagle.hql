@@ -658,7 +658,8 @@ CREATE TABLE IF NOT EXISTS `dm_eagle${db_suffix}.eagle_loan_info`(
   `overdue_principal_max`                         decimal(25,5)  COMMENT '历史最大逾期本金'
 ) COMMENT '借据信息表'
 PARTITIONED BY(`biz_date` string COMMENT '观察日期',`product_id` string COMMENT '产品编号')
-STORED AS PARQUET;
+STORED AS PARQUET
+LOCATION 'cosn://bigdata-center-prod-1253824322/user/hadoop/warehouse/dm_eagle${db_suffix}.db/eagle_loan_info';
 
 
 -- DROP TABLE IF EXISTS `dm_eagle${db_suffix}.eagle_repay_schedule`;

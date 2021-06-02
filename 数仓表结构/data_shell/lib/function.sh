@@ -79,7 +79,10 @@ log_base(){
     ( FATA ) level=5 ; level_color='35' ;;
     ( *    ) level=9 ; fatal "未匹配的日志级别"; exit 1 ;;
   esac
-  printf "$(date +'%F %T') [ \033[${level_color}m${log_level}\033[0m ] - [ ${BASH_SOURCE[-1]} ] - [ %03d ] - [ %-6s ] %s\n" "${BASH_LINENO[-2]}" "$(pid)" "$*" 2>&1 | tee -a $log_file
+  [[ (-n ${during_s_time}) && (-n ${during_e_time}) ]] && during_time_log_base=$(date -d@"$([[ ${during_s_time} -ge ${during_e_time} ]] && echo ${during_s_time} || echo ${during_e_time})" +'%F %T')
+  export curr_time=${during_time_log_base:-$(date +'%F %T')}
+  unset during_time_log_base during_s_time during_e_time
+  printf "${curr_time} [ \033[${level_color}m${log_level}\033[0m ] - [ ${BASH_SOURCE[-1]} ] - [ %03d ] - [ %-6s ] %s\n" "${BASH_LINENO[-2]}" "$(pid)" "$*" 2>&1 | tee -a $log_file
 }
 
 debug(){ log_base DEBU "$*" ; }
@@ -91,9 +94,9 @@ fatal(){ log_base FATA "$*" 1>&2 ; exit 1 ; }
 
 # 获取两个时间之间的时长（不区分两个参数大小，返回都是正数）
 during(){
-  s_time=$(date -d "$1" +%s)
-  e_time=$(date -d "$2" +%s)
-  [[ $s_time > $e_time ]] && u=$(( $s_time - $e_time )) || u=$(( $e_time - $s_time ))
+  export during_s_time=$(date -d "${1:-$(date +'%F %T')}" +%s)
+  export during_e_time=$(date -d "${2:-$(date +'%F %T')}" +%s)
+  [[ $during_s_time -gt $during_e_time ]] && u=$(( $during_s_time - $during_e_time )) || u=$(( $during_e_time - $during_s_time ))
   s=$(( $u % 60 )) u=$(( $u / 60 ))
   m=$(( $u % 60 )) u=$(( $u / 60 ))
   h=$(( $u % 24 ))
@@ -105,7 +108,7 @@ during(){
 p_opera(){
   p_num=${1:-5}
   pids=(${pids[@]:-} $!)
-  echo '并行限制输出显示' '并行任务的数量：'${#pids[@]} '并行任务的数组下标：'${!pids[@]} '并行任务的PID：'${pids[@]} 1>&2
+  debug '并行限制输出显示' '并行任务的数量：'${#pids[@]}
   while [[ ${#pids[@]} -ge $p_num ]]; do
     pids_old=(${pids[@]})
     pids=()
@@ -167,7 +170,7 @@ date_conf_update_offset(){
 mysql_fun(){
   init_file="$(grep -Ev '^\s*$' "${1}")"
   [[ $(echo "${init_file}" | wc -l) != 5 ]] && {
-    echo "$(date +'%F %T') 输入文件中的参数不正确！要输入5个属性值（mysql_host、mysql_port、mysql_user、mysql_pass、mysql_db）"
+    error "输入文件中的参数不正确！要输入5个属性值（mysql_host、mysql_port、mysql_user、mysql_pass、mysql_db）"
     exit 1
   }
   eval "${init_file}"
@@ -178,12 +181,10 @@ mysql_fun(){
 
 # 抽取 Hive 数据到 本地文件
 export_file_from_hive(){
-  [[ -z $1 ]] && {
-    echo "$(date +'%F %T') 请输入 参数一：hql"
-    exit 1
-  }
+  [[ -z $1 ]] && error "请输入 参数一：hql"
 
-  echo "${s_date_export:=$(date +'%F %T')} 从 Hive 拉取数据 开始 ${export_file}"
+  info "${export_file} 从 Hive 拉取数据 开始！"
+  s_date_export=$curr_time
 
   # $impala -q "refresh ${db_tb};"
 
@@ -196,7 +197,7 @@ export_file_from_hive(){
   # --outputformat=tsv2 \
   # -e "${1};" | sed 's/NULL/\\N/g' > "${export_file}"
 
-  echo "${e_date_export:=$(date +'%F %T')} 从 Hive 拉取数据 结束 ${export_file}  用时：$(during "$e_date_export" "$s_date_export")"
+  info "${export_file} 从 Hive 拉取数据 结束！用时：$(during "${s_date_export}")"
 }
 
 # 从本地文件拉取数据到 MySQL
@@ -209,13 +210,14 @@ import_file_to_mysql(){
     # --outputformat=csv2 -e "select * from ${db_tb} where false;" 2> /dev/null
   )
 
-  printf '%-20s%-80s%s\n' "${s_date_import:=$(date +'%F %T')}" "库表为：${db_tb}" "字段为：$fields"
+  info "${export_file} 数据上传到 MySQL 开始！库表为：${db_tb}" "字段为：$fields"
+  s_date_import=$curr_time
 
   # echo \
   $mysql -e "
     ${1};LOAD DATA LOCAL INFILE '${export_file}' INTO TABLE ${tb} FIELDS TERMINATED BY '\t' (${fields});
   "
-  echo "${e_date_import:=$(date +'%F %T')} 数据上传到 MySQL 结束 ${export_file}  用时：$(during "$e_date_import" "$s_date_import")"
+  info "${export_file} 数据上传到 MySQL 结束！用时：$(during "${s_date_import}")"
 }
 
 # 将以文本数据，转化为SQL

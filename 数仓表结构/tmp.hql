@@ -414,6 +414,9 @@ refresh dm_eagle.abs_early_payment_asset_statistic;
 refresh dm_eagle.abs_early_payment_asset_details;
 
 
+refresh dim.project_info;
+refresh dim.bag_info;
+
 refresh dim.bag_due_bill_no;
 
 refresh dw.abs_due_info_day;
@@ -1564,7 +1567,7 @@ limit 100
 
 
 select distinct keys
-from stage.asset_01_t_loan_contract_info
+from stage.asset_02_t_principal_borrower_info
 lateral view explode(map_keys(map_from_str(extra_info))) key as keys
 order by keys;
 

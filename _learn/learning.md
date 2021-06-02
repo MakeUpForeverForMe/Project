@@ -160,6 +160,15 @@ export LANG=zh_CN.UTF-8
 
 base_dir=$(dirname "${BASH_SOURCE[0]}")
 ```
+#### 2.1.1.5 Linux 环境变量
+```shell
+#
+BASH_LINENO=()
+#
+BASH_SOURCE=()
+#
+PIPESTATUS=()
+```
 
 ### 2.1.2 Shell 命令的练习
 ```shell
@@ -526,7 +535,7 @@ user guest 123456
 binary                # 文件传输类型
 cd /home/data         # cd是在远程主机目录操作的命令
 lcd /home/databackup  # lcd是在本地主机目录操作的命令
-prompt                # 取消交互
+prompt off            # 取消交互
 mget *                # mget是批量的下载文件
 close
 bye
@@ -540,7 +549,7 @@ binary
 hash
 cd /home/data
 lcd /home/databackup
-prompt
+prompt off
 mput *
 close
 bye
@@ -553,7 +562,7 @@ user guest 123456
 binary
 cd /home/data
 lcd /home/databackup
-prompt
+prompt off
 get a.sh a.sh
 close
 bye
@@ -566,7 +575,7 @@ user guest 123456
 binary
 cd /home/data
 lcd /home/databackup
-prompt
+prompt off
 put a.sh a.sh
 close
 bye
@@ -712,7 +721,121 @@ find . -name 'data_log.log.2020-09-2*' -type f -mtime +1 | xargs rm
 ```
 
 ### 2.1.17 Shell 中 curl 命令
-```bash
+|        语法        |
+|--------------------|
+| curl (选项) (参数) |
+
+|                               选项                              |                            注释                           |
+|-----------------------------------------------------------------|-----------------------------------------------------------|
+| -a/--append                                                     | 上传文件时，附加到目标文件                                |
+| -A/--user-agent [string]                                        | 设置用户代理发送给服务器                                  |
+| -anyauth                                                        | 可以使用“任何”身份验证方法                                |
+| -b/--cookie [name=string/file]                                  | cookie字符串或文件读取位置                                |
+| &nbsp;&nbsp;&nbsp;&nbsp;--basic                                 | 使用HTTP基本验证                                          |
+| -B/--use-ascii                                                  | 使用ASCII /文本传输                                       |
+| -c/--cookie-jar [file]                                          | 操作结束后把cookie写入到这个文件中                        |
+| -C/--continue-at [offset]                                       | 断点续转                                                  |
+| -d/--data [data]                                                | HTTP POST方式传送数据                                     |
+| &nbsp;&nbsp;&nbsp;&nbsp;--data-ascii [data]                     | 以ascii的方式post数据                                     |
+| &nbsp;&nbsp;&nbsp;&nbsp;--data-binary [data]                    | 以二进制的方式post数据                                    |
+| &nbsp;&nbsp;&nbsp;&nbsp;--negotiate                             | 使用HTTP身份验证                                          |
+| &nbsp;&nbsp;&nbsp;&nbsp;--digest                                | 使用数字身份验证                                          |
+| &nbsp;&nbsp;&nbsp;&nbsp;--disable-eprt                          | 禁止使用EPRT或LPRT                                        |
+| &nbsp;&nbsp;&nbsp;&nbsp;--disable-epsv                          | 禁止使用EPSV                                              |
+| -D/--dump-header [file]                                         | 把header信息写入到该文件中                                |
+| &nbsp;&nbsp;&nbsp;&nbsp;--egd-file [file]                       | 为随机数据(SSL)设置EGD socket路径                         |
+| &nbsp;&nbsp;&nbsp;&nbsp;--tcp-nodelay                           | 使用TCP_NODELAY选项                                       |
+| -e/--referer                                                    | 来源网址                                                  |
+| -E/--cert [cert[:passwd]]                                       | 客户端证书文件和密码 (SSL)                                |
+| &nbsp;&nbsp;&nbsp;&nbsp;--cert-type [type]                      | 证书文件类型 (DER/PEM/ENG) (SSL)                          |
+| &nbsp;&nbsp;&nbsp;&nbsp;--key [key]                             | 私钥文件名 (SSL)                                          |
+| &nbsp;&nbsp;&nbsp;&nbsp;--key-type [type]                       | 私钥文件类型 (DER/PEM/ENG) (SSL)                          |
+| &nbsp;&nbsp;&nbsp;&nbsp;--pass [pass]                           | 私钥密码 (SSL)                                            |
+| &nbsp;&nbsp;&nbsp;&nbsp;--engine [eng]                          | 加密引擎使用 (SSL). "--engine list" for list              |
+| &nbsp;&nbsp;&nbsp;&nbsp;--cacert [file]                         | CA证书 (SSL)                                              |
+| &nbsp;&nbsp;&nbsp;&nbsp;--capath [directory]                    | CA目录 (made using c_rehash) to verify peer against (SSL) |
+| &nbsp;&nbsp;&nbsp;&nbsp;--ciphers [list]                        | SSL密码                                                   |
+| &nbsp;&nbsp;&nbsp;&nbsp;--compressed                            | 要求返回是压缩的形势 (using deflate or gzip)              |
+| &nbsp;&nbsp;&nbsp;&nbsp;--connect-timeout [seconds]             | 设置最大请求时间                                          |
+| &nbsp;&nbsp;&nbsp;&nbsp;--create-dirs                           | 建立本地目录的目录层次结构                                |
+| &nbsp;&nbsp;&nbsp;&nbsp;--crlf                                  | 上传是把LF转变成CRLF                                      |
+| -f/--fail                                                       | 连接失败时不显示http错误                                  |
+| &nbsp;&nbsp;&nbsp;&nbsp;--ftp-create-dirs                       | 如果远程目录不存在，创建远程目录                          |
+| &nbsp;&nbsp;&nbsp;&nbsp;--ftp-method [multicwd/nocwd/singlecwd] | 控制CWD的使用                                             |
+| &nbsp;&nbsp;&nbsp;&nbsp;--ftp-pasv                              | 使用 PASV/EPSV 代替端口                                   |
+| &nbsp;&nbsp;&nbsp;&nbsp;--ftp-skip-pasv-ip                      | 使用PASV的时候,忽略该IP地址                               |
+| &nbsp;&nbsp;&nbsp;&nbsp;--ftp-ssl                               | 尝试用 SSL/TLS 来进行ftp数据传输                          |
+| &nbsp;&nbsp;&nbsp;&nbsp;--ftp-ssl-reqd                          | 要求用 SSL/TLS 来进行ftp数据传输                          |
+| -F/--form [name=content]                                        | 模拟http表单提交数据                                      |
+| &nbsp;&nbsp;&nbsp;&nbsp;--form-string [name=string]             | 模拟http表单提交数据                                      |
+| -g/--globoff                                                    | 禁用网址序列和范围使用{}和[]                              |
+| -G/--get                                                        | 以get的方式来发送数据                                     |
+| -H/--header [line]                                              | 自定义头信息传递给服务器                                  |
+| &nbsp;&nbsp;&nbsp;&nbsp;--ignore-content-length                 | 忽略的HTTP头信息的长度                                    |
+| -i/--include                                                    | 输出时包括protocol头信息                                  |
+| -I/--head                                                       | 只显示请求头信息                                          |
+| -j/--junk-session-cookies                                       | 读取文件进忽略session cookie                              |
+| &nbsp;&nbsp;&nbsp;&nbsp;--interface [interface]                 | 使用指定网络接口/地址                                     |
+| &nbsp;&nbsp;&nbsp;&nbsp;--krb4 [level]                          | 使用指定安全级别的krb4                                    |
+| -k/--insecure                                                   | 允许不使用证书到SSL站点                                   |
+| -K/--config                                                     | 指定的配置文件读取                                        |
+| -l/--list-only                                                  | 列出ftp目录下的文件名称                                   |
+| &nbsp;&nbsp;&nbsp;&nbsp;--limit-rate [rate]                     | 设置传输速度                                              |
+| &nbsp;&nbsp;&nbsp;&nbsp;--local-port[NUM]                       | 强制使用本地端口号                                        |
+| -m/--max-time [seconds]                                         | 设置最大传输时间                                          |
+| &nbsp;&nbsp;&nbsp;&nbsp;--max-redirs [num]                      | 设置最大读取的目录数                                      |
+| &nbsp;&nbsp;&nbsp;&nbsp;--max-filesize [bytes]                  | 设置最大下载的文件总量                                    |
+| -M/--manual                                                     | 显示全手动                                                |
+| -n/--netrc                                                      | 从netrc文件中读取用户名和密码                             |
+| &nbsp;&nbsp;&nbsp;&nbsp;--netrc-optional                        | 使用 .netrc 或者 URL来覆盖-n                              |
+| &nbsp;&nbsp;&nbsp;&nbsp;--ntlm                                  | 使用 HTTP NTLM 身份验证                                   |
+| -N/--no-buffer                                                  | 禁用缓冲输出                                              |
+| -o/--output                                                     | 把输出写到该文件中                                        |
+| -O/--remote-name                                                | 把输出写到该文件中，保留远程文件的文件名                  |
+| -p/--proxytunnel                                                | 使用HTTP代理                                              |
+| &nbsp;&nbsp;&nbsp;&nbsp;--proxy-anyauth                         | 选择任一代理身份验证方法                                  |
+| &nbsp;&nbsp;&nbsp;&nbsp;--proxy-basic                           | 在代理上使用基本身份验证                                  |
+| &nbsp;&nbsp;&nbsp;&nbsp;--proxy-digest                          | 在代理上使用数字身份验证                                  |
+| &nbsp;&nbsp;&nbsp;&nbsp;--proxy-ntlm                            | 在代理上使用ntlm身份验证                                  |
+| -P/--ftp-port [address]                                         | 使用端口地址，而不是使用PASV                              |
+| -q                                                              | 作为第一个参数，关闭 .curlrc                              |
+| -Q/--quote [cmd]                                                | 文件传输前，发送命令到服务器                              |
+| -r/--range [range]                                              | 检索来自HTTP/1.1或FTP服务器字节范围                       |
+| &nbsp;&nbsp;&nbsp;&nbsp;--range-file                            | 读取（SSL）的随机文件                                     |
+| -R/--remote-time                                                | 在本地生成文件时，保留远程文件时间                        |
+| &nbsp;&nbsp;&nbsp;&nbsp;--retry [num]                           | 传输出现问题时，重试的次数                                |
+| &nbsp;&nbsp;&nbsp;&nbsp;--retry-delay [seconds]                 | 传输出现问题时，设置重试间隔时间                          |
+| &nbsp;&nbsp;&nbsp;&nbsp;--retry-max-time [seconds]              | 传输出现问题时，设置最大重试时间                          |
+| -s/--silent                                                     | 静默模式。不输出任何东西                                  |
+| -S/--show-error                                                 | 显示错误                                                  |
+| &nbsp;&nbsp;&nbsp;&nbsp;--socks4 [host[:port]]                  | 用socks4代理给定主机和端口                                |
+| &nbsp;&nbsp;&nbsp;&nbsp;--socks5 [host[:port]]                  | 用socks5代理给定主机和端口                                |
+| &nbsp;&nbsp;&nbsp;&nbsp;--stderr [file]                         |                                                           |
+| -t/--telnet-option [OPT=val]                                    | Telnet选项设置                                            |
+| &nbsp;&nbsp;&nbsp;&nbsp;--trace [file]                          | 对指定文件进行debug                                       |
+| &nbsp;&nbsp;&nbsp;&nbsp;--trace-ascii [file]                    | Like --跟踪但没有hex输出                                  |
+| &nbsp;&nbsp;&nbsp;&nbsp;--trace-time                            | 跟踪/详细输出时，添加时间戳                               |
+| -T/--upload-file [file]                                         | 上传文件                                                  |
+| &nbsp;&nbsp;&nbsp;&nbsp;--url [URL]                             | Spet URL to work with                                     |
+| -u/--user [user[:password]]                                     | 设置服务器的用户和密码                                    |
+| -U/--proxy-user [user[:password]]                               | 设置代理用户名和密码                                      |
+| -w/--write-out [format]                                         | 什么输出完成后                                            |
+| -x/--proxy [host[:port]]                                        | 在给定的端口上使用HTTP代理                                |
+| -X/--request [command]                                          | 指定什么命令                                              |
+| -y/--speed-time                                                 | 放弃限速所要的时间，默认为30                              |
+| -Y/--speed-limit                                                | 停止传输速度的限制，速度时间                              |
+
+#### 2.1.17.1 curl 例子 1
+```shell
+# 选项 -o 将下载数据写入到指定名称的文件中，并使用 --progress 显示进度条：
+curl http://man.linuxde.net/test.iso -o filename.iso --progress
+
+# 断点续传 让curl自动推断出正确的续传位置，使用-C -：
+curl -C -URL
+```
+
+#### 2.1.17.2 curl 例子 2
+```shell
 curl -v -X POST http://10.10.18.48:60000/robot -H 'Content-Type:text/json; charset=utf-8' --data-urlencode '
 {
   "type": "info",
@@ -2186,11 +2309,12 @@ TBLPROPERTIES (
 -- Hive 函数操作
 hdfs dfs -put ./HiveUDF-1.0.jar /user/hive/auxlib
 
-set hivevar:hdfs_path=hdfs:///user/hive/auxlib/HiveUDF-1.0-shaded.jar;
+set hivevar:uri=hdfs://;
 
-set hivevar:hdfs_path=cosn://bigdata-center-prod-1253824322/user/auxlib/HiveUDF-1.0-shaded.jar;
+set hivevar:uri=cosn://bigdatacenter-sit-1253824322;
+set hivevar:uri=cosn://bigdata-center-prod-1253824322;
 
-ADD JAR ${hdfs_path};
+ADD JAR ${uri}/user/auxlib/HiveUDF-1.0-shaded.jar;
 
 DROP FUNCTION IF EXISTS encrypt_aes;
 DROP FUNCTION IF EXISTS decrypt_aes;
@@ -2208,21 +2332,21 @@ DROP FUNCTION IF EXISTS js2str;
 
 DROP FUNCTION IF EXISTS is_empty;
 
-CREATE FUNCTION encrypt_aes         AS 'com.weshare.udf.AesEncrypt'                     USING JAR '${hdfs_path}';
-CREATE FUNCTION decrypt_aes         AS 'com.weshare.udf.AesDecrypt'                     USING JAR '${hdfs_path}';
-CREATE FUNCTION datefmt             AS 'com.weshare.udf.DateFormat'                     USING JAR '${hdfs_path}';
-CREATE FUNCTION age_birth           AS 'com.weshare.udf.GetAgeOnBirthday'               USING JAR '${hdfs_path}';
-CREATE FUNCTION age_idno            AS 'com.weshare.udf.GetAgeOnIdNo'                   USING JAR '${hdfs_path}';
-CREATE FUNCTION sex_idno            AS 'com.weshare.udf.GetSexOnIdNo'                   USING JAR '${hdfs_path}';
-CREATE FUNCTION sha256              AS 'com.weshare.udf.Sha256Salt'                     USING JAR '${hdfs_path}';
-CREATE FUNCTION date_max            AS 'com.weshare.udf.GetDateMax'                     USING JAR '${hdfs_path}';
-CREATE FUNCTION date_min            AS 'com.weshare.udf.GetDateMin'                     USING JAR '${hdfs_path}';
-CREATE FUNCTION ptrim               AS 'com.weshare.udf.TrimPlus'                       USING JAR '${hdfs_path}';
-CREATE FUNCTION map_from_str        AS 'com.weshare.udf.AnalysisStringToJson'           USING JAR '${hdfs_path}';
-CREATE FUNCTION json_array_to_array AS 'com.weshare.udf.AnalysisJsonArray'              USING JAR '${hdfs_path}';
-CREATE FUNCTION js2str              AS 'com.weshare.udf.JsonString2StringUDF'           USING JAR '${hdfs_path}';
+CREATE FUNCTION encrypt_aes         AS 'com.weshare.udf.AesEncrypt'                     USING JAR '${uri}/user/auxlib/HiveUDF-1.0-shaded.jar';
+CREATE FUNCTION decrypt_aes         AS 'com.weshare.udf.AesDecrypt'                     USING JAR '${uri}/user/auxlib/HiveUDF-1.0-shaded.jar';
+CREATE FUNCTION datefmt             AS 'com.weshare.udf.DateFormat'                     USING JAR '${uri}/user/auxlib/HiveUDF-1.0-shaded.jar';
+CREATE FUNCTION age_birth           AS 'com.weshare.udf.GetAgeOnBirthday'               USING JAR '${uri}/user/auxlib/HiveUDF-1.0-shaded.jar';
+CREATE FUNCTION age_idno            AS 'com.weshare.udf.GetAgeOnIdNo'                   USING JAR '${uri}/user/auxlib/HiveUDF-1.0-shaded.jar';
+CREATE FUNCTION sex_idno            AS 'com.weshare.udf.GetSexOnIdNo'                   USING JAR '${uri}/user/auxlib/HiveUDF-1.0-shaded.jar';
+CREATE FUNCTION sha256              AS 'com.weshare.udf.Sha256Salt'                     USING JAR '${uri}/user/auxlib/HiveUDF-1.0-shaded.jar';
+CREATE FUNCTION date_max            AS 'com.weshare.udf.GetDateMax'                     USING JAR '${uri}/user/auxlib/HiveUDF-1.0-shaded.jar';
+CREATE FUNCTION date_min            AS 'com.weshare.udf.GetDateMin'                     USING JAR '${uri}/user/auxlib/HiveUDF-1.0-shaded.jar';
+CREATE FUNCTION ptrim               AS 'com.weshare.udf.TrimPlus'                       USING JAR '${uri}/user/auxlib/HiveUDF-1.0-shaded.jar';
+CREATE FUNCTION map_from_str        AS 'com.weshare.udf.AnalysisStringToJson'           USING JAR '${uri}/user/auxlib/HiveUDF-1.0-shaded.jar';
+CREATE FUNCTION json_array_to_array AS 'com.weshare.udf.AnalysisJsonArray'              USING JAR '${uri}/user/auxlib/HiveUDF-1.0-shaded.jar';
+CREATE FUNCTION js2str              AS 'com.weshare.udf.JsonString2StringUDF'           USING JAR '${uri}/user/auxlib/HiveUDF-1.0-shaded.jar';
 
-CREATE FUNCTION is_empty            AS 'com.weshare.generic.IsEmptyGenericUDF'          USING JAR '${hdfs_path}';
+CREATE FUNCTION is_empty            AS 'com.weshare.generic.IsEmptyGenericUDF'          USING JAR '${uri}/user/auxlib/HiveUDF-1.0-shaded.jar';
 
 reload function; -- 多个 HiveServer 之间，需要同步元数据信息
 
@@ -2234,8 +2358,8 @@ ALTER MATERIALIZED VIEW [db_name.]materialized_view_name REBUILD; -- 更新物�
 SHOW FUNCTIONS LIKE 'default*';
 DESC FUNCTION EXTENDED row_sequence;
 
-SHOW FUNCTIONS LIKE '*map*';
-DESC FUNCTION EXTENDED histogram_numeric;
+SHOW FUNCTIONS LIKE '*replace*';
+DESC FUNCTION EXTENDED regexp_replace;
 ```
 
 

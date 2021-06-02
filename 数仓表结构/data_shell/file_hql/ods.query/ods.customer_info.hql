@@ -19,7 +19,9 @@ set hive.exec.max.dynamic.partitions.pernode=50000;
 set hive.vectorized.execution.enabled=false;
 set hive.vectorized.execution.reduce.enabled=false;
 set hive.vectorized.execution.reduce.groupby.enabled=false;
---set hivevar:ST9=2021-05-25;
+-- 关闭自动 MapJoin
+set hive.auto.convert.join=false;
+--set hivevar:ST9=2021-05-29;
 
 
 
@@ -374,6 +376,7 @@ from (
 
 
 -- 乐信
+--explain
 insert overwrite table ods.customer_info partition(product_id)
 select distinct *
 from (
@@ -526,11 +529,36 @@ from (
   from (
     select
       deal_date,
-      replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(original_msg,'\\\\\"\\\{','\\\{'),'\\\}\\\\\"','\\\}'),'\\\"\\\{','\\\{'),'\\\}\\\"','\\\}'),'\\\\\\\\\\\\\"','\\\"'),'\\\\\"','\\\"'),'\\\\\\\\','\\\\'),'\\\\\"',"") as original_msg
-    from stage.ecas_msg_log
-    where msg_type = 'WIND_CONTROL_CREDIT'
-      and original_msg is not null
-      and deal_date = '${ST9}'
+      original_msg,
+      get_json_object(original_msg,'$.reqContent.jsonReq.content.reqData.proCode') as product_code,
+      get_json_object(original_msg,'$.reqContent.jsonReq.content.reqData.applyNo') as due_bill_no,
+      substring(get_json_object(original_msg,'$.reqContent.jsonReq.content.reqData.idNo'),1,6) as idno_addr
+    from (
+      select
+        deal_date,
+        replace(
+          regexp_replace(
+            regexp_replace(
+              regexp_replace(
+                regexp_replace(
+                  regexp_replace(
+                    regexp_replace(
+                      regexp_replace(
+                        original_msg,'\\\\\"\\\{','\\\{'
+                      ),'\\\}\\\\\"','\\\}'
+                    ),'\\\"\\\{','\\\{'
+                  ),'\\\}\\\"','\\\}'
+                ),'\\\\\\\\\\\\\"','\\\"'
+              ),'\\\\\"','\\\"'
+            ),'\\\\\\\\','\\\\'
+          ),'\\\\\"',""
+        ) as original_msg
+      from stage.ecas_msg_log
+      where msg_type = 'WIND_CONTROL_CREDIT'
+        and original_msg is not null
+        -- and is_his = 'N'
+        and deal_date = '${ST9}'
+    ) as  original_msg
   ) as msg_log
   left join (
     select
@@ -542,8 +570,8 @@ from (
       and p_type in ('lx','lx2','lxzt','lx3')
       and d_date between date_sub(current_date,2) and current_date
   ) as ecas_loan
-  on  get_json_object(msg_log.original_msg,'$.reqContent.jsonReq.content.reqData.proCode') = ecas_loan.product_code
-  and get_json_object(msg_log.original_msg,'$.reqContent.jsonReq.content.reqData.applyNo') = ecas_loan.due_bill_no
+  on msg_log.product_code  = ecas_loan.product_code
+  and msg_log.due_bill_no = ecas_loan.due_bill_no
   left join (
     select distinct
       product_id as dim_product_id,
@@ -557,7 +585,7 @@ from (
       group by col_id
     ) as tmp
   ) as biz_conf
-  on get_json_object(msg_log.original_msg,'$.reqContent.jsonReq.content.reqData.proCode') = biz_conf.dim_product_id
+  on msg_log.product_code = biz_conf.dim_product_id
   left join (
     select distinct
       idno_addr,
@@ -567,16 +595,16 @@ from (
       idno_county_cn
     from dim.dim_idno
   ) as dim_idno
-  on substring(get_json_object(msg_log.original_msg,'$.reqContent.jsonReq.content.reqData.idNo'),1,6) = dim_idno.idno_addr
+  on msg_log.idno_addr = dim_idno.idno_addr
   union all
   select customer_info.* from ods.customer_info
   join (
-    select distinct  replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(original_msg,'\\\\\"\\\{','\\\{'),'\\\}\\\\\"','\\\}'),'\\\"\\\{','\\\{'),'\\\}\\\"','\\\}'),'\\\\\\\\\\\\\"','\\\"'),'\\\\\"','\\\"'),'\\\\\\\\','\\\\'),'\\\\\"',"") as original_msg
+    select distinct get_json_object(replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(original_msg,'\\\\\"\\\{','\\\{'),'\\\}\\\\\"','\\\}'),'\\\"\\\{','\\\{'),'\\\}\\\"','\\\}'),'\\\\\\\\\\\\\"','\\\"'),'\\\\\"','\\\"'),'\\\\\\\\','\\\\'),'\\\\\"',""),'$.reqContent.jsonReq.content.reqData.proCode') as product_code
     from stage.ecas_msg_log
     where msg_type = 'WIND_CONTROL_CREDIT'
       and original_msg is not null
   ) as product_id_tbl
-  on customer_info.product_id = get_json_object(product_id_tbl.original_msg,'$.reqContent.jsonReq.content.reqData.proCode')
+  on customer_info.product_id = product_id_tbl.product_code
 ) as tmp
 -- limit 1
 ;
@@ -685,9 +713,9 @@ from (
     0                                                                                                                 as job_year_max,
     0                                                                                                                 as job_year_min,
     is_empty(get_json_object(msg_log.original_msg,'$.data.borrower.annualIncome'),0) / 12                             as income_month,
-    is_empty(get_json_object(msg_log.original_msg,'$.data.borrower.annualIncome'),0)                                  as income_year,
-    is_empty(get_json_object(msg_log.original_msg,'$.data.borrower.annualIncomeMin'),0)                               as income_year_max,
-    is_empty(get_json_object(msg_log.original_msg,'$.data.borrower.annualIncomeMax'),0)                               as income_year_min,
+    cast(is_empty(get_json_object(msg_log.original_msg,'$.data.borrower.annualIncome'),0) as decimal(25,5))           as income_year,
+    cast(is_empty(get_json_object(msg_log.original_msg,'$.data.borrower.annualIncomeMin'),0) as decimal(25,5))        as income_year_max,
+    cast(is_empty(get_json_object(msg_log.original_msg,'$.data.borrower.annualIncomeMax'),0) as decimal(25,5))        as income_year_min,
     if(is_empty(get_json_object(msg_log.original_msg,'$.companyLoanBool')) = '企业','企业','未知')                    as customer_type,
     is_empty(get_json_object(msg_log.original_msg,'$.companyLoanBool'),'个人')                                        as loan_type,
     null                                                                                                              as cust_rating,
@@ -914,7 +942,7 @@ from (
   select customer_info.* from ods.customer_info
   join (
     select distinct reqdata["proCode"] as product_id
-    from stage.lx_kafka_credit_msg
+    from stage.kafka_credit_msg
     where p_type = 'WS0013200001'
   ) as product_id_tbl
   on customer_info.product_id = product_id_tbl.product_id
@@ -1041,7 +1069,7 @@ from (
   select customer_info.* from ods.customer_info
   join (
     select distinct reqdata["proCode"] as product_id
-    from stage.lx_kafka_credit_msg
+    from stage.kafka_credit_msg
     where p_type = 'WS0012200001'
   ) as product_id_tbl
   on customer_info.product_id = product_id_tbl.product_id

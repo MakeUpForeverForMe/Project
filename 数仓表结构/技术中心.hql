@@ -15921,6 +15921,77 @@ where bag_id = 'CL202012140024_30';
 
 
 
+insert overwrite table dim.project_info
+select
+  project_name,
+  project_stage,
+  asset_side,
+  fund_side,
+  year,
+  term,
+  remarks,
+  project_full_name,
+  asset_type,
+  project_type,
+  mode,
+  project_time,
+  project_begin_date,
+  project_end_date,
+  asset_pool_type,
+  public_offer,
+  data_source,
+  create_user,
+  create_time,
+  update_time,
+  project_id
+from dim.project_info_json where project_id = 'CL202104250093';
+
+
+select * from dim.project_info where project_id = 'CL202104250093';
+
+
+
+select is_empty(null,'aa') as aa;
+
+
+select * from ods.customer_info_abs where product_id = '001601';
+
+
+select distinct is_empty(map_from_str(extra_info)['借款人行业']) as keys
+from stage.asset_02_t_principal_borrower_info
+order by keys;
+
+
+
+select
+  row_type,
+  project_id,
+  bag_id,
+  bag_status,
+  bag_remain_principal,
+  bag_date,
+  insert_date,
+  bag_name
+from dim.bag_info_json;
+
+
+insert overwrite table dim.bag_info
+select
+  project_id,
+  bag_name,
+  bag_status,
+  bag_remain_principal,
+  bag_date,
+  insert_date,
+  bag_id
+from dim.bag_info_json;
+select * from dim.bag_info;
+
+insert overwrite table dim.bag_info select 'CL202012140024','存量测试车分期001资产包_10','已封包','NULL','2016-12-01','2020-12-16','CL202012140024_10';
+select * from dim.bag_info where bag_id = 'CL202012140024_10';
+
+
+
 
 
 

@@ -91,25 +91,26 @@ from (
     )                                                                             as col_5
   from (
     select
-    replace(
-      regexp_replace(
+      replace(
         regexp_replace(
           regexp_replace(
             regexp_replace(
               regexp_replace(
-                original_msg,'\\\\\"\\\{','\\\{'
-              ),'\\\}\\\\\"','\\\}'
-            ),'\\\"\\\{','\\\{'
-          ),'\\\}\\\"','\\\}'
-        ),'\\\\',''
-      ),'\\\\\"',"") as original_msg
+                regexp_replace(
+                  original_msg,'\\\\\"\\\{','\\\{'
+                ),'\\\}\\\\\"','\\\}'
+              ),'\\\"\\\{','\\\{'
+            ),'\\\}\\\"','\\\}'
+          ),'\\\\',''
+        ),'\\\\\"',""
+      ) as original_msg
     from stage.ecas_msg_log
     where 1 > 0
-      and is_his = 'N'
+      -- and is_his = 'N'
       -- and is_his = 'Y'
       and msg_type = 'WIND_CONTROL_CREDIT'
       and original_msg is not null
-      and datefmt(update_time,'ms','yyyy-MM-dd') = '${ST9}'
+      -- and datefmt(update_time,'ms','yyyy-MM-dd') = '${ST9}'
   ) as msg_log
 ) as log
 lateral view explode (map(
@@ -120,7 +121,7 @@ lateral view explode (map(
   sha256(col_5,'address', 1),col_5
 )) tbl_map as dim_encrypt,dim_decrypt
 where dim_encrypt is not null
--- limit 10
+limit 10
 ;
 
 
@@ -347,8 +348,9 @@ from (
     reqdata["phoneNo"]  as col_4,
     reqdata["idAddr"]   as col_5
   from stage.kafka_credit_msg
-  where batch_date = '${ST9}'
-  and p_type = 'WS0012200001'
+  where 1 > 0
+    and batch_date = '${ST9}'
+    and p_type = 'WS0012200001'
 ) as log
 lateral view explode (map(
   sha256(col_1,'idNumber',1),col_1,
@@ -378,7 +380,8 @@ from (
     reqdata["phoneNo"]  as col_4,
     reqdata["idAddr"]   as col_5
   from stage.kafka_credit_msg
-  where batch_date = '${ST9}'
+  where 1 > 0
+    and batch_date = '${ST9}'
     and p_type = 'WS0013200001'
 ) as log
 lateral view explode (map(

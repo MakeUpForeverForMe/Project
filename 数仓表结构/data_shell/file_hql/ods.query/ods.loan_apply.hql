@@ -18,7 +18,7 @@ set hive.exec.max.dynamic.partitions.pernode=50000;
 -- 禁用 Hive 矢量执行
 set hive.vectorized.execution.enabled=false;
 set hive.vectorized.execution.reduce.enabled=false;
-set hive.vectorized.execution.reduce.groupby.enabled=false;
+set hive.vectorized.execution.reduce.groupby.enabled=false; 
 
 
 
@@ -720,7 +720,7 @@ from (
         and msg_type = 'GZ_CREDIT_APPLY'
         and original_msg is not null
     ) as credit_apply
-  ) as msg_log
+    ) as msg_log
   on  loan_apply.biz_date   = msg_log.biz_date
   and loan_apply.product_id = msg_log.product_id
 ) as tmp
@@ -734,12 +734,8 @@ from (
 -- 新核心 乐信云信
 msck repair table stage.kafka_credit_msg;
 insert overwrite table ods.loan_apply partition(biz_date,product_id)
-select
-  `(rn)?+.+`
-from (
   select
-    *,
-    row_number() over(partition by apply_id,product_id order by update_time) as rn
+    distinct *
   from (
     select
       concat_ws('_',biz_conf.channel_id,sha256(loan_apply.reqdata["idNo"],'idNumber',1),sha256(loan_apply.reqdata["custName"],'userName',1)) as cust_id,
@@ -753,7 +749,7 @@ from (
           datefmt(loan_apply.reqdata["birth"],'yyyyMMdd','yyyy-MM-dd'),
           datefmt(substring(loan_apply.reqdata["idNo"],7,8),'yyyyMMdd','yyyy-MM-dd')
         ),
-        to_date(nvl(ecas_loan.active_date,loan_apply.reqdata["loanDate"]))
+        to_date(nvl(loan_contract.active_date,loan_apply.reqdata["loanDate"]))
       )                                                                                                   as age,
       loan_apply.reqdata["applyNo"]                                                                       as pre_apply_no,
       loan_apply.reqdata["applyNo"]                                                                       as apply_id,
@@ -828,6 +824,7 @@ from (
       select
         apply_no,
         due_bill_no,
+        product_no,
         contract_amount as loan_init_prin,
         actual_loan_date as active_date
       from (
@@ -840,7 +837,7 @@ from (
       ) as tmp
       where rn = 1
     ) as loan_contract
-    on  loan_apply.reqdata["proCode"] = loan_contract.project_no
+    on  loan_apply.reqdata["proCode"] = loan_contract.product_no
     and loan_apply.reqdata["applyNo"] = loan_contract.apply_no
     left join (
       select distinct
@@ -857,8 +854,6 @@ from (
     ) as biz_conf
     on loan_apply.reqdata["proCode"] = biz_conf.dim_product_id
   ) as tmp
-) as tmp
-where rn = 1
 ;
 
 
@@ -867,12 +862,8 @@ where rn = 1
 
 -- 百度医美
 insert overwrite table ods.loan_apply partition(biz_date,product_id)
-select
-  `(rn)?+.+`
-from (
   select
-    *,
-    row_number() over(partition by apply_id,product_id order by update_time) as rn
+    distinct *
   from (
     select
       concat_ws('_',biz_conf.channel_id,sha256(loan_apply.reqdata["idNo"],'idNumber',1),sha256(loan_apply.reqdata["custName"],'userName',1)) as cust_id,
@@ -961,6 +952,7 @@ from (
       select
         apply_no,
         due_bill_no,
+        product_no,
         contract_amount as loan_init_prin,
         actual_loan_date as active_date
       from (
@@ -973,7 +965,7 @@ from (
         ) as tmp
       where rn = 1
     ) as loan_contract
-    on  loan_apply.reqdata["proCode"] = loan_contract.project_no
+    on  loan_apply.reqdata["proCode"] = loan_contract.product_no
     and loan_apply.reqdata["applyNo"] = loan_contract.apply_no
     left join (
       select distinct
@@ -990,6 +982,4 @@ from (
     ) as biz_conf
     on loan_apply.reqdata["proCode"] = biz_conf.dim_product_id
   ) as tmp
-) as tmp
-where rn = 1
-;
+  ;

@@ -1,19 +1,22 @@
 -- 看管系统
 
 
+-- cps 库只只需要建资产相关表
+-- DROP DATABASE IF EXISTS dm_eagle_cps;
+CREATE DATABASE IF NOT EXISTS dm_eagle_cps COMMENT 'dm_eagle层数据（代偿后）';
+use dm_eagle_cps;
+
+-- dm_eagle 需要建所有的表都要建
 -- 库名 dm_eagle 数据指标
 -- DROP DATABASE IF EXISTS dm_eagle;
 CREATE DATABASE IF NOT EXISTS dm_eagle COMMENT 'dm_eagle层数据（代偿前）';
 
--- DROP DATABASE IF EXISTS dm_eagle_cps;
-CREATE DATABASE IF NOT EXISTS dm_eagle_cps COMMENT 'dm_eagle层数据（代偿后）';
 
 use dm_eagle;
-use dm_eagle_cps;
 
 
 
--- 资金相关
+-- #---------------------------------------------------------------- 资金相关 ----------------------------------------------------------------#
 -- 无在途版-乐信资产变动信息(代偿版)(还款本金取T-2)
 -- drop table if exists `eagle_asset_change_comp_t1`;
 create table if not exists `eagle_asset_change_comp_t1`(
@@ -162,7 +165,7 @@ ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
 
-
+-- #---------------------------------------------------------------- 进件相关 ----------------------------------------------------------------#
 -- /**
 -- * 额度通过率分析
 -- *
@@ -312,6 +315,8 @@ ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
 
+
+-- #---------------------------------------------------------------- 资产相关 ----------------------------------------------------------------#
 -- /**
 -- * 标题头信息
 -- */
@@ -614,8 +619,7 @@ ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
 
--- ABS系统
-
+-- #---------------------------------------------------------------- 星云相关 ----------------------------------------------------------------#
 -- uabs-core 库
 -- 资产总体信息（项目——所有包）
 -- drop table if exists `abs_asset_information_project`;

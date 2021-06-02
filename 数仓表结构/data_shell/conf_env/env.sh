@@ -17,6 +17,10 @@ case $(ifconfig | grep -Po 'inet[ ]\K[^ ]+' | grep -v '127') in
     abs_call_back_addr=https://uabs-server.weshareholdings.com # 10.80.1.25
     hdfs_uri=hdfs://
     cos_uri=cosn://bigdata-center-prod-1253824322
+    ftp_host=10.90.0.5
+    ftp_user=
+    ftp_pass=
+    ftp_dir=
     ;;
   (10.83.* )
     is_test=y
@@ -25,6 +29,10 @@ case $(ifconfig | grep -Po 'inet[ ]\K[^ ]+' | grep -v '127') in
     abs_call_back_addr=http://10.83.0.69:8210
     hdfs_uri=hdfs://
     cos_uri=cosn://bigdatacenter-sit-1253824322
+    ftp_host=10.83.0.32
+    ftp_user=it-dev
+    ftp_pass=058417gv
+    ftp_dir=/bigcenter
     ;;
 esac
 

@@ -14,7 +14,7 @@ set hive.exec.max.dynamic.partitions.pernode=50000;
 set hive.vectorized.execution.enabled=false;
 set hive.vectorized.execution.reduce.enabled=false;
 set hive.vectorized.execution.reduce.groupby.enabled=false;
-
+--set hivevar:ST9=2021-05-17;
 
 
 set hivevar:days=3; -- 按照动支率的查看天数取值
@@ -28,13 +28,22 @@ select
   nvl(credit_count.credit_approval_num_person_count,0) as credit_approval_num_person_count, -- 累计授信通过人数
   nvl(credit_loan.credit_approval_amount,0)            as credit_approval_amount,           -- 授信通过金额
   nvl(credit_count.credit_approval_amount_count,0)     as credit_approval_amount_count,     -- 累计授信通过金额
-  dim_date.biz_date                                    as loan_approval_date,               -- 用信通过日期
+  credit_count.biz_date                                    as loan_approval_date,               -- 用信通过日期
   nvl(credit_loan.loan_approval_num,0)                 as credit_loan_approval_num,         -- 用信通过笔数
   nvl(credit_loan.loan_approval_person,0)              as credit_loan_approval_person,      -- 用信通过人数
   nvl(credit_loan.loan_approval_num_amount,0)          as credit_loan_approval_num_amount,  -- 用信通过金额
   credit_count.credit_approval_date                    as biz_date,                         -- 授信通过日期
   credit_count.product_id                              as product_id                        -- 产品编号
-from (  -- 求累计到观察日的授信统计
+from (-- 求累计到观察日的授信统计
+  select
+  product_id,
+  credit_approval_date,
+  credit_approval_num_count,
+  credit_approval_num_person_count,
+  credit_approval_amount_count,
+  dim_date.biz_date
+  from
+  (
   select
     product_id          as product_id,
     '${ST9}'            as credit_approval_date,
@@ -60,13 +69,16 @@ from (  -- 求累计到观察日的授信统计
       ${hive_param_str}
   ) as tmp
   group by product_id
-) as credit_count
+) as credit_count_tmp
 left join (
-  select biz_date
+  select  biz_date, '${ST9}' as observ_day
   from dim.dim_date
   where 1 > 0
     and biz_date between '${ST9}' and date_add('${ST9}',${days})
+  group by biz_date
 ) as dim_date
+on credit_count_tmp.credit_approval_date = dim_date.observ_day
+) credit_count
 left join ( -- 授信当天，用信 t+0，t+1，t+2，t+3 天的统计
   select
     credit_apply.product_id            as credit_product_id,
@@ -124,6 +136,6 @@ left join ( -- 授信当天，用信 t+0，t+1，t+2，t+3 天的统计
   group by credit_apply.product_id,credit_apply.credit_approval_date,loan_apply.loan_approval_date
 ) as credit_loan
 on  credit_count.product_id = credit_loan.credit_product_id
-and dim_date.biz_date       = credit_loan.loan_approval_date
+and credit_count.biz_date   = credit_loan.loan_approval_date
 -- limit 10
 ;

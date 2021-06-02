@@ -146,8 +146,6 @@ from (
             bag_date,
             bag_id
           from dim.bag_info
-          where 1 > 0
-            and project_id in (${project_id})
         ) as bag_info
         join (
           select

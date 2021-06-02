@@ -81,15 +81,7 @@ cust_id,
 name
 from
 ods${suffix}.customer_info) c
-left join
-(select
-   dim_encrypt
-  ,dim_decrypt
-  from dim_new.dim_encrypt_info
-  where dim_type = 'userName'
-group by
-dim_encrypt
-,dim_decrypt) d
+left join dim.dim_encrypt_info d
 on c.name = d.dim_encrypt
 ) b
 on a.cust_id = b.cust_id

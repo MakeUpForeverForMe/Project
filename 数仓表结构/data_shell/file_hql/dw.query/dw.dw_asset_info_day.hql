@@ -18,7 +18,7 @@ set hive.vectorized.execution.reduce.groupby.enabled=false;
 
 
 
-insert overwrite table dw.dw_asset_info_day partition (biz_date=,project_id)
+insert overwrite table dw.dw_asset_info_day partition (biz_date='${ST9}',project_id)
 select
   loan.remain_principal      as remain_principal,
   loan.loan_principal        as loan_sum_daily,
@@ -37,14 +37,13 @@ select
   other.back_repay_interest  as back_repay_interest,
   other.back_repay_penalty   as back_repay_penalty,
   other.back_repay_fee       as back_repay_fee,
-  '${ST9}'                   as biz_date,
   loan.project_id            as project_id
 from
 (
     select
         b.project_id                                                         as project_id,
         sum(loan.remain_principal)                                           as remain_principal,
-        sum(if(lend.loan_active_date='${ST9}',loan_init_principal,0))        as loan_principal
+        sum(if(lend.loan_active_date='${ST9}',loan_original_principal,0))        as loan_principal
     from
         (
             select product_id,due_bill_no,remain_principal
@@ -53,7 +52,7 @@ from
         ) loan
             left join
         (
-            select due_bill_no,loan_active_date,loan_init_principal
+            select due_bill_no,loan_active_date,loan_original_principal
             from ods.loan_lending
             where biz_date='${ST9}' ${hive_param_str}
         ) lend
