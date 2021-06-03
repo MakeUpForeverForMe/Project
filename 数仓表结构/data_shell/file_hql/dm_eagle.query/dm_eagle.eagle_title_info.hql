@@ -38,6 +38,7 @@ from (
       channel_id,
       project_id,
       product_id_vt ,
+      project_amount,
       product_id
     from (
       select
@@ -45,6 +46,7 @@ from (
         max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
         max(if(col_name = 'project_id',   col_val,null)) as project_id,
         max(if(col_name = 'product_id_vt',col_val,null)) as product_id_vt,
+        max(if(col_name = 'project_amount',col_val,null)) as project_amount,
         max(if(col_name = 'product_id',   col_val,null)) as product_id
       from dim.data_conf
       where col_type = 'ac'

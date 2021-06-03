@@ -18,6 +18,10 @@ CREATE TABLE IF NOT EXISTS `t_biz_conf`(
   `project_name`                  varchar(255)   COMMENT '项目名称（中文）',
   `project_name_en`               varchar(255)   COMMENT '项目名称（英文）',
   `project_amount`                decimal(15,4)  COMMENT '项目初始金额',
+  `project_asset_type`            varchar(255)   COMMENT '项目资产类型',
+  `project_begin_date`            varchar(255)   COMMENT '项目开始日期',
+  `project_end_date`              varchar(255)   COMMENT '项目结束日期',
+  `project_description`           varchar(255)   COMMENT '项目情况描述',
   `product_id`                    varchar(255)   COMMENT '产品编号',
   `product_name`                  varchar(255)   COMMENT '产品名称（中文）',
   `product_name_en`               varchar(255)   COMMENT '产品名称（英文）',
@@ -26,6 +30,11 @@ CREATE TABLE IF NOT EXISTS `t_biz_conf`(
   `product_name_en_vt`            varchar(255)   COMMENT '产品名称（英文、虚拟）'
 ) COMMENT '业务配置表'
 ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+
+
+
+
+
 
 
 -- 投资人信息表
@@ -48,7 +57,7 @@ CREATE TABLE IF NOT EXISTS `t_investor_info`(
   `coupon_formula_effective_date` varchar(255)   NOT NULL COMMENT '收益公式生效日期',
   `coupon_formula_expire_date`    varchar(255)   NOT NULL COMMENT '收益公式失效日期',
   `int_calc_rules`                varchar(255)   NOT NULL COMMENT '计息规则',
-  `CREATE_time`                   timestamp      NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `create_time`                   timestamp      NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `update_time`                   timestamp      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间'
 ) COMMENT '投资人信息表'
 ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
@@ -75,47 +84,6 @@ ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 -- DROP DATABASE IF EXISTS dim;
 CREATE DATABASE IF NOT EXISTS dim COMMENT '维度数据层';
-
-
-
-
--- ------------------------------------------------------ 已删除 ------------------------------------------------------
--- 业务配置表
--- 数据库主键 product_id
--- 业务主键 product_id
--- DROP TABLE IF EXISTS `dim.biz_conf`;
--- CREATE EXTERNAL TABLE IF NOT EXISTS `dim.biz_conf`(
---   `biz_name`                      string         COMMENT '业务名称（中文）',
---   `biz_name_en`                   string         COMMENT '业务名称（英文）',
---   `capital_id`                    string         COMMENT '资金方编号',
---   `capital_name`                  string         COMMENT '资金方名称（中文）',
---   `capital_name_en`               string         COMMENT '资金方名称（英文）',
---   `channel_id`                    string         COMMENT '渠道方编号',
---   `channel_name`                  string         COMMENT '渠道方名称（中文）',
---   `channel_name_en`               string         COMMENT '渠道方名称（英文）',
---   `trust_id`                      string         COMMENT '信托计划编号',
---   `trust_name`                    string         COMMENT '信托计划名称（中文）',
---   `trust_name_en`                 string         COMMENT '信托计划名称（英文）',
---   `abs_project_id`                string         COMMENT 'ABS项目编号',
---   `abs_project_name`              string         COMMENT 'ABS项目名称（中文）',
---   `project_id`                    string         COMMENT '项目编号',
---   `project_name`                  string         COMMENT '项目名称（中文）',
---   `project_name_en`               string         COMMENT '项目名称（英文）',
---   `project_amount`                decimal(15,4)  COMMENT '项目初始金额',
---   `product_id`                    string         COMMENT '产品编号',
---   `product_name`                  string         COMMENT '产品名称（中文）',
---   `product_name_en`               string         COMMENT '产品名称（英文）',
---   `product_id_vt`                 string         COMMENT '产品编号（虚拟）',
---   `product_name_vt`               string         COMMENT '产品名称（中文、虚拟）',
---   `product_name_en_vt`            string         COMMENT '产品名称（英文、虚拟）'
--- ) COMMENT '业务配置表'
--- ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe'
--- -- field.delim是表的两个列字段之间的文件中的字段分隔符.
--- -- 其中serialization.format是文件序列化时表中两个列字段之间的文件中的字段分隔符.
--- WITH SERDEPROPERTIES ('field.delim' = '\t','serialization.format' = '\t','serialization.null.format' = '')
--- location 'cosn://bigdata-center-prod-1253824322/user/hadoop/warehouse/dim.db/biz_conf'
--- STORED AS TEXTFILE;
--- ------------------------------------------------------ 已删除 ------------------------------------------------------
 
 
 

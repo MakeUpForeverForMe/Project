@@ -24,7 +24,7 @@ case $(ifconfig | grep -Po 'inet[ ]\K[^ ]+' | grep -v '127') in
     ;;
   (10.83.* )
     is_test=y
-    hive_host=10.83.1.157:7001
+    hive_host=10.83.1.43:7001
     impala_host=10.83.1.43:27001 # 或 10.83.1.121:27001
     abs_call_back_addr=http://10.83.0.69:8210
     hdfs_uri=hdfs://
@@ -142,6 +142,8 @@ dim_new_hql=$file_hql/dim.query
 ods_new_s_hql=$file_hql/ods.query
 reload_hql=$file_hql/ods_reload.query
 ods_cloud_hql=$file_hql/ods_cloud.query
+ods_newcore_baidu_hql=$file_hql/ods_newcore.query/baidu
+ods_newcore_yunxin_hql=$file_hql/ods_newcore.query/yunxin
 
 # dw 目录
 dw_new_hql=$file_hql/dw.query

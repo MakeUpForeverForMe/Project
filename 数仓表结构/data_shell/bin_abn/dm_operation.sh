@@ -25,6 +25,7 @@ echo -e "${date_s:=$(date +'%F %T')} 任务执行  开始 当前脚本进程ID�
 sh $data_manage -s ${s_date} -e ${e_date} -f $dm_operation_hql/dm_eagle.operation_overdue_datail.hql -i $param_dir/dm_operation.hql                -a $rd &
 sh $data_manage -s ${s_date} -e ${e_date} -f $dm_operation_hql/dm_eagle.operation_product_management_report_agg.hql -i $param_dir/dm_operation.hql -a $rd &
 sh $data_manage -s ${s_date} -e ${e_date} -f $dm_operation_hql/dm_eagle.operation_should_repay_day_agg.hql  -i $param_dir/dm_operation.hql         -a $rd &
+sh $data_manage -s ${s_date} -e ${e_date} -f $dm_operation_hql/dm_eagle.operation_overdue_base_detail.hql  -i $param_dir/dm_operation.hql         -a $rd &
 
 wait_jobs
 

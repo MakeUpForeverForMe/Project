@@ -537,6 +537,7 @@ CREATE TABLE IF NOT EXISTS `dw.abs_due_info_day`(
   `income_year_max`              decimal(25,5)  COMMENT '年收入上限',
   `income_year_min`              decimal(25,5)  COMMENT '年收入下限',
   `idcard_area`                  string         COMMENT '身份证大区（东北地区、华北地区、西北地区、西南地区、华南地区、华东地区、华中地区、港澳台地区）',
+  `idcard_province`              string         COMMENT '身份证省级（省/直辖市/特别行政区）',
 
   -- 抵押物级
   `due_bill_no_guaranty`         string         COMMENT '抵押物借据编号',
@@ -598,6 +599,7 @@ CREATE VIEW IF NOT EXISTS `dw.abs_due_info_day_abs`(
   `income_year_max`            COMMENT '年收入上限',
   `income_year_min`            COMMENT '年收入下限',
   `idcard_area`                COMMENT '身份证大区（东北地区、华北地区、西北地区、西南地区、华南地区、华东地区、华中地区、港澳台地区）',
+  `idcard_province`            COMMENT '身份证省级（省/直辖市/特别行政区）',
 
   -- 抵押物级
   `due_bill_no_guaranty`       COMMENT '抵押物借据编号',
@@ -655,6 +657,7 @@ CREATE VIEW IF NOT EXISTS `dw.abs_due_info_day_abs`(
   t1.income_year_max,
   t1.income_year_min,
   t1.idcard_area,
+  t1.idcard_province,
 
   -- 抵押物级
   t1.due_bill_no_guaranty,

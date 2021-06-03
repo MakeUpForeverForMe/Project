@@ -14,7 +14,9 @@ set hive.exec.max.dynamic.partitions.pernode=50000;
 set hive.vectorized.execution.enabled=false;
 set hive.vectorized.execution.reduce.enabled=false;
 set hive.vectorized.execution.reduce.groupby.enabled=false;
-
+--set hivevar:ST9=2021-05-31;
+--SET hivevar:vt=_vt;
+--set hivevar:hive_param_str=;
 
 
 
@@ -85,7 +87,7 @@ from (
         *
       from dw.dw_credit_approval_stat_day
       where 1 > 0
-        -- and biz_date = '${ST9}'
+        and biz_date = '${ST9}'
         ${hive_param_str}
     ) as credit_approval
     join (
@@ -119,7 +121,7 @@ from (
         *
       from dw.dw_credit_approval_stat_day
       where 1 > 0
-        -- and biz_date = date_sub('${ST9}',1)
+         and biz_date = date_sub('${ST9}',1)
         ${hive_param_str}
     ) as credit_approval
     join (
@@ -178,7 +180,7 @@ full join (
         *
       from dw.dw_loan_approval_stat_day
       where 1 > 0
-        -- and biz_date = '${ST9}'
+         and biz_date = '${ST9}'
         ${hive_param_str}
     ) as dw_loan_approval_stat_day
     join (
@@ -213,7 +215,7 @@ full join (
         *
       from dw.dw_loan_approval_stat_day
       where 1 > 0
-        -- and biz_date = date_sub('${ST9}',1)
+         and biz_date = date_sub('${ST9}',1)
         ${hive_param_str}
     ) as dw_loan_approval_stat_day
     join (

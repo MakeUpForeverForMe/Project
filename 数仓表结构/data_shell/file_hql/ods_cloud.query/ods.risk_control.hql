@@ -123,7 +123,7 @@ lateral view explode(
     named_struct('map_key','score_range_t1','map_val',score_range_t1,'map_com','T-1月资产等级'),
     named_struct('map_key','score_range_t2','map_val',score_range_t2,'map_com','T-2月资产等级'),
     named_struct('map_key','score_range',   'map_val',score_range,   'map_com','资产等级'),
-    named_struct('map_key','inner_black',   'map_val',inner_black,   'map_com','内部黑名单（1：命中，2：未命中）'),
+    named_struct('map_key','inner_black',   'map_val',inner_black,   'map_com','内部黑名单（0：未命中，1：命中）'),
     named_struct('map_key','focus',         'map_val',focus,         'map_com','关注名单（1：关注，0：非关注）'),
     named_struct('map_key','state',         'map_val',state,         'map_com','数据状态（0：无效，1：处理中，2：处理成功，3：处理失败）'),
     named_struct('map_key','error_msg',     'map_val',error_msg,     'map_com','失败原因')

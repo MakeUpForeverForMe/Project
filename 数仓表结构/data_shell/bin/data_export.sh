@@ -80,15 +80,20 @@ table_list=(
 
   # dm_eagle.abs_asset_information_cash_flow_bag_day-$dm_eagle_uabs_core
   # dm_eagle.abs_asset_information_cash_flow_bag_snapshot-$dm_eagle_uabs_core
+
+  # 不需要导出到 MySQL
+  # dm_eagle.abs_overdue_rate_details_day-$dm_eagle_uabs_core
+  # dm_eagle.abs_early_payment_asset_details-$dm_eagle_uabs_core
+  # dm_eagle.abs_early_payment_asset_statistic-$dm_eagle_uabs_core
 )
 
 # s_date=2017-06-01
 # e_date=2021-04-30
-s_date=$(date -d '-1 day' +%F)
-e_date=$(date -d '-1 day' +%F)
+# s_date=$(date -d '-1 day' +%F)
+# e_date=$(date -d '-1 day' +%F)
 
-s_date="$(date -d "${1:-${s_date}}" +%F)"
-e_date="$(date -d "${2:-${e_date}}" +%F)"
+s_date="$(date -d "${1:-${s_date:-$(date -d '-1 day' +%F)}}" +%F)"
+e_date="$(date -d "${2:-${e_date:-$(date -d '-1 day' +%F)}}" +%F)"
 table_list=(${3:-${table_list[@]}})
 
 
@@ -133,7 +138,7 @@ for db_tb in ${!tables[@]};do
       {
         export_file="$file_export/${db_tb}.$hql_key.tsv"
 
-        debug "$hql_key"'\t'"$export_file"'\t'"${hql[$hql_key]}"
+        debug "$hql_key" "$export_file" "${hql[$hql_key]}"
 
         export_file_from_hive "${hql[$hql_key]}"
       } &

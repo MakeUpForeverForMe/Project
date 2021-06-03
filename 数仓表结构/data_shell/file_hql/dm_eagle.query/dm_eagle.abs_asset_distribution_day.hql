@@ -26,17 +26,12 @@ set hive.auto.convert.join.noconditionaltask=false;
 
 
 
--- set hivevar:ST9=2020-10-16;
--- set hivevar:ST9=2020-10-17;
-
 -- set hivevar:ST9=2021-05-12;
-
 -- set hivevar:project_id=
 --   select distinct project_id
 --   from dim.project_info
 --   where 1 > 0
 -- ;
-
 
 
 
@@ -54,11 +49,15 @@ with bill_info as (
     dw_abs.distribution_array
   from (
     select
-      *
+      biz_date                                     as biz_date,
+      project_id                                   as project_id,
+      due_bill_no                                  as due_bill_no_join,
+      distribution_array                           as distribution_array,
+      if(loan_status != 'F',due_bill_no,     null) as due_bill_no,
+      if(loan_status != 'F',remain_principal,0   ) as remain_principal
     from dw.abs_due_info_day_abs
     where 1 > 0
       and biz_date = '${ST9}'
-      and loan_status <> 'F'
   ) as dw_abs
   left join (
     select
@@ -85,9 +84,8 @@ with bill_info as (
     on  bag_info.project_id  = bag_due.project_id
     and bag_info.bag_id      = bag_due.bag_id
   ) as bag_due
-  on  dw_abs.project_id  = bag_due.project_id
-  and dw_abs.due_bill_no = bag_due.due_bill_no
-  and dw_abs.biz_date    >= bag_due.bag_date
+  on  dw_abs.project_id       = bag_due.project_id
+  and dw_abs.due_bill_no_join = bag_due.due_bill_no
 )
 
 -- 插入数据

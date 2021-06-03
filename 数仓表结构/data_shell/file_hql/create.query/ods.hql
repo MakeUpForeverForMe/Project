@@ -1820,7 +1820,7 @@ CREATE VIEW IF NOT EXISTS `ods.t_10_basic_asset`(
   stage.virtual_asset_bag_id,
   bag_snapshot.package_remain_principal,
   bag_snapshot.package_remain_periods,
-  cast(bag_snapshot.bag_status as int) as status,
+  nvl(cast(bag_snapshot.bag_status as int),1) as status,
   stage.wind_control_status,
   stage.wind_control_status_pool,
   stage.cheat_level,

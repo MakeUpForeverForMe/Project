@@ -24,7 +24,8 @@ set hive.auto.convert.join=false;
 set hive.auto.convert.join.noconditionaltask=false;
 
 
--- set hivevar:ST9=2021-05-20;
+-- set hivevar:ST9=2021-03-28;
+-- set hivevar:project_id='CL202012160091';
 -- set hivevar:project_id=
 --   select distinct project_id
 --   from dim.project_info
@@ -32,7 +33,7 @@ set hive.auto.convert.join.noconditionaltask=false;
 -- ;
 
 
-insert overwrite table dm_eagle.abs_asset_information_project partition(biz_date,project_id)
+-- insert overwrite table dm_eagle.abs_asset_information_project partition(biz_date,project_id)
 select
   count(dw_abs.due_bill_no)                                                                                                          as asset_count,
   count(distinct dw_abs.user_hash_no)                                                                                                as customer_count,
@@ -77,14 +78,14 @@ select
   nvl(min(least(dw_abs.income_year,dw_abs.income_year_min)),0)                                                                       as income_year_min,
   nvl(sum(if(dw_abs.income_year = 0,(dw_abs.income_year_max + dw_abs.income_year_min) / 2,dw_abs.income_year)) / count(dw_abs.due_bill_no),0) as income_year_avg,
   nvl(sum(if(dw_abs.income_year = 0,(dw_abs.income_year_max + dw_abs.income_year_min) / 2,dw_abs.income_year) * dw_abs.remain_principal) / sum(dw_abs.remain_principal),0) as income_year_avg_weighted,
-  max(if(dw_abs.income_year = 0,(dw_abs.income_year_max + dw_abs.income_year_min) / 2,dw_abs.income_year) / dw_abs.remain_principal) as income_debt_ratio_max,
-  min(if(dw_abs.income_year = 0,(dw_abs.income_year_max + dw_abs.income_year_min) / 2,dw_abs.income_year) / dw_abs.remain_principal) as income_debt_ratio_min,
+  nvl(max(if(dw_abs.income_year = 0,(dw_abs.income_year_max + dw_abs.income_year_min) / 2,dw_abs.income_year) / dw_abs.remain_principal),0) as income_debt_ratio_max,
+  nvl(min(if(dw_abs.income_year = 0,(dw_abs.income_year_max + dw_abs.income_year_min) / 2,dw_abs.income_year) / dw_abs.remain_principal),0) as income_debt_ratio_min,
   nvl(sum(if(dw_abs.income_year = 0,(dw_abs.income_year_max + dw_abs.income_year_min) / 2,dw_abs.income_year) / dw_abs.remain_principal) / count(dw_abs.due_bill_no),0) as income_debt_ratio_avg,
   nvl(sum(dw_abs.remain_principal * (if(dw_abs.income_year = 0,(dw_abs.income_year_max + dw_abs.income_year_min) / 2,dw_abs.income_year) / bag_due.package_remain_principal)) / sum(dw_abs.remain_principal),0) as income_debt_ratio_avg_weighted,
   nvl(sum(if(dw_abs.guarantee_type = '抵押担保',dw_abs.remain_principal,0)),0)                                                       as pledged_asset_balance,
   count(if(dw_abs.guarantee_type = '抵押担保',dw_abs.due_bill_no,null))                                                              as pledged_asset_count,
   nvl(sum(if(dw_abs.guarantee_type = '抵押担保',dw_abs.remain_principal,0)) / sum(dw_abs.remain_principal),0)                        as pledged_asset_balance_ratio,
-  count(if(dw_abs.guarantee_type = '抵押担保',dw_abs.due_bill_no,null)) / count(dw_abs.due_bill_no)                                  as pledged_asset_count_ratio,
+  nvl(count(if(dw_abs.guarantee_type = '抵押担保',dw_abs.due_bill_no,null)) / count(dw_abs.due_bill_no),0)                           as pledged_asset_count_ratio,
   nvl(sum(dw_abs.pawn_value),0)                                                                                                      as pawn_value,
   nvl(
     sum(
@@ -98,12 +99,32 @@ select
   dw_abs.project_id                                                                                                                  as project_id
 from (
   select
-    *
+    biz_date                                            as biz_date,
+    project_id                                          as project_id,
+    due_bill_no                                         as due_bill_no_join,
+
+    if(loan_status != 'F',due_bill_no,            null) as due_bill_no,
+    if(loan_status != 'F',user_hash_no,           null) as user_hash_no,
+    if(loan_status != 'F',guarantee_type,         null) as guarantee_type,
+    if(loan_status != 'F',account_age,            0)    as account_age,
+    if(loan_status != 'F',age,                    0)    as age,
+    if(loan_status != 'F',contract_term,          0)    as contract_term,
+    if(loan_status != 'F',income_year,            0)    as income_year,
+    if(loan_status != 'F',income_year_max,        0)    as income_year_max,
+    if(loan_status != 'F',income_year_min,        0)    as income_year_min,
+    if(loan_status != 'F',loan_init_interest_rate,0)    as loan_init_interest_rate,
+    if(loan_status != 'F',loan_init_principal,    0)    as loan_init_principal,
+    if(loan_status != 'F',loan_init_term,         0)    as loan_init_term,
+    if(loan_status != 'F',loan_term_remain,       0)    as loan_term_remain,
+    if(loan_status != 'F',loan_term_repaid,       0)    as loan_term_repaid,
+    if(loan_status != 'F',pawn_value,             0)    as pawn_value,
+    if(loan_status != 'F',remain_interest,        0)    as remain_interest,
+    if(loan_status != 'F',remain_principal,       0)    as remain_principal,
+    if(loan_status != 'F',shoufu_amount,          0)    as shoufu_amount
   from dw.abs_due_info_day_abs
   where 1 > 0
     and biz_date = '${ST9}'
     and project_id in (${project_id})
-    and loan_status <> 'F'
 ) as dw_abs
 left join (
   select
@@ -132,8 +153,8 @@ left join (
   on  bag_info.project_id = bag_due.project_id
   and bag_info.bag_id     = bag_due.bag_id
 ) as bag_due
-on  dw_abs.project_id  = bag_due.project_id
-and dw_abs.due_bill_no = bag_due.due_bill_no
+on  dw_abs.project_id       = bag_due.project_id
+and dw_abs.due_bill_no_join = bag_due.due_bill_no
 group by dw_abs.biz_date,dw_abs.project_id
 union all
 select
@@ -180,14 +201,14 @@ select
   nvl(min(least(dw_abs.income_year,dw_abs.income_year_min)),0)                                                                       as income_year_min,
   nvl(sum(if(dw_abs.income_year = 0,(dw_abs.income_year_max + dw_abs.income_year_min) / 2,dw_abs.income_year)) / count(dw_abs.due_bill_no),0) as income_year_avg,
   nvl(sum(if(dw_abs.income_year = 0,(dw_abs.income_year_max + dw_abs.income_year_min) / 2,dw_abs.income_year) * dw_abs.remain_principal) / sum(dw_abs.remain_principal),0) as income_year_avg_weighted,
-  max(if(dw_abs.income_year = 0,(dw_abs.income_year_max + dw_abs.income_year_min) / 2,dw_abs.income_year) / dw_abs.remain_principal) as income_debt_ratio_max,
-  min(if(dw_abs.income_year = 0,(dw_abs.income_year_max + dw_abs.income_year_min) / 2,dw_abs.income_year) / dw_abs.remain_principal) as income_debt_ratio_min,
+  nvl(max(if(dw_abs.income_year = 0,(dw_abs.income_year_max + dw_abs.income_year_min) / 2,dw_abs.income_year) / dw_abs.remain_principal),0) as income_debt_ratio_max,
+  nvl(min(if(dw_abs.income_year = 0,(dw_abs.income_year_max + dw_abs.income_year_min) / 2,dw_abs.income_year) / dw_abs.remain_principal),0) as income_debt_ratio_min,
   nvl(sum(if(dw_abs.income_year = 0,(dw_abs.income_year_max + dw_abs.income_year_min) / 2,dw_abs.income_year) / dw_abs.remain_principal) / count(dw_abs.due_bill_no),0) as income_debt_ratio_avg,
   nvl(sum(dw_abs.remain_principal * (if(dw_abs.income_year = 0,(dw_abs.income_year_max + dw_abs.income_year_min) / 2,dw_abs.income_year) / bag_due.package_remain_principal)) / sum(dw_abs.remain_principal),0) as income_debt_ratio_avg_weighted,
   nvl(sum(if(dw_abs.guarantee_type = '抵押担保',dw_abs.remain_principal,0)),0)                                                       as pledged_asset_balance,
   count(if(dw_abs.guarantee_type = '抵押担保',dw_abs.due_bill_no,null))                                                              as pledged_asset_count,
   nvl(sum(if(dw_abs.guarantee_type = '抵押担保',dw_abs.remain_principal,0)) / sum(dw_abs.remain_principal),0)                        as pledged_asset_balance_ratio,
-  count(if(dw_abs.guarantee_type = '抵押担保',dw_abs.due_bill_no,null)) / count(dw_abs.due_bill_no)                                  as pledged_asset_count_ratio,
+  nvl(count(if(dw_abs.guarantee_type = '抵押担保',dw_abs.due_bill_no,null)) / count(dw_abs.due_bill_no),0)                           as pledged_asset_count_ratio,
   nvl(sum(dw_abs.pawn_value),0)                                                                                                      as pawn_value,
   nvl(
     sum(
@@ -201,12 +222,32 @@ select
   dw_abs.project_id                                                                                                                  as project_id
 from (
   select
-    *
+    biz_date                                            as biz_date,
+    project_id                                          as project_id,
+    due_bill_no                                         as due_bill_no_join,
+
+    if(loan_status != 'F',due_bill_no,            null) as due_bill_no,
+    if(loan_status != 'F',user_hash_no,           null) as user_hash_no,
+    if(loan_status != 'F',guarantee_type,         null) as guarantee_type,
+    if(loan_status != 'F',account_age,            0)    as account_age,
+    if(loan_status != 'F',age,                    0)    as age,
+    if(loan_status != 'F',contract_term,          0)    as contract_term,
+    if(loan_status != 'F',income_year,            0)    as income_year,
+    if(loan_status != 'F',income_year_max,        0)    as income_year_max,
+    if(loan_status != 'F',income_year_min,        0)    as income_year_min,
+    if(loan_status != 'F',loan_init_interest_rate,0)    as loan_init_interest_rate,
+    if(loan_status != 'F',loan_init_principal,    0)    as loan_init_principal,
+    if(loan_status != 'F',loan_init_term,         0)    as loan_init_term,
+    if(loan_status != 'F',loan_term_remain,       0)    as loan_term_remain,
+    if(loan_status != 'F',loan_term_repaid,       0)    as loan_term_repaid,
+    if(loan_status != 'F',pawn_value,             0)    as pawn_value,
+    if(loan_status != 'F',remain_interest,        0)    as remain_interest,
+    if(loan_status != 'F',remain_principal,       0)    as remain_principal,
+    if(loan_status != 'F',shoufu_amount,          0)    as shoufu_amount
   from dw.abs_due_info_day_abs
   where 1 > 0
     and biz_date = '${ST9}'
     and project_id in (${project_id})
-    and loan_status <> 'F'
 ) as dw_abs
 inner join (
   select
@@ -235,8 +276,8 @@ inner join (
   on  bag_info.project_id = bag_due.project_id
   and bag_info.bag_id     = bag_due.bag_id
 ) as bag_due
-on  dw_abs.project_id  = bag_due.project_id
-and dw_abs.due_bill_no = bag_due.due_bill_no
+on  dw_abs.project_id       = bag_due.project_id
+and dw_abs.due_bill_no_join = bag_due.due_bill_no
 group by dw_abs.biz_date,dw_abs.project_id
 -- limit 10
 ;

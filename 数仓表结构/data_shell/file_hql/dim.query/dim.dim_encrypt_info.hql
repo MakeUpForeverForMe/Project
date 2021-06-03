@@ -106,11 +106,11 @@ from (
       ) as original_msg
     from stage.ecas_msg_log
     where 1 > 0
-      -- and is_his = 'N'
+      and is_his = 'N'
       -- and is_his = 'Y'
       and msg_type = 'WIND_CONTROL_CREDIT'
       and original_msg is not null
-      -- and datefmt(update_time,'ms','yyyy-MM-dd') = '${ST9}'
+      and datefmt(update_time,'ms','yyyy-MM-dd') = '${ST9}'
   ) as msg_log
 ) as log
 lateral view explode (map(
@@ -121,7 +121,7 @@ lateral view explode (map(
   sha256(col_5,'address', 1),col_5
 )) tbl_map as dim_encrypt,dim_decrypt
 where dim_encrypt is not null
-limit 10
+-- limit 10
 ;
 
 

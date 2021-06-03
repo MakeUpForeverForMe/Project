@@ -26,6 +26,7 @@ set hive.auto.convert.join.noconditionaltask=false;
 
 
 
+
 -- set hivevar:bag_id=
 --   select distinct bag_id
 --   from dim.bag_info
@@ -41,7 +42,7 @@ with bill_info as (
     bag_info.project_id,
     bag_info.bag_id,
     bag_info.bag_date,
-    bag_due.due_bill_no,
+    dw_abs.due_bill_no,
     dw_abs.remain_principal,
     dw_abs.distribution_array
   from (
@@ -63,11 +64,19 @@ with bill_info as (
   ) as bag_due
   on  bag_info.project_id  = bag_due.project_id
   and bag_info.bag_id      = bag_due.bag_id
-  inner join dw.abs_due_info_day_abs as dw_abs
+  inner join (
+    select
+      biz_date                                     as biz_date,
+      project_id                                   as project_id,
+      due_bill_no                                  as due_bill_no_join,
+      distribution_array                           as distribution_array,
+      if(loan_status != 'F',due_bill_no,     null) as due_bill_no,
+      if(loan_status != 'F',remain_principal,0   ) as remain_principal
+    from dw.abs_due_info_day_abs
+  ) as dw_abs
   on  bag_due.project_id  = dw_abs.project_id
-  and bag_due.due_bill_no = dw_abs.due_bill_no
+  and bag_due.due_bill_no = dw_abs.due_bill_no_join
   and bag_info.bag_date   = dw_abs.biz_date
-  and dw_abs.loan_status <> 'F'
 )
 
 -- 插入数据

@@ -15992,6 +15992,94 @@ select * from dim.bag_info where bag_id = 'CL202012140024_10';
 
 
 
+select * from dim.bag_info_json where bag_id = 'CL202012140024_14';
+select * from dim.bag_info where bag_id = 'CL202012140024_14';
+
+
+
+
+
+
+select * from dim.project_info where project_id = 'PL202105120104';
+select * from dim.project_due_bill_no where project_id = 'PL202105120104' limit 10;
+
+
+
+
+
+
+
+
+select
+  distinct
+  status,
+  wind_control_status
+from ods.t_10_basic_asset
+where 1 > 0
+  and project_id = 'CL202101260095'
+limit 100
+;
+
+select
+  distinct
+  project_id
+from stage.asset_09_t_asset_supplement;
+
+
+
+select *
+from dim.project_due_bill_no
+where project_id in (
+  -- 'CL202104300107',
+  -- 'CL202105270109',
+  -- 'CL202105310110',
+  'CL202105060108',
+  ''
+);
+
+
+select *
+from dim.project_info
+where project_id in (
+  'CL202104300107',
+  'CL202105270109',
+  'CL202105310110',
+  'CL202105060108',
+  ''
+);
+
+
+select
+  distinct
+  project_id,
+  wind_control_status
+from stage.abs_t_asset_wind_control_history
+order by project_id,wind_control_status
+;
+
+
+select distinct
+  project_id,
+  serial_number,
+  wind_control_status
+from ods.t_10_basic_asset_stage
+where project_id = 'PL202105120104'
+;
+
+
+
+select distinct
+  project_id,
+  wind_control_status
+from ods.t_10_basic_asset
+;
+
+
+
+
+
+
+
 
 
 

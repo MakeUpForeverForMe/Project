@@ -19,9 +19,10 @@ set hive.exec.max.dynamic.partitions.pernode=50000;
 set hive.vectorized.execution.enabled=false;
 set hive.vectorized.execution.reduce.enabled=false;
 set hive.vectorized.execution.reduce.groupby.enabled=false;
--- 关闭自动 MapJoin
+-- 关闭自动 MapJoin （ Hive3 的 bug，引发 No work found for tablescan ）
 set hive.auto.convert.join=false;
---set hivevar:ST9=2021-05-29;
+set hive.auto.convert.join.noconditionaltask=false;
+-- set hivevar:ST9=2021-05-29;
 
 
 
