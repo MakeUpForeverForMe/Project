@@ -43,7 +43,7 @@ from
     select
         b.project_id                                                         as project_id,
         sum(loan.remain_principal)                                           as remain_principal,
-        sum(if(lend.loan_active_date='${ST9}',loan_init_principal,0))        as loan_principal
+        sum(if(lend.loan_active_date='${ST9}',loan_original_principal,0))        as loan_principal
     from
         (
             select product_id,due_bill_no,remain_principal
@@ -52,7 +52,7 @@ from
         ) loan
         left join
         (
-            select due_bill_no,loan_active_date,loan_init_principal
+            select due_bill_no,loan_active_date,loan_original_principal
             from ods_cps.loan_lending
             where biz_date='${ST9}'  ${hive_param_str}
         ) lend
@@ -252,7 +252,7 @@ from
     select
         b.project_id                                                         as project_id,
         sum(loan.remain_principal)                                           as remain_principal,
-        sum(if(lend.loan_active_date='${ST9}',loan_init_principal,0))        as loan_principal
+        sum(if(lend.loan_active_date='${ST9}',loan_original_principal,0))        as loan_principal
     from
         (
             select product_id,due_bill_no,remain_principal
@@ -263,7 +263,7 @@ from
         ) loan
         left join
         (
-            select due_bill_no,loan_active_date,loan_init_principal
+            select due_bill_no,loan_active_date,loan_original_principal
             from ods.loan_lending
             where biz_date='${ST9}'  ${hive_param_str}
             and product_id in (${product_id_list})

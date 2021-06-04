@@ -1,5 +1,8 @@
+set hivevar:warehouse=cosn://bigdatacenter-sit-1253824322/user/hadoop/warehouse;   -- 测试
+set hivevar:warehouse=cosn://bigdata-center-prod-1253824322/user/hadoop/warehouse; -- 生产
+
 -- DROP DATABASE IF EXISTS `stage`;
-CREATE DATABASE IF NOT EXISTS `stage` COMMENT '数据缓冲层' location 'cosn://bigdata-center-prod-1253824322/user/hadoop/warehouse/stage.db';
+CREATE DATABASE IF NOT EXISTS `stage` COMMENT '数据缓冲层' location '${warehouse}/stage.db';
 
 
 
@@ -1093,7 +1096,7 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `stage.duration_result`(
   `score_range_t1`                                    string        COMMENT 'T-1月资产等级',
   `score_range_t2`                                    string        COMMENT 'T-2月资产等级',
   `score_range`                                       string        COMMENT '资产等级',
-  `inner_black`                                       string        COMMENT '内部黑名单（1：命中，2：未命中）',
+  `inner_black`                                       string        COMMENT '内部黑名单（0：未命中，1：命中）',
   `focus`                                             string        COMMENT '关注名单（1：关注，0：非关注）',
   `state`                                             string        COMMENT '数据状态（0：无效，1：处理中，2：处理成功，3：处理失败）',
   `error_msg`                                         string        COMMENT '失败原因',

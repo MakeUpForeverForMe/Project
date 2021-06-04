@@ -3,8 +3,10 @@
 . ${data_export_dir:=$(cd `dirname "${BASH_SOURCE[0]}"`;pwd)}/../conf_env/env.sh
 . $lib/function.sh
 
+log_file=$log/$(basename "${BASH_SOURCE[0]}")-$(pid).log
 
-echo -e "${date_s_aa:=$(date +'%F %T')} 导出数据 开始  当前脚本进程ID为：$(pid)"
+info "导出数据 开始！"
+date_s_aa=$curr_time
 
 table_list=(
   # # 资产
@@ -73,20 +75,24 @@ table_list=(
   # dm_eagle.abs_asset_distribution_bag_snapshot_day-$dm_eagle_uabs_core
 
   # dm_eagle.abs_asset_information_bag-$dm_eagle_uabs_core
-  # dm_eagle.abs_asset_information_project-$dm_eagle_uabs_core
+  dm_eagle.abs_asset_information_project-$dm_eagle_uabs_core
   # dm_eagle.abs_asset_information_bag_snapshot-$dm_eagle_uabs_core
 
   # dm_eagle.abs_asset_information_cash_flow_bag_day-$dm_eagle_uabs_core
   # dm_eagle.abs_asset_information_cash_flow_bag_snapshot-$dm_eagle_uabs_core
+
+  # 不需要导出到 MySQL
+  # dm_eagle.abs_overdue_rate_details_day-$dm_eagle_uabs_core
+  # dm_eagle.abs_early_payment_asset_details-$dm_eagle_uabs_core
+  # dm_eagle.abs_early_payment_asset_statistic-$dm_eagle_uabs_core
 )
 
 # s_date=2017-06-01
 # e_date=2021-04-30
-s_date=$(date -d '-1 day' +%F)
-e_date=$(date -d '-1 day' +%F)
+s_date=2020-01-01
 
-s_date="$(date -d "${1:-${s_date}}" +%F)"
-e_date="$(date -d "${2:-${e_date}}" +%F)"
+s_date="$(date -d "${1:-${s_date:-$([[ $(date +%H) -le $(date +18) ]] && echo $(date -d '-2 day' +%F) || echo $(date -d '-1 day' +%F))}}" +%F)"
+e_date="$(date -d "${2:-${e_date:-$([[ $(date +%H) -le $(date +18) ]] && echo $(date -d '-2 day' +%F) || echo $(date -d '-1 day' +%F))}}" +%F)"
 table_list=(${3:-${table_list[@]}})
 
 
@@ -109,7 +115,8 @@ export_all_data_tbl=(
   dm_eagle.abs_asset_information_cash_flow_bag_snapshot
 )
 
-echo -e "${date_a_aa:=$(date +'%F %T')} 导出数据 从 Hive 导出数据 开始  当前脚本进程ID为：$(pid)"
+info "导出数据 从 Hive 导出数据 开始!"
+date_a_aa=$curr_time
 
 for db_tb in ${!tables[@]};do
     hql=()
@@ -130,9 +137,9 @@ for db_tb in ${!tables[@]};do
       {
         export_file="$file_export/${db_tb}.$hql_key.tsv"
 
-        echo -e "$hql_key"'\t'"$export_file"'\t'"${hql[$hql_key]}"
+        debug "Hive 执行 HQL 为：${hql[$hql_key]}"
 
-        export_file_from_hive "${hql[$hql_key]}"
+        export_file_from_hive "${hql[$hql_key]}" 2>&1 | tee -a $log_file
       } &
       p_opera $p_num &> /dev/null
     done
@@ -140,8 +147,9 @@ done
 
 wait_jobs
 
-echo -e "${date_b_aa:=$(date +'%F %T')} 导出数据 从 Hive 导出数据 结束  当前脚本进程ID为：$(pid)    用时：$(during "$date_b_aa" "$date_a_aa")\n\n"
-echo -e "${date_c_aa:=$(date +'%F %T')} 导出数据 MySQL 上传 开始  当前脚本进程ID为：$(pid)"
+info "导出数据 从 Hive 导出数据 结束！用时：$(during "${date_a_aa}")"
+info "导出数据 MySQL 上传 开始！"
+date_a_aa=$curr_time
 
 for db_tb in ${!tables[@]};do
 
@@ -149,26 +157,26 @@ for db_tb in ${!tables[@]};do
   export_file="$file_export/${db_tb}.tsv"
   mysql="$($mysql_cmd ${tables[$db_tb]})"
 
-  echo "$(date +'%F %T') 整理数据 all_file ——> simple 开始 ${db_tb}"
-  cat $all_file > $export_file
-  echo "$(date +'%F %T') 整理数据 all_file ——> simple 结束 ${db_tb}"
+  debug "整理数据 all_file ——> simple 开始 ${db_tb}！"
+  cat $all_file > $export_file 2>&1 | tee -a $log_file
+  debug "整理数据 all_file ——> simple 结束 ${db_tb}！"
 
-  echo "$(date +'%F %T') 删除数据 all_file 开始 ${db_tb}"
-  rm -f $all_file
-  echo "$(date +'%F %T') 删除数据 all_file 结束 ${db_tb}"
+  debug "删除数据 all_file 开始 ${db_tb}！"
+  rm -f $all_file 2>&1 | tee -a $log_file
+  debug "删除数据 all_file 结束 ${db_tb}！"
 
   tb=$(p_r_r ${db_tb})
   if [[ -n $(echo "${export_all_data_tbl[@]}" | grep -ow "${db_tb}") || "${db_tb}" = 'dm_eagle.abs_asset_information_cash_flow_bag_day' ]]; then
     delete_sql="truncate table ${tb};"
   else
-    delete_sql="DELETE FROM ${tb} WHERE biz_date BETWEEN '${1}' and '${2}';"
+    delete_sql="DELETE FROM ${tb} WHERE biz_date BETWEEN '${s_date}' and '${e_date}';"
   fi
 
-  import_file_to_mysql "${delete_sql}" &
+  import_file_to_mysql "${delete_sql}" 2>&1 | tee -a $log_file &
   p_opera $p_num &> /dev/null
 done
 
 wait_jobs
 
-echo -e "${date_d_aa:=$(date +'%F %T')} 导出数据 MySQL 上传 结束 当前脚本进程ID为：$(pid)    用时：$(during "$date_d_aa" "$date_c_aa")\n\n"
-echo -e "${date_e_aa:=$(date +'%F %T')} 导出数据 结束 当前脚本进程ID为：$(pid)    用时：$(during "$date_e_aa" "$date_s_aa")\n\n"
+info "导出数据 MySQL 上传 结束！用时：$(during "${date_a_aa}")"
+info "导出数据 结束！用时：$(during "${date_s_aa}")"

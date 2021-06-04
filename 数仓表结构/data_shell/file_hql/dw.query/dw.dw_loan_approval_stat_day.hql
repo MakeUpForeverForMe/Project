@@ -33,7 +33,7 @@ from (
   select
     product_id                   as product_id,
     loan_terms                   as loan_terms,
-    count(distinct apply_id)   as loan_approval_num,
+    count(distinct apply_id)     as loan_approval_num,
     count(distinct user_hash_no) as loan_approval_num_person,
     sum(loan_amount_approval)    as loan_approval_amount
   from (
@@ -61,7 +61,7 @@ full join (
   select
     product_id                   as product_id_count,
     loan_terms                   as loan_terms_count,
-    count(distinct apply_id)    as loan_approval_num_count,
+    count(distinct apply_id)     as loan_approval_num_count,
     count(distinct user_hash_no) as loan_approval_num_person_count,
     sum(loan_amount_approval)    as loan_approval_amount_count
   from (

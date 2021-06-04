@@ -18,6 +18,10 @@ CREATE TABLE IF NOT EXISTS `t_biz_conf`(
   `project_name`                  varchar(255)   COMMENT '项目名称（中文）',
   `project_name_en`               varchar(255)   COMMENT '项目名称（英文）',
   `project_amount`                decimal(15,4)  COMMENT '项目初始金额',
+  `project_asset_type`            varchar(255)   COMMENT '项目资产类型',
+  `project_begin_date`            varchar(255)   COMMENT '项目开始日期',
+  `project_end_date`              varchar(255)   COMMENT '项目结束日期',
+  `project_description`           varchar(255)   COMMENT '项目情况描述',
   `product_id`                    varchar(255)   COMMENT '产品编号',
   `product_name`                  varchar(255)   COMMENT '产品名称（中文）',
   `product_name_en`               varchar(255)   COMMENT '产品名称（英文）',
@@ -26,6 +30,11 @@ CREATE TABLE IF NOT EXISTS `t_biz_conf`(
   `product_name_en_vt`            varchar(255)   COMMENT '产品名称（英文、虚拟）'
 ) COMMENT '业务配置表'
 ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+
+
+
+
+
 
 
 -- 投资人信息表
@@ -48,7 +57,7 @@ CREATE TABLE IF NOT EXISTS `t_investor_info`(
   `coupon_formula_effective_date` varchar(255)   NOT NULL COMMENT '收益公式生效日期',
   `coupon_formula_expire_date`    varchar(255)   NOT NULL COMMENT '收益公式失效日期',
   `int_calc_rules`                varchar(255)   NOT NULL COMMENT '计息规则',
-  `CREATE_time`                   timestamp      NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `create_time`                   timestamp      NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `update_time`                   timestamp      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间'
 ) COMMENT '投资人信息表'
 ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
@@ -75,47 +84,6 @@ ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 -- DROP DATABASE IF EXISTS dim;
 CREATE DATABASE IF NOT EXISTS dim COMMENT '维度数据层';
-
-
-
-
--- ------------------------------------------------------ 已删除 ------------------------------------------------------
--- 业务配置表
--- 数据库主键 product_id
--- 业务主键 product_id
--- DROP TABLE IF EXISTS `dim.biz_conf`;
--- CREATE EXTERNAL TABLE IF NOT EXISTS `dim.biz_conf`(
---   `biz_name`                      string         COMMENT '业务名称（中文）',
---   `biz_name_en`                   string         COMMENT '业务名称（英文）',
---   `capital_id`                    string         COMMENT '资金方编号',
---   `capital_name`                  string         COMMENT '资金方名称（中文）',
---   `capital_name_en`               string         COMMENT '资金方名称（英文）',
---   `channel_id`                    string         COMMENT '渠道方编号',
---   `channel_name`                  string         COMMENT '渠道方名称（中文）',
---   `channel_name_en`               string         COMMENT '渠道方名称（英文）',
---   `trust_id`                      string         COMMENT '信托计划编号',
---   `trust_name`                    string         COMMENT '信托计划名称（中文）',
---   `trust_name_en`                 string         COMMENT '信托计划名称（英文）',
---   `abs_project_id`                string         COMMENT 'ABS项目编号',
---   `abs_project_name`              string         COMMENT 'ABS项目名称（中文）',
---   `project_id`                    string         COMMENT '项目编号',
---   `project_name`                  string         COMMENT '项目名称（中文）',
---   `project_name_en`               string         COMMENT '项目名称（英文）',
---   `project_amount`                decimal(15,4)  COMMENT '项目初始金额',
---   `product_id`                    string         COMMENT '产品编号',
---   `product_name`                  string         COMMENT '产品名称（中文）',
---   `product_name_en`               string         COMMENT '产品名称（英文）',
---   `product_id_vt`                 string         COMMENT '产品编号（虚拟）',
---   `product_name_vt`               string         COMMENT '产品名称（中文、虚拟）',
---   `product_name_en_vt`            string         COMMENT '产品名称（英文、虚拟）'
--- ) COMMENT '业务配置表'
--- ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe'
--- -- field.delim是表的两个列字段之间的文件中的字段分隔符.
--- -- 其中serialization.format是文件序列化时表中两个列字段之间的文件中的字段分隔符.
--- WITH SERDEPROPERTIES ('field.delim' = '\t','serialization.format' = '\t','serialization.null.format' = '')
--- location 'cosn://bigdata-center-prod-1253824322/user/hadoop/warehouse/dim.db/biz_conf'
--- STORED AS TEXTFILE;
--- ------------------------------------------------------ 已删除 ------------------------------------------------------
 
 
 
@@ -299,6 +267,90 @@ STORED AS PARQUET;
 
 
 
+-- hdfs 上传文件表
+-- 项目属性
+-- DROP TABLE IF EXISTS `dim.project_info_json`;
+CREATE EXTERNAL TABLE IF NOT EXISTS `dim.project_info_json`(
+  `row_type`                      string         COMMENT '操作类型',
+  `project_name`                  string         COMMENT '项目名称',
+  `project_stage`                 string         COMMENT '项目阶段',
+  `asset_side`                    string         COMMENT '资产方',
+  `fund_side`                     string         COMMENT '资金方',
+  `year`                          string         COMMENT '年份',
+  `term`                          string         COMMENT '期数',
+  `remarks`                       string         COMMENT '备注',
+  `project_full_name`             string         COMMENT '项目全名称',
+  `asset_type`                    string         COMMENT '资产类别（1：汽车贷，2：房贷，3：消费贷）',
+  `project_type`                  string         COMMENT '业务模式（1：存量，2：增量）',
+  `mode`                          string         COMMENT '模型归属',
+  `project_time`                  string         COMMENT '立项时间',
+  `project_begin_date`            string         COMMENT '项目开始时间',
+  `project_end_date`              string         COMMENT '项目结束时间',
+  `asset_pool_type`               string         COMMENT '资产池类型（1：静态池，2：动态池）',
+  `public_offer`                  string         COMMENT '公募名称',
+  `data_source`                   string         COMMENT '数据来源',
+  `create_user`                   string         COMMENT '创建人',
+  `create_time`                   string         COMMENT '创建时间',
+  `update_time`                   string         COMMENT '更新时间',
+  `project_id`                    string         COMMENT '项目编号'
+) COMMENT '项目属性'
+ROW FORMAT SERDE 'org.apache.hive.hcatalog.data.JsonSerDe'
+STORED AS TEXTFILE;
+
+
+-- 项目借据映射
+-- DROP TABLE IF EXISTS `dim.project_due_bill_no_json`;
+CREATE EXTERNAL TABLE IF NOT EXISTS `dim.project_due_bill_no_json`(
+  `row_type`                      string         COMMENT '操作类型',
+  `project_id`                    string         COMMENT '项目编号',
+  `import_id`                     string         COMMENT '导入Id',
+  `due_bill_no`                   array<
+                                    struct<
+                                      serialNumber     : string COMMENT '借据编号',
+                                      relatedProjectId : string COMMENT '债转前项目编号',
+                                      relatedDate      : string COMMENT '债转日期'
+                                    >
+                                  >              COMMENT '借据信息数组'
+) COMMENT '项目借据映射'
+ROW FORMAT SERDE 'org.apache.hive.hcatalog.data.JsonSerDe'
+STORED AS TEXTFILE;
+
+
+-- 包属性
+-- DROP TABLE IF EXISTS `dim.bag_info_json`;
+CREATE EXTERNAL TABLE IF NOT EXISTS `dim.bag_info_json`(
+  `row_type`                      string         COMMENT '操作类型',
+  `project_id`                    string         COMMENT '项目编号',
+  `bag_name`                      string         COMMENT '包名称',
+  `bag_status`                    string         COMMENT '包状态（1：未封包，2：已封包，3：已解包，4：封包中，5：封包失败，6：已发行）',
+  `bag_remain_principal`          string         COMMENT '封包总本金余额',
+  `bag_date`                      string         COMMENT '封包日期',
+  `insert_date`                   string         COMMENT '封包操作日期',
+  `bag_id`                        string         COMMENT '包编号'
+) COMMENT '包属性'
+ROW FORMAT SERDE 'org.apache.hive.hcatalog.data.JsonSerDe'
+STORED AS TEXTFILE;
+
+
+-- 包借据映射
+-- DROP TABLE IF EXISTS `dim.bag_due_bill_no_json`;
+CREATE EXTERNAL TABLE IF NOT EXISTS `dim.bag_due_bill_no_json`(
+  `row_type`                      string         COMMENT '操作类型',
+  `project_id`                    string         COMMENT '项目编号',
+  `bag_id`                        string         COMMENT '包编号',
+  `due_bill_no`                   array<
+                                    struct<
+                                      serialNumber           : string COMMENT '借据编号',
+                                      packageRemainPrincipal : string COMMENT '封包剩余本金',
+                                      packageRemainPeriods   : string COMMENT '封包剩余期限'
+                                    >
+                                  >              COMMENT '借据信息数组'
+) COMMENT '包借据映射'
+ROW FORMAT SERDE 'org.apache.hive.hcatalog.data.JsonSerDe'
+STORED AS TEXTFILE;
+
+
+
 
 
 
@@ -307,6 +359,9 @@ STORED AS PARQUET;
 
 -- DROP DATABASE IF EXISTS `hivemetastore`;
 CREATE DATABASE IF NOT EXISTS `hivemetastore` COMMENT 'Hive 元数据库';
+
+set hivevar:ip=10.80.1.104; set hivevar:user='root'; set hivevar:pass='Ws@ProEmr1QSC@'; set hivevar:db=hivemetastore; -- 生产
+set hivevar:ip=10.83.1.138; set hivevar:user='root'; set hivevar:pass='Ws@Test!@E1#';   set hivevar:db=hivemetastore;   -- 测试
 
 
 -- DROP TABLE IF EXISTS `hivemetastore.dbs`;
@@ -323,9 +378,9 @@ STORED BY 'org.apache.hive.storage.jdbc.JdbcStorageHandler'
 TBLPROPERTIES (
   "hive.sql.database.type"  = "MYSQL",
   "hive.sql.jdbc.driver"    = "com.mysql.jdbc.Driver",
-  "hive.sql.jdbc.url"       = "jdbc:mysql://10.80.1.104/hivemetastore",
-  "hive.sql.dbcp.username"  = "root",
-  "hive.sql.dbcp.password"  = "Ws@ProEmr1QSC@",
+  "hive.sql.jdbc.url"       = "jdbc:mysql://${ip}/${db}",
+  "hive.sql.dbcp.username"  = ${user},
+  "hive.sql.dbcp.password"  = ${pass},
   "hive.sql.table"          = "DBS",
   "hive.sql.dbcp.maxActive" = "1"
 );
@@ -351,9 +406,9 @@ STORED BY 'org.apache.hive.storage.jdbc.JdbcStorageHandler'
 TBLPROPERTIES (
   "hive.sql.database.type"  = "MYSQL",
   "hive.sql.jdbc.driver"    = "com.mysql.jdbc.Driver",
-  "hive.sql.jdbc.url"       = "jdbc:mysql://10.80.1.104/hivemetastore",
-  "hive.sql.dbcp.username"  = "root",
-  "hive.sql.dbcp.password"  = "Ws@ProEmr1QSC@",
+  "hive.sql.jdbc.url"       = "jdbc:mysql://${ip}/${db}",
+  "hive.sql.dbcp.username"  = ${user},
+  "hive.sql.dbcp.password"  = ${pass},
   "hive.sql.table"          = "TBLS",
   "hive.sql.dbcp.maxActive" = "1"
 );
@@ -369,9 +424,9 @@ STORED BY 'org.apache.hive.storage.jdbc.JdbcStorageHandler'
 TBLPROPERTIES (
   "hive.sql.database.type"  = "MYSQL",
   "hive.sql.jdbc.driver"    = "com.mysql.jdbc.Driver",
-  "hive.sql.jdbc.url"       = "jdbc:mysql://10.80.1.104/hivemetastore",
-  "hive.sql.dbcp.username"  = "root",
-  "hive.sql.dbcp.password"  = "Ws@ProEmr1QSC@",
+  "hive.sql.jdbc.url"       = "jdbc:mysql://${ip}/${db}",
+  "hive.sql.dbcp.username"  = ${user},
+  "hive.sql.dbcp.password"  = ${pass},
   "hive.sql.table"          = "TABLE_PARAMS",
   "hive.sql.dbcp.maxActive" = "1"
 );
@@ -393,9 +448,9 @@ STORED BY 'org.apache.hive.storage.jdbc.JdbcStorageHandler'
 TBLPROPERTIES (
   "hive.sql.database.type"  = "MYSQL",
   "hive.sql.jdbc.driver"    = "com.mysql.jdbc.Driver",
-  "hive.sql.jdbc.url"       = "jdbc:mysql://10.80.1.104/hivemetastore",
-  "hive.sql.dbcp.username"  = "root",
-  "hive.sql.dbcp.password"  = "Ws@ProEmr1QSC@",
+  "hive.sql.jdbc.url"       = "jdbc:mysql://${ip}/${db}",
+  "hive.sql.dbcp.username"  = ${user},
+  "hive.sql.dbcp.password"  = ${pass},
   "hive.sql.table"          = "SDS",
   "hive.sql.dbcp.maxActive" = "1"
 );
@@ -413,9 +468,9 @@ STORED BY 'org.apache.hive.storage.jdbc.JdbcStorageHandler'
 TBLPROPERTIES (
   "hive.sql.database.type"  = "MYSQL",
   "hive.sql.jdbc.driver"    = "com.mysql.jdbc.Driver",
-  "hive.sql.jdbc.url"       = "jdbc:mysql://10.80.1.104/hivemetastore",
-  "hive.sql.dbcp.username"  = "root",
-  "hive.sql.dbcp.password"  = "Ws@ProEmr1QSC@",
+  "hive.sql.jdbc.url"       = "jdbc:mysql://${ip}/${db}",
+  "hive.sql.dbcp.username"  = ${user},
+  "hive.sql.dbcp.password"  = ${pass},
   "hive.sql.table"          = "COLUMNS_V2",
   "hive.sql.dbcp.maxActive" = "1"
 );
@@ -433,9 +488,9 @@ STORED BY 'org.apache.hive.storage.jdbc.JdbcStorageHandler'
 TBLPROPERTIES (
   "hive.sql.database.type"  = "MYSQL",
   "hive.sql.jdbc.driver"    = "com.mysql.jdbc.Driver",
-  "hive.sql.jdbc.url"       = "jdbc:mysql://10.80.1.104/hivemetastore",
-  "hive.sql.dbcp.username"  = "root",
-  "hive.sql.dbcp.password"  = "Ws@ProEmr1QSC@",
+  "hive.sql.jdbc.url"       = "jdbc:mysql://${ip}/${db}",
+  "hive.sql.dbcp.username"  = ${user},
+  "hive.sql.dbcp.password"  = ${pass},
   "hive.sql.table"          = "PARTITION_KEYS",
   "hive.sql.dbcp.maxActive" = "1"
 );
@@ -458,20 +513,20 @@ select
 from (
   select
     db.name           as db_name,
-    db.desc           as db_comm,
+    db.`desc`         as db_comm,
     tb.tbl_type       as tb_type,
     tb.tbl_name       as tb_name,
-    tbl_param.comment as tb_comm,
+    tbl_param.comm    as tb_comm,
     col.column_name   as col_name,
     col.type_name     as col_type,
-    col.comment       as col_comm,
+    col.`comment`     as col_comm,
     col.integer_idx   as col_index,
     0                 as col
   from (
     select
       db_id,
       name,
-      desc
+      `desc`
     from hivemetastore.dbs
     where name in (
       'dim',
@@ -495,7 +550,7 @@ from (
   left join (
     select
       tbl_id,
-      max(if(param_key = 'comment',param_value,null)) as comment
+      max(if(param_key = 'comment',param_value,null)) as comm
     from hivemetastore.table_params
     group by tbl_id
   ) as tbl_param
@@ -512,7 +567,7 @@ from (
       cd_id,
       column_name,
       type_name,
-      comment,
+      `comment`,
       integer_idx
     from hivemetastore.columns_v2
   ) as col
@@ -520,10 +575,10 @@ from (
   union all
   select
     db.name           as db_name,
-    db.desc           as db_comm,
+    db.`desc`         as db_comm,
     tb.tbl_type       as tb_type,
     tb.tbl_name       as tb_name,
-    tbl_param.comment as tb_comm,
+    tbl_param.comm    as tb_comm,
     part.pkey_name    as col_name,
     part.pkey_type    as col_type,
     part.pkey_comment as col_comm,
@@ -533,7 +588,7 @@ from (
     select
       db_id,
       name,
-      desc
+      `desc`
     from hivemetastore.dbs
     where name in (
       'dim',
@@ -557,7 +612,7 @@ from (
   left join (
     select
       tbl_id,
-      max(if(param_key = 'comment',param_value,null)) as comment
+      max(if(param_key = 'comment',param_value,null)) as comm
     from hivemetastore.table_params
     group by tbl_id
   ) as tbl_param

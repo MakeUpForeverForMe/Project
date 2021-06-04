@@ -54,7 +54,7 @@ from (
              group by col_id
        )tmp
         where 1 > 0
-        and biz_conf.product_id${vt} is not null
+        and tmp.product_id${vt} is not null
 ) as biz_conf
 join (
   select

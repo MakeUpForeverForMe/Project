@@ -495,6 +495,12 @@ from (
       get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.loanDate')                        as biz_date,
       get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.proCode')                         as product_id
     from (
+    select
+    t.*
+    ,get_json_object(original_msg,'$.reqContent.jsonReq.content.reqData.applyNo') as due_bill_no
+    ,get_json_object(original_msg,'$.reqContent.jsonReq.content.reqData.proCode') as product_id
+    from
+    (
       select
         datefmt(create_time,'ms','yyyy-MM-dd HH:mm:ss') as create_time,
         datefmt(update_time,'ms','yyyy-MM-dd HH:mm:ss') as update_time,
@@ -504,6 +510,7 @@ from (
         and msg_type = 'WIND_CONTROL_CREDIT'
         and original_msg is not null
         ${where_date}
+        ) t
     ) as loan_apply
     left join (
       select distinct
@@ -516,8 +523,8 @@ from (
         and p_type in ('lx','lx2','lxzt','lx3')
         and d_date between date_sub(current_date,2) and current_date
     ) as ecas_loan
-    on  get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.applyNo') = ecas_loan.due_bill_no
-    and get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.proCode') = ecas_loan.product_code
+    on  loan_apply.due_bill_no = ecas_loan.due_bill_no
+    and loan_apply.product_id = ecas_loan.product_code
     left join (
       select distinct
         product_id as dim_product_id,
@@ -531,7 +538,7 @@ from (
         group by col_id
       ) as tmp
     ) as biz_conf
-    on get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.proCode') = biz_conf.dim_product_id
+    on loan_apply.product_id = biz_conf.dim_product_id
     union all
     select loan_apply.*
     from ods.loan_apply
@@ -720,7 +727,7 @@ from (
         and msg_type = 'GZ_CREDIT_APPLY'
         and original_msg is not null
     ) as credit_apply
-  ) as msg_log
+    ) as msg_log
   on  loan_apply.biz_date   = msg_log.biz_date
   and loan_apply.product_id = msg_log.product_id
 ) as tmp
@@ -734,12 +741,8 @@ from (
 -- 新核心 乐信云信
 msck repair table stage.kafka_credit_msg;
 insert overwrite table ods.loan_apply partition(biz_date,product_id)
-select
-  `(rn)?+.+`
-from (
   select
-    *,
-    row_number() over(partition by apply_id,product_id order by update_time) as rn
+    distinct *
   from (
     select
       concat_ws('_',biz_conf.channel_id,sha256(loan_apply.reqdata["idNo"],'idNumber',1),sha256(loan_apply.reqdata["custName"],'userName',1)) as cust_id,
@@ -753,7 +756,7 @@ from (
           datefmt(loan_apply.reqdata["birth"],'yyyyMMdd','yyyy-MM-dd'),
           datefmt(substring(loan_apply.reqdata["idNo"],7,8),'yyyyMMdd','yyyy-MM-dd')
         ),
-        to_date(nvl(ecas_loan.active_date,loan_apply.reqdata["loanDate"]))
+        to_date(nvl(loan_contract.active_date,loan_apply.reqdata["loanDate"]))
       )                                                                                                   as age,
       loan_apply.reqdata["applyNo"]                                                                       as pre_apply_no,
       loan_apply.reqdata["applyNo"]                                                                       as apply_id,
@@ -828,6 +831,7 @@ from (
       select
         apply_no,
         due_bill_no,
+        product_no,
         contract_amount as loan_init_prin,
         actual_loan_date as active_date
       from (
@@ -840,7 +844,7 @@ from (
       ) as tmp
       where rn = 1
     ) as loan_contract
-    on  loan_apply.reqdata["proCode"] = loan_contract.project_no
+    on  loan_apply.reqdata["proCode"] = loan_contract.product_no
     and loan_apply.reqdata["applyNo"] = loan_contract.apply_no
     left join (
       select distinct
@@ -857,8 +861,6 @@ from (
     ) as biz_conf
     on loan_apply.reqdata["proCode"] = biz_conf.dim_product_id
   ) as tmp
-) as tmp
-where rn = 1
 ;
 
 
@@ -867,12 +869,8 @@ where rn = 1
 
 -- 百度医美
 insert overwrite table ods.loan_apply partition(biz_date,product_id)
-select
-  `(rn)?+.+`
-from (
   select
-    *,
-    row_number() over(partition by apply_id,product_id order by update_time) as rn
+    distinct *
   from (
     select
       concat_ws('_',biz_conf.channel_id,sha256(loan_apply.reqdata["idNo"],'idNumber',1),sha256(loan_apply.reqdata["custName"],'userName',1)) as cust_id,
@@ -961,6 +959,7 @@ from (
       select
         apply_no,
         due_bill_no,
+        product_no,
         contract_amount as loan_init_prin,
         actual_loan_date as active_date
       from (
@@ -973,7 +972,7 @@ from (
         ) as tmp
       where rn = 1
     ) as loan_contract
-    on  loan_apply.reqdata["proCode"] = loan_contract.project_no
+    on  loan_apply.reqdata["proCode"] = loan_contract.product_no
     and loan_apply.reqdata["applyNo"] = loan_contract.apply_no
     left join (
       select distinct
@@ -990,6 +989,4 @@ from (
     ) as biz_conf
     on loan_apply.reqdata["proCode"] = biz_conf.dim_product_id
   ) as tmp
-) as tmp
-where rn = 1
-;
+  ;

@@ -1,9 +1,7 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-. /etc/profile
-. ~/.bash_profile
-
-. /data/data_shell/lib/function.sh
+. ${tmp_dir:=$(cd `dirname "${BASH_SOURCE[0]}"`;pwd)}/conf_env/env.sh
+. $lib/function.sh
 
 
 aa="$([[ -n $1 ]] && cat "${1}")"
@@ -38,4 +36,4 @@ aa=$(select_data "${aa:-"$(
   ;"
 )"}")
 
-impala-shell -f tmp.file
+$impala -f tmp.file

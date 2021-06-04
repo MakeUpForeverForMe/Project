@@ -17,11 +17,15 @@ log=$log/${base_file_name}.${e_date}.log
 
 echo -e "${date_s_aa:=$(date +'%F %T')} Emr 资产 ods_new_s  开始 当前脚本进程ID为：$(pid)\n" &>> $log
 
+# sh $data_manage -s ${s_date} -e ${e_date} -f $file_repaired/abn_repaired/ods.schedule_repay_order_info_ddht.hql -a $rd &
 
 # wait_jobs
 
 sh $data_manage -s ${s_date} -e ${e_date} -f $ods_new_s_hql/ods.repay_detail_lx.hql -i $param_dir/ods.param_lx.hql -a $rd &
 sh $data_manage -s ${s_date} -e ${e_date} -f $ods_new_s_hql/ods.repay_detail_lx.hql -i $param_dir/ods_cps.param_lx.hql -a $rd &
+
+
+# sh $data_manage -s ${s_date} -e ${e_date} -f $ods_new_s_hql/ods_new_s.repay_detail_ddhtgz.hql -a $rd &
 
 
 sh $data_manage -s ${e_date} -e ${e_date} -f $ods_new_s_hql/ods.loan_lending.hql -i $param_dir/ods.param_lx.hql -a $rd &
@@ -37,6 +41,10 @@ wait_jobs
 sh $data_manage -s ${s_date} -e ${e_date} -f $ods_new_s_hql/ods.loan_info_inter.hql -i $param_dir/ods.param_lx.hql -a $rd &
 sh $data_manage -s ${s_date} -e ${e_date} -f $ods_new_s_hql/ods.loan_info_inter.hql -i $param_dir/ods_cps.param_lx.hql -a $rd &
 
+
+wait_jobs
+
+
 sh $data_manage -s ${s_date} -e ${e_date} -f $ods_new_s_hql/ods.repay_schedule_inter.hql -i $param_dir/ods.param_lx.hql -a $rd &
 sh $data_manage -s ${s_date} -e ${e_date} -f $ods_new_s_hql/ods.repay_schedule_inter.hql -i $param_dir/ods_cps.param_lx.hql -a $rd &
 
@@ -47,6 +55,18 @@ sh $data_manage -s ${s_date} -e ${e_date} -f $ods_new_s_hql/ods.loan_info.hql -i
 wait_jobs
 sh $data_manage -s ${s_date} -e ${e_date} -f $ods_new_s_hql/ods.repay_schedule.hql -i $param_dir/ods.param_lx.hql -a $rd &
 sh $data_manage -s ${s_date} -e ${e_date} -f $ods_new_s_hql/ods.repay_schedule.hql -i $param_dir/ods_cps.param_lx.hql -a $rd &
+
+wait_jobs
+
+sh $data_manage -s ${s_date} -e ${e_date} -f $dm_eagle_hql/dm_eagle.abs_asset_information_cash_flow_bag_day-lx.hql -i $param_dir/dm_eagle.abs-param.hql -a $rd &
+wait_jobs
+table_list=(
+
+  dm_eagle.abs_asset_information_cash_flow_bag_day-$dm_eagle_uabs_core
+)
+
+sh $bin/data_export.sh $e_date $s_date "${table_list[*]}"
+
 
 
 echo -e "${date_a_aa:=$(date +'%F %T')} 资产 EMR ods_new_s ods_new_s层 结束 当前脚本进程ID为：$(pid)    用时：$(during "$date_a_aa" "$date_s_aa")\n\n" &>> $log

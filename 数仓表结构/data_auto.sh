@@ -1459,7 +1459,6 @@ close_queries=$(echo $html | xmllint --html --xpath '//h3[2]/text()' - 2> /dev/n
 
 
 
-host=10.80.1.67
 
 host_list=(
   10.80.240.5

@@ -658,6 +658,7 @@ STORED AS PARQUET;
 
 -- DROP VIEW IF EXISTS `ods.customer_info_abs`;
 CREATE VIEW IF NOT EXISTS `ods.customer_info_abs`(
+  `apply_id`                           COMMENT '申请编号',
   `due_bill_no`                        COMMENT '借据号',
   `cust_id`                            COMMENT '客户编号',
   `user_hash_no`                       COMMENT '用户编号',
@@ -704,6 +705,7 @@ CREATE VIEW IF NOT EXISTS `ods.customer_info_abs`(
   `product_id`                         COMMENT '产品编号',
   `project_id`                         COMMENT '项目编号'
 ) COMMENT '客户信息表' AS select
+  t1.apply_id          as apply_id,
   t1.due_bill_no       as due_bill_no,
   t1.cust_id           as cust_id,
   t1.user_hash_no      as user_hash_no,
@@ -1538,6 +1540,9 @@ from ods.repay_schedule_abs
 where effective_date between s_d_date and date_sub(e_d_date,1);
 
 
+
+
+
 -- DROP TABLE IF EXISTS `ods.t_07_actualrepayinfo`;
 CREATE TABLE IF NOT EXISTS `ods.t_07_actualrepayinfo`(
   `serial_number`                                     string        COMMENT '借据号',
@@ -1815,7 +1820,7 @@ CREATE VIEW IF NOT EXISTS `ods.t_10_basic_asset`(
   stage.virtual_asset_bag_id,
   bag_snapshot.package_remain_principal,
   bag_snapshot.package_remain_periods,
-  cast(bag_snapshot.bag_status as int) as status,
+  nvl(cast(bag_snapshot.bag_status as int),1) as status,
   stage.wind_control_status,
   stage.wind_control_status_pool,
   stage.cheat_level,

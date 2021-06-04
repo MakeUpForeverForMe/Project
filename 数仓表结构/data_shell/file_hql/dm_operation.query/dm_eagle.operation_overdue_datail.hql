@@ -1,22 +1,26 @@
-set mapred.job.name=dm_eagle.operation_overdue_datail;
-set hive.execution.engine=mr;
-set mapreduce.map.memory.mb=2048;
-set mapreduce.reduce.memory.mb=2048;
-set hive.exec.parallel=true;
-set hive.exec.parallel.thread.number=10;
+set hive.exec.input.listing.max.threads=50;
+set tez.grouping.min-size=50000000;
+set tez.grouping.max-size=50000000;
+set hive.exec.reducers.max=500;
+
+-- 设置 Container 大小
+set hive.tez.container.size=4096;
+set tez.am.resource.memory.mb=4096;
+-- 合并小文件
+set hive.merge.tezfiles=true;
+set hive.merge.size.per.task=64000000;      -- 64M
+set hive.merge.smallfiles.avgsize=64000000; -- 64M
+-- 设置动态分区
 set hive.exec.dynamic.partition=true;
 set hive.exec.dynamic.partition.mode=nonstrict;
-set hive.auto.convert.join=true;
-set hive.mapjoin.smalltable.filesize=50000000;
-set hive.map.aggr=true;
-set hive.merge.mapfiles=true;
-set hive.merge.mapredfiles=true;
-set hive.merge.size.per.task=1024000000;
-set hive.merge.smallfiles.avgsize=1024000000;
-set mapred.max.split.size=256000000;
-set mapred.min.split.size.per.node=100000000;
-set mapred.min.split.size.per.rack=100000000;
-set hive.input.format=org.apache.hadoop.hive.ql.io.CombineHiveInputFormat;
+set hive.exec.max.dynamic.partitions=200000;
+set hive.exec.max.dynamic.partitions.pernode=50000;
+-- 禁用 Hive 矢量执行
+set hive.vectorized.execution.enabled=false;
+set hive.vectorized.execution.reduce.enabled=false;
+set hive.vectorized.execution.reduce.groupby.enabled=false;
+-- 关闭自动 MapJoin
+set hive.auto.convert.join=false;
 --set hivevar:ST9=2020-08-06;
 --逾期明细报表
 --create table if not exists dm_eagle.operation_overdue_datail(
@@ -46,7 +50,9 @@ set hive.input.format=org.apache.hadoop.hive.ql.io.CombineHiveInputFormat;
 --   ,remain_penalty_interest  decimal(15,4)        COMMENT '剩余未还罚息'
 --) COMMENT '逾期明细报表' PARTITIONED BY (product_id string COMMENT '产品编号',snapshot_day string COMMENT '快照日')
 --STORED AS PARQUET;
-insert overwrite table dm_eagle${suffix}.operation_overdue_datail partition(product_id,snapshot_day)
+--set hivevar:ST9=2020-10-13;
+--set hivevar:suffix=;
+insert overwrite table dm_eagle${suffix}.operation_overdue_detail partition(product_id,snapshot_day)
 select
  t2.channel_id                                                         --'合作渠道方'
 ,t2.project_id                                                         --'项目名称'

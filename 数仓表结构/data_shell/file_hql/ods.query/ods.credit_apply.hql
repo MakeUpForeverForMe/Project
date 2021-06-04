@@ -52,7 +52,7 @@ with temp_credit_apply as (
     -- and deal_date <= '${ST9}'
     -- and from_unixtime(cast(create_time/1000 as bigint),'yyyy-MM-dd hh:mm:ss') > concat(date_sub('${ST9}',15),' 07:30:00')
     -- and from_unixtime(cast(create_time/1000 as bigint),'yyyy-MM-dd hh:mm:ss') <= concat(date_add('${ST9}',1),' 07:30:00')
-    and datefmt(create_time,'ms','yyyy-MM-dd hh:mm:ss') between concat(date_sub('${ST9}',14),' 07:30:00') and concat(date_add('${ST9}',1),' 07:30:00')
+    ---and datefmt(create_time,'ms','yyyy-MM-dd hh:mm:ss') between concat(date_sub('${ST9}',14),' 07:30:00') and concat(date_add('${ST9}',1),' 07:30:00')
 )
 insert overwrite table ods.credit_apply partition(biz_date,product_id)
 select
@@ -94,21 +94,21 @@ left join (
   ) as tmp
 ) as biz_conf
 on msg_log.product_id = biz_conf.dim_product_id
-union
-select
-  *
-from ods.credit_apply
-where 1 > 0
-  and product_id = 'DIDI201908161538'
-  and biz_date in (select distinct biz_date from temp_credit_apply)
+---union
+---select
+---  *
+---from ods.credit_apply
+---where 1 > 0
+---  and product_id = 'DIDI201908161538'
+---  and biz_date in (select distinct biz_date from temp_credit_apply)
 -- limit 10
 ;
 
 
 
 
-set hivevar:where_date=and deal_date >= date_sub('${ST9}',15);
--- set hivevar:where_date=;
+----set hivevar:where_date=and deal_date >= date_sub('${ST9}',15);
+set hivevar:where_date=;
 
 -- 瓜子的授信
 insert overwrite table ods.credit_apply partition(biz_date,product_id)
@@ -179,19 +179,19 @@ left join (
   ) as tmp
 ) as biz_conf
 on credit_apply.product_id = biz_conf.dim_product_id
-union
-select
-  credit_apply.*
-from ods.credit_apply
-join (
-  select distinct
-    get_json_object(get_json_object(original_msg,'$.data'),'$.product.rentalDate') as biz_date,
-    get_json_object(get_json_object(original_msg,'$.data'),'$.product.productNo')  as product_id
-  from stage.ecas_msg_log
-  where msg_type = 'GZ_CREDIT_APPLY'
-    ${where_date}
-) as msg_log
-on  credit_apply.biz_date   = msg_log.biz_date
-and credit_apply.product_id = msg_log.product_id
+-----union
+-----select
+-----  credit_apply.*
+-----from ods.credit_apply
+-----join (
+-----  select distinct
+-----    get_json_object(get_json_object(original_msg,'$.data'),'$.product.rentalDate') as biz_date,
+-----    get_json_object(get_json_object(original_msg,'$.data'),'$.product.productNo')  as product_id
+-----  from stage.ecas_msg_log
+-----  where msg_type = 'GZ_CREDIT_APPLY'
+-----    ${where_date}
+-----) as msg_log
+-----on  credit_apply.biz_date   = msg_log.biz_date
+-----and credit_apply.product_id = msg_log.product_id
 -- limit 10
 ;

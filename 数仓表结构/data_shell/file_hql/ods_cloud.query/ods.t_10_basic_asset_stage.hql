@@ -42,7 +42,7 @@ select
   lending.tail_amount_rate                      as tail_amount_rate,
   lending.loan_usage                            as consume_use,
   lending.guarantee_type                        as guarantee_type,
-  max(loan_info.e_d_date)                       as extract_date,
+  loan_info.e_d_date                            as extract_date,
   loan_info.remain_principal                    as extract_date_principal_amount,
   lending.loan_init_interest_rate *  100        as loan_cur_interest_rate,
   cust.borrower_type                            as borrower_type,
@@ -106,7 +106,7 @@ from (
 inner join ods.customer_info_abs as cust
 on  loan_info.project_id  = cust.project_id
 and loan_info.due_bill_no = cust.due_bill_no
-left join ods.loan_lending_abs as lending
+inner join ods.loan_lending_abs as lending
 on  loan_info.project_id  = lending.project_id
 and loan_info.due_bill_no = lending.due_bill_no
 left join (
@@ -123,11 +123,11 @@ left join (
   select
     project_id,
     due_bill_no,
-    max(if(map_key = 'wind_control_status',map_val,'Yes'))              as wind_control_status,
-    max(if(map_key = 'wind_control_status_pool',map_val,'Yes'))         as wind_control_status_pool,
-    max(if(map_key = 'score_range',map_val,-1))                         as score_range,
-    max(if(map_key = 'cheat_level',map_val,-1))                         as cheat_level,
-    max(if(map_key = 'score_level',map_val,-1))                         as score_level
+    max(if(map_key = 'wind_control_status',map_val,'Yes'))      as wind_control_status,
+    max(if(map_key = 'wind_control_status_pool',map_val,'Yes')) as wind_control_status_pool,
+    max(if(map_key = 'score_range',map_val,-1))                 as score_range,
+    max(if(map_key = 'cheat_level',map_val,-1))                 as cheat_level,
+    max(if(map_key = 'score_level',map_val,-1))                 as score_level
   from ods.risk_control_abs
   where source_table in ('t_asset_wind_control_history')
     and map_key in ('wind_control_status','wind_control_status_pool','cheat_level','score_range','score_level')
@@ -135,56 +135,5 @@ left join (
 ) as risk
 on  loan_info.project_id  = risk.project_id
 and loan_info.due_bill_no = risk.due_bill_no
-group by
-  loan_info.due_bill_no,
-  loan_info.project_id,
-  loan_info.asset_type,
-  loan_info.due_bill_no,
-  lending.contract_no,
-  loan_info.loan_init_principal,
-  lending.interest_rate_type,
-  lending.loan_init_interest_rate,
-  lending.loan_issue_date,
-  lending.loan_expiry_date,
-  risk.wind_control_status,
-  risk.wind_control_status_pool,
-  risk.score_range,
-  risk.cheat_level,
-  risk.score_level,
-  first_repay.first_repay_date,
-  lending.loan_type,
-  lending.cycle_day,
-  lending.loan_usage,
-  lending.guarantee_type,
-  loan_info.remain_principal,
-  cust.borrower_type,
-  cust.name,
-  cust.idcard_type,
-  cust.idcard_no,
-  cust.mobie,
-  cust.sex,
-  cust.birthday,
-  cust.age,
-  cust.resident_province,
-  cust.resident_city,
-  cust.marriage_status,
-  cust.resident_county,
-  cust.income_year,
-  cust.education_ws,
-  loan_info.loan_term_remain,
-  loan_info.account_age,
-  lending.contract_term,
-  loan_info.overdue_days,
-  loan_info.remain_principal,
-  loan_info.remain_interest,
-  loan_info.remain_othAmounts,
-  loan_info.loan_init_term,
-  cust.resident_address,
-  lending.tail_amount,
-  lending.tail_amount_rate,
-  cust.cust_rating,
-  cust.job_type,
-  loan_info.data_source,
-  lending.mortgage_rate
 -- limit 10
 ;
