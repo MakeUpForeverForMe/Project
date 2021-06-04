@@ -2,10 +2,14 @@ package cn.springboot.mapper;
 
 import cn.springboot.bean.Department;
 import org.apache.ibatis.annotations.*;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
 /**
  * @author 魏喜明 2021-05-05 14:57:30
  */
+@Component
+@Repository
 public interface DepartmentMapper {
     @Select("select * from department where id = #{id}")
     Department getDeptById(Integer id);
