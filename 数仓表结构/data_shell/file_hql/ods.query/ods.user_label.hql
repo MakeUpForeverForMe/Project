@@ -1,11 +1,22 @@
-set yarn.app.mapreduce.am.resource.mb=5192;
-set yarn.app.mapreduce.am.command-opts=-Xmx4096m;
-
-set hive.execution.engine=mr;
-set mapreduce.map.memory.mb=4096;
-set mapreduce.reduce.memory.mb=4096;
-set mapreduce.map.java.opts=-Xmx4096m;
-set mapreduce.reduce.java.opts=-Xmx4096m;
+--set yarn.app.mapreduce.am.resource.mb=5192;
+--set yarn.app.mapreduce.am.command-opts=-Xmx4096m;
+--
+--set hive.execution.engine=mr;
+--set mapreduce.map.memory.mb=4096;
+--set mapreduce.reduce.memory.mb=4096;
+--set mapreduce.map.java.opts=-Xmx4096m;
+--set mapreduce.reduce.java.opts=-Xmx4096m;
+-- 设置 Container 大小
+set hive.tez.container.size=4096;
+set tez.am.resource.memory.mb=4096;
+-- 合并小文件
+set hive.merge.tezfiles=true;
+set hive.merge.size.per.task=128000000; -- 128M
+set hive.merge.smallfiles.avgsize=128000000; -- 128M
+-- 禁用 Hive 矢量执行
+set hive.vectorized.execution.enabled=false;
+set hive.vectorized.execution.reduce.enabled=false;
+set hive.vectorized.execution.reduce.groupby.enabled=false;
 
 
 insert overwrite table ods.user_label

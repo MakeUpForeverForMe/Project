@@ -1,45 +1,65 @@
-set mapred.job.name=dm_eagle.operation_should_repay_detail;
-set hive.execution.engine=mr;
-set mapreduce.map.memory.mb=2048;
-set mapreduce.reduce.memory.mb=2048;
-set hive.exec.parallel=true;
-set hive.exec.parallel.thread.number=10;
+set hive.exec.input.listing.max.threads=50;
+set tez.grouping.min-size=50000000;
+set tez.grouping.max-size=50000000;
+set hive.exec.reducers.max=500;
+
+-- 设置 Container 大小
+set hive.tez.container.size=4096;
+set tez.am.resource.memory.mb=4096;
+-- 合并小文件
+set hive.merge.tezfiles=true;
+set hive.merge.size.per.task=64000000;      -- 64M
+set hive.merge.smallfiles.avgsize=64000000; -- 64M
+-- 设置动态分区
 set hive.exec.dynamic.partition=true;
-set hive.exec.dynamic.partition.mode=nonstrict
-set hive.auto.convert.join=true;
-set hive.mapjoin.smalltable.filesize=50000000;
-set hive.map.aggr=true;
-set hive.merge.mapfiles=true;
-set hive.merge.mapredfiles=true;
-set hive.merge.size.per.task=1024000000;
-set hive.merge.smallfiles.avgsize=1024000000;
-set mapred.max.split.size=256000000;
-set mapred.min.split.size.per.node=100000000;
-set mapred.min.split.size.per.rack=100000000;
-set hive.input.format=org.apache.hadoop.hive.ql.io.CombineHiveInputFormat;
+set hive.exec.dynamic.partition.mode=nonstrict;
+set hive.exec.max.dynamic.partitions=200000;
+set hive.exec.max.dynamic.partitions.pernode=50000;
+-- 禁用 Hive 矢量执行
+set hive.vectorized.execution.enabled=false;
+set hive.vectorized.execution.reduce.enabled=false;
+set hive.vectorized.execution.reduce.groupby.enabled=false;
+-- 关闭自动 MapJoin
+set hive.auto.convert.join=false;
 
 --set hivevar:ST9=2020-10-01;
 --应还款明细报表 （取最新的数据）
---drop table if exists dm_eagle.operation_should_repay_detail;
 --create table if not exists dm_eagle.operation_should_repay_detail(
---    channel_id               string            COMMENT '合同渠道方'
---   ,project_id               string            COMMENT '项目名称'
---   ,contract_no              string            COMMENT '合同编号'
---   ,due_bill_no              string            COMMENT '借据编号'
---   ,loan_active_date         string            COMMENT '借据生效日'
---   ,customer_name            string            COMMENT '客户姓名'
---   ,loan_init_term           decimal(3,0)      COMMENT '总期数'
---   ,should_repay_date        string            COMMENT '应还日期'
---   ,loan_term                decimal(3,0)      COMMENT '期次'
---   ,should_repay_amount      decimal(15,4)     COMMENT '应还金额'
---   ,should_repay_principal   decimal(15,4)     COMMENT '应还本金'
---   ,should_repay_interest    decimal(15,4)     COMMENT '应还利息'
---   ,should_repay_fee         decimal(15,4)     COMMENT '应还费用'
---   ,should_repay_penalty     decimal(15,4)     COMMENT '应还罚息'
---   ,execution_date           string            COMMENT '跑批日期'
+-- channel_id                string            COMMENT          '合作渠道方'
+--,project_id                string            COMMENT          '项目名称'
+--,contract_no               string            COMMENT          '合同编号'
+--,due_bill_no               string            COMMENT          '借据编号'
+--,loan_active_date          string            COMMENT          '借据生效日'
+--,customer_name             string            COMMENT          '客户姓名'
+--,loan_init_term            decimal(3,0)      COMMENT          '总期数'
+--,should_repay_date         string            COMMENT          '应还日期'
+--,loan_term                 decimal(3,0)      COMMENT          '期次'
+--,remain_amount             decimal(15,4)     COMMENT          '剩余金额'
+--,remain_principal          decimal(15,4)     COMMENT          '剩余本金'
+--,remain_interest           decimal(15,4)     COMMENT          '剩余利息'
+--,remain_fee                decimal(15,4)     COMMENT          '剩余费用'
+--,remain_penalty            decimal(15,4)     COMMENT          '剩余罚息'
+--,should_repay_amount       decimal(15,4)     COMMENT          '应还金额'
+--,should_repay_principal    decimal(15,4)     COMMENT          '应还本金'
+--,should_repay_interest     decimal(15,4)     COMMENT          '应还利息'
+--,should_repay_fee          decimal(15,4)     COMMENT          '应还费用'
+--,should_repay_penalty      decimal(15,4)     COMMENT          '应还罚息'
+--,paid_amount               decimal(15,4)     COMMENT          '已还金额'
+--,paid_principal            decimal(15,4)     COMMENT          '已还本金'
+--,paid_interest             decimal(15,4)     COMMENT          '已还利息'
+--,paid_fee                  decimal(15,4)     COMMENT          '已还费用'
+--,paid_penalty              decimal(15,4)     COMMENT          '已还罚息'
+--,reduce_amount             decimal(15,4)     COMMENT          '减免金额'
+--,reduce_principal          decimal(15,4)     COMMENT          '减免本金'
+--,reduce_interest           decimal(15,4)     COMMENT          '减免利息'
+--,reduce_fee                decimal(15,4)     COMMENT          '减免费用'
+--,reduce_penalty            decimal(15,4)     COMMENT          '减免罚息'
+--,execution_date            string            COMMENT          '跑批日期'
 --) COMMENT '应还款明细报表'
 --PARTITIONED BY (product_id string COMMENT '产品编号')
 --STORED AS PARQUET;
+--set hivevar:ST9=2020-10-13;
+--set hivevar:suffix=;
 with due_bill_no_name as
 (
 select

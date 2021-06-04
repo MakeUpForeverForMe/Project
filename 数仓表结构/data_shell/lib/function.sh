@@ -189,13 +189,12 @@ export_file_from_hive(){
   # $impala -q "refresh ${db_tb};"
 
   # echo \
-  $impala -B --output_delimiter='\t' -q "${1};" | sed 's/NULL/\\N/g' > "${export_file}"
+  # $impala -B --output_delimiter='\t' -q "${1};" | sed 's/NULL/\\N/g' > "${export_file}"
 
-  # $beeline \
-  # --color=true \
-  # --showHeader=false \
-  # --outputformat=tsv2 \
-  # -e "${1};" | sed 's/NULL/\\N/g' > "${export_file}"
+  $beeline \
+  --showHeader=false \
+  --outputformat=tsv2 \
+  -e "${1};" | sed 's/NULL/\\N/g' > "${export_file}"
 
   info "${export_file} 从 Hive 拉取数据 结束！用时：$(during "${s_date_export}")"
 }
@@ -210,13 +209,14 @@ import_file_to_mysql(){
     # --outputformat=csv2 -e "select * from ${db_tb} where false;" 2> /dev/null
   )
 
-  info "${export_file} 数据上传到 MySQL 开始！库表为：${db_tb}" "字段为：$fields"
+  info "${export_file} 数据上传到 MySQL 开始！"
   s_date_import=$curr_time
 
-  # echo \
-  $mysql -e "
-    ${1};LOAD DATA LOCAL INFILE '${export_file}' INTO TABLE ${tb} FIELDS TERMINATED BY '\t' (${fields});
-  "
+  mysql_import_sql="${1};LOAD DATA LOCAL INFILE '${export_file}' INTO TABLE ${tb} FIELDS TERMINATED BY '\t' (${fields});"
+  debug "MySQL 导入命令为：${mysql_import_sql}"
+  $mysql -e "${mysql_import_sql}"
+  [[ $? != 0 ]] && error "MySQL 上传数据 失败！" || info "MySQL 上传数据 成功！"
+
   info "${export_file} 数据上传到 MySQL 结束！用时：$(during "${s_date_import}")"
 }
 

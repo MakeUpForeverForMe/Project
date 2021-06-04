@@ -92,6 +92,7 @@ public class DAO<T> {
         Connection connection = null;
         try {
             connection = JdbcUtils.getConnection();
+            queryRunner.query(connection, sql, new ScalarHandler(), args);
             return (E) queryRunner.query(connection, sql, new ScalarHandler(), args);
         } catch (SQLException throwables) {
             throwables.printStackTrace();

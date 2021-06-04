@@ -830,45 +830,46 @@ CREATE TABLE IF NOT EXISTS `dm_eagle.operation_loan_ledger_detail`(
   `contract_no`                                   string         COMMENT '合同编号',
   `due_bill_no`                                   string         COMMENT '借据编号',
   `customer_name`                                 string         COMMENT '客户姓名',
-  `loan_init_principal`                           decimal(25,5)  COMMENT '合同金额',
+  `loan_init_principal`                           decimal(15,4)  COMMENT '合同金额',
+  `loan_init_contract_amount`                     decimal(15,4)  COMMENT '初始合同金额',
   `loan_active_date`                              string         COMMENT '借款生效日',
-  `debt_conversion_date`                          string         COMMENT '债转日期',
+  `debt_conversion_date`                          string         COMMENT '债转日期',  --取值逻辑待定
   `cycle_day`                                     decimal(2,0)   COMMENT '还款日',
   `loan_type`                                     string         COMMENT '还款方式',
-  `loan_init_interest_rate`                       decimal(30,10) COMMENT '利率',
-  `loan_init_penalty_rate`                        decimal(30,10) COMMENT '罚息率',
-  `loan_init_fee_rate`                            decimal(30,10) COMMENT '费率',
+  `loan_init_interest_rate`                       decimal(15,8)  COMMENT '利率',
+  `loan_init_penalty_rate`                        decimal(15,8)  COMMENT '罚息率',
+  `loan_init_fee_rate`                            decimal(15,8)  COMMENT '费率',
   `loan_expire_date`                              string         COMMENT '借款到期日',
   `loan_status`                                   string         COMMENT '借据状态',
   `paid_out_date`                                 string         COMMENT '借款结清日',
   `loan_init_term`                                decimal(3,0)   COMMENT '借款期数',
   `loan_term_remain`                              decimal(3,0)   COMMENT '剩余期数',
   `overdue_days`                                  decimal(5,0)   COMMENT '逾期天数',
-  `remain_amount`                                 decimal(25,5)  COMMENT '剩余未还金额',
-  `remain_principal`                              decimal(25,5)  COMMENT '剩余未还本金',
-  `remain_interest`                               decimal(25,5)  COMMENT '剩余未还利息',
-  `remain_fee`                                    decimal(25,5)  COMMENT '剩余未还费用',
-  `remain_penalty_interest`                       decimal(25,5)  COMMENT '剩余未还罚息',
-  `overdue_amount`                                decimal(25,5)  COMMENT '逾期金额',
-  `overdue_principal`                             decimal(25,5)  COMMENT '逾期本金',
-  `overdue_interest`                              decimal(25,5)  COMMENT '逾期利息',
-  `overdue_fee`                                   decimal(25,5)  COMMENT '逾期费用',
-  `overdue_penalty`                               decimal(25,5)  COMMENT '逾期罚息',
-  `paid_amount`                                   decimal(25,5)  COMMENT '已还金额',
-  `paid_principal`                                decimal(25,5)  COMMENT '已还本金',
-  `paid_interest`                                 decimal(25,5)  COMMENT '已还利息',
-  `paid_fee`                                      decimal(25,5)  COMMENT '已还费用',
-  `paid_penalty`                                  decimal(25,5)  COMMENT '已还罚息',
+  `remain_amount`                                 decimal(15,4)  COMMENT '剩余未还金额',
+  `remain_principal`                              decimal(15,4)  COMMENT '剩余未还本金',
+  `remain_interest`                               decimal(15,4)  COMMENT '剩余未还利息',
+  `remain_fee`                                    decimal(15,4)  COMMENT '剩余未还费用',  --取值逻辑待定
+  `remain_penalty_interest`                       decimal(15,4)  COMMENT '剩余未还罚息',  --取值逻辑待定
+  `overdue_amount`                                decimal(15,4)  COMMENT '逾期金额',
+  `overdue_principal`                             decimal(15,4)  COMMENT '逾期本金',
+  `overdue_interest`                              decimal(15,4)  COMMENT '逾期利息',
+  `overdue_fee`                                   decimal(15,4)  COMMENT '逾期费用',
+  `overdue_penalty`                               decimal(15,4)  COMMENT '逾期罚息',
+  `paid_amount`                                   decimal(15,4)  COMMENT '已还金额',
+  `paid_principal`                                decimal(15,4)  COMMENT '已还本金',
+  `paid_interest`                                 decimal(15,4)  COMMENT '已还利息',
+  `paid_fee`                                      decimal(15,4)  COMMENT '已还费用',
+  `paid_penalty`                                  decimal(15,4)  COMMENT '已还罚息',
   `execution_date`                                string         COMMENT '跑批日期'
 ) COMMENT '借据台账-明细'
-PARTITIONED BY(product_id string COMMENT '产品编号')
+PARTITIONED BY (product_id string COMMENT '产品编号')
 STORED AS PARQUET;
 
 
 -- 应还款明细报表
 -- DROP TABLE IF EXISTS `dm_eagle.operation_should_repay_detail`;
 CREATE TABLE IF NOT EXISTS `dm_eagle.operation_should_repay_detail`(
-  `channel_id`                                    string         COMMENT '合同渠道方',
+  `channel_id`                                    string         COMMENT '合作渠道方',
   `project_id`                                    string         COMMENT '项目名称',
   `contract_no`                                   string         COMMENT '合同编号',
   `due_bill_no`                                   string         COMMENT '借据编号',
@@ -877,14 +878,29 @@ CREATE TABLE IF NOT EXISTS `dm_eagle.operation_should_repay_detail`(
   `loan_init_term`                                decimal(3,0)   COMMENT '总期数',
   `should_repay_date`                             string         COMMENT '应还日期',
   `loan_term`                                     decimal(3,0)   COMMENT '期次',
-  `should_repay_amount`                           decimal(25,5)  COMMENT '应还金额',
-  `should_repay_principal`                        decimal(25,5)  COMMENT '应还本金',
-  `should_repay_interest`                         decimal(25,5)  COMMENT '应还利息',
-  `should_repay_fee`                              decimal(25,5)  COMMENT '应还费用',
-  `should_repay_penalty`                          decimal(25,5)  COMMENT '应还罚息',
+  `remain_amount`                                 decimal(15,4)  COMMENT '剩余金额',
+  `remain_principal`                              decimal(15,4)  COMMENT '剩余本金',
+  `remain_interest`                               decimal(15,4)  COMMENT '剩余利息',
+  `remain_fee`                                    decimal(15,4)  COMMENT '剩余费用',
+  `remain_penalty`                                decimal(15,4)  COMMENT '剩余罚息',
+  `should_repay_amount`                           decimal(15,4)  COMMENT '应还金额',
+  `should_repay_principal`                        decimal(15,4)  COMMENT '应还本金',
+  `should_repay_interest`                         decimal(15,4)  COMMENT '应还利息',
+  `should_repay_fee`                              decimal(15,4)  COMMENT '应还费用',
+  `should_repay_penalty`                          decimal(15,4)  COMMENT '应还罚息',
+  `paid_amount`                                   decimal(15,4)  COMMENT '已还金额',
+  `paid_principal`                                decimal(15,4)  COMMENT '已还本金',
+  `paid_interest`                                 decimal(15,4)  COMMENT '已还利息',
+  `paid_fee`                                      decimal(15,4)  COMMENT '已还费用',
+  `paid_penalty`                                  decimal(15,4)  COMMENT '已还罚息',
+  `reduce_amount`                                 decimal(15,4)  COMMENT '减免金额',
+  `reduce_principal`                              decimal(15,4)  COMMENT '减免本金',
+  `reduce_interest`                               decimal(15,4)  COMMENT '减免利息',
+  `reduce_fee`                                    decimal(15,4)  COMMENT '减免费用',
+  `reduce_penalty`                                decimal(15,4)  COMMENT '减免罚息',
   `execution_date`                                string         COMMENT '跑批日期'
 ) COMMENT '应还款明细报表'
-PARTITIONED BY(product_id string COMMENT '产品编号')
+PARTITIONED BY (product_id string COMMENT '产品编号')
 STORED AS PARQUET;
 
 
@@ -982,6 +998,7 @@ CREATE TABLE IF NOT EXISTS `dm_eagle.operation_overdue_datail`(
 ) COMMENT '逾期明细报表'
 PARTITIONED BY(product_id string COMMENT '产品编号',snapshot_day string COMMENT '快照日')
 STORED AS PARQUET;
+
 
 -- DROP TABLE IF EXISTS `dm_eagle.operation_overdue_base_datail`;
 CREATE TABLE IF NOT EXISTS `dm_eagle.operation_overdue_base_datail`(

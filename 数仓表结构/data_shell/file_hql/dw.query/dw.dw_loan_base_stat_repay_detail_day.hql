@@ -42,8 +42,8 @@ set hive.tez.container.size=4096;
 set tez.am.resource.memory.mb=4096;
 -- 合并小文件
 set hive.merge.tezfiles=true;
-set hive.merge.size.per.task=128000000;      -- 64M
-set hive.merge.smallfiles.avgsize=128000000; -- 64M
+set hive.merge.size.per.task=128000000;      -- 128M
+set hive.merge.smallfiles.avgsize=128000000; -- 128M
 -- 设置动态分区
 set hive.exec.dynamic.partition=true;
 set hive.exec.dynamic.partition.mode=nonstrict;
@@ -64,7 +64,6 @@ set hive.auto.convert.join=false;
 insert overwrite table dw${db_suffix}.dw_loan_base_stat_repay_detail_day partition(biz_date = '${ST9}',product_id)
 
 select
-
   coalesce(loan_init_term,loan_init_term_settle,loan_init_term_schedule)                                      as loan_terms,
   coalesce(loan_active_date,loan_active_date_settle,loan_active_date_schedule )                               as loan_active_date,
   
@@ -79,7 +78,7 @@ select
   nvl(repaid_repay_term_fee,0)                                                                                as repaid_repay_term_fee,
   nvl(repaid_repay_svc_fee,0)                                                                                 as repaid_repay_svc_fee,
   nvl(repaid_penalty,0)                                                                                       as repaid_penalty,
-  
+
   nvl(repaid_amount_count,0)                                                                                  as repaid_amount_count,
   nvl(repaid_principal_count,0)                                                                               as repaid_principal_count,
   nvl(repaid_interest_penalty_svc_fee_count,0)                                                                as repaid_interest_penalty_svc_fee_count,
@@ -96,7 +95,6 @@ select
   nvl(prepay_principal,0)                                                                                     as prepay_principal,
 
   coalesce(product_id,product_id_settle,product_id_schedule)                                                  as product_id
-  
 from 
 (
   select

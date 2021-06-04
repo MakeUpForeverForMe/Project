@@ -75,7 +75,7 @@ table_list=(
   # dm_eagle.abs_asset_distribution_bag_snapshot_day-$dm_eagle_uabs_core
 
   # dm_eagle.abs_asset_information_bag-$dm_eagle_uabs_core
-  # dm_eagle.abs_asset_information_project-$dm_eagle_uabs_core
+  dm_eagle.abs_asset_information_project-$dm_eagle_uabs_core
   # dm_eagle.abs_asset_information_bag_snapshot-$dm_eagle_uabs_core
 
   # dm_eagle.abs_asset_information_cash_flow_bag_day-$dm_eagle_uabs_core
@@ -89,11 +89,10 @@ table_list=(
 
 # s_date=2017-06-01
 # e_date=2021-04-30
-# s_date=$(date -d '-1 day' +%F)
-# e_date=$(date -d '-1 day' +%F)
+s_date=2020-01-01
 
-s_date="$(date -d "${1:-${s_date:-$(date -d '-1 day' +%F)}}" +%F)"
-e_date="$(date -d "${2:-${e_date:-$(date -d '-1 day' +%F)}}" +%F)"
+s_date="$(date -d "${1:-${s_date:-$([[ $(date +%H) -le $(date +18) ]] && echo $(date -d '-2 day' +%F) || echo $(date -d '-1 day' +%F))}}" +%F)"
+e_date="$(date -d "${2:-${e_date:-$([[ $(date +%H) -le $(date +18) ]] && echo $(date -d '-2 day' +%F) || echo $(date -d '-1 day' +%F))}}" +%F)"
 table_list=(${3:-${table_list[@]}})
 
 
@@ -138,9 +137,9 @@ for db_tb in ${!tables[@]};do
       {
         export_file="$file_export/${db_tb}.$hql_key.tsv"
 
-        debug "$hql_key" "$export_file" "${hql[$hql_key]}"
+        debug "Hive 执行 HQL 为：${hql[$hql_key]}"
 
-        export_file_from_hive "${hql[$hql_key]}"
+        export_file_from_hive "${hql[$hql_key]}" 2>&1 | tee -a $log_file
       } &
       p_opera $p_num &> /dev/null
     done
@@ -159,21 +158,21 @@ for db_tb in ${!tables[@]};do
   mysql="$($mysql_cmd ${tables[$db_tb]})"
 
   debug "整理数据 all_file ——> simple 开始 ${db_tb}！"
-  cat $all_file > $export_file
+  cat $all_file > $export_file 2>&1 | tee -a $log_file
   debug "整理数据 all_file ——> simple 结束 ${db_tb}！"
 
   debug "删除数据 all_file 开始 ${db_tb}！"
-  rm -f $all_file
+  rm -f $all_file 2>&1 | tee -a $log_file
   debug "删除数据 all_file 结束 ${db_tb}！"
 
   tb=$(p_r_r ${db_tb})
   if [[ -n $(echo "${export_all_data_tbl[@]}" | grep -ow "${db_tb}") || "${db_tb}" = 'dm_eagle.abs_asset_information_cash_flow_bag_day' ]]; then
     delete_sql="truncate table ${tb};"
   else
-    delete_sql="DELETE FROM ${tb} WHERE biz_date BETWEEN '${1}' and '${2}';"
+    delete_sql="DELETE FROM ${tb} WHERE biz_date BETWEEN '${s_date}' and '${e_date}';"
   fi
 
-  import_file_to_mysql "${delete_sql}" &
+  import_file_to_mysql "${delete_sql}" 2>&1 | tee -a $log_file &
   p_opera $p_num &> /dev/null
 done
 

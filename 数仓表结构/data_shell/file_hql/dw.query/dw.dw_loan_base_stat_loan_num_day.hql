@@ -23,6 +23,9 @@ set hive.vectorized.execution.reduce.groupby.enabled=false;
 
 set hive.exec.parallel=true;
 set hive.exec.parallel.thread.number=10;
+--set hivevar:db_suffix=;
+--set hivevar:hive_param_str=and product_id in ('002001','001802','pl00282','002401','002402','001906','DIDI201908161538','001603','001901','002006','001801','001601','001602','002002','001702','001902');
+--set hivevar:ST9=2021-01-01;
 
 
 insert overwrite table dw${db_suffix}.dw_loan_base_stat_loan_num_day partition(biz_date = '${ST9}',product_id)

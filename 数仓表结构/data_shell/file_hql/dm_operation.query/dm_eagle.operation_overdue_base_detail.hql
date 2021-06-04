@@ -1,25 +1,30 @@
--- set mapred.job.name=dm_eagle.operation_overdue_base_detail;
--- set hive.execution.engine=mr;
--- set mapreduce.map.memory.mb=2048;
--- set mapreduce.reduce.memory.mb=2048;
--- set hive.exec.parallel=true;
--- set hive.exec.parallel.thread.number=10;
-set spark.app.name=dm_eagle.operation_overdue_base_detail;
-set spark.executor.memory=4g;
-set spark.executor.memoryOverhead=4g;
+set hive.exec.input.listing.max.threads=50;
+set tez.grouping.min-size=50000000;
+set tez.grouping.max-size=50000000;
+set hive.exec.reducers.max=500;
+
+-- 设置 Container 大小
+set hive.tez.container.size=4096;
+set tez.am.resource.memory.mb=4096;
+-- 合并小文件
+set hive.merge.tezfiles=true;
+set hive.merge.size.per.task=64000000;      -- 64M
+set hive.merge.smallfiles.avgsize=64000000; -- 64M
+-- 设置动态分区
 set hive.exec.dynamic.partition=true;
 set hive.exec.dynamic.partition.mode=nonstrict;
-set hive.auto.convert.join=true;
-set hive.mapjoin.smalltable.filesize=50000000;
-set hive.map.aggr=true;
-set hive.merge.mapfiles=true;
-set hive.merge.mapredfiles=true;
-set hive.merge.size.per.task=1024000000;
-set hive.merge.smallfiles.avgsize=1024000000;
-set mapred.max.split.size=256000000;
-set mapred.min.split.size.per.node=100000000;
-set mapred.min.split.size.per.rack=100000000;
--- set hive.input.format=org.apache.hadoop.hive.ql.io.CombineHiveInputFormat;
+set hive.exec.max.dynamic.partitions=200000;
+set hive.exec.max.dynamic.partitions.pernode=50000;
+-- 禁用 Hive 矢量执行
+set hive.vectorized.execution.enabled=false;
+set hive.vectorized.execution.reduce.enabled=false;
+set hive.vectorized.execution.reduce.groupby.enabled=false;
+-- 关闭自动 MapJoin
+set hive.auto.convert.join=false;
+
+--set hivevar:ST9=2020-10-13;
+--set hivevar:suffix=;
+
 
 insert overwrite table dm_eagle${suffix}.operation_overdue_base_detail partition (product_id,snapshot_day)
 select
@@ -89,13 +94,17 @@ inner join
       distinct
       channel_id,
       project_id,
-      product_id
+      product_id,
+      product_name,
+      project_name
       from
       (
         select
-           max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
-           max(if(col_name = 'project_id',   col_val,null)) as project_id,
-           max(if(col_name = 'product_id',   col_val,null)) as product_id
+           max(if(col_name = 'channel_id',     col_val,null)) as channel_id,
+           max(if(col_name = 'project_id',     col_val,null)) as project_id,
+           max(if(col_name = 'product_id',     col_val,null)) as product_id,
+           max(if(col_name = 'product_name',   col_val,null)) as product_name,
+           max(if(col_name = 'project_name',   col_val,null)) as project_name
          from dim.data_conf
          where col_type = 'ac'
          group by col_id

@@ -18,7 +18,7 @@ set hive.exec.max.dynamic.partitions.pernode=50000;
 -- 禁用 Hive 矢量执行
 set hive.vectorized.execution.enabled=false;
 set hive.vectorized.execution.reduce.enabled=false;
-set hive.vectorized.execution.reduce.groupby.enabled=false; 
+set hive.vectorized.execution.reduce.groupby.enabled=false;
 
 
 
@@ -495,6 +495,12 @@ from (
       get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.loanDate')                        as biz_date,
       get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.proCode')                         as product_id
     from (
+    select
+    t.*
+    ,get_json_object(original_msg,'$.reqContent.jsonReq.content.reqData.applyNo') as due_bill_no
+    ,get_json_object(original_msg,'$.reqContent.jsonReq.content.reqData.proCode') as product_id
+    from
+    (
       select
         datefmt(create_time,'ms','yyyy-MM-dd HH:mm:ss') as create_time,
         datefmt(update_time,'ms','yyyy-MM-dd HH:mm:ss') as update_time,
@@ -504,6 +510,7 @@ from (
         and msg_type = 'WIND_CONTROL_CREDIT'
         and original_msg is not null
         ${where_date}
+        ) t
     ) as loan_apply
     left join (
       select distinct
@@ -516,8 +523,8 @@ from (
         and p_type in ('lx','lx2','lxzt','lx3')
         and d_date between date_sub(current_date,2) and current_date
     ) as ecas_loan
-    on  get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.applyNo') = ecas_loan.due_bill_no
-    and get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.proCode') = ecas_loan.product_code
+    on  loan_apply.due_bill_no = ecas_loan.due_bill_no
+    and loan_apply.product_id = ecas_loan.product_code
     left join (
       select distinct
         product_id as dim_product_id,
@@ -531,7 +538,7 @@ from (
         group by col_id
       ) as tmp
     ) as biz_conf
-    on get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.proCode') = biz_conf.dim_product_id
+    on loan_apply.product_id = biz_conf.dim_product_id
     union all
     select loan_apply.*
     from ods.loan_apply

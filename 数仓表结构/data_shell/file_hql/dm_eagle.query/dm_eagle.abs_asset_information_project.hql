@@ -26,6 +26,7 @@ set hive.auto.convert.join.noconditionaltask=false;
 
 -- set hivevar:ST9=2021-03-28;
 -- set hivevar:project_id='CL202012160091';
+
 -- set hivevar:project_id=
 --   select distinct project_id
 --   from dim.project_info
@@ -33,7 +34,7 @@ set hive.auto.convert.join.noconditionaltask=false;
 -- ;
 
 
--- insert overwrite table dm_eagle.abs_asset_information_project partition(biz_date,project_id)
+insert overwrite table dm_eagle.abs_asset_information_project partition(biz_date,project_id)
 select
   count(dw_abs.due_bill_no)                                                                                                          as asset_count,
   count(distinct dw_abs.user_hash_no)                                                                                                as customer_count,

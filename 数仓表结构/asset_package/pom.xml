@@ -40,6 +40,8 @@
         <spark.version>2.4.3</spark.version>
         <janino.version>3.0.8</janino.version>
         <hive.version>3.1.1</hive.version>
+        <scope.use>compile</scope.use>
+        <!--<scope.use>provided</scope.use>-->
     </properties>
 
     <dependencies>
@@ -60,18 +62,18 @@
         <!--<version>${lombok.version}</version>-->
         <!--&lt;!&ndash;<scope>provided</scope>&ndash;&gt;-->
         <!--</dependency>-->
-        <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
-        <!--<dependency>-->
-        <!--<groupId>org.slf4j</groupId>-->
-        <!--<artifactId>slf4j-api</artifactId>-->
-        <!--<version>${slf4j.version}</version>-->
-        <!--</dependency>-->
         <!-- logback-classic 已经依赖了 slf4j-api 和 logback-core -->
         <!-- https://mvnrepository.com/artifact/ch.qos.logback/logback-classic -->
         <!--<dependency>-->
         <!--<groupId>ch.qos.logback</groupId>-->
         <!--<artifactId>logback-classic</artifactId>-->
         <!--<version>${logback.version}</version>-->
+        <!--</dependency>-->
+        <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
+        <!--<dependency>-->
+        <!--<groupId>org.slf4j</groupId>-->
+        <!--<artifactId>slf4j-api</artifactId>-->
+        <!--<version>${slf4j.version}</version>-->
         <!--</dependency>-->
         <!--<dependency>-->
         <!--<groupId>org.slf4j</groupId>-->
@@ -127,45 +129,39 @@
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-common</artifactId>
             <version>${hadoop.version}</version>
-            <!--<scope>compile</scope>-->
-            <scope>provided</scope>
+            <scope>${scope.use}</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-client</artifactId>
             <version>${hadoop.version}</version>
-            <!--<scope>compile</scope>-->
-            <scope>provided</scope>
+            <scope>${scope.use}</scope>
         </dependency>
 
         <dependency>
             <groupId>org.apache.hive</groupId>
             <artifactId>hive-exec</artifactId>
             <version>${hive.version}</version>
-            <!--<scope>compile</scope>-->
-            <scope>provided</scope>
+            <scope>${scope.use}</scope>
         </dependency>
 
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-core_2.11</artifactId>
             <version>${spark.version}</version>
-            <!--<scope>compile</scope>-->
-            <scope>provided</scope>
+            <scope>${scope.use}</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-sql_2.11</artifactId>
             <version>${spark.version}</version>
-            <!--<scope>compile</scope>-->
-            <scope>provided</scope>
+            <scope>${scope.use}</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-hive_2.11</artifactId>
             <version>${spark.version}</version>
-            <!--<scope>compile</scope>-->
-            <scope>provided</scope>
+            <scope>${scope.use}</scope>
         </dependency>
 
         <!-- Spark java.lang.NoClassDefFoundError: org/codehaus/janino/InternalCompilerException -->
@@ -191,10 +187,6 @@
                     <execution>
                         <id>scala-compile-first</id>
                         <phase>process-resources</phase>
-                        <goals>
-                            <goal>add-source</goal>
-                            <goal>compile</goal>
-                        </goals>
                     </execution>
                 </executions>
             </plugin>

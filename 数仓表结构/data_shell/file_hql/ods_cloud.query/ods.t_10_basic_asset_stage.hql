@@ -19,7 +19,7 @@ set hive.vectorized.execution.reduce.groupby.enabled=false;
 
 
 insert overwrite table ods.t_10_basic_asset_stage partition(project_id)
-select distinct
+select
   0                                             as id,
   cast(null as string)                          as import_id,
   loan_info.asset_type                          as asset_type,
