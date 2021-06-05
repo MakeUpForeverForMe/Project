@@ -28,7 +28,7 @@ select
   biz_conf.capital_id                                            as capital_id,
   biz_conf.channel_id                                            as channel_id,
   biz_conf.project_id                                            as project_id,
-  repaid_loan.loan_init_term                                     as loan_terms,
+  repay_schedule.loan_init_term                                  as loan_terms,
   repaid_loan.due_bill_no                                        as due_bill_no,
   repaid_loan.repay_term                                         as repay_term,
   '${ST9}'                                                       as txn_date,
@@ -63,7 +63,6 @@ from (
 join (
   select
     product_id,
-    loan_init_term,
     due_bill_no,
     repay_term,
     sum(repay_amount)                                        as paid_amount,    -- 金额
@@ -75,7 +74,7 @@ join (
   where 1 > 0
     and biz_date = '${ST9}'
     and bnp_type in ('Pricinpal','Interest','TERMFee','SVCFee','Penalty')  ${hive_param_str}
-  group by due_bill_no,loan_init_term,product_id,repay_term
+  group by due_bill_no,product_id,repay_term
 ) as repaid_loan
 on biz_conf.product_id = repaid_loan.product_id
 left join (
@@ -99,6 +98,7 @@ left join (
     due_bill_no,
     loan_term,
     loan_init_principal,
+    loan_init_term,
     schedule_status
   from ods${db_suffix}.repay_schedule
   where 1 > 0

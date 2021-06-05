@@ -19,6 +19,9 @@ set hive.exec.max.dynamic.partitions.pernode=50000;
 set hive.vectorized.execution.enabled=false;
 set hive.vectorized.execution.reduce.enabled=false;
 set hive.vectorized.execution.reduce.groupby.enabled=false;
+-- 设置可以使用正则表达式查找字段
+set hive.support.quoted.identifiers=None;
+
 -- set hivevar:db_suffix=;
 -- set hivevar:db_suffix=_cps;
 

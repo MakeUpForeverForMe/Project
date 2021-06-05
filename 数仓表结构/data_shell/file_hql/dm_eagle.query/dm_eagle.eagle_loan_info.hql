@@ -19,6 +19,8 @@ set hive.exec.max.dynamic.partitions.pernode=50000;
 set hive.vectorized.execution.enabled=false;
 set hive.vectorized.execution.reduce.enabled=false;
 set hive.vectorized.execution.reduce.groupby.enabled=false;
+-- 设置可以使用正则表达式查找字段
+set hive.support.quoted.identifiers=None;
 
 insert overwrite table dm_eagle${db_suffix}.eagle_loan_info partition(biz_date = '${ST9}',product_id)
 select
@@ -62,7 +64,7 @@ select
   loan_info.paid_out_type_cn,
   loan_info.paid_out_date,
   loan_info.terminal_date,
-  loan_lending.loan_init_principal,
+  loan_lending.loan_original_principal,
   loan_lending.loan_init_interest_rate,
   nvl(loan_apply.credit_coef,loan_lending.loan_init_interest_rate) as credit_coef,
   loan_info.loan_init_interest,

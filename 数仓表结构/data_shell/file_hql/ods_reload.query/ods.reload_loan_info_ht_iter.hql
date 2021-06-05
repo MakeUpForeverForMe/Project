@@ -18,15 +18,15 @@ set hive.vectorized.execution.reduce.enabled=false;
 set hive.vectorized.execution.reduce.groupby.enabled=false;
 set hivevar:p_types='ddht','htgy';
 set hivevar:product_id_list='001601','001602','001603','002201','002202','002203';
---set hivevar:ST9=2021-01-01;
---set hivevar:d_date=2021-01-01;
+--set hivevar:ST9=2021-01-04;
+--set hivevar:d_date=2021-05-25;
 
 with repay_hst_repair as (
 select
       repayhst.due_bill_no,repayhst.term,bnp_type,repayhst.d_date,repay_amt,
       if(repair_hst.order_id is not null,repair_hst.paid_out_date,repayhst.txn_date) as txn_date
          from (
-                select * from   stage.ecas_repay_hst  where 1 > 0  and d_date ='${d_date}'    and p_type in (${p_types})   and txn_date <= date_add('${ST9}',30)
+                select * from   stage.ecas_repay_hst  where 1 > 0  and d_date ='${d_date}'    and p_type in (${p_types})   and txn_date <= date_add('${ST9}',100)
                 --11月修数  删除掉汇通的两笔线下还款的罚息实还数据
                 and payment_id not in ('000016043097811admin000068000001','000016043095431admin000068000001')
           )repayhst
@@ -121,6 +121,7 @@ insert overwrite table ods.loan_info_inter partition(biz_date,product_id)
              when ecas_loan.due_bill_no="1000000403" and ecas_loan.d_date >='2020-11-09'  then 'F'
              when ecas_loan.loan_status='O' and overdue_day.overdue_date='9999-12-31' then "N"
              when overdue_principal_reload.max_paid_out_date IS NOT NULL  and overdue_principal_reload.max_paid_out_date!='1970-01-01' then 'F'
+             when overdue_principal_reload.max_paid_out_date IS NOT NULL  and overdue_principal_reload.max_paid_out_date='1970-01-01' and overdue_day.overdue_date='9999-12-31'  then 'N'
       else  ecas_loan.loan_status  end as loan_status,
        case
             when ecas_loan.due_bill_no="1000004836" and ecas_loan.d_date >='2020-11-23'  then '已还清'
@@ -128,12 +129,13 @@ insert overwrite table ods.loan_info_inter partition(biz_date,product_id)
             when ecas_loan.due_bill_no="1000000403" and ecas_loan.d_date >='2020-11-09'  then '已还清'
             when overdue_principal_reload.max_paid_out_date IS NOT NULL  and overdue_principal_reload.max_paid_out_date!='1970-01-01' then '已还清'
             when overdue_day.overdue_date!='9999-12-31' then '逾期'
+            when overdue_principal_reload.max_paid_out_date IS NOT NULL  and overdue_principal_reload.max_paid_out_date='1970-01-01' and overdue_day.overdue_date='9999-12-31'  then '正常'
             when ecas_loan.loan_status='O' and overdue_day.overdue_date='9999-12-31' then "正常"
       else  ecas_loan.loan_status_cn  end as loan_status_cn,
       ecas_loan.loan_out_reason,
-      ecas_loan.paid_out_type,
-      ecas_loan.paid_out_type_cn,
-      if(overdue_principal_reload.max_paid_out_date IS NOT NULL  and overdue_principal_reload.max_paid_out_date!='1970-01-01' ,overdue_principal_reload.max_paid_out_date,ecas_loan.paid_out_date) as paid_out_date,
+       if(overdue_principal_reload.max_paid_out_date IS NOT NULL  and overdue_principal_reload.max_paid_out_date!='1970-01-01' ,ecas_loan.paid_out_type,null) as paid_out_type,
+      if(overdue_principal_reload.max_paid_out_date IS NOT NULL  and overdue_principal_reload.max_paid_out_date!='1970-01-01' ,ecas_loan.paid_out_type_cn,null) as paid_out_type_cn,
+      if(overdue_principal_reload.max_paid_out_date IS NOT NULL  and overdue_principal_reload.max_paid_out_date!='1970-01-01' ,overdue_principal_reload.max_paid_out_date,null) as paid_out_date,
       ecas_loan.terminal_date,
       ecas_loan.loan_init_principal,
       ecas_loan.loan_init_interest_rate,
@@ -370,6 +372,7 @@ insert overwrite table ods.loan_info_inter partition(biz_date,product_id)
                               when tmp.due_bill_no="1000000163" and tmp.d_date >='2020-09-29' and (tmp.curr_term=0 or tmp.curr_term between 6 and 36) then '2020-09-29'
                              when tmp.due_bill_no="1000000403" and tmp.d_date >='2020-11-09' and (tmp.curr_term=0 or tmp.curr_term between 3 and 36)  then '2020-11-09'
                               when tmp.paid_out_date >tmp.d_date then null
+                              when tmp.paid_out_date!=new_schedule.paid_out_date and tmp.paid_out_date is not null and new_schedule.paid_out_date>tmp.d_date then null
                               when tmp.d_date>=new_schedule.paid_out_date then new_schedule.paid_out_date
                               when tmp.paid_out_date!=new_schedule.paid_out_date and tmp.paid_out_date is not null then new_schedule.paid_out_date
                               else tmp.paid_out_date end as paid_out_date,
@@ -385,7 +388,7 @@ insert overwrite table ods.loan_info_inter partition(biz_date,product_id)
                           (
                             select due_bill_no,curr_term,paid_out_date,schedule_status
                                     from stage.ecas_repay_schedule where d_date='${d_date}'  and p_type in (${p_types}) and product_code in (${product_id_list})
-                                    and paid_out_date is not null and paid_out_date<=date_add('${ST9}',10) and schedule_id not in ('000016006898691admin000068000001')
+                                    and paid_out_date is not null and paid_out_date<=date_add('${ST9}',100) and schedule_id not in ('000016006898691admin000068000001')
                           )new_schedule on tmp.due_bill_no=new_schedule.due_bill_no and tmp.curr_term=new_schedule.curr_term
                     )tmp1
                     where tmp1.paid_out_date is not null or tmp1.curr_term=0
@@ -528,6 +531,7 @@ insert overwrite table ods.loan_info_inter partition(biz_date,product_id)
                      when tmp.due_bill_no='1000000381' and tmp.d_date >='2020-08-17' then '2020-08-17'
                      when tmp.due_bill_no="1000001858" and tmp.d_date ='2020-09-21' and tmp.curr_term=0 then null
                      when tmp.paid_out_date >tmp.d_date then null
+                     when tmp.paid_out_date!=new_schedule.paid_out_date and tmp.paid_out_date is not null and new_schedule.paid_out_date>tmp.d_date then null
                       when tmp.due_bill_no="1000000163" and tmp.d_date >='2020-09-29' and (tmp.curr_term=0 or tmp.curr_term between 6 and 36) then '2020-09-29'
                       when tmp.due_bill_no="1000000403" and tmp.d_date >='2020-11-09' and (tmp.curr_term=0 or tmp.curr_term between 3 and 36)  then '2020-11-09'
                      when tmp.d_date>=new_schedule.paid_out_date then new_schedule.paid_out_date
@@ -544,7 +548,7 @@ insert overwrite table ods.loan_info_inter partition(biz_date,product_id)
             (
                     select due_bill_no,curr_term,paid_out_date,schedule_status,reduce_svc_fee
                     from stage.ecas_repay_schedule where d_date='${d_date}'  and p_type in (${p_types}) and product_code in (${product_id_list})
-                    and paid_out_date is not null and paid_out_date<=date_add('${ST9}',10) and schedule_id not in ('000016006898691admin000068000001')
+                    and paid_out_date is not null and paid_out_date<=date_add('${ST9}',100) and schedule_id not in ('000016006898691admin000068000001')
             )new_schedule on tmp.due_bill_no=new_schedule.due_bill_no and tmp.curr_term=new_schedule.curr_term
 
         ) repay_schedule
@@ -585,6 +589,7 @@ insert overwrite table ods.loan_info_inter partition(biz_date,product_id)
                      when tmp.due_bill_no="1000000403" and tmp.d_date >='2020-11-09' and (tmp.curr_term=0 or tmp.curr_term between 3 and 36)  then '2020-11-09'
                      when tmp.d_date>=new_schedule.paid_out_date then new_schedule.paid_out_date
                      when tmp.paid_out_date >tmp.d_date then null
+                     when tmp.paid_out_date!=new_schedule.paid_out_date and tmp.paid_out_date is not null and new_schedule.paid_out_date>tmp.d_date then null
                      when tmp.due_bill_no='1000000275' and tmp.d_date<'2020-02-12' then null
                      when tmp.due_bill_no="1000001858" and tmp.d_date ='2020-09-21' and tmp.curr_term=0 then null
                      when tmp.due_bill_no='1000000275' and  tmp.d_date>='2020-02-12' then '2020-02-12'
@@ -602,7 +607,7 @@ insert overwrite table ods.loan_info_inter partition(biz_date,product_id)
                 (
                     select due_bill_no,curr_term,paid_out_date,schedule_status
                     from stage.ecas_repay_schedule where d_date='${d_date}'  and p_type in (${p_types}) and product_code in (${product_id_list})
-                    and paid_out_date is not null and paid_out_date<=date_add('${ST9}',10) and schedule_id not in ('000016006898691admin000068000001')
+                    and paid_out_date is not null and paid_out_date<=date_add('${ST9}',100) and schedule_id not in ('000016006898691admin000068000001')
                 )new_schedule on tmp.due_bill_no=new_schedule.due_bill_no and tmp.curr_term=new_schedule.curr_term
              )schedule on loan.due_bill_no=schedule.due_bill_no
              where  schedule.curr_term<=loan.curr_term
@@ -641,6 +646,7 @@ insert overwrite table ods.loan_info_inter partition(biz_date,product_id)
                      when tmp.due_bill_no='1000000381' and tmp.d_date >='2020-08-17' then '2020-08-17'
                      when tmp.due_bill_no="1000001858" and tmp.d_date ='2020-09-21' and tmp.curr_term=0 then null
                      when tmp.paid_out_date >tmp.d_date then null
+                      when tmp.paid_out_date!=new_schedule.paid_out_date and tmp.paid_out_date is not null and new_schedule.paid_out_date>tmp.d_date then null
                       when tmp.due_bill_no="1000000163" and tmp.d_date >='2020-09-29' and (tmp.curr_term=0 or tmp.curr_term between 6 and 36) then '2020-09-29'
                       when tmp.due_bill_no="1000000403" and tmp.d_date >='2020-11-09' and (tmp.curr_term=0 or tmp.curr_term between 3 and 36)  then '2020-11-09'
                      when tmp.d_date>=new_schedule.paid_out_date then new_schedule.paid_out_date
@@ -657,7 +663,7 @@ insert overwrite table ods.loan_info_inter partition(biz_date,product_id)
             (
                     select due_bill_no,curr_term,paid_out_date,schedule_status,reduce_svc_fee
                     from stage.ecas_repay_schedule where d_date='${d_date}'  and p_type in (${p_types}) and product_code in (${product_id_list})
-                    and paid_out_date is not null and paid_out_date<=date_add('${ST9}',10) and schedule_id not in ('000016006898691admin000068000001')
+                    and paid_out_date is not null and paid_out_date<=date_add('${ST9}',100) and schedule_id not in ('000016006898691admin000068000001')
             )new_schedule on tmp.due_bill_no=new_schedule.due_bill_no and tmp.curr_term=new_schedule.curr_term
         )repay_schedule
         where 1 > 0
@@ -700,11 +706,12 @@ insert overwrite table ods.loan_info_inter partition(biz_date,product_id)
          when ecas_loan.due_bill_no="1000004836" and ecas_loan.d_date >='2020-11-23'  then 'F'
          when overdue_principal_reload.max_paid_out_date IS NOT NULL  and overdue_principal_reload.max_paid_out_date!='1970-01-01' then 'F'
          when overdue_day.overdue_date!='9999-12-31' then 'O'
+         when overdue_principal_reload.max_paid_out_date IS NOT NULL  and overdue_principal_reload.max_paid_out_date='1970-01-01' and overdue_day.overdue_date='9999-12-31'  then 'N'
          when ecas_loan.loan_status='O' and overdue_day.overdue_date='9999-12-31' then "N"
       else  ecas_loan.loan_status  end as loan_status,
-      ecas_loan.loan_out_reason,
-      ecas_loan.paid_out_type,
-     if(overdue_principal_reload.max_paid_out_date IS NOT NULL  and overdue_principal_reload.max_paid_out_date!='1970-01-01' ,overdue_principal_reload.max_paid_out_date,ecas_loan.paid_out_date) as paid_out_date,
+       if(overdue_principal_reload.max_paid_out_date IS NOT NULL  and overdue_principal_reload.max_paid_out_date!='1970-01-01' ,ecas_loan.paid_out_type,null) as paid_out_type,
+      if(overdue_principal_reload.max_paid_out_date IS NOT NULL  and overdue_principal_reload.max_paid_out_date!='1970-01-01' ,ecas_loan.loan_out_reason,null) as loan_out_reason,
+     if(overdue_principal_reload.max_paid_out_date IS NOT NULL  and overdue_principal_reload.max_paid_out_date!='1970-01-01' ,overdue_principal_reload.max_paid_out_date,null) as paid_out_date,
       ecas_loan.terminal_date,
       ecas_loan.loan_init_principal,
       ecas_loan.loan_init_interest_rate,
@@ -863,6 +870,7 @@ insert overwrite table ods.loan_info_inter partition(biz_date,product_id)
                               when tmp.due_bill_no="1000000163" and tmp.d_date >='2020-09-29' and (tmp.curr_term=0 or tmp.curr_term between 6 and 36) then '2020-09-29'
                               when tmp.due_bill_no="1000000403" and tmp.d_date >='2020-11-09' and (tmp.curr_term=0 or tmp.curr_term between 3 and 36)  then '2020-11-09'
                               when tmp.paid_out_date >tmp.d_date then null
+                              when tmp.paid_out_date!=new_schedule.paid_out_date and tmp.paid_out_date is not null and new_schedule.paid_out_date>tmp.d_date then null
                               when tmp.due_bill_no="1000001858" and tmp.d_date ='2020-09-21' and tmp.curr_term=0 then null
                               when tmp.d_date>=new_schedule.paid_out_date then new_schedule.paid_out_date
                               when tmp.paid_out_date!=new_schedule.paid_out_date and tmp.paid_out_date is not null then new_schedule.paid_out_date
@@ -879,7 +887,7 @@ insert overwrite table ods.loan_info_inter partition(biz_date,product_id)
                           (
                             select due_bill_no,curr_term,paid_out_date,schedule_status
                                     from stage.ecas_repay_schedule where d_date='${d_date}'  and p_type in (${p_types}) and product_code in (${product_id_list})
-                                    and paid_out_date is not null and paid_out_date<=date_add('${ST9}',10) and schedule_id not in ('000016006898691admin000068000001')
+                                    and paid_out_date is not null and paid_out_date<=date_add('${ST9}',100) and schedule_id not in ('000016006898691admin000068000001')
                           )new_schedule on tmp.due_bill_no=new_schedule.due_bill_no and tmp.curr_term=new_schedule.curr_term
                     )tmp1
                     where tmp1.paid_out_date is not null or tmp1.curr_term=0
@@ -999,6 +1007,7 @@ insert overwrite table ods.loan_info_inter partition(biz_date,product_id)
                      when tmp.due_bill_no="1000004836" and tmp.d_date >='2020-11-23' then '2020-11-23'
                      when tmp.due_bill_no="1000000381" and tmp.d_date >='2020-08-17' then '2020-08-17'
                      when tmp.paid_out_date >tmp.d_date then null
+                     when tmp.paid_out_date!=new_schedule.paid_out_date and tmp.paid_out_date is not null and new_schedule.paid_out_date>tmp.d_date then null
                      when tmp.d_date>=new_schedule.paid_out_date then new_schedule.paid_out_date
                      when tmp.due_bill_no='1000000275' and  tmp.d_date<'2020-02-12' then null
                      when tmp.due_bill_no='1000000275' and  tmp.d_date>='2020-02-12' then '2020-02-12'
@@ -1013,7 +1022,7 @@ insert overwrite table ods.loan_info_inter partition(biz_date,product_id)
             (
                     select due_bill_no,curr_term,paid_out_date,schedule_status,reduce_svc_fee
                     from stage.ecas_repay_schedule where d_date='${d_date}'  and p_type in (${p_types}) and product_code in (${product_id_list})
-                    and paid_out_date is not null and paid_out_date<=date_add('${ST9}',10) and schedule_id not in ('000016006898691admin000068000001')
+                    and paid_out_date is not null and paid_out_date<=date_add('${ST9}',100) and schedule_id not in ('000016006898691admin000068000001')
             )new_schedule on tmp.due_bill_no=new_schedule.due_bill_no and tmp.curr_term=new_schedule.curr_term
 
         ) repay_schedule
@@ -1053,6 +1062,7 @@ insert overwrite table ods.loan_info_inter partition(biz_date,product_id)
                     when tmp.due_bill_no="1000000163" and tmp.d_date >='2020-09-29' and (tmp.curr_term=0 or tmp.curr_term between 6 and 36) then '2020-09-29'
                     when tmp.due_bill_no="1000000403" and tmp.d_date >='2020-11-09' and (tmp.curr_term=0 or tmp.curr_term between 3 and 36)  then '2020-11-09'
                     when tmp.paid_out_date >tmp.d_date then null
+                    when tmp.paid_out_date!=new_schedule.paid_out_date and tmp.paid_out_date is not null and new_schedule.paid_out_date>tmp.d_date then null
                     when tmp.d_date>=new_schedule.paid_out_date then new_schedule.paid_out_date
                     when tmp.due_bill_no='1000000275' and tmp.d_date<'2020-02-12' then null
                     when tmp.due_bill_no='1000000275' and  tmp.d_date>='2020-02-12' then '2020-02-12'
@@ -1069,7 +1079,7 @@ insert overwrite table ods.loan_info_inter partition(biz_date,product_id)
                 (
                     select due_bill_no,curr_term,paid_out_date,schedule_status
                     from stage.ecas_repay_schedule where d_date='${d_date}'  and p_type in (${p_types}) and product_code in (${product_id_list})
-                    and paid_out_date is not null and paid_out_date<=date_add('${ST9}',10) and schedule_id not in ('000016006898691admin000068000001')
+                    and paid_out_date is not null and paid_out_date<=date_add('${ST9}',100) and schedule_id not in ('000016006898691admin000068000001')
                 )new_schedule on tmp.due_bill_no=new_schedule.due_bill_no and tmp.curr_term=new_schedule.curr_term
              )schedule on loan.due_bill_no=schedule.due_bill_no
              where  schedule.curr_term<=loan.curr_term
@@ -1108,6 +1118,7 @@ insert overwrite table ods.loan_info_inter partition(biz_date,product_id)
                      when tmp.due_bill_no='1000000381' and tmp.d_date >='2020-08-17' then '2020-08-17'
                      when tmp.due_bill_no="1000001858" and tmp.d_date ='2020-09-21' and tmp.curr_term=0 then null
                      when tmp.paid_out_date >tmp.d_date then null
+                     when tmp.paid_out_date!=new_schedule.paid_out_date and tmp.paid_out_date is not null and new_schedule.paid_out_date>tmp.d_date then null
                       when tmp.due_bill_no="1000000163" and tmp.d_date >='2020-09-29' and (tmp.curr_term=0 or tmp.curr_term between 6 and 36) then '2020-09-29'
                       when tmp.due_bill_no="1000000403" and tmp.d_date >='2020-11-09' and (tmp.curr_term=0 or tmp.curr_term between 3 and 36)  then '2020-11-09'
                      when tmp.d_date>=new_schedule.paid_out_date then new_schedule.paid_out_date
@@ -1124,7 +1135,7 @@ insert overwrite table ods.loan_info_inter partition(biz_date,product_id)
             (
                     select due_bill_no,curr_term,paid_out_date,schedule_status,reduce_svc_fee
                     from stage.ecas_repay_schedule where d_date='${d_date}'  and p_type in (${p_types}) and product_code in (${product_id_list})
-                    and paid_out_date is not null and paid_out_date<=date_add('${ST9}',10) and schedule_id not in ('000016006898691admin000068000001')
+                    and paid_out_date is not null and paid_out_date<=date_add('${ST9}',100) and schedule_id not in ('000016006898691admin000068000001')
             )new_schedule on tmp.due_bill_no=new_schedule.due_bill_no and tmp.curr_term=new_schedule.curr_term
         )repay_schedule
         where 1 > 0
@@ -1168,7 +1179,7 @@ insert overwrite table ods.loan_info_inter partition(biz_date,product_id)
   and is_empty(today.overdue_date           ,'a') = is_empty(yesterday.overdue_date           ,'a')
   and is_empty(today.overdue_days           ,'a') = is_empty(yesterday.overdue_days           ,'a')
   where yesterday.due_bill_no is null
-  --and today.due_bill_no="1000003360"
+--and today.due_bill_no="1000000106"
   --limit 1
   ;
 
