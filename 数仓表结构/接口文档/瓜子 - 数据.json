@@ -1,0 +1,433 @@
+// GZ_CREDIT_APPLY
+{
+  "content": {
+    "applyNo": "APP-20200617165113000001",
+    "auditInfo": {
+      "isCalled": "2"
+    },
+    "borrower": {
+      "annualIncomeMax": "",
+      "annualIncomeMin": "",
+      "companyAddress": "赣江北大道1号保利中心",
+      "companyArea": "红谷滩新区",
+      "companyCity": "南昌",
+      "companyName": "江西保利物业管理有限公司",
+      "companyProvince": "江西",
+      "drivingExpr": 2,
+      "drivrLicenNo": "",
+      "education": "Z",
+      "haveHouse": "Y",
+      "homeAddress": "江西赣州章贡开发区纬一路保利嘉福心语物业服务中心",
+      "homeArea": "章贡",
+      "homeCity": "赣州",
+      "homeProvince": "江西",
+      "homeTel": "15170417403",
+      "housingArea": "120",
+      "housingValue": "",
+      "idAddress": "江西省瑞金市云石山乡下村村庙前小组17号",
+      "idCity": "360700",
+      "idCountry": "中国",
+      "idNo": "360781199009084220",
+      "idProvince": "360000",
+      "idType": "I",
+      "industry": "Z",
+      "maritalStatus": "O",
+      "mobilePhone": "15170417403",
+      "name": "洪婷",
+      "occpType": "80",
+      "openId": "7c21e89e4ed1db37ac52adbebc3681f1",
+      "sex": "",
+      "tel": "15170417403"
+    },
+    "companyLoanBool": false,
+    "guaranties": [
+      {
+        "car": {
+          "agentInfo": {
+            "spCity": "",
+            "spDetailAddr": "",
+            "spName": "",
+            "spProvince": ""
+          },
+          "busiType": "4",
+          "carAdditional": {
+            "buyDate": "2020-06-17",
+            "buyPrice": "29500.00",
+            "claimAmount": "0",
+            "claimTimes": 0,
+            "mileage": 50400,
+            "productionDate": "2014-12-01",
+            "sellTimes": 0
+          },
+          "carBrand": "日产",
+          "carCity": "",
+          "carDiaplace": "1.6L",
+          "carFrameNo": "LGBG22E07EY657876",
+          "carNo": "骐达",
+          "carProvince": "",
+          "carSalePrice": "59000.00",
+          "carSeats": "4",
+          "carType": "2",
+          "color": "红色",
+          "cxdm": "2",
+          "engineNo": "458270X",
+          "evaluatePrice": "29500.00",
+          "extraFundingInfo": [
+            {
+              "extraFundingAmount": "0.00",
+              "extraFundingType": "01"
+            },
+            {
+              "extraFundingAmount": "0.00",
+              "extraFundingType": "03"
+            },
+            {
+              "extraFundingAmount": "0.00",
+              "extraFundingType": "05"
+            }
+          ],
+          "firstPaymentAmount": "33350.00",
+          "firstPaymentPercent": "0.50",
+          "gpsNo": "",
+          "isSunroof": "NA",
+          "licenseNum": "没有车牌号",
+          "manEvaluate": "29500.00",
+          "mortgageRegisterDate": "1970-01-01",
+          "newCarPrice": "0",
+          "regDate": "2014-12",
+          "shift": "A",
+          "sysEvlauatePrice": "29500.00",
+          "sysEvlauateSource": "1",
+          "usePurpose": "1",
+          "vehicleDate": "2014-12-01",
+          "vehicleId": ""
+        },
+        "guarantyNum": "APP-20200617165113000001",
+        "guarantyType": "CAR"
+      }
+    ],
+    "loanAccount": {
+      "accountName": "瓜子融资租赁（中国）有限公司",
+      "accountNum": "631979743",
+      "accountType": "BUSINESS",
+      "bankCode": "014",
+      "bankName": "民生银行",
+      "branchName": "中国民生银行广州越秀支行",
+      "mobilePhone": ""
+    },
+    "payAccount": {
+      "accountName": "洪婷",
+      "accountNum": "6217715702320838",
+      "accountType": "PERSONAL",
+      "bankCode": "008",
+      "bankName": "中信银行",
+      "branchName": "",
+      "mobilePhone": "15170417403"
+    },
+    "preApplyNo": "PREAPP-20200617162023000001",
+    "product": {
+      "agreementRateInd": "Y",
+      "applyCity": "南昌",
+      "currencyAmt": "29500.00",
+      "currencyTerms": 36,
+      "currencyType": "RMB",
+      "guaranteeType": "D",
+      "loanAmt": "29500.00",
+      "loanApplyUse": "LAU01",
+      "loanFeeRate": "0",
+      "loanPenaltyRate": "0.24",
+      "loanRate": "0.1584",
+      "loanRateType": "LRT01",
+      "loanSvcFeeRate": "0",
+      "loanTerms": 36,
+      "productName": "二手车融资租赁",
+      "productNo": "001702",
+      "rentalDate": "2020-06-17",
+      "repayType": "RT01"
+    },
+    "relationalHumans": [
+      {
+        "address": "江西赣州章贡开发区纬一路保利嘉福心语物业服务中心",
+        "age": 30,
+        "area": "章贡",
+        "city": "赣州",
+        "idNo": "",
+        "idType": "I",
+        "mobilePhone": "13870910477",
+        "name": "钟金凤",
+        "province": "江西",
+        "relationalHumanType": "RHT01",
+        "relationship": "O",
+        "sex": ""
+      },
+      {
+        "address": "江西赣州章贡开发区纬一路保利嘉福心语物业服务中心",
+        "age": 30,
+        "area": "章贡",
+        "city": "赣州",
+        "idNo": "",
+        "idType": "I",
+        "mobilePhone": "13531699527",
+        "name": "李德志",
+        "province": "江西",
+        "relationalHumanType": "RHT01",
+        "relationship": "O",
+        "sex": ""
+      }
+    ]
+  },
+  "data": {
+    "applyNo": "APP-20200617165113000001",
+    "auditInfo": {
+      "isCalled": "2"
+    },
+    "borrower": {
+      "companyAddress": "赣江北大道1号保利中心",
+      "companyArea": "红谷滩新区",
+      "companyCity": "南昌",
+      "companyName": "江西保利物业管理有限公司",
+      "companyProvince": "江西",
+      "drivingExpr": 2,
+      "drivrLicenNo": "",
+      "education": "Z",
+      "haveHouse": "Y",
+      "homeAddress": "江西赣州章贡开发区纬一路保利嘉福心语物业服务中心",
+      "homeArea": "章贡",
+      "homeCity": "赣州",
+      "homeProvince": "江西",
+      "homeTel": "15170417403",
+      "housingArea": 120,
+      "idAddress": "江西省瑞金市云石山乡下村村庙前小组17号",
+      "idCity": "360700",
+      "idCountry": "中国",
+      "idNo": "360781199009084220",
+      "idProvince": "360000",
+      "idType": "I",
+      "industry": "Z",
+      "maritalStatus": "O",
+      "mobilePhone": "15170417403",
+      "name": "洪婷",
+      "occpType": "80",
+      "openId": "7c21e89e4ed1db37ac52adbebc3681f1",
+      "sex": "",
+      "tel": "15170417403"
+    },
+    "companyLoanBool": false,
+    "guaranties": [
+      {
+        "car": {
+          "agentInfo": {
+            "spCity": "",
+            "spDetailAddr": "",
+            "spName": "",
+            "spProvince": ""
+          },
+          "busiType": "4",
+          "carAdditional": {
+            "buyDate": "2020-06-17",
+            "buyPrice": "29500.00",
+            "claimAmount": "0",
+            "claimTimes": 0,
+            "mileage": 50400,
+            "productionDate": "2014-12-01",
+            "sellTimes": 0
+          },
+          "carBrand": "日产",
+          "carCity": "",
+          "carDiaplace": "1.6L",
+          "carFrameNo": "LGBG22E07EY657876",
+          "carNo": "骐达",
+          "carProvince": "",
+          "carSalePrice": "59000.00",
+          "carSeats": "4",
+          "carType": "2",
+          "color": "红色",
+          "cxdm": "2",
+          "engineNo": "458270X",
+          "evaluatePrice": "29500.00",
+          "extraFundingInfo": [
+            {
+              "extraFundingAmount": "0.00",
+              "extraFundingType": "01"
+            },
+            {
+              "extraFundingAmount": "0.00",
+              "extraFundingType": "03"
+            },
+            {
+              "extraFundingAmount": "0.00",
+              "extraFundingType": "05"
+            }
+          ],
+          "firstPaymentAmount": "33350.00",
+          "firstPaymentPercent": "0.50",
+          "gpsNo": "",
+          "isSunroof": "NA",
+          "licenseNum": "没有车牌号",
+          "manEvaluate": "29500.00",
+          "mortgageRegisterDate": "1970-01-01",
+          "newCarPrice": "0",
+          "regDate": "2014-12",
+          "shift": "A",
+          "sysEvlauatePrice": "29500.00",
+          "sysEvlauateSource": "1",
+          "usePurpose": "1",
+          "vehicleDate": "2014-12-01",
+          "vehicleId": ""
+        },
+        "guarantyNum": "APP-20200617165113000001",
+        "guarantyType": "CAR"
+      }
+    ],
+    "loanAccount": {
+      "accountName": "瓜子融资租赁（中国）有限公司",
+      "accountNum": "631979743",
+      "accountType": "BUSINESS",
+      "bankCode": "014",
+      "bankName": "民生银行",
+      "branchName": "中国民生银行广州越秀支行",
+      "mobilePhone": ""
+    },
+    "payAccount": {
+      "accountName": "洪婷",
+      "accountNum": "6217715702320838",
+      "accountType": "PERSONAL",
+      "bankCode": "008",
+      "bankName": "中信银行",
+      "branchName": "",
+      "mobilePhone": "15170417403"
+    },
+    "preApplyNo": "PREAPP-20200617162023000001",
+    "product": {
+      "agreementRateInd": "Y",
+      "applyCity": "南昌",
+      "currencyAmt": 29500,
+      "currencyTerms": 36,
+      "currencyType": "RMB",
+      "guaranteeType": "D",
+      "loanAmt": 29500,
+      "loanApplyUse": "LAU01",
+      "loanFeeRate": 0,
+      "loanPenaltyRate": 0.24,
+      "loanRate": 0.1584,
+      "loanRateType": "LRT01",
+      "loanSvcFeeRate": 0,
+      "loanTerms": 36,
+      "productName": "二手车融资租赁",
+      "productNo": "001702",
+      "rentalDate": "2020-06-17",
+      "repayType": "RT01"
+    },
+    "relationalHumans": [
+      {
+        "address": "江西赣州章贡开发区纬一路保利嘉福心语物业服务中心",
+        "age": "30",
+        "area": "章贡",
+        "city": "赣州",
+        "idNo": "",
+        "idType": "I",
+        "mobilePhone": "13870910477",
+        "name": "钟金凤",
+        "province": "江西",
+        "relationalHumanType": "RHT01",
+        "relationship": "O",
+        "sex": ""
+      },
+      {
+        "address": "江西赣州章贡开发区纬一路保利嘉福心语物业服务中心",
+        "age": "30",
+        "area": "章贡",
+        "city": "赣州",
+        "idNo": "",
+        "idType": "I",
+        "mobilePhone": "13531699527",
+        "name": "李德志",
+        "province": "江西",
+        "relationalHumanType": "RHT01",
+        "relationship": "O",
+        "sex": ""
+      }
+    ]
+  },
+  "partner": "0005",
+  "projectName": "民生租赁-瓜子-2020一期",
+  "projectNo": "WS0005200001",
+  "service": "incomeApply",
+  "serviceSn": "7324b84d25e244fd908aee67156b5fb8",
+  "serviceVersion": "1",
+  "sign": "wURHstr48DGpn3glC2v6pIowfk1PW17B0lYG+sgQ+pAcFN8Wg+d7W55+XUTmhKMVnuoFF9zgW58I\nL0ZVF9QjOCaMFm5Xf5RRbcNM1wwwloaDWGizootEeQ722pXRsdVi+ud678rwk+bSWkVHVjjwGsfc\nWnmExDRd+NOMEcM0MWU=\n",
+  "timeStamp": "1592383874597"
+}
+
+// GZ_CREDIT_RESULT
+{
+  "org": "15601",
+  "partner": "0005",
+  "reqContent": {
+    "jsonReq": {
+      "content": {
+        "applyNo": "APP-20200617165113000001", // 1
+        "queryId": "f85ec51a575d4e57a9024a867c7161c9"
+      },
+      "partner": "0005",
+      "projectName": "民生租赁-瓜子-2020一期",
+      "projectNo": "WS0005200001",
+      "service": "incomeApplyResult",
+      "serviceSn": "5b1a3da9f11b4e81bbd8bea0f0faa836",
+      "serviceVersion": "1",
+      "sign": "XJo20oYeKRFE51sYPUtl/2S/H3EBZkhk+rTM7wqhQLkKiQCl2ypCPV09eJMg35+hDBd3VgGMLqty\nIKQBHfOW1RFf7fujF3t/8hLUjHdA1nSG+BNRcI6K6ohHU9HOJo5S/LxdfVkigna1ANM+2DpYZZp9\ndPlyRXf5aErYy3zrBQs=\n",
+      "timeStamp": "1592383876403"
+    },
+    "jsonResp": {
+      "partner": "0005",
+      "resultCode": "0000",
+      "resultMsg": "请求成功", // 4
+      "rspData": {
+        "status": "1" // 2
+      },
+      "service": "incomeApplyResult",
+      "serviceVersion": "1",
+      "sign": null
+    },
+    "partnerEnumStr": "GZ",
+    "reqMsgCreateDate": "2020-06-17 16:51:17"
+  },
+  "txnId": "15923841002671Node1000028000000"
+}
+
+// GZ_LOAN_APPLY
+{
+  "content": {
+    "applyNo": "APP-20200617165113000001",
+    "pubTraInfo": "1",
+    "remark": "",
+    "standardInfo": "1"
+  },
+  "data": {
+    "applyNo": "APP-20200617165113000001", // 1
+    "pubTraInfo": "1",
+    "remark": "",
+    "standardInfo": "1"
+  },
+  "partner": "0005",
+  "projectName": "民生租赁-瓜子-2020一期",
+  "projectNo": "WS0005200001",
+  "service": "loanApply",
+  "serviceSn": "71c3de46915d41ee821697d179af1337",
+  "serviceVersion": "1",
+  "sign": "RcBn6E/c7wFvtU9ry+xtDeuJPXaDGNTEdeC0SXsyJlPd0FO2F7S4zGqcM6h2dWejepux27Mu2MhZ\nJDx9B2s0B44TW8UnnZBZvC1lHYsEsW5A1S9rRZU6zOjs6AnOtIbl/TYByMJfEKtjZ7XkBlMDozxD\nD6HR/SFlq83FrwexoHs=\n",
+  "timeStamp": "1593402481876"
+}
+
+// GZ_LOAN_RESULT
+{
+  "aduitRemark": "系统首付金额=实际首付+咨询服务费（1500）+GPS费用（2350）,未上传行驶证",
+  "aduitResult": "合格",
+  "aduitResultDetail": "",
+  "applyNo": "APP-20200617165113000001", // 1
+  "loanNo": "APP-20200617165113000001", // 5
+  "message": "放款成功", // 4
+  "planDate": "2020-06-29", // 3
+  "queryId": "f732db58e08b488a829e07b6957a7408",
+  "status": "4" // 2 -- 1复核通过 2复核拒绝 4放款成功 5放款失败 7申请拒绝
+}

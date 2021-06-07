@@ -1,0 +1,2086 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<PMML xmlns="http://www.dmg.org/PMML-4_4" xmlns:data="http://jpmml.org/jpmml-model/InlineTable" version="4.4">
+	<Header>
+		<Application name="JPMML-SkLearn" version="1.6.11"/>
+		<Timestamp>2021-04-15T06:56:26Z</Timestamp>
+	</Header>
+	<MiningBuildTask>
+		<Extension>PMMLPipeline(steps=[('PreProcessor', FeatureUnion(transformer_list=[('dataframemapper-1',
+                                DataFrameMapper(features=[(['dpd_days_count',
+                                                            'dpd_days',
+                                                            'overdue_principal_max',
+                                                            'overdue_principal',
+                                                            'paid_principal',
+                                                            'dpd_days_max',
+                                                            'remain_principal',
+                                                            'overdue_principal_accumulate',
+                                                            'overdue_terms_max',
+                                                            'overdue_days',
+                                                            'overdue_terms_count',
+                                                            'loan_term'],
+                                                           ContinuousDomain(with_data=False,
+                                                                            with_statistics=False))])),
+                               ('dataframemapper-2',
+                                DataFrameMapper(features=[(['previous_status'],
+                                                           [StringNormalizer(),
+                                                            LabelBinarizer()])]))])),
+       ('LGBMClassifier', LGBMClassifier(booster='gbtree', colsample_bytree=0.6, max_depth=3,
+               max_leaves=8, n_estimators=20, reg_alpha=1.0, subsample=0.6))])</Extension>
+	</MiningBuildTask>
+	<DataDictionary>
+		<DataField name="target" optype="categorical" dataType="integer">
+			<Value value="0"/>
+			<Value value="1"/>
+			<Value value="2"/>
+			<Value value="3"/>
+		</DataField>
+		<DataField name="dpd_days_count" optype="continuous" dataType="double"/>
+		<DataField name="dpd_days" optype="continuous" dataType="double"/>
+		<DataField name="overdue_principal_max" optype="continuous" dataType="double"/>
+		<DataField name="overdue_principal" optype="continuous" dataType="double"/>
+		<DataField name="paid_principal" optype="continuous" dataType="double"/>
+		<DataField name="dpd_days_max" optype="continuous" dataType="double"/>
+		<DataField name="remain_principal" optype="continuous" dataType="double"/>
+		<DataField name="overdue_principal_accumulate" optype="continuous" dataType="double"/>
+		<DataField name="overdue_terms_max" optype="continuous" dataType="double"/>
+		<DataField name="overdue_days" optype="continuous" dataType="double"/>
+		<DataField name="overdue_terms_count" optype="continuous" dataType="double"/>
+		<DataField name="loan_term" optype="continuous" dataType="double"/>
+	</DataDictionary>
+	<MiningModel functionName="classification" algorithmName="LightGBM">
+		<MiningSchema>
+			<MiningField name="target" usageType="target"/>
+			<MiningField name="dpd_days_count" importance="31.0" missingValueTreatment="asIs"/>
+			<MiningField name="dpd_days" importance="55.0" missingValueTreatment="asIs"/>
+			<MiningField name="overdue_principal_max" importance="17.0" missingValueTreatment="asIs"/>
+			<MiningField name="overdue_principal" importance="26.0" missingValueTreatment="asIs"/>
+			<MiningField name="paid_principal" importance="25.0" missingValueTreatment="asIs"/>
+			<MiningField name="dpd_days_max" importance="9.0" missingValueTreatment="asIs"/>
+			<MiningField name="remain_principal" importance="13.0" missingValueTreatment="asIs"/>
+			<MiningField name="overdue_principal_accumulate" importance="20.0" missingValueTreatment="asIs"/>
+			<MiningField name="overdue_terms_max" importance="37.0" missingValueTreatment="asIs"/>
+			<MiningField name="overdue_days" importance="20.0" missingValueTreatment="asIs"/>
+			<MiningField name="overdue_terms_count" importance="23.0" missingValueTreatment="asIs"/>
+			<MiningField name="loan_term" importance="22.0" missingValueTreatment="asIs"/>
+		</MiningSchema>
+		<Segmentation multipleModelMethod="modelChain" missingPredictionTreatment="returnMissing">
+			<Segment id="1">
+				<True/>
+				<MiningModel functionName="regression">
+					<MiningSchema>
+						<MiningField name="dpd_days_count"/>
+						<MiningField name="dpd_days"/>
+						<MiningField name="overdue_principal_max"/>
+						<MiningField name="overdue_principal"/>
+						<MiningField name="paid_principal"/>
+						<MiningField name="dpd_days_max"/>
+						<MiningField name="overdue_principal_accumulate"/>
+						<MiningField name="overdue_terms_max"/>
+						<MiningField name="overdue_days"/>
+						<MiningField name="overdue_terms_count"/>
+						<MiningField name="loan_term"/>
+					</MiningSchema>
+					<Output>
+						<OutputField name="lgbmValue(0)" optype="continuous" dataType="double" isFinalResult="false"/>
+					</Output>
+					<Segmentation multipleModelMethod="sum">
+						<Segment id="1">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="dpd_days_count"/>
+									<MiningField name="overdue_principal"/>
+									<MiningField name="overdue_terms_count"/>
+								</MiningSchema>
+								<Node score="-0.15609003026456558">
+									<True/>
+									<Node score="-0.4738706094358407">
+										<SimplePredicate field="overdue_principal" operator="greaterThan" value="1.0000000180025095E-35"/>
+									</Node>
+									<Node score="-0.2087953991012642">
+										<SimplePredicate field="dpd_days_count" operator="greaterThan" value="5.500000000000001"/>
+										<Node score="-0.28164882997705">
+											<SimplePredicate field="overdue_terms_count" operator="greaterThan" value="2.5000000000000004"/>
+										</Node>
+									</Node>
+									<Node score="-0.18862985443730157">
+										<SimplePredicate field="overdue_terms_count" operator="greaterThan" value="1.5000000000000002"/>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="2">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="overdue_principal"/>
+									<MiningField name="dpd_days_max"/>
+									<MiningField name="overdue_principal_accumulate"/>
+								</MiningSchema>
+								<Node score="0.05529275052877236">
+									<True/>
+									<Node score="-0.17572074418556932">
+										<SimplePredicate field="overdue_principal" operator="greaterThan" value="1.0000000180025095E-35"/>
+									</Node>
+									<Node score="0.0">
+										<SimplePredicate field="overdue_principal_accumulate" operator="greaterThan" value="4232.795000000001"/>
+										<Node score="-0.06121001726511577">
+											<SimplePredicate field="dpd_days_max" operator="greaterThan" value="3.5000000000000004"/>
+										</Node>
+									</Node>
+									<Node score="0.03159793153860703">
+										<SimplePredicate field="overdue_principal_accumulate" operator="greaterThan" value="1237.0300000000002"/>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="3">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="overdue_principal"/>
+									<MiningField name="paid_principal"/>
+									<MiningField name="overdue_principal_accumulate"/>
+								</MiningSchema>
+								<Node score="0.052479011383922296">
+									<True/>
+									<Node score="-0.1390146458853859">
+										<SimplePredicate field="overdue_principal" operator="greaterThan" value="1.0000000180025095E-35"/>
+									</Node>
+									<Node score="-0.058346777945744034">
+										<SimplePredicate field="overdue_principal_accumulate" operator="greaterThan" value="4232.795000000001"/>
+										<Node score="-0.007123274965091434">
+											<SimplePredicate field="paid_principal" operator="greaterThan" value="11676.940000000002"/>
+										</Node>
+									</Node>
+									<Node score="0.0299077799019527">
+										<SimplePredicate field="overdue_principal_accumulate" operator="greaterThan" value="1237.0300000000002"/>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="4">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="overdue_principal"/>
+									<MiningField name="overdue_terms_max"/>
+									<MiningField name="overdue_terms_count"/>
+								</MiningSchema>
+								<Node score="0.04880571911284142">
+									<True/>
+									<Node score="-0.11789999595110741">
+										<SimplePredicate field="overdue_principal" operator="greaterThan" value="1.0000000180025095E-35"/>
+									</Node>
+									<Node score="-0.0776655602565429">
+										<SimplePredicate field="overdue_terms_count" operator="greaterThan" value="2.5000000000000004"/>
+										<Node score="-0.011102157452029813">
+											<SimplePredicate field="overdue_terms_max" operator="greaterThan" value="4.500000000000001"/>
+										</Node>
+									</Node>
+									<Node score="0.013019652080520467">
+										<SimplePredicate field="overdue_terms_count" operator="greaterThan" value="1.5000000000000002"/>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="5">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="dpd_days"/>
+									<MiningField name="dpd_days_max"/>
+									<MiningField name="overdue_principal_accumulate"/>
+								</MiningSchema>
+								<Node score="0.05140981216363208">
+									<True/>
+									<Node score="-0.10387497399396457">
+										<SimplePredicate field="dpd_days" operator="greaterThan" value="1.0000000180025095E-35"/>
+									</Node>
+									<Node score="0.029201537959747226">
+										<SimplePredicate field="overdue_principal_accumulate" operator="greaterThan" value="4232.795000000001"/>
+										<Node score="-0.030700481073863996">
+											<SimplePredicate field="dpd_days_max" operator="greaterThan" value="1.5000000000000002"/>
+										</Node>
+									</Node>
+									<Node score="0.027790436476617345">
+										<SimplePredicate field="overdue_principal_accumulate" operator="greaterThan" value="1237.0300000000002"/>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="6">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="overdue_principal"/>
+									<MiningField name="overdue_principal_accumulate"/>
+								</MiningSchema>
+								<Node score="0.05006998635595065">
+									<True/>
+									<Node score="-0.09400337542000237">
+										<SimplePredicate field="overdue_principal" operator="greaterThan" value="1.0000000180025095E-35"/>
+									</Node>
+									<Node score="-0.006796400673910927">
+										<SimplePredicate field="overdue_principal_accumulate" operator="greaterThan" value="4232.795000000001"/>
+										<Node score="-0.05073913151178805">
+											<SimplePredicate field="overdue_principal_accumulate" operator="greaterThan" value="9767.950000000003"/>
+										</Node>
+									</Node>
+									<Node score="0.026196087325460228">
+										<SimplePredicate field="overdue_principal_accumulate" operator="greaterThan" value="1237.0300000000002"/>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="7">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="dpd_days_count"/>
+									<MiningField name="dpd_days"/>
+									<MiningField name="paid_principal"/>
+									<MiningField name="overdue_terms_max"/>
+								</MiningSchema>
+								<Node score="0.5888688293471154">
+									<True/>
+									<Node score="-0.08657954062892952">
+										<SimplePredicate field="dpd_days" operator="greaterThan" value="1.0000000180025095E-35"/>
+									</Node>
+									<Node score="-0.04979965449939633">
+										<SimplePredicate field="dpd_days_count" operator="greaterThan" value="5.500000000000001"/>
+										<Node score="-0.004612063844423631">
+											<SimplePredicate field="overdue_terms_max" operator="greaterThan" value="4.500000000000001"/>
+										</Node>
+									</Node>
+									<Node score="0.0414484757484406">
+										<SimplePredicate field="paid_principal" operator="greaterThan" value="2543.735"/>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="8">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="dpd_days_count"/>
+									<MiningField name="overdue_principal_max"/>
+									<MiningField name="paid_principal"/>
+									<MiningField name="overdue_terms_count"/>
+									<MiningField name="loan_term"/>
+								</MiningSchema>
+								<Node score="0.3409824468689835">
+									<True/>
+									<Node score="-0.04458640723365832">
+										<SimplePredicate field="overdue_terms_count" operator="greaterThan" value="1.5000000000000002"/>
+										<Node score="-0.007439255585163206">
+											<SimplePredicate field="loan_term" operator="greaterThan" value="5.500000000000001"/>
+											<Node score="-0.05865568998497398">
+												<SimplePredicate field="overdue_terms_count" operator="greaterThan" value="4.500000000000001"/>
+											</Node>
+										</Node>
+										<Node score="-0.07805908601268952">
+											<SimplePredicate field="dpd_days_count" operator="greaterThan" value="9.500000000000002"/>
+										</Node>
+									</Node>
+									<Node score="7.286838850098652E-4">
+										<SimplePredicate field="overdue_principal_max" operator="greaterThan" value="1.0000000180025095E-35"/>
+										<Node score="0.026530985526679443">
+											<SimplePredicate field="loan_term" operator="greaterThan" value="5.500000000000001"/>
+										</Node>
+									</Node>
+									<Node score="0.04887861195595586">
+										<SimplePredicate field="paid_principal" operator="greaterThan" value="2543.735"/>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="9">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="dpd_days"/>
+									<MiningField name="paid_principal"/>
+									<MiningField name="overdue_terms_count"/>
+								</MiningSchema>
+								<Node score="0.3917258960690769">
+									<True/>
+									<Node score="-0.0775938397769983">
+										<SimplePredicate field="dpd_days" operator="greaterThan" value="1.0000000180025095E-35"/>
+									</Node>
+									<Node score="0.011471138746389426">
+										<SimplePredicate field="overdue_terms_count" operator="greaterThan" value="1.5000000000000002"/>
+										<Node score="-0.024503638334123945">
+											<SimplePredicate field="overdue_terms_count" operator="greaterThan" value="2.5000000000000004"/>
+										</Node>
+									</Node>
+									<Node score="0.04217370408090313">
+										<SimplePredicate field="paid_principal" operator="greaterThan" value="2543.735"/>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="10">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="dpd_days_count"/>
+									<MiningField name="dpd_days"/>
+									<MiningField name="paid_principal"/>
+									<MiningField name="overdue_terms_max"/>
+								</MiningSchema>
+								<Node score="0.5565182735929362">
+									<True/>
+									<Node score="-0.07370904481951127">
+										<SimplePredicate field="dpd_days" operator="greaterThan" value="1.0000000180025095E-35"/>
+									</Node>
+									<Node score="-0.03833736014856817">
+										<SimplePredicate field="dpd_days_count" operator="greaterThan" value="5.500000000000001"/>
+										<Node score="0.0">
+											<SimplePredicate field="overdue_terms_max" operator="greaterThan" value="4.500000000000001"/>
+										</Node>
+									</Node>
+									<Node score="0.037057119452123914">
+										<SimplePredicate field="paid_principal" operator="greaterThan" value="2543.735"/>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="11">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="overdue_principal"/>
+									<MiningField name="paid_principal"/>
+									<MiningField name="overdue_principal_accumulate"/>
+								</MiningSchema>
+								<Node score="0.660833739895809">
+									<True/>
+									<Node score="-0.07050533043295125">
+										<SimplePredicate field="overdue_principal" operator="greaterThan" value="1.0000000180025095E-35"/>
+									</Node>
+									<Node score="0.003141383045892832">
+										<SimplePredicate field="overdue_principal_accumulate" operator="greaterThan" value="2784.0200000000004"/>
+										<Node score="-0.032372954670014505">
+											<SimplePredicate field="overdue_principal_accumulate" operator="greaterThan" value="9767.950000000003"/>
+										</Node>
+									</Node>
+									<Node score="0.039843866437934396">
+										<SimplePredicate field="paid_principal" operator="greaterThan" value="2543.735"/>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="12">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="dpd_days"/>
+									<MiningField name="paid_principal"/>
+									<MiningField name="overdue_terms_count"/>
+								</MiningSchema>
+								<Node score="1.13665690131588">
+									<True/>
+									<Node score="-0.06783662758096691">
+										<SimplePredicate field="dpd_days" operator="greaterThan" value="1.0000000180025095E-35"/>
+									</Node>
+									<Node score="0.037854217411101176">
+										<SimplePredicate field="paid_principal" operator="greaterThan" value="2543.735"/>
+										<Node score="-0.00810894167564452">
+											<SimplePredicate field="overdue_terms_count" operator="greaterThan" value="1.5000000000000002"/>
+										</Node>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="13">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="dpd_days_count"/>
+									<MiningField name="dpd_days"/>
+									<MiningField name="overdue_principal_max"/>
+								</MiningSchema>
+								<Node score="0.044513086083387776">
+									<True/>
+									<Node score="-0.06559046963638074">
+										<SimplePredicate field="dpd_days" operator="greaterThan" value="1.0000000180025095E-35"/>
+									</Node>
+									<Node score="0.0085178206493499">
+										<SimplePredicate field="dpd_days_count" operator="greaterThan" value="2.5000000000000004"/>
+										<Node score="-0.022961201285770557">
+											<SimplePredicate field="dpd_days_count" operator="greaterThan" value="8.500000000000002"/>
+										</Node>
+									</Node>
+									<Node score="0.025779340894850046">
+										<SimplePredicate field="overdue_principal_max" operator="greaterThan" value="713.7850000000001"/>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="14">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="overdue_principal"/>
+									<MiningField name="overdue_terms_max"/>
+									<MiningField name="overdue_terms_count"/>
+								</MiningSchema>
+								<Node score="-9.178485213344684">
+									<True/>
+									<Node score="0.03491173450269451">
+										<SimplePredicate field="overdue_terms_max" operator="greaterThan" value="1.0000000180025095E-35"/>
+										<Node score="-0.06366563683367281">
+											<SimplePredicate field="overdue_principal" operator="greaterThan" value="1.0000000180025095E-35"/>
+										</Node>
+										<Node score="-0.006743890408463959">
+											<SimplePredicate field="overdue_terms_count" operator="greaterThan" value="1.5000000000000002"/>
+										</Node>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="15">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="paid_principal"/>
+									<MiningField name="overdue_days"/>
+									<MiningField name="overdue_terms_count"/>
+								</MiningSchema>
+								<Node score="23.104350043960302">
+									<True/>
+									<Node score="0.03431261174685285">
+										<SimplePredicate field="paid_principal" operator="greaterThan" value="2543.735"/>
+										<Node score="-0.062039050222098525">
+											<SimplePredicate field="overdue_days" operator="greaterThan" value="1.0000000180025095E-35"/>
+										</Node>
+										<Node score="-0.005867821478869268">
+											<SimplePredicate field="overdue_terms_count" operator="greaterThan" value="1.5000000000000002"/>
+										</Node>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="16">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="dpd_days"/>
+									<MiningField name="overdue_principal_accumulate"/>
+									<MiningField name="overdue_terms_max"/>
+								</MiningSchema>
+								<Node score="2.1500591978790893">
+									<True/>
+									<Node score="0.04149326526429806">
+										<SimplePredicate field="overdue_terms_max" operator="greaterThan" value="1.0000000180025095E-35"/>
+										<Node score="-0.060890193457771136">
+											<SimplePredicate field="dpd_days" operator="greaterThan" value="1.0000000180025095E-35"/>
+										</Node>
+										<Node score="0.002273653249680564">
+											<SimplePredicate field="overdue_principal_accumulate" operator="greaterThan" value="1237.0300000000002"/>
+										</Node>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="17">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="dpd_days"/>
+									<MiningField name="paid_principal"/>
+									<MiningField name="dpd_days_max"/>
+								</MiningSchema>
+								<Node score="1.3368270895540888">
+									<True/>
+									<Node score="-0.059695865064369275">
+										<SimplePredicate field="dpd_days" operator="greaterThan" value="1.0000000180025095E-35"/>
+									</Node>
+									<Node score="0.03261915321366818">
+										<SimplePredicate field="paid_principal" operator="greaterThan" value="2543.735"/>
+										<Node score="-0.0019726388898914523">
+											<SimplePredicate field="dpd_days_max" operator="greaterThan" value="1.5000000000000002"/>
+										</Node>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="18">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="dpd_days_count"/>
+									<MiningField name="overdue_days"/>
+								</MiningSchema>
+								<Node score="0.03796970902089554">
+									<True/>
+									<Node score="-0.05866088627561783">
+										<SimplePredicate field="overdue_days" operator="greaterThan" value="1.0000000180025095E-35"/>
+									</Node>
+									<Node score="0.0027391374860774027">
+										<SimplePredicate field="dpd_days_count" operator="greaterThan" value="2.5000000000000004"/>
+										<Node score="-0.03118328653268528">
+											<SimplePredicate field="dpd_days_count" operator="greaterThan" value="15.500000000000002"/>
+										</Node>
+									</Node>
+									<Node score="0.018358631462472495">
+										<SimplePredicate field="dpd_days_count" operator="greaterThan" value="1.0000000180025095E-35"/>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="19">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="dpd_days_count"/>
+									<MiningField name="overdue_principal_max"/>
+									<MiningField name="overdue_principal"/>
+									<MiningField name="loan_term"/>
+								</MiningSchema>
+								<Node score="0.03666478596782132">
+									<True/>
+									<Node score="-0.057752926103457926">
+										<SimplePredicate field="overdue_principal" operator="greaterThan" value="1.0000000180025095E-35"/>
+									</Node>
+									<Node score="-0.014837936554834284">
+										<SimplePredicate field="dpd_days_count" operator="greaterThan" value="2.5000000000000004"/>
+										<Node score="0.009387849311491758">
+											<SimplePredicate field="loan_term" operator="greaterThan" value="5.500000000000001"/>
+										</Node>
+									</Node>
+									<Node score="0.017113129422193767">
+										<SimplePredicate field="overdue_principal_max" operator="greaterThan" value="713.7850000000001"/>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="20">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="dpd_days_count"/>
+									<MiningField name="dpd_days"/>
+									<MiningField name="overdue_principal_max"/>
+									<MiningField name="overdue_terms_max"/>
+								</MiningSchema>
+								<Node score="0.035386116361420805">
+									<True/>
+									<Node score="-0.05695854308634686">
+										<SimplePredicate field="dpd_days" operator="greaterThan" value="1.0000000180025095E-35"/>
+									</Node>
+									<Node score="-0.02098357199128293">
+										<SimplePredicate field="dpd_days_count" operator="greaterThan" value="6.500000000000001"/>
+										<Node score="0.008423475417709233">
+											<SimplePredicate field="overdue_terms_max" operator="greaterThan" value="7.500000000000001"/>
+										</Node>
+									</Node>
+									<Node score="0.01237873435013363">
+										<SimplePredicate field="overdue_principal_max" operator="greaterThan" value="713.7850000000001"/>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+					</Segmentation>
+				</MiningModel>
+			</Segment>
+			<Segment id="2">
+				<True/>
+				<MiningModel functionName="regression">
+					<MiningSchema>
+						<MiningField name="dpd_days_count"/>
+						<MiningField name="overdue_principal_max"/>
+						<MiningField name="paid_principal"/>
+						<MiningField name="remain_principal"/>
+						<MiningField name="overdue_principal_accumulate"/>
+						<MiningField name="overdue_terms_max"/>
+						<MiningField name="loan_term"/>
+					</MiningSchema>
+					<Output>
+						<OutputField name="lgbmValue(1)" optype="continuous" dataType="double" isFinalResult="false"/>
+					</Output>
+					<Segmentation multipleModelMethod="sum">
+						<Segment id="1">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="loan_term"/>
+								</MiningSchema>
+								<Node score="13.750742414661643">
+									<True/>
+									<Node score="-6.964717459446346">
+										<SimplePredicate field="loan_term" operator="greaterThan" value="2.5000000000000004"/>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="2">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="paid_principal"/>
+									<MiningField name="remain_principal"/>
+								</MiningSchema>
+								<Node score="-0.0">
+									<True/>
+									<Node score="-0.04476773117578413">
+										<SimplePredicate field="paid_principal" operator="greaterThan" value="2543.735"/>
+									</Node>
+									<Node score="-297.59582936382327">
+										<SimplePredicate field="remain_principal" operator="greaterThan" value="34115.12500000001"/>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="3">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="remain_principal"/>
+									<MiningField name="overdue_terms_max"/>
+								</MiningSchema>
+								<Node score="0.04651021729922347">
+									<True/>
+									<Node score="-0.04362004153747286">
+										<SimplePredicate field="overdue_terms_max" operator="greaterThan" value="3.5000000000000004"/>
+									</Node>
+									<Node score="-0.0">
+										<SimplePredicate field="remain_principal" operator="greaterThan" value="75167.55500000001"/>
+									</Node>
+									<Node score="8.226797308878629">
+										<SimplePredicate field="remain_principal" operator="greaterThan" value="69815.90500000001"/>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="4">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="paid_principal"/>
+									<MiningField name="remain_principal"/>
+									<MiningField name="loan_term"/>
+								</MiningSchema>
+								<Node score="-0.0">
+									<True/>
+									<Node score="-0.18890793159931096">
+										<SimplePredicate field="paid_principal" operator="greaterThan" value="2543.735"/>
+										<Node score="-0.042989235703050035">
+											<SimplePredicate field="loan_term" operator="greaterThan" value="4.500000000000001"/>
+										</Node>
+										<Node score="-0.0">
+											<SimplePredicate field="remain_principal" operator="greaterThan" value="75167.55500000001"/>
+										</Node>
+									</Node>
+									<Node score="254.09091790713734">
+										<SimplePredicate field="remain_principal" operator="greaterThan" value="32783.075000000004"/>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="5">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="overdue_terms_max"/>
+								</MiningSchema>
+								<Node score="-0.12188702654777195">
+									<True/>
+									<Node score="-0.04280832947203205">
+										<SimplePredicate field="overdue_terms_max" operator="greaterThan" value="3.5000000000000004"/>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="6">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="paid_principal"/>
+									<MiningField name="overdue_terms_max"/>
+								</MiningSchema>
+								<Node score="13.096545777263794">
+									<True/>
+									<Node score="-0.0">
+										<SimplePredicate field="paid_principal" operator="greaterThan" value="2543.735"/>
+										<Node score="-0.04233285811845171">
+											<SimplePredicate field="overdue_terms_max" operator="greaterThan" value="3.5000000000000004"/>
+										</Node>
+										<Node score="-0.14551548107935805">
+											<SimplePredicate field="paid_principal" operator="greaterThan" value="5232.56"/>
+										</Node>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="7">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="paid_principal"/>
+									<MiningField name="overdue_terms_max"/>
+								</MiningSchema>
+								<Node score="340.3476895609179">
+									<True/>
+									<Node score="-17.795169643599134">
+										<SimplePredicate field="paid_principal" operator="greaterThan" value="1.0000000180025095E-35"/>
+										<Node score="-0.12854818357518902">
+											<SimplePredicate field="paid_principal" operator="greaterThan" value="2543.735"/>
+											<Node score="-0.041831862539197774">
+												<SimplePredicate field="overdue_terms_max" operator="greaterThan" value="3.5000000000000004"/>
+											</Node>
+										</Node>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="8">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="paid_principal"/>
+									<MiningField name="loan_term"/>
+								</MiningSchema>
+								<Node score="-78.76637756718287">
+									<True/>
+									<Node score="-0.0">
+										<SimplePredicate field="paid_principal" operator="greaterThan" value="2827.5050000000006"/>
+										<Node score="-0.040934615583217">
+											<SimplePredicate field="loan_term" operator="greaterThan" value="4.500000000000001"/>
+										</Node>
+										<Node score="-0.11771854899657574">
+											<SimplePredicate field="paid_principal" operator="greaterThan" value="5232.56"/>
+										</Node>
+									</Node>
+									<Node score="-0.0">
+										<SimplePredicate field="loan_term" operator="greaterThan" value="4.500000000000001"/>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="9">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="overdue_principal_max"/>
+									<MiningField name="overdue_principal_accumulate"/>
+									<MiningField name="loan_term"/>
+								</MiningSchema>
+								<Node score="-0.16290985067641206">
+									<True/>
+									<Node score="-0.040409459626907035">
+										<SimplePredicate field="loan_term" operator="greaterThan" value="4.500000000000001"/>
+									</Node>
+									<Node score="-0.0">
+										<SimplePredicate field="overdue_principal_accumulate" operator="greaterThan" value="5396.615000000001"/>
+									</Node>
+									<Node score="-0.0">
+										<SimplePredicate field="overdue_principal_max" operator="greaterThan" value="3066.6200000000003"/>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="10">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="overdue_terms_max"/>
+								</MiningSchema>
+								<Node score="-0.15186951575105254">
+									<True/>
+									<Node score="-0.040109322859067265">
+										<SimplePredicate field="overdue_terms_max" operator="greaterThan" value="3.5000000000000004"/>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="11">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="dpd_days_count"/>
+									<MiningField name="remain_principal"/>
+									<MiningField name="loan_term"/>
+								</MiningSchema>
+								<Node score="-15.89396707923628">
+									<True/>
+									<Node score="-0.03909880518247619">
+										<SimplePredicate field="loan_term" operator="greaterThan" value="4.500000000000001"/>
+									</Node>
+									<Node score="-0.0979766766046757">
+										<SimplePredicate field="remain_principal" operator="greaterThan" value="37038.43000000001"/>
+										<Node score="-1.193239023299316">
+											<SimplePredicate field="remain_principal" operator="greaterThan" value="81826.14000000003"/>
+										</Node>
+									</Node>
+									<Node score="-0.0">
+										<SimplePredicate field="dpd_days_count" operator="greaterThan" value="1.0000000180025095E-35"/>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="12">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="paid_principal"/>
+									<MiningField name="remain_principal"/>
+								</MiningSchema>
+								<Node score="-0.0">
+									<True/>
+									<Node score="-0.07584763294935655">
+										<SimplePredicate field="paid_principal" operator="greaterThan" value="2827.5050000000006"/>
+									</Node>
+									<Node score="-185.45430779103083">
+										<SimplePredicate field="remain_principal" operator="greaterThan" value="27091.845000000005"/>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="13">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="paid_principal"/>
+									<MiningField name="remain_principal"/>
+								</MiningSchema>
+								<Node score="-0.0">
+									<True/>
+									<Node score="-0.07345714363084029">
+										<SimplePredicate field="paid_principal" operator="greaterThan" value="2827.5050000000006"/>
+									</Node>
+									<Node score="-139.94480533740912">
+										<SimplePredicate field="remain_principal" operator="greaterThan" value="25197.450000000004"/>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="14">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="paid_principal"/>
+								</MiningSchema>
+								<Node score="116.6318646481646">
+									<True/>
+									<Node score="-0.07117385304132719">
+										<SimplePredicate field="paid_principal" operator="greaterThan" value="2827.5050000000006"/>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="15">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="remain_principal"/>
+									<MiningField name="overdue_principal_accumulate"/>
+									<MiningField name="loan_term"/>
+								</MiningSchema>
+								<Node score="-41.43721304219911">
+									<True/>
+									<Node score="-0.08574135177224386">
+										<SimplePredicate field="remain_principal" operator="greaterThan" value="25197.450000000004"/>
+										<Node score="-5.283376807700652">
+											<SimplePredicate field="remain_principal" operator="greaterThan" value="81826.14000000003"/>
+											<Node score="-0.010470369390843767">
+												<SimplePredicate field="loan_term" operator="greaterThan" value="4.500000000000001"/>
+											</Node>
+										</Node>
+									</Node>
+									<Node score="-0.0">
+										<SimplePredicate field="loan_term" operator="greaterThan" value="8.500000000000002"/>
+									</Node>
+									<Node score="-91.70339450043764">
+										<SimplePredicate field="overdue_principal_accumulate" operator="greaterThan" value="1.0000000180025095E-35"/>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="16">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="paid_principal"/>
+								</MiningSchema>
+								<Node score="-7.030156149729784">
+									<True/>
+									<Node score="-0.06688143879068241">
+										<SimplePredicate field="paid_principal" operator="greaterThan" value="2827.5050000000006"/>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="17">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="paid_principal"/>
+									<MiningField name="remain_principal"/>
+								</MiningSchema>
+								<Node score="-652.5752026955084">
+									<True/>
+									<Node score="-241.357943640624">
+										<SimplePredicate field="remain_principal" operator="greaterThan" value="21685.570000000003"/>
+										<Node score="-0.5095797239036597">
+											<SimplePredicate field="remain_principal" operator="greaterThan" value="25197.450000000004"/>
+											<Node score="-0.06522930186762828">
+												<SimplePredicate field="paid_principal" operator="greaterThan" value="2827.5050000000006"/>
+											</Node>
+										</Node>
+										<Node score="-0.0">
+											<SimplePredicate field="paid_principal" operator="greaterThan" value="6177.150000000001"/>
+										</Node>
+									</Node>
+									<Node score="-0.0">
+										<SimplePredicate field="paid_principal" operator="greaterThan" value="5448.650000000001"/>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="18">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="paid_principal"/>
+								</MiningSchema>
+								<Node score="-0.15437133463965008">
+									<True/>
+									<Node score="-0.06370429036994728">
+										<SimplePredicate field="paid_principal" operator="greaterThan" value="2827.5050000000006"/>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="19">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="loan_term"/>
+								</MiningSchema>
+								<Node score="-0.14049427070030826">
+									<True/>
+									<Node score="-0.06221316500831159">
+										<SimplePredicate field="loan_term" operator="greaterThan" value="2.5000000000000004"/>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="20">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="loan_term"/>
+								</MiningSchema>
+								<Node score="-0.13005925499274637">
+									<True/>
+									<Node score="-0.06084330340785208">
+										<SimplePredicate field="loan_term" operator="greaterThan" value="2.5000000000000004"/>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+					</Segmentation>
+				</MiningModel>
+			</Segment>
+			<Segment id="3">
+				<True/>
+				<MiningModel functionName="regression">
+					<MiningSchema>
+						<MiningField name="dpd_days_count"/>
+						<MiningField name="dpd_days"/>
+						<MiningField name="overdue_principal"/>
+						<MiningField name="dpd_days_max"/>
+						<MiningField name="overdue_days"/>
+					</MiningSchema>
+					<Output>
+						<OutputField name="lgbmValue(2)" optype="continuous" dataType="double" isFinalResult="false"/>
+					</Output>
+					<Segmentation multipleModelMethod="sum">
+						<Segment id="1">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="dpd_days"/>
+								</MiningSchema>
+								<Node score="-2.164364623688756">
+									<True/>
+									<Node score="-1.6968844621407873">
+										<SimplePredicate field="dpd_days" operator="greaterThan" value="1.0000000180025095E-35"/>
+										<Node score="-1.9728401085381302">
+											<SimplePredicate field="dpd_days" operator="greaterThan" value="25.500000000000004"/>
+										</Node>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="2">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="overdue_principal"/>
+									<MiningField name="dpd_days_max"/>
+								</MiningSchema>
+								<Node score="-0.05626089640009118">
+									<True/>
+									<Node score="0.23718310641683493">
+										<SimplePredicate field="overdue_principal" operator="greaterThan" value="1.0000000180025095E-35"/>
+										<Node score="0.11862913675584129">
+											<SimplePredicate field="dpd_days_max" operator="greaterThan" value="28.500000000000004"/>
+										</Node>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="3">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="dpd_days"/>
+								</MiningSchema>
+								<Node score="-0.05571488922717081">
+									<True/>
+									<Node score="0.17520521599161434">
+										<SimplePredicate field="dpd_days" operator="greaterThan" value="1.0000000180025095E-35"/>
+										<Node score="0.06403171978634796">
+											<SimplePredicate field="dpd_days" operator="greaterThan" value="25.500000000000004"/>
+										</Node>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="4">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="overdue_principal"/>
+									<MiningField name="overdue_days"/>
+								</MiningSchema>
+								<Node score="-0.05522476444973734">
+									<True/>
+									<Node score="0.14224476610730283">
+										<SimplePredicate field="overdue_principal" operator="greaterThan" value="1.0000000180025095E-35"/>
+										<Node score="0.05194556775191159">
+											<SimplePredicate field="overdue_days" operator="greaterThan" value="25.500000000000004"/>
+										</Node>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="5">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="overdue_principal"/>
+									<MiningField name="overdue_days"/>
+								</MiningSchema>
+								<Node score="-0.05478608909875661">
+									<True/>
+									<Node score="0.12174245535519101">
+										<SimplePredicate field="overdue_principal" operator="greaterThan" value="1.0000000180025095E-35"/>
+										<Node score="0.04348040292852393">
+											<SimplePredicate field="overdue_days" operator="greaterThan" value="25.500000000000004"/>
+										</Node>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="6">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="dpd_days"/>
+								</MiningSchema>
+								<Node score="-0.05439046361320204">
+									<True/>
+									<Node score="0.10761220984062402">
+										<SimplePredicate field="dpd_days" operator="greaterThan" value="1.0000000180025095E-35"/>
+										<Node score="0.03722203009498057">
+											<SimplePredicate field="dpd_days" operator="greaterThan" value="25.500000000000004"/>
+										</Node>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="7">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="dpd_days"/>
+								</MiningSchema>
+								<Node score="-0.054036378925148565">
+									<True/>
+									<Node score="0.09759003738145217">
+										<SimplePredicate field="dpd_days" operator="greaterThan" value="1.0000000180025095E-35"/>
+										<Node score="0.03228884238039144">
+											<SimplePredicate field="dpd_days" operator="greaterThan" value="25.500000000000004"/>
+										</Node>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="8">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="overdue_principal"/>
+									<MiningField name="overdue_days"/>
+								</MiningSchema>
+								<Node score="-0.053702016429408354">
+									<True/>
+									<Node score="0.08990989158470485">
+										<SimplePredicate field="overdue_principal" operator="greaterThan" value="1.0000000180025095E-35"/>
+										<Node score="0.028323202544563483">
+											<SimplePredicate field="overdue_days" operator="greaterThan" value="25.500000000000004"/>
+										</Node>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="9">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="dpd_days"/>
+								</MiningSchema>
+								<Node score="-0.05345443706317288">
+									<True/>
+									<Node score="0.08511467376085674">
+										<SimplePredicate field="dpd_days" operator="greaterThan" value="1.0000000180025095E-35"/>
+										<Node score="0.024157727515616786">
+											<SimplePredicate field="dpd_days" operator="greaterThan" value="25.500000000000004"/>
+										</Node>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="10">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="overdue_principal"/>
+									<MiningField name="overdue_days"/>
+								</MiningSchema>
+								<Node score="-0.05318557017675466">
+									<True/>
+									<Node score="0.07995384956568113">
+										<SimplePredicate field="overdue_principal" operator="greaterThan" value="1.0000000180025095E-35"/>
+										<Node score="0.02144218479170624">
+											<SimplePredicate field="overdue_days" operator="greaterThan" value="25.500000000000004"/>
+										</Node>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="11">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="dpd_days"/>
+								</MiningSchema>
+								<Node score="-0.052934915180008195">
+									<True/>
+									<Node score="0.07580155335081007">
+										<SimplePredicate field="dpd_days" operator="greaterThan" value="1.0000000180025095E-35"/>
+										<Node score="0.019220071623616455">
+											<SimplePredicate field="dpd_days" operator="greaterThan" value="25.500000000000004"/>
+										</Node>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="12">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="overdue_principal"/>
+									<MiningField name="overdue_days"/>
+								</MiningSchema>
+								<Node score="-0.05271244371309153">
+									<True/>
+									<Node score="0.07239141779552918">
+										<SimplePredicate field="overdue_principal" operator="greaterThan" value="1.0000000180025095E-35"/>
+										<Node score="0.01721932719917325">
+											<SimplePredicate field="overdue_days" operator="greaterThan" value="25.500000000000004"/>
+										</Node>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="13">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="overdue_days"/>
+								</MiningSchema>
+								<Node score="-0.05250805764094583">
+									<True/>
+									<Node score="0.06953987898466228">
+										<SimplePredicate field="overdue_days" operator="greaterThan" value="1.0000000180025095E-35"/>
+										<Node score="0.015586392139431594">
+											<SimplePredicate field="overdue_days" operator="greaterThan" value="25.500000000000004"/>
+										</Node>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="14">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="overdue_principal"/>
+									<MiningField name="overdue_days"/>
+								</MiningSchema>
+								<Node score="-0.0523165395428181">
+									<True/>
+									<Node score="0.06675512982146772">
+										<SimplePredicate field="overdue_principal" operator="greaterThan" value="1.0000000180025095E-35"/>
+										<Node score="0.01443784856392775">
+											<SimplePredicate field="overdue_days" operator="greaterThan" value="25.500000000000004"/>
+										</Node>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="15">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="overdue_principal"/>
+									<MiningField name="overdue_days"/>
+								</MiningSchema>
+								<Node score="-0.05214508082603915">
+									<True/>
+									<Node score="0.06561738453314957">
+										<SimplePredicate field="overdue_principal" operator="greaterThan" value="1.0000000180025095E-35"/>
+										<Node score="0.012105932461802811">
+											<SimplePredicate field="overdue_days" operator="greaterThan" value="25.500000000000004"/>
+										</Node>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="16">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="overdue_principal"/>
+									<MiningField name="dpd_days_max"/>
+								</MiningSchema>
+								<Node score="-0.051985054788038235">
+									<True/>
+									<Node score="0.06387797231625046">
+										<SimplePredicate field="overdue_principal" operator="greaterThan" value="1.0000000180025095E-35"/>
+										<Node score="0.010276796490797432">
+											<SimplePredicate field="dpd_days_max" operator="greaterThan" value="28.500000000000004"/>
+										</Node>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="17">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="dpd_days"/>
+								</MiningSchema>
+								<Node score="-0.0518348067170372">
+									<True/>
+									<Node score="0.06244027298532587">
+										<SimplePredicate field="dpd_days" operator="greaterThan" value="1.0000000180025095E-35"/>
+										<Node score="0.008458004058687902">
+											<SimplePredicate field="dpd_days" operator="greaterThan" value="25.500000000000004"/>
+										</Node>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="18">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="dpd_days_count"/>
+									<MiningField name="overdue_principal"/>
+								</MiningSchema>
+								<Node score="-0.051693826674871796">
+									<True/>
+									<Node score="0.06046034997594253">
+										<SimplePredicate field="overdue_principal" operator="greaterThan" value="1.0000000180025095E-35"/>
+										<Node score="0.021222042143496028">
+											<SimplePredicate field="dpd_days_count" operator="greaterThan" value="57.50000000000001"/>
+										</Node>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="19">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="overdue_days"/>
+								</MiningSchema>
+								<Node score="-0.05156484788717686">
+									<True/>
+									<Node score="0.05973427964949199">
+										<SimplePredicate field="overdue_days" operator="greaterThan" value="1.0000000180025095E-35"/>
+										<Node score="0.005304247889810536">
+											<SimplePredicate field="overdue_days" operator="greaterThan" value="25.500000000000004"/>
+										</Node>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="20">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="dpd_days"/>
+								</MiningSchema>
+								<Node score="-0.05144441967004859">
+									<True/>
+									<Node score="0.0587276299707371">
+										<SimplePredicate field="dpd_days" operator="greaterThan" value="1.0000000180025095E-35"/>
+										<Node score="0.004728331902932248">
+											<SimplePredicate field="dpd_days" operator="greaterThan" value="25.500000000000004"/>
+										</Node>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+					</Segmentation>
+				</MiningModel>
+			</Segment>
+			<Segment id="4">
+				<True/>
+				<MiningModel functionName="regression">
+					<MiningSchema>
+						<MiningField name="dpd_days_count"/>
+						<MiningField name="dpd_days"/>
+						<MiningField name="overdue_principal_max"/>
+						<MiningField name="overdue_principal"/>
+						<MiningField name="dpd_days_max"/>
+						<MiningField name="overdue_principal_accumulate"/>
+						<MiningField name="overdue_terms_max"/>
+						<MiningField name="overdue_days"/>
+						<MiningField name="overdue_terms_count"/>
+						<MiningField name="loan_term"/>
+					</MiningSchema>
+					<Output>
+						<OutputField name="lgbmValue(3)" optype="continuous" dataType="double" isFinalResult="false"/>
+					</Output>
+					<Segmentation multipleModelMethod="sum">
+						<Segment id="1">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="overdue_principal_max"/>
+									<MiningField name="overdue_principal"/>
+									<MiningField name="dpd_days_max"/>
+									<MiningField name="overdue_terms_max"/>
+									<MiningField name="overdue_days"/>
+								</MiningSchema>
+								<Node score="-2.7602082024623082">
+									<True/>
+									<Node score="-2.4707410158638123">
+										<SimplePredicate field="dpd_days_max" operator="greaterThan" value="3.5000000000000004"/>
+										<Node score="-2.7714268191470564">
+											<SimplePredicate field="overdue_principal" operator="greaterThan" value="1.0000000180025095E-35"/>
+											<Node score="-2.3669325390132006">
+												<SimplePredicate field="overdue_days" operator="greaterThan" value="25.500000000000004"/>
+											</Node>
+										</Node>
+										<Node score="-2.6007329142373505">
+											<SimplePredicate field="overdue_terms_max" operator="greaterThan" value="4.500000000000001"/>
+										</Node>
+									</Node>
+									<Node score="-2.6682334966544152">
+										<SimplePredicate field="dpd_days_max" operator="greaterThan" value="1.5000000000000002"/>
+										<Node score="-2.7707571556162773">
+											<SimplePredicate field="overdue_principal" operator="greaterThan" value="668.7350000000001"/>
+										</Node>
+									</Node>
+									<Node score="-2.733006193250367">
+										<SimplePredicate field="overdue_principal_max" operator="greaterThan" value="713.7850000000001"/>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="2">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="dpd_days_count"/>
+									<MiningField name="dpd_days"/>
+									<MiningField name="overdue_principal_max"/>
+									<MiningField name="overdue_terms_count"/>
+									<MiningField name="loan_term"/>
+								</MiningSchema>
+								<Node score="-0.024803174916508353">
+									<True/>
+									<Node score="0.07240315631115886">
+										<SimplePredicate field="dpd_days_count" operator="greaterThan" value="5.500000000000001"/>
+										<Node score="-0.05267771419158275">
+											<SimplePredicate field="dpd_days" operator="greaterThan" value="1.0000000180025095E-35"/>
+											<Node score="0.2002455109542937">
+												<SimplePredicate field="dpd_days" operator="greaterThan" value="25.500000000000004"/>
+											</Node>
+										</Node>
+										<Node score="0.2236179869832589">
+											<SimplePredicate field="overdue_terms_count" operator="greaterThan" value="2.5000000000000004"/>
+										</Node>
+									</Node>
+									<Node score="0.0077994575963238515">
+										<SimplePredicate field="overdue_principal_max" operator="greaterThan" value="713.7850000000001"/>
+										<Node score="-0.05272852718941892">
+											<SimplePredicate field="dpd_days" operator="greaterThan" value="1.0000000180025095E-35"/>
+										</Node>
+									</Node>
+									<Node score="-0.04286770485345362">
+										<SimplePredicate field="loan_term" operator="greaterThan" value="4.500000000000001"/>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="3">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="dpd_days"/>
+									<MiningField name="overdue_principal_max"/>
+									<MiningField name="dpd_days_max"/>
+									<MiningField name="overdue_principal_accumulate"/>
+									<MiningField name="overdue_terms_max"/>
+								</MiningSchema>
+								<Node score="-0.023387758671079718">
+									<True/>
+									<Node score="0.023786554412249892">
+										<SimplePredicate field="dpd_days_max" operator="greaterThan" value="1.5000000000000002"/>
+										<Node score="-0.05308538685542367">
+											<SimplePredicate field="dpd_days" operator="greaterThan" value="1.0000000180025095E-35"/>
+											<Node score="0.14531565686839457">
+												<SimplePredicate field="dpd_days" operator="greaterThan" value="25.500000000000004"/>
+											</Node>
+										</Node>
+										<Node score="0.1441691035455662">
+											<SimplePredicate field="overdue_principal_accumulate" operator="greaterThan" value="4232.795000000001"/>
+										</Node>
+									</Node>
+									<Node score="-0.0015359391240834738">
+										<SimplePredicate field="overdue_principal_max" operator="greaterThan" value="713.7850000000001"/>
+										<Node score="-0.05198760856004295">
+											<SimplePredicate field="dpd_days" operator="greaterThan" value="1.0000000180025095E-35"/>
+										</Node>
+									</Node>
+									<Node score="-0.041773069322782914">
+										<SimplePredicate field="overdue_terms_max" operator="greaterThan" value="3.5000000000000004"/>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="4">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="dpd_days_count"/>
+									<MiningField name="dpd_days"/>
+									<MiningField name="overdue_principal_max"/>
+									<MiningField name="overdue_terms_max"/>
+								</MiningSchema>
+								<Node score="-0.020680767129795406">
+									<True/>
+									<Node score="0.16585798865982693">
+										<SimplePredicate field="dpd_days_count" operator="greaterThan" value="5.500000000000001"/>
+										<Node score="-0.05263983125039865">
+											<SimplePredicate field="dpd_days" operator="greaterThan" value="1.0000000180025095E-35"/>
+											<Node score="0.11322292282011946">
+												<SimplePredicate field="dpd_days" operator="greaterThan" value="25.500000000000004"/>
+											</Node>
+										</Node>
+										<Node score="0.07284965309257298">
+											<SimplePredicate field="overdue_terms_max" operator="greaterThan" value="4.500000000000001"/>
+										</Node>
+									</Node>
+									<Node score="0.01985359894976972">
+										<SimplePredicate field="overdue_principal_max" operator="greaterThan" value="713.7850000000001"/>
+										<Node score="-0.03031733058089412">
+											<SimplePredicate field="overdue_terms_max" operator="greaterThan" value="4.500000000000001"/>
+										</Node>
+									</Node>
+									<Node score="-0.04069015052837726">
+										<SimplePredicate field="overdue_terms_max" operator="greaterThan" value="3.5000000000000004"/>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="5">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="overdue_principal"/>
+									<MiningField name="overdue_terms_max"/>
+									<MiningField name="overdue_days"/>
+									<MiningField name="overdue_terms_count"/>
+								</MiningSchema>
+								<Node score="-0.018652033410039674">
+									<True/>
+									<Node score="0.1199217265158237">
+										<SimplePredicate field="overdue_terms_count" operator="greaterThan" value="1.5000000000000002"/>
+										<Node score="-0.05297234827758512">
+											<SimplePredicate field="overdue_principal" operator="greaterThan" value="1.0000000180025095E-35"/>
+											<Node score="0.09976452514477113">
+												<SimplePredicate field="overdue_days" operator="greaterThan" value="25.500000000000004"/>
+											</Node>
+										</Node>
+										<Node score="0.04790613750028394">
+											<SimplePredicate field="overdue_terms_max" operator="greaterThan" value="4.500000000000001"/>
+										</Node>
+									</Node>
+									<Node score="0.0037181805112597153">
+										<SimplePredicate field="overdue_terms_count" operator="greaterThan" value="1.0000000180025095E-35"/>
+										<Node score="-0.02982959447428542">
+											<SimplePredicate field="overdue_terms_max" operator="greaterThan" value="4.500000000000001"/>
+										</Node>
+									</Node>
+									<Node score="-0.03962632898392491">
+										<SimplePredicate field="overdue_terms_max" operator="greaterThan" value="3.5000000000000004"/>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="6">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="dpd_days_count"/>
+									<MiningField name="dpd_days"/>
+									<MiningField name="overdue_principal_max"/>
+									<MiningField name="overdue_terms_max"/>
+								</MiningSchema>
+								<Node score="-0.01670129515201801">
+									<True/>
+									<Node score="0.0677168586968753">
+										<SimplePredicate field="dpd_days_count" operator="greaterThan" value="5.500000000000001"/>
+										<Node score="-0.05218580281946248">
+											<SimplePredicate field="dpd_days" operator="greaterThan" value="1.0000000180025095E-35"/>
+											<Node score="0.07760857497936881">
+												<SimplePredicate field="dpd_days" operator="greaterThan" value="25.500000000000004"/>
+											</Node>
+										</Node>
+										<Node score="0.13447120827818485">
+											<SimplePredicate field="dpd_days_count" operator="greaterThan" value="15.500000000000002"/>
+										</Node>
+									</Node>
+									<Node score="0.06984623120383492">
+										<SimplePredicate field="overdue_principal_max" operator="greaterThan" value="713.7850000000001"/>
+										<Node score="-0.010913521484845276">
+											<SimplePredicate field="overdue_terms_max" operator="greaterThan" value="3.5000000000000004"/>
+										</Node>
+									</Node>
+									<Node score="-0.03838478826120281">
+										<SimplePredicate field="overdue_terms_max" operator="greaterThan" value="3.5000000000000004"/>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="7">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="dpd_days_count"/>
+									<MiningField name="dpd_days"/>
+									<MiningField name="overdue_principal_max"/>
+								</MiningSchema>
+								<Node score="-0.03250972332357816">
+									<True/>
+									<Node score="0.030550733278572603">
+										<SimplePredicate field="dpd_days_count" operator="greaterThan" value="2.5000000000000004"/>
+										<Node score="-0.05239905585710119">
+											<SimplePredicate field="dpd_days" operator="greaterThan" value="1.0000000180025095E-35"/>
+											<Node score="0.06667239505846478">
+												<SimplePredicate field="dpd_days" operator="greaterThan" value="25.500000000000004"/>
+											</Node>
+										</Node>
+										<Node score="0.08724072542885668">
+											<SimplePredicate field="dpd_days_count" operator="greaterThan" value="7.500000000000001"/>
+										</Node>
+									</Node>
+									<Node score="-0.002380777821365514">
+										<SimplePredicate field="overdue_principal_max" operator="greaterThan" value="713.7850000000001"/>
+										<Node score="-0.051498623802702516">
+											<SimplePredicate field="dpd_days" operator="greaterThan" value="1.0000000180025095E-35"/>
+										</Node>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="8">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="dpd_days_count"/>
+									<MiningField name="overdue_principal"/>
+									<MiningField name="loan_term"/>
+								</MiningSchema>
+								<Node score="-0.010855521115753986">
+									<True/>
+									<Node score="0.0411228909698764">
+										<SimplePredicate field="dpd_days_count" operator="greaterThan" value="2.5000000000000004"/>
+										<Node score="-0.052219645014793065">
+											<SimplePredicate field="overdue_principal" operator="greaterThan" value="1.0000000180025095E-35"/>
+											<Node score="0.007035520480399834">
+												<SimplePredicate field="dpd_days_count" operator="greaterThan" value="31.500000000000004"/>
+											</Node>
+										</Node>
+										<Node score="0.09968541363751021">
+											<SimplePredicate field="dpd_days_count" operator="greaterThan" value="15.500000000000002"/>
+										</Node>
+									</Node>
+									<Node score="-8.032807165745002E-4">
+										<SimplePredicate field="dpd_days_count" operator="greaterThan" value="1.0000000180025095E-35"/>
+										<Node score="-0.051107718373618216">
+											<SimplePredicate field="overdue_principal" operator="greaterThan" value="1.0000000180025095E-35"/>
+										</Node>
+									</Node>
+									<Node score="-0.03595646089249551">
+										<SimplePredicate field="loan_term" operator="greaterThan" value="4.500000000000001"/>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="9">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="dpd_days_count"/>
+									<MiningField name="dpd_days"/>
+									<MiningField name="overdue_principal_max"/>
+									<MiningField name="overdue_terms_count"/>
+								</MiningSchema>
+								<Node score="-0.029479829654661505">
+									<True/>
+									<Node score="0.017718137885065977">
+										<SimplePredicate field="dpd_days_count" operator="greaterThan" value="2.5000000000000004"/>
+										<Node score="-0.05178021488947922">
+											<SimplePredicate field="dpd_days" operator="greaterThan" value="1.0000000180025095E-35"/>
+											<Node score="0.056080868672999655">
+												<SimplePredicate field="dpd_days" operator="greaterThan" value="25.500000000000004"/>
+											</Node>
+										</Node>
+										<Node score="0.066970876627882">
+											<SimplePredicate field="overdue_terms_count" operator="greaterThan" value="2.5000000000000004"/>
+										</Node>
+									</Node>
+									<Node score="-6.842533170216586E-4">
+										<SimplePredicate field="overdue_principal_max" operator="greaterThan" value="713.7850000000001"/>
+										<Node score="-0.05052926239607693">
+											<SimplePredicate field="dpd_days" operator="greaterThan" value="1.0000000180025095E-35"/>
+										</Node>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="10">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="dpd_days"/>
+									<MiningField name="overdue_principal_accumulate"/>
+									<MiningField name="overdue_terms_max"/>
+									<MiningField name="overdue_terms_count"/>
+								</MiningSchema>
+								<Node score="-0.005662129733172836">
+									<True/>
+									<Node score="0.07119548561206497">
+										<SimplePredicate field="overdue_terms_count" operator="greaterThan" value="1.5000000000000002"/>
+										<Node score="-0.05163171501867378">
+											<SimplePredicate field="dpd_days" operator="greaterThan" value="1.0000000180025095E-35"/>
+											<Node score="0.054585808544248784">
+												<SimplePredicate field="dpd_days" operator="greaterThan" value="25.500000000000004"/>
+											</Node>
+										</Node>
+										<Node score="0.02143210180570197">
+											<SimplePredicate field="overdue_terms_max" operator="greaterThan" value="4.500000000000001"/>
+										</Node>
+									</Node>
+									<Node score="0.0073045173547956746">
+										<SimplePredicate field="overdue_principal_accumulate" operator="greaterThan" value="1.0000000180025095E-35"/>
+										<Node score="-0.02565355816188132">
+											<SimplePredicate field="overdue_terms_max" operator="greaterThan" value="4.500000000000001"/>
+										</Node>
+									</Node>
+									<Node score="-0.03357952423558601">
+										<SimplePredicate field="overdue_terms_max" operator="greaterThan" value="3.5000000000000004"/>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="11">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="dpd_days_count"/>
+									<MiningField name="dpd_days"/>
+									<MiningField name="overdue_terms_max"/>
+									<MiningField name="overdue_terms_count"/>
+								</MiningSchema>
+								<Node score="0.0">
+									<True/>
+									<Node score="0.09554388660056153">
+										<SimplePredicate field="dpd_days_count" operator="greaterThan" value="2.5000000000000004"/>
+										<Node score="-0.05118164570140091">
+											<SimplePredicate field="dpd_days" operator="greaterThan" value="1.0000000180025095E-35"/>
+											<Node score="0.043951250486940686">
+												<SimplePredicate field="dpd_days" operator="greaterThan" value="25.500000000000004"/>
+											</Node>
+										</Node>
+										<Node score="0.032128865161083715">
+											<SimplePredicate field="overdue_terms_max" operator="greaterThan" value="3.5000000000000004"/>
+										</Node>
+									</Node>
+									<Node score="-0.03208843312465429">
+										<SimplePredicate field="overdue_terms_max" operator="greaterThan" value="3.5000000000000004"/>
+										<Node score="-0.013135894504491971">
+											<SimplePredicate field="dpd_days_count" operator="greaterThan" value="1.0000000180025095E-35"/>
+										</Node>
+									</Node>
+									<Node score="0.12224476378415748">
+										<SimplePredicate field="overdue_terms_count" operator="greaterThan" value="1.5000000000000002"/>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="12">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="overdue_principal"/>
+									<MiningField name="dpd_days_max"/>
+									<MiningField name="overdue_principal_accumulate"/>
+									<MiningField name="overdue_terms_max"/>
+									<MiningField name="overdue_days"/>
+									<MiningField name="overdue_terms_count"/>
+								</MiningSchema>
+								<Node score="-0.0189517291413639">
+									<True/>
+									<Node score="0.059663431464467134">
+										<SimplePredicate field="overdue_terms_count" operator="greaterThan" value="1.5000000000000002"/>
+										<Node score="-0.05106316568033229">
+											<SimplePredicate field="overdue_principal" operator="greaterThan" value="1.0000000180025095E-35"/>
+											<Node score="0.043910451055221705">
+												<SimplePredicate field="overdue_days" operator="greaterThan" value="25.500000000000004"/>
+											</Node>
+										</Node>
+										<Node score="0.017905688216948264">
+											<SimplePredicate field="overdue_terms_max" operator="greaterThan" value="4.500000000000001"/>
+										</Node>
+									</Node>
+									<Node score="-0.03764445145255973">
+										<SimplePredicate field="overdue_terms_max" operator="greaterThan" value="4.500000000000001"/>
+										<Node score="-0.016958109152802114">
+											<SimplePredicate field="overdue_principal_accumulate" operator="greaterThan" value="1498.265"/>
+										</Node>
+									</Node>
+									<Node score="0.00891466040625379">
+										<SimplePredicate field="dpd_days_max" operator="greaterThan" value="1.0000000180025095E-35"/>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="13">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="overdue_principal_max"/>
+									<MiningField name="overdue_days"/>
+									<MiningField name="overdue_terms_count"/>
+									<MiningField name="loan_term"/>
+								</MiningSchema>
+								<Node score="0.004510884519154166">
+									<True/>
+									<Node score="0.06855987822265129">
+										<SimplePredicate field="overdue_terms_count" operator="greaterThan" value="2.5000000000000004"/>
+										<Node score="-0.05010478356797154">
+											<SimplePredicate field="overdue_days" operator="greaterThan" value="1.0000000180025095E-35"/>
+											<Node score="0.06249760799640566">
+												<SimplePredicate field="overdue_days" operator="greaterThan" value="19.000000000000004"/>
+											</Node>
+										</Node>
+										<Node score="0.026778639032698927">
+											<SimplePredicate field="loan_term" operator="greaterThan" value="5.500000000000001"/>
+										</Node>
+									</Node>
+									<Node score="-0.02973325183159116">
+										<SimplePredicate field="loan_term" operator="greaterThan" value="4.500000000000001"/>
+										<Node score="-0.004266584986535387">
+											<SimplePredicate field="overdue_principal_max" operator="greaterThan" value="713.7850000000001"/>
+										</Node>
+									</Node>
+									<Node score="0.06275092649820375">
+										<SimplePredicate field="overdue_terms_count" operator="greaterThan" value="1.5000000000000002"/>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="14">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="dpd_days_count"/>
+									<MiningField name="overdue_principal_max"/>
+									<MiningField name="overdue_principal"/>
+									<MiningField name="overdue_terms_max"/>
+								</MiningSchema>
+								<Node score="-0.015222349373024996">
+									<True/>
+									<Node score="0.045181658268887336">
+										<SimplePredicate field="dpd_days_count" operator="greaterThan" value="2.5000000000000004"/>
+										<Node score="-0.050714872419187144">
+											<SimplePredicate field="overdue_principal" operator="greaterThan" value="1.0000000180025095E-35"/>
+											<Node score="0.0068192003027632946">
+												<SimplePredicate field="dpd_days_count" operator="greaterThan" value="31.500000000000004"/>
+											</Node>
+										</Node>
+										<Node score="0.012980784811629184">
+											<SimplePredicate field="overdue_terms_max" operator="greaterThan" value="4.500000000000001"/>
+										</Node>
+									</Node>
+									<Node score="-0.035628056626658966">
+										<SimplePredicate field="overdue_terms_max" operator="greaterThan" value="4.500000000000001"/>
+										<Node score="-0.021647067352565077">
+											<SimplePredicate field="overdue_principal_max" operator="greaterThan" value="1305.8450000000003"/>
+										</Node>
+									</Node>
+									<Node score="0.011380197106352172">
+										<SimplePredicate field="overdue_principal_max" operator="greaterThan" value="713.7850000000001"/>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="15">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="dpd_days_count"/>
+									<MiningField name="dpd_days"/>
+									<MiningField name="overdue_principal_max"/>
+									<MiningField name="loan_term"/>
+								</MiningSchema>
+								<Node score="0.029756375078841463">
+									<True/>
+									<Node score="0.04430493698862484">
+										<SimplePredicate field="dpd_days_count" operator="greaterThan" value="6.500000000000001"/>
+										<Node score="-0.049000605438128904">
+											<SimplePredicate field="dpd_days" operator="greaterThan" value="1.0000000180025095E-35"/>
+											<Node score="0.029722952152695103">
+												<SimplePredicate field="dpd_days" operator="greaterThan" value="25.500000000000004"/>
+											</Node>
+										</Node>
+										<Node score="-0.004644966120178349">
+											<SimplePredicate field="loan_term" operator="greaterThan" value="12.500000000000002"/>
+										</Node>
+									</Node>
+									<Node score="-0.026592294819028486">
+										<SimplePredicate field="loan_term" operator="greaterThan" value="4.500000000000001"/>
+										<Node score="-0.0029913458577051325">
+											<SimplePredicate field="overdue_principal_max" operator="greaterThan" value="713.7850000000001"/>
+										</Node>
+									</Node>
+									<Node score="-0.04444993581472426">
+										<SimplePredicate field="dpd_days" operator="greaterThan" value="1.0000000180025095E-35"/>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="16">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="dpd_days_count"/>
+									<MiningField name="overdue_principal"/>
+									<MiningField name="overdue_principal_accumulate"/>
+									<MiningField name="overdue_terms_max"/>
+									<MiningField name="overdue_terms_count"/>
+								</MiningSchema>
+								<Node score="0.004309897478278786">
+									<True/>
+									<Node score="0.054960043711383216">
+										<SimplePredicate field="overdue_terms_count" operator="greaterThan" value="2.5000000000000004"/>
+										<Node score="-0.048776746830277315">
+											<SimplePredicate field="overdue_principal" operator="greaterThan" value="1.0000000180025095E-35"/>
+											<Node score="0.012198112217959821">
+												<SimplePredicate field="dpd_days_count" operator="greaterThan" value="31.500000000000004"/>
+											</Node>
+										</Node>
+										<Node score="0.02038345870222927">
+											<SimplePredicate field="overdue_terms_max" operator="greaterThan" value="4.500000000000001"/>
+										</Node>
+									</Node>
+									<Node score="-0.0021226312173410716">
+										<SimplePredicate field="overdue_terms_max" operator="greaterThan" value="3.5000000000000004"/>
+										<Node score="-0.02488905542535953">
+											<SimplePredicate field="overdue_terms_max" operator="greaterThan" value="4.500000000000001"/>
+										</Node>
+									</Node>
+									<Node score="0.06070048596128608">
+										<SimplePredicate field="overdue_principal_accumulate" operator="greaterThan" value="2024.4250000000002"/>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="17">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="dpd_days"/>
+									<MiningField name="overdue_principal_accumulate"/>
+									<MiningField name="overdue_terms_count"/>
+									<MiningField name="loan_term"/>
+								</MiningSchema>
+								<Node score="0.027400055797637154">
+									<True/>
+									<Node score="0.04445494588696223">
+										<SimplePredicate field="overdue_terms_count" operator="greaterThan" value="2.5000000000000004"/>
+										<Node score="-0.04880335749081046">
+											<SimplePredicate field="dpd_days" operator="greaterThan" value="1.0000000180025095E-35"/>
+											<Node score="0.0516750229025956">
+												<SimplePredicate field="dpd_days" operator="greaterThan" value="19.000000000000004"/>
+											</Node>
+										</Node>
+										<Node score="0.008715096984386361">
+											<SimplePredicate field="loan_term" operator="greaterThan" value="8.500000000000002"/>
+										</Node>
+									</Node>
+									<Node score="-0.023962419692966443">
+										<SimplePredicate field="loan_term" operator="greaterThan" value="4.500000000000001"/>
+										<Node score="-0.0021443312228520473">
+											<SimplePredicate field="overdue_principal_accumulate" operator="greaterThan" value="1.0000000180025095E-35"/>
+										</Node>
+									</Node>
+									<Node score="-0.04563407214677456">
+										<SimplePredicate field="dpd_days" operator="greaterThan" value="1.0000000180025095E-35"/>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="18">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="dpd_days_count"/>
+									<MiningField name="dpd_days"/>
+									<MiningField name="overdue_principal_max"/>
+									<MiningField name="loan_term"/>
+								</MiningSchema>
+								<Node score="0.002822146077529026">
+									<True/>
+									<Node score="-0.05017657544832656">
+										<SimplePredicate field="dpd_days" operator="greaterThan" value="1.0000000180025095E-35"/>
+										<Node score="0.023244000145820495">
+											<SimplePredicate field="dpd_days" operator="greaterThan" value="25.500000000000004"/>
+										</Node>
+									</Node>
+									<Node score="0.01459256311083545">
+										<SimplePredicate field="overdue_principal_max" operator="greaterThan" value="975.8750000000001"/>
+										<Node score="0.05204079042426679">
+											<SimplePredicate field="dpd_days_count" operator="greaterThan" value="15.500000000000002"/>
+										</Node>
+									</Node>
+									<Node score="-0.020686004561508594">
+										<SimplePredicate field="loan_term" operator="greaterThan" value="4.500000000000001"/>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="19">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="dpd_days"/>
+									<MiningField name="overdue_principal_accumulate"/>
+									<MiningField name="overdue_terms_max"/>
+								</MiningSchema>
+								<Node score="-0.004183781882114383">
+									<True/>
+									<Node score="-0.049905894017438085">
+										<SimplePredicate field="dpd_days" operator="greaterThan" value="1.0000000180025095E-35"/>
+										<Node score="0.022156143859657862">
+											<SimplePredicate field="dpd_days" operator="greaterThan" value="25.500000000000004"/>
+										</Node>
+									</Node>
+									<Node score="0.05372680028427776">
+										<SimplePredicate field="overdue_principal_accumulate" operator="greaterThan" value="1237.0300000000002"/>
+										<Node score="0.01487553520015689">
+											<SimplePredicate field="overdue_terms_max" operator="greaterThan" value="3.5000000000000004"/>
+										</Node>
+									</Node>
+									<Node score="-0.030440271805561255">
+										<SimplePredicate field="overdue_terms_max" operator="greaterThan" value="4.500000000000001"/>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+						<Segment id="20">
+							<True/>
+							<TreeModel functionName="regression" noTrueChildStrategy="returnLastPrediction">
+								<MiningSchema>
+									<MiningField name="overdue_terms_max"/>
+									<MiningField name="overdue_days"/>
+									<MiningField name="overdue_terms_count"/>
+								</MiningSchema>
+								<Node score="0.026622979565695155">
+									<True/>
+									<Node score="-0.04963096395240844">
+										<SimplePredicate field="overdue_days" operator="greaterThan" value="1.0000000180025095E-35"/>
+										<Node score="0.02001613164493711">
+											<SimplePredicate field="overdue_days" operator="greaterThan" value="25.500000000000004"/>
+										</Node>
+									</Node>
+									<Node score="0.03707303322151973">
+										<SimplePredicate field="overdue_terms_count" operator="greaterThan" value="2.5000000000000004"/>
+										<Node score="0.0051005032396981955">
+											<SimplePredicate field="overdue_terms_max" operator="greaterThan" value="7.500000000000001"/>
+										</Node>
+									</Node>
+									<Node score="-0.005367967985378478">
+										<SimplePredicate field="overdue_terms_max" operator="greaterThan" value="3.5000000000000004"/>
+									</Node>
+								</Node>
+							</TreeModel>
+						</Segment>
+					</Segmentation>
+				</MiningModel>
+			</Segment>
+			<Segment id="5">
+				<True/>
+				<RegressionModel functionName="classification" normalizationMethod="softmax">
+					<MiningSchema>
+						<MiningField name="target" usageType="target"/>
+						<MiningField name="lgbmValue(0)"/>
+						<MiningField name="lgbmValue(1)"/>
+						<MiningField name="lgbmValue(2)"/>
+						<MiningField name="lgbmValue(3)"/>
+					</MiningSchema>
+					<Output>
+						<OutputField name="probability(0)" optype="continuous" dataType="double" feature="probability" value="0"/>
+						<OutputField name="probability(1)" optype="continuous" dataType="double" feature="probability" value="1"/>
+						<OutputField name="probability(2)" optype="continuous" dataType="double" feature="probability" value="2"/>
+						<OutputField name="probability(3)" optype="continuous" dataType="double" feature="probability" value="3"/>
+					</Output>
+					<RegressionTable intercept="0.0" targetCategory="0">
+						<NumericPredictor name="lgbmValue(0)" coefficient="1.0"/>
+					</RegressionTable>
+					<RegressionTable intercept="0.0" targetCategory="1">
+						<NumericPredictor name="lgbmValue(1)" coefficient="1.0"/>
+					</RegressionTable>
+					<RegressionTable intercept="0.0" targetCategory="2">
+						<NumericPredictor name="lgbmValue(2)" coefficient="1.0"/>
+					</RegressionTable>
+					<RegressionTable intercept="0.0" targetCategory="3">
+						<NumericPredictor name="lgbmValue(3)" coefficient="1.0"/>
+					</RegressionTable>
+				</RegressionModel>
+			</Segment>
+		</Segmentation>
+	</MiningModel>
+</PMML>

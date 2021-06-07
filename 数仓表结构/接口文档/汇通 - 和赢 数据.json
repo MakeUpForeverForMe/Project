@@ -1,0 +1,557 @@
+// setupCustCredit
+{
+  "apply_no": "1000000290",
+  "borrower": {
+    "address": "新疆维吾尔自治区乌鲁木齐市沙依巴克区老满城街B区11号楼5单元602室",
+    "age": "38",
+    "annual_income_max": 120000,
+    "annual_income_min": 60000,
+    "area": "沙依巴克区",
+    "city": "乌鲁木齐市",
+    "driving_expr": 0,
+    "drivr_licen_no": "",
+    "education": "C",
+    "have_house": "",
+    "housing_area": 0,
+    "housing_value": 0,
+    "id_no": "511025198203200956",
+    "id_type": "I",
+    "industry": "P",
+    "marital_status": "C",
+    "mobile_phone": "18999207733",
+    "name": "周述斌",
+    "open_id": "9104398183",
+    "province": "新疆维吾尔自治区",
+    "sex": "M"
+  },
+  "company": {
+    "address": "",
+    "city": "",
+    "company_name": "",
+    "id_no": "",
+    "id_type": "",
+    "industry": "",
+    "legal_person_name": "",
+    "legal_person_phone": "",
+    "operate_years": 0,
+    "phone": "",
+    "province": "",
+    "social_credit_code": ""
+  },
+  "company_loan_bool": "false",
+  "guaranties": [
+    {
+      "car": {
+        "agent_info": {
+          "sp_city": "乌鲁木齐市",
+          "sp_detail_addr": "新疆维吾尔自治区乌鲁木齐市头屯河区厦门路47号",
+          "sp_name": "汇通信诚租赁有限公司经济技术开发区分公司虚拟店",
+          "sp_province": "新疆维吾尔自治区",
+          "sp_social_no": "91650100053195569D"
+        },
+        "busi_type": "1",
+        "buy_date": "2014-05-21",
+        "buy_price": 0,
+        "car_brand": "奥迪",
+        "car_city": "",
+        "car_frame_no": "LFV3A28K6C3066365",
+        "car_no": "奥迪A4L-2.0T-CVT/MT-TFSI标准型(国Ⅳ)",
+        "car_province": "",
+        "car_sale_price": 159000,
+        "car_type": "2",
+        "claim_amount": 0,
+        "claim_times": 0,
+        "color": "灰色",
+        "engine_no": "257707",
+        "evaluate_price": 159000,
+        "extra_funding_info": [
+          {
+            "extra_funding_amount": 700,
+            "extra_funding_type": "03"
+          },
+          {
+            "extra_funding_amount": 900,
+            "extra_funding_type": "01"
+          }
+        ],
+        "first_payment_amount": 41594.4,
+        "first_payment_percent": 0.2616,
+        "gps_no": "",
+        "license_num": "",
+        "mileage": 94800,
+        "mortgage_register_date": "",
+        "new_car_price": 309800,
+        "production_date": "2012-08-30",
+        "sell_times": 0,
+        "use_purpose": "1",
+        "vehicle_date": "2014-05-21",
+        "vehicle_id": ""
+      },
+      "guaranty_num": "1000000290",
+      "guaranty_type": "CAR",
+      "order": 0
+    }
+  ],
+  "loan_account": {
+    "account_name": "周述斌",
+    "account_num": "6215593002000040912",
+    "account_type": "ERSONAL",
+    "bank_name": "B0102",
+    "branch_name": "",
+    "mobile_phone": "18999207733"
+  },
+  "pre_apply_no": "2200669690",
+  "product": {
+    "agreement_rate_ind": "Y",
+    "currency_amt": 119005.6,
+    "currency_type": "RMB",
+    "guarantee_type": "D",
+    "loan_amt": 119005.6,
+    "loan_apply_use": "LAU01",
+    "loan_fee_rate": 0,
+    "loan_penalty_rate": 0,
+    "loan_rate": 0.1288,
+    "loan_rate_type": "LRT01",
+    "loan_svc_fee_rate": 0,
+    "loan_terms": 36,
+    "product_no": "001602",
+    "repay_type": "RT01"
+  },
+  "relational_humans": [
+    {
+      "address": "新疆维吾尔自治区乌鲁木齐市沙依巴克区老满城街B区11号楼5单元602室",
+      "age": "35",
+      "area": "沙依巴克区",
+      "city": "乌鲁木齐市",
+      "id_no": "652722198503021328",
+      "id_type": "I",
+      "mbile_phone": "18999203377",
+      "name": "胡娜娜",
+      "province": "新疆维吾尔自治区",
+      "relational_human_type": "RHT01",
+      "relationship": "C",
+      "sex": "F"
+    },
+    {
+      "address": "",
+      "age": "",
+      "area": "",
+      "city": "",
+      "id_no": "",
+      "id_type": "",
+      "mbile_phone": "13369630735",
+      "name": "李奇发",
+      "province": "",
+      "relational_human_type": "RHT01",
+      "relationship": "Y",
+      "sex": "M"
+    },
+    {
+      "address": "",
+      "age": "",
+      "area": "",
+      "city": "",
+      "id_no": "",
+      "id_type": "",
+      "mbile_phone": "15009003362",
+      "name": "冶荣",
+      "province": "",
+      "relational_human_type": "RHT01",
+      "relationship": "Y",
+      "sex": "M"
+    }
+  ]
+}
+
+
+// loanApply
+{
+  "bank_trans_no": "12010100056256",
+  "bank_trans_time": "20200114110741",
+  "batch_no": "1000000292",
+  "due_bill_size": 1,
+  "due_bills": [
+    {
+      "agreement_no": "AIP6958200110007415267",
+      "agreement_rate_ind": "Y",
+      "apply_no": "1000000208",
+      "bank_card_id_no": "62280119910707181X",
+      "bank_card_name": "毛正康",
+      "bank_card_no": "6217004220058206958",
+      "bank_card_phone": "15312526023",
+      "CAR_PRICE": 50720,
+      "loan_amt": 51420,
+      "LOAN_DATE": "20200113",
+      "loan_fee_rate": 0,
+      "loan_penalty_rate": 0,
+      "loan_rate": 0.1088,
+      "loan_svc_fee_rate": 0,
+      "LOAN_TERM": 36,
+      "pay_channel": "2",
+      "product_no": "001601",
+      "REPAY_SCHEDULES": [
+        {
+          "LOAN_CURR_TERM": "0001",
+          "LOAN_GRACE_DATE": "20200222",
+          "LOAN_PMT_DUE_DATE": "20200213",
+          "LOAN_TERM_FEE": 0,
+          "LOAN_TERM_INT": 466.21,
+          "LOAN_TERM_PRIN": 1214.29,
+          "LOAN_TERM_SVC_FEE": 0,
+          "LOAN_TERM_TOT_AMT": 1680.5
+        },
+        {
+          "LOAN_CURR_TERM": "0002",
+          "LOAN_GRACE_DATE": "20200322",
+          "LOAN_PMT_DUE_DATE": "20200313",
+          "LOAN_TERM_FEE": 0,
+          "LOAN_TERM_INT": 455.2,
+          "LOAN_TERM_PRIN": 1225.3,
+          "LOAN_TERM_SVC_FEE": 0,
+          "LOAN_TERM_TOT_AMT": 1680.5
+        },
+        {
+          "LOAN_CURR_TERM": "0003",
+          "LOAN_GRACE_DATE": "20200422",
+          "LOAN_PMT_DUE_DATE": "20200413",
+          "LOAN_TERM_FEE": 0,
+          "LOAN_TERM_INT": 444.09,
+          "LOAN_TERM_PRIN": 1236.41,
+          "LOAN_TERM_SVC_FEE": 0,
+          "LOAN_TERM_TOT_AMT": 1680.5
+        },
+        {
+          "LOAN_CURR_TERM": "0004",
+          "LOAN_GRACE_DATE": "20200522",
+          "LOAN_PMT_DUE_DATE": "20200513",
+          "LOAN_TERM_FEE": 0,
+          "LOAN_TERM_INT": 432.88,
+          "LOAN_TERM_PRIN": 1247.62,
+          "LOAN_TERM_SVC_FEE": 0,
+          "LOAN_TERM_TOT_AMT": 1680.5
+        },
+        {
+          "LOAN_CURR_TERM": "0005",
+          "LOAN_GRACE_DATE": "20200622",
+          "LOAN_PMT_DUE_DATE": "20200613",
+          "LOAN_TERM_FEE": 0,
+          "LOAN_TERM_INT": 421.57,
+          "LOAN_TERM_PRIN": 1258.93,
+          "LOAN_TERM_SVC_FEE": 0,
+          "LOAN_TERM_TOT_AMT": 1680.5
+        },
+        {
+          "LOAN_CURR_TERM": "0006",
+          "LOAN_GRACE_DATE": "20200722",
+          "LOAN_PMT_DUE_DATE": "20200713",
+          "LOAN_TERM_FEE": 0,
+          "LOAN_TERM_INT": 410.15,
+          "LOAN_TERM_PRIN": 1270.35,
+          "LOAN_TERM_SVC_FEE": 0,
+          "LOAN_TERM_TOT_AMT": 1680.5
+        },
+        {
+          "LOAN_CURR_TERM": "0007",
+          "LOAN_GRACE_DATE": "20200822",
+          "LOAN_PMT_DUE_DATE": "20200813",
+          "LOAN_TERM_FEE": 0,
+          "LOAN_TERM_INT": 398.64,
+          "LOAN_TERM_PRIN": 1281.86,
+          "LOAN_TERM_SVC_FEE": 0,
+          "LOAN_TERM_TOT_AMT": 1680.5
+        },
+        {
+          "LOAN_CURR_TERM": "0008",
+          "LOAN_GRACE_DATE": "20200922",
+          "LOAN_PMT_DUE_DATE": "20200913",
+          "LOAN_TERM_FEE": 0,
+          "LOAN_TERM_INT": 387.01,
+          "LOAN_TERM_PRIN": 1293.49,
+          "LOAN_TERM_SVC_FEE": 0,
+          "LOAN_TERM_TOT_AMT": 1680.5
+        },
+        {
+          "LOAN_CURR_TERM": "0009",
+          "LOAN_GRACE_DATE": "20201022",
+          "LOAN_PMT_DUE_DATE": "20201013",
+          "LOAN_TERM_FEE": 0,
+          "LOAN_TERM_INT": 375.29,
+          "LOAN_TERM_PRIN": 1305.21,
+          "LOAN_TERM_SVC_FEE": 0,
+          "LOAN_TERM_TOT_AMT": 1680.5
+        },
+        {
+          "LOAN_CURR_TERM": "0010",
+          "LOAN_GRACE_DATE": "20201122",
+          "LOAN_PMT_DUE_DATE": "20201113",
+          "LOAN_TERM_FEE": 0,
+          "LOAN_TERM_INT": 363.45,
+          "LOAN_TERM_PRIN": 1317.05,
+          "LOAN_TERM_SVC_FEE": 0,
+          "LOAN_TERM_TOT_AMT": 1680.5
+        },
+        {
+          "LOAN_CURR_TERM": "0011",
+          "LOAN_GRACE_DATE": "20201222",
+          "LOAN_PMT_DUE_DATE": "20201213",
+          "LOAN_TERM_FEE": 0,
+          "LOAN_TERM_INT": 351.51,
+          "LOAN_TERM_PRIN": 1328.99,
+          "LOAN_TERM_SVC_FEE": 0,
+          "LOAN_TERM_TOT_AMT": 1680.5
+        },
+        {
+          "LOAN_CURR_TERM": "0012",
+          "LOAN_GRACE_DATE": "20210122",
+          "LOAN_PMT_DUE_DATE": "20210113",
+          "LOAN_TERM_FEE": 0,
+          "LOAN_TERM_INT": 339.46,
+          "LOAN_TERM_PRIN": 1341.04,
+          "LOAN_TERM_SVC_FEE": 0,
+          "LOAN_TERM_TOT_AMT": 1680.5
+        },
+        {
+          "LOAN_CURR_TERM": "0013",
+          "LOAN_GRACE_DATE": "20210222",
+          "LOAN_PMT_DUE_DATE": "20210213",
+          "LOAN_TERM_FEE": 0,
+          "LOAN_TERM_INT": 327.3,
+          "LOAN_TERM_PRIN": 1353.2,
+          "LOAN_TERM_SVC_FEE": 0,
+          "LOAN_TERM_TOT_AMT": 1680.5
+        },
+        {
+          "LOAN_CURR_TERM": "0014",
+          "LOAN_GRACE_DATE": "20210322",
+          "LOAN_PMT_DUE_DATE": "20210313",
+          "LOAN_TERM_FEE": 0,
+          "LOAN_TERM_INT": 315.03,
+          "LOAN_TERM_PRIN": 1365.47,
+          "LOAN_TERM_SVC_FEE": 0,
+          "LOAN_TERM_TOT_AMT": 1680.5
+        },
+        {
+          "LOAN_CURR_TERM": "0015",
+          "LOAN_GRACE_DATE": "20210422",
+          "LOAN_PMT_DUE_DATE": "20210413",
+          "LOAN_TERM_FEE": 0,
+          "LOAN_TERM_INT": 302.65,
+          "LOAN_TERM_PRIN": 1377.85,
+          "LOAN_TERM_SVC_FEE": 0,
+          "LOAN_TERM_TOT_AMT": 1680.5
+        },
+        {
+          "LOAN_CURR_TERM": "0016",
+          "LOAN_GRACE_DATE": "20210522",
+          "LOAN_PMT_DUE_DATE": "20210513",
+          "LOAN_TERM_FEE": 0,
+          "LOAN_TERM_INT": 290.16,
+          "LOAN_TERM_PRIN": 1390.34,
+          "LOAN_TERM_SVC_FEE": 0,
+          "LOAN_TERM_TOT_AMT": 1680.5
+        },
+        {
+          "LOAN_CURR_TERM": "0017",
+          "LOAN_GRACE_DATE": "20210622",
+          "LOAN_PMT_DUE_DATE": "20210613",
+          "LOAN_TERM_FEE": 0,
+          "LOAN_TERM_INT": 277.55,
+          "LOAN_TERM_PRIN": 1402.95,
+          "LOAN_TERM_SVC_FEE": 0,
+          "LOAN_TERM_TOT_AMT": 1680.5
+        },
+        {
+          "LOAN_CURR_TERM": "0018",
+          "LOAN_GRACE_DATE": "20210722",
+          "LOAN_PMT_DUE_DATE": "20210713",
+          "LOAN_TERM_FEE": 0,
+          "LOAN_TERM_INT": 264.83,
+          "LOAN_TERM_PRIN": 1415.67,
+          "LOAN_TERM_SVC_FEE": 0,
+          "LOAN_TERM_TOT_AMT": 1680.5
+        },
+        {
+          "LOAN_CURR_TERM": "0019",
+          "LOAN_GRACE_DATE": "20210822",
+          "LOAN_PMT_DUE_DATE": "20210813",
+          "LOAN_TERM_FEE": 0,
+          "LOAN_TERM_INT": 252,
+          "LOAN_TERM_PRIN": 1428.5,
+          "LOAN_TERM_SVC_FEE": 0,
+          "LOAN_TERM_TOT_AMT": 1680.5
+        },
+        {
+          "LOAN_CURR_TERM": "0020",
+          "LOAN_GRACE_DATE": "20210922",
+          "LOAN_PMT_DUE_DATE": "20210913",
+          "LOAN_TERM_FEE": 0,
+          "LOAN_TERM_INT": 239.05,
+          "LOAN_TERM_PRIN": 1441.45,
+          "LOAN_TERM_SVC_FEE": 0,
+          "LOAN_TERM_TOT_AMT": 1680.5
+        },
+        {
+          "LOAN_CURR_TERM": "0021",
+          "LOAN_GRACE_DATE": "20211022",
+          "LOAN_PMT_DUE_DATE": "20211013",
+          "LOAN_TERM_FEE": 0,
+          "LOAN_TERM_INT": 225.98,
+          "LOAN_TERM_PRIN": 1454.52,
+          "LOAN_TERM_SVC_FEE": 0,
+          "LOAN_TERM_TOT_AMT": 1680.5
+        },
+        {
+          "LOAN_CURR_TERM": "0022",
+          "LOAN_GRACE_DATE": "20211122",
+          "LOAN_PMT_DUE_DATE": "20211113",
+          "LOAN_TERM_FEE": 0,
+          "LOAN_TERM_INT": 212.79,
+          "LOAN_TERM_PRIN": 1467.71,
+          "LOAN_TERM_SVC_FEE": 0,
+          "LOAN_TERM_TOT_AMT": 1680.5
+        },
+        {
+          "LOAN_CURR_TERM": "0023",
+          "LOAN_GRACE_DATE": "20211222",
+          "LOAN_PMT_DUE_DATE": "20211213",
+          "LOAN_TERM_FEE": 0,
+          "LOAN_TERM_INT": 199.48,
+          "LOAN_TERM_PRIN": 1481.02,
+          "LOAN_TERM_SVC_FEE": 0,
+          "LOAN_TERM_TOT_AMT": 1680.5
+        },
+        {
+          "LOAN_CURR_TERM": "0024",
+          "LOAN_GRACE_DATE": "20220122",
+          "LOAN_PMT_DUE_DATE": "20220113",
+          "LOAN_TERM_FEE": 0,
+          "LOAN_TERM_INT": 186.06,
+          "LOAN_TERM_PRIN": 1494.44,
+          "LOAN_TERM_SVC_FEE": 0,
+          "LOAN_TERM_TOT_AMT": 1680.5
+        },
+        {
+          "LOAN_CURR_TERM": "0025",
+          "LOAN_GRACE_DATE": "20220222",
+          "LOAN_PMT_DUE_DATE": "20220213",
+          "LOAN_TERM_FEE": 0,
+          "LOAN_TERM_INT": 172.51,
+          "LOAN_TERM_PRIN": 1507.99,
+          "LOAN_TERM_SVC_FEE": 0,
+          "LOAN_TERM_TOT_AMT": 1680.5
+        },
+        {
+          "LOAN_CURR_TERM": "0026",
+          "LOAN_GRACE_DATE": "20220322",
+          "LOAN_PMT_DUE_DATE": "20220313",
+          "LOAN_TERM_FEE": 0,
+          "LOAN_TERM_INT": 158.83,
+          "LOAN_TERM_PRIN": 1521.67,
+          "LOAN_TERM_SVC_FEE": 0,
+          "LOAN_TERM_TOT_AMT": 1680.5
+        },
+        {
+          "LOAN_CURR_TERM": "0027",
+          "LOAN_GRACE_DATE": "20220422",
+          "LOAN_PMT_DUE_DATE": "20220413",
+          "LOAN_TERM_FEE": 0,
+          "LOAN_TERM_INT": 145.04,
+          "LOAN_TERM_PRIN": 1535.46,
+          "LOAN_TERM_SVC_FEE": 0,
+          "LOAN_TERM_TOT_AMT": 1680.5
+        },
+        {
+          "LOAN_CURR_TERM": "0028",
+          "LOAN_GRACE_DATE": "20220522",
+          "LOAN_PMT_DUE_DATE": "20220513",
+          "LOAN_TERM_FEE": 0,
+          "LOAN_TERM_INT": 131.12,
+          "LOAN_TERM_PRIN": 1549.38,
+          "LOAN_TERM_SVC_FEE": 0,
+          "LOAN_TERM_TOT_AMT": 1680.5
+        },
+        {
+          "LOAN_CURR_TERM": "0029",
+          "LOAN_GRACE_DATE": "20220622",
+          "LOAN_PMT_DUE_DATE": "20220613",
+          "LOAN_TERM_FEE": 0,
+          "LOAN_TERM_INT": 117.07,
+          "LOAN_TERM_PRIN": 1563.43,
+          "LOAN_TERM_SVC_FEE": 0,
+          "LOAN_TERM_TOT_AMT": 1680.5
+        },
+        {
+          "LOAN_CURR_TERM": "0030",
+          "LOAN_GRACE_DATE": "20220722",
+          "LOAN_PMT_DUE_DATE": "20220713",
+          "LOAN_TERM_FEE": 0,
+          "LOAN_TERM_INT": 102.89,
+          "LOAN_TERM_PRIN": 1577.61,
+          "LOAN_TERM_SVC_FEE": 0,
+          "LOAN_TERM_TOT_AMT": 1680.5
+        },
+        {
+          "LOAN_CURR_TERM": "0031",
+          "LOAN_GRACE_DATE": "20220822",
+          "LOAN_PMT_DUE_DATE": "20220813",
+          "LOAN_TERM_FEE": 0,
+          "LOAN_TERM_INT": 88.59,
+          "LOAN_TERM_PRIN": 1591.91,
+          "LOAN_TERM_SVC_FEE": 0,
+          "LOAN_TERM_TOT_AMT": 1680.5
+        },
+        {
+          "LOAN_CURR_TERM": "0032",
+          "LOAN_GRACE_DATE": "20220922",
+          "LOAN_PMT_DUE_DATE": "20220913",
+          "LOAN_TERM_FEE": 0,
+          "LOAN_TERM_INT": 74.16,
+          "LOAN_TERM_PRIN": 1606.34,
+          "LOAN_TERM_SVC_FEE": 0,
+          "LOAN_TERM_TOT_AMT": 1680.5
+        },
+        {
+          "LOAN_CURR_TERM": "0033",
+          "LOAN_GRACE_DATE": "20221022",
+          "LOAN_PMT_DUE_DATE": "20221013",
+          "LOAN_TERM_FEE": 0,
+          "LOAN_TERM_INT": 59.59,
+          "LOAN_TERM_PRIN": 1620.91,
+          "LOAN_TERM_SVC_FEE": 0,
+          "LOAN_TERM_TOT_AMT": 1680.5
+        },
+        {
+          "LOAN_CURR_TERM": "0034",
+          "LOAN_GRACE_DATE": "20221122",
+          "LOAN_PMT_DUE_DATE": "20221113",
+          "LOAN_TERM_FEE": 0,
+          "LOAN_TERM_INT": 44.89,
+          "LOAN_TERM_PRIN": 1635.61,
+          "LOAN_TERM_SVC_FEE": 0,
+          "LOAN_TERM_TOT_AMT": 1680.5
+        },
+        {
+          "LOAN_CURR_TERM": "0035",
+          "LOAN_GRACE_DATE": "20221222",
+          "LOAN_PMT_DUE_DATE": "20221213",
+          "LOAN_TERM_FEE": 0,
+          "LOAN_TERM_INT": 30.07,
+          "LOAN_TERM_PRIN": 1650.43,
+          "LOAN_TERM_SVC_FEE": 0,
+          "LOAN_TERM_TOT_AMT": 1680.5
+        },
+        {
+          "LOAN_CURR_TERM": "0036",
+          "LOAN_GRACE_DATE": "20230122",
+          "LOAN_PMT_DUE_DATE": "20230113",
+          "LOAN_TERM_FEE": 0,
+          "LOAN_TERM_INT": 15.1,
+          "LOAN_TERM_PRIN": 1665.6,
+          "LOAN_TERM_SVC_FEE": 0,
+          "LOAN_TERM_TOT_AMT": 1680.7
+        }
+      ]
+    }
+  ],
+  "total_amt": 51420
+}

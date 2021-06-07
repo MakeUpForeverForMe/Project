@@ -361,7 +361,7 @@ STORED AS TEXTFILE;
 CREATE DATABASE IF NOT EXISTS `hivemetastore` COMMENT 'Hive 元数据库';
 
 set hivevar:ip=10.80.1.104; set hivevar:user='root'; set hivevar:pass='Ws@ProEmr1QSC@'; set hivevar:db=hivemetastore; -- 生产
-set hivevar:ip=10.83.1.138; set hivevar:user='root'; set hivevar:pass='Ws@Test!@E1#';   set hivevar:db=hivemetastore;   -- 测试
+set hivevar:ip=10.83.1.138; set hivevar:user='root'; set hivevar:pass='Ws@Test!@E1#';   set hivevar:db=hivemetastore; -- 测试
 
 
 -- DROP TABLE IF EXISTS `hivemetastore.dbs`;

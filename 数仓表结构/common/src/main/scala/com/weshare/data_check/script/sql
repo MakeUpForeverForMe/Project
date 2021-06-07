@@ -1,0 +1,11 @@
+create table flink_config.stage_check_rule
+(
+task_name varchar(100) comment '任务名称',
+mode_name varchar(100) comment '模块名称',
+param_list varchar(100) comment '参数列表',
+sql1 varchar(10000) comment 'sql1',
+sql2 varchar(10000) comment 'sql2',
+engine_type varchar(100) comment '执行引擎 对应执行sql1 和sql2',
+recivers_email varchar(500) comment '邮件接收人',
+reboot_ids varchar(100) comment '机器人ids'
+);
