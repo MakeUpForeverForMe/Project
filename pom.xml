@@ -42,7 +42,6 @@
         <tomcat.version>9.0.31</tomcat.version>                   <!-- Tomcat           版本 -->
         <akka.version>2.4.17</akka.version>                       <!-- AKKA             版本 -->
         <akka.kryo.version>1.0.0</akka.kryo.version>              <!-- AKKAKryo         版本 -->
-        <!--<zookeeper.version>3.4.5-cdh6.3.1</zookeeper.version>     &lt;!&ndash; Zookeeper        版本 &ndash;&gt;-->
         <zookeeper.version>3.4.5</zookeeper.version>              <!-- Zookeeper        版本 -->
         <kafka.version>2.1.0</kafka.version>                      <!-- Kafka            版本 -->
         <hadoop.version>3.0.0</hadoop.version>                    <!-- Hadoop           版本 -->
@@ -101,20 +100,6 @@
                 <artifactId>commons-codec</artifactId>
                 <version>${aes.version}</version>
             </dependency>
-            <!-- MySQLConnector 相关依赖 -->
-            <!-- https://mvnrepository.com/artifact/mysql/mysql-connector-java -->
-            <dependency>
-                <groupId>mysql</groupId>
-                <artifactId>mysql-connector-java</artifactId>
-                <version>${mysqlConnector.version}</version>
-            </dependency>
-            <!-- JdbcUtils 需要用到的 C3P0 依赖 -->
-            <!-- https://mvnrepository.com/artifact/com.mchange/c3p0 -->
-            <dependency>
-                <groupId>com.mchange</groupId>
-                <artifactId>c3p0</artifactId>
-                <version>${c3p0.version}</version>
-            </dependency>
             <!-- DBUtils 相关依赖 -->
             <!-- https://mvnrepository.com/artifact/commons-dbutils/commons-dbutils -->
             <dependency>
@@ -128,6 +113,20 @@
                 <groupId>commons-io</groupId>
                 <artifactId>commons-io</artifactId>
                 <version>${commons-io.version}</version>
+            </dependency>
+            <!-- MySQLConnector 相关依赖 -->
+            <!-- https://mvnrepository.com/artifact/mysql/mysql-connector-java -->
+            <dependency>
+                <groupId>mysql</groupId>
+                <artifactId>mysql-connector-java</artifactId>
+                <version>${mysqlConnector.version}</version>
+            </dependency>
+            <!-- JdbcUtils 需要用到的 C3P0 依赖 -->
+            <!-- https://mvnrepository.com/artifact/com.mchange/c3p0 -->
+            <dependency>
+                <groupId>com.mchange</groupId>
+                <artifactId>c3p0</artifactId>
+                <version>${c3p0.version}</version>
             </dependency>
             <!-- FastJson 相关依赖 -->
             <!-- https://mvnrepository.com/artifact/com.alibaba/fastjson -->
@@ -382,7 +381,7 @@
             </plugin>
             <!-- 打包跳过测试类 -->
             <plugin>
-                <!--<groupId>org.apache.maven.plugins</groupId>-->
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
                     <testFailureIgnore>true</testFailureIgnore>
@@ -456,9 +455,9 @@
         <repository>
             <id>boundless</id>
             <name>Boundless Maven Repository</name>
-            <url>http://repo.boundlessgeo.com/main</url>
+            <url>https://repo.boundlessgeo.com/main</url>
             <snapshots>
-                <enabled>true</enabled>
+                <enabled>false</enabled>
             </snapshots>
         </repository>
 
@@ -489,12 +488,12 @@
         <repository>
             <id>scala-tools.org1</id>
             <name>Scala-Tools Maven2 Repository</name>
-            <url>http://scala-tools.org/repo-releases</url>
+            <url>https://scala-tools.org/repo-releases</url>
         </repository>
         <repository>
             <id>scala-tools.org2</id>
             <name>Scala-Tools Maven2 Repository</name>
-            <url>http://maven.restlet.org/</url>
+            <url>https://maven.restlet.org/</url>
         </repository>
         <repository>
             <id>scala-tools.org3</id>

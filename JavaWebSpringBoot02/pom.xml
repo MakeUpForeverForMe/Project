@@ -9,7 +9,7 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.example</groupId>
-    <artifactId>javaweb-springboot-02</artifactId>
+    <artifactId>JavaWebSpringBoot02</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>JavaWebSpringBoot02</name>
     <description>Demo project for Spring Boot</description>
@@ -65,6 +65,7 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
     </dependencies>
+
     <build>
         <plugins>
             <plugin>

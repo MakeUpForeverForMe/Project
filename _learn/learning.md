@@ -12,48 +12,49 @@
 | impala-shell -u hadoop -i 10.80.2.51:21050 --protocol=hs2                                                                                                                                                                 | emr clb版                                                             |
 
 
-|   系统  |  服务 |                    ip或网址                    |  用户  |       密码       | 备注 |
-|---------|-------|------------------------------------------------|--------|------------------|------|
-| linux   | ftp   | 10.90.0.5                                      |        |                  | FTP  |
-| node47  | linux | 10.80.1.47                                     | root   | `CQBP53G(Lv82`   |      |
-| node148 | linux | 10.80.1.148                                    | root   | `CQBP53G(Lv82`   |      |
-| node168 | linux | 10.80.1.168                                    | root   | `CQBP53G(Lv82`   |      |
-| node172 | linux | 10.80.1.172                                    | root   | `CQBP53G(Lv82`   |      |
-| node20  | linux | 10.80.0.20                                     | root   | `CQBP53G(Lv82`   |      |
-| node23  | linux | 10.80.0.23                                     | root   | `CQBP53G(Lv82`   |      |
-| node29  | linux | 10.80.0.29                                     | root   | `CQBP53G(Lv82`   |      |
-| node233 | linux | 10.80.0.233                                    | root   | `CQBP53G(Lv82`   |      |
-| cm6     | web   | http://10.80.1.47:7180/cmf/home                | admin  | `admin`          |      |
-| hue6    | web   | http://10.80.1.47:8889/hue/editor/?type=impala | admin  | `dFGYXpxifv`     |      |
-| emr     | cos桶 | bigdata-center-prod-1253824322                 |        |                  |      |
-| emr     | emr   | emr-b3log3ww                                   |        |                  |      |
-| master  | linux | 10.80.1.155                                    | root   | `Ws@ProEmr1QSC@` |      |
-| master  | linux | 10.80.0.195                                    | root   | `Ws@ProEmr1QSC@` |      |
-| router  | linux | 10.80.1.94                                     | root   | `Ws@ProEmr1QSC@` |      |
-| router  | linux | 10.80.1.94                                     | hadoop | `Ws@2021!@`      |      |
-| cos     | cos   | cosn://bigdata-center-prod-1253824322/         |        |                  | 数仓 |
-| cos     | cos   | cosn://databack-1253824322/                    |        |                  | 加密 |
+|  系统 |   服务  |                    ip或网址                    |   用户  |        密码        |               备注              |
+|-------|---------|------------------------------------------------|---------|--------------------|---------------------------------|
+| linux | ftp     | 10.90.0.5                                      |         |                    | FTP                             |
+| linux | node47  | 10.80.1.47                                     | root    | `CQBP53G(Lv82`     |                                 |
+| linux | node148 | 10.80.1.148                                    | root    | `CQBP53G(Lv82`     |                                 |
+| linux | node168 | 10.80.1.168                                    | root    | `CQBP53G(Lv82`     |                                 |
+| linux | node172 | 10.80.1.172                                    | root    | `CQBP53G(Lv82`     |                                 |
+| linux | node20  | 10.80.0.20                                     | root    | `CQBP53G(Lv82`     |                                 |
+| linux | node23  | 10.80.0.23                                     | root    | `CQBP53G(Lv82`     |                                 |
+| linux | node29  | 10.80.0.29                                     | root    | `CQBP53G(Lv82`     |                                 |
+| linux | node233 | 10.80.0.233                                    | root    | `CQBP53G(Lv82`     |                                 |
+| cm6   | web     | http://10.80.1.47:7180/cmf/home                | admin   | `admin`            |                                 |
+| hue6  | web     | http://10.80.1.47:8889/hue/editor/?type=impala | admin   | `dFGYXpxifv`       |                                 |
+| linux | master  | 10.80.1.155                                    | root    | `Ws@ProEmr1QSC@`   |                                 |
+| linux | master  | 10.80.0.195                                    | root    | `Ws@ProEmr1QSC@`   |                                 |
+| linux | router  | 10.80.1.94                                     | root    | `Ws@ProEmr1QSC@`   |                                 |
+| linux | router  | 10.80.1.94                                     | hadoop  | `Ws@2021!@`        |                                 |
+| linux | davinci | 10.80.1.57                                     | bigdata | `^rT46&bH3oCqlRsD` | 只可使用目录 /data/app/bigdata/ |
+| emr   | emr     | emr-b3log3ww                                   |         |                    | 集群号                          |
+| emr   | cos     | cosn://bigdata-center-prod-1253824322/         |         |                    | 数仓                            |
+| cos   | cos     | cosn://databack-1253824322/                    |         |                    | 加密                            |
 
 
 ### 1.1.2 测试
-|   系统  |  作用 |                    ip或网址                     |  用户  |        密码        | 备注 |
-|---------|-------|-------------------------------------------------|--------|--------------------|------|
-| linux   | ftp   | 10.83.0.32                                      | it-dev | `058417gv`         | FTP  |
-| node5   | linux | 10.83.80.5                                      | root   | `!W$WdwY7U%pe)YkQ` |      |
-| node7   | linux | 10.83.80.7                                      | root   | `!W$WdwY7U%pe)YkQ` |      |
-| node47  | linux | 10.83.0.47                                      | root   | `(Ob!)Y#G3Anf`     |      |
-| node123 | linux | 10.83.0.123                                     | root   | `(Ob!)Y#G3Anf`     |      |
-| node129 | linux | 10.83.0.129                                     | root   | `(Ob!)Y#G3Anf`     |      |
-| master  | linux | 10.83.1.157                                     | root   | `Ws@Test!@E1#`     |      |
-| master  | linux | 10.83.1.157                                     | hadoop | `Ws@2021@Test`     |      |
-| cm6     | web   | http://10.83.0.47:7180/cmf/home                 | admin  | `admin`            |      |
-| hue6    | web   | http://10.83.0.123:8889/hue/editor/?type=impala | admin  | `admin`            |      |
+|  系统 |   作用  |  ip或网址   |  用户  |        密码        | 备注 |
+|-------|---------|-------------|--------|--------------------|------|
+| linux | ftp     | 10.83.0.32  | it-dev | `058417gv`         | FTP  |
+| linux | node5   | 10.83.80.5  | root   | `!W$WdwY7U%pe)YkQ` |      |
+| linux | node7   | 10.83.80.7  | root   | `!W$WdwY7U%pe)YkQ` |      |
+| linux | node47  | 10.83.0.47  | root   | `(Ob!)Y#G3Anf`     |      |
+| linux | node123 | 10.83.0.123 | root   | `(Ob!)Y#G3Anf`     |      |
+| linux | node129 | 10.83.0.129 | root   | `(Ob!)Y#G3Anf`     |      |
+| linux | master  | 10.83.1.157 | root   | `Ws@Test!@E1#`     |      |
+| linux | master  | 10.83.1.157 | hadoop | `Ws@2021@Test`     |      |
 
 
 ## 1.2 数据库配置
 ### 1.2.1 生产
 | 系统 |      ip     |   username   |      password      |   备注  |
 |------|-------------|--------------|--------------------|---------|
+| 数据 | 10.80.16.73 | hadoop       | `XFfRjfWFWOki^kU0` |         |
+| 数据 | 10.80.16.73 | davinci      | `davinci`          |         |
+| emr  | 10.80.1.104 | root         | `Ws@ProEmr1QSC@`   | Hive    |
 | 星连 | 10.80.16.5  | root         | `Xfx2018@)!*`      |         |
 | 星云 | 10.80.16.21 | root         | `EXYeaGVQZpsr@CR&` |         |
 | 风控 | 10.80.16.42 | root         | `8x3V1lrbkS`       | 旧      |
@@ -65,12 +66,11 @@
 | 催收 | 10.80.16.87 | risk_control | `uPOp(t?XaoHq`     |         |
 | H5   | 10.80.16.73 | UeserReader  | `Ws2019!@`         |         |
 | CM6  | 10.80.16.75 | bgp_admin    | `U3$AHfp*a8M&`     | MariaDB |
-| emr  | 10.80.1.104 | root         | `Ws@ProEmr1QSC@`   | Hive    |
-
 
 ### 1.2.2 测试
 | 系统 |      ip     |   username  |      password      |   备注  |
 |------|-------------|-------------|--------------------|---------|
+| emr  | 10.83.1.138 | root        | `Ws@Test!@E1#`     | Hive    |
 | 星连 | 10.83.16.10 | root        | `Xfxcj2018@)!*`    |         |
 | 星云 | 10.83.16.15 | root        | `Ws2018!07@`       |         |
 | 风控 | 10.83.16.9  | root        | `Xfx2018@)!*`      |         |
@@ -78,7 +78,6 @@
 | 核心 | 10.83.16.43 | root        | `zU!ykpx3EG)$$1e6` | 新      |
 | H5   | 10.83.16.33 | UeserReader | `Ws2019!@`         |         |
 | CM6  | 10.83.16.32 | bgp_admin   | `3Mt%JjE#WJIt`     | MariaDB |
-| emr  | 10.83.1.138 | root        | `Ws@Test!@E1#`     | Hive    |
 
 ### 1.2.3 UAT
 | 系统 |      ip     | username |      password      | 备注 |
@@ -105,7 +104,7 @@
 | 用户 | davinci/FKD4WKmQpdJ#:apjfAPn    |      |
 | 用户 | weshare/ZmG!TN+_8hWuUa@s        |      |
 | 用户 | yunan.huang/IBxkYU2N            |      |
-| 用户 | weiximing/000000                |      |
+| 用户 | weiximing/x123456               |      |
 
 
 # 2、命令脚本操作

@@ -31,7 +31,7 @@ public enum _DateFormatEnum {
     /**
      * 长时间格式 带毫秒
      */
-    LONG_DATE_PATTERN("yyyyMMddHHmmssSSS"),
+    LONG_DATE_PATTERN_WITH_MILSEC("yyyyMMddHHmmssSSS"),
     LONG_DATE_PATTERN_WITH_MILSEC_LINE("yyyy-MM-dd HH:mm:ss.SSS"),
     LONG_DATE_PATTERN_WITH_MILSEC_SLASH("yyyy/MM/dd HH:mm:ss.SSS"),
     LONG_DATE_PATTERN_WITH_MILSEC_DOUBLE_SLASH("yyyy\\MM\\dd HH:mm:ss.SSS"),

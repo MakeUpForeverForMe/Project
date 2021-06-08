@@ -16078,6 +16078,24 @@ from ods.t_10_basic_asset
 
 
 
+select
+  *
+from ods.t_10_basic_asset
+where project_id = 'CL202104010103'
+  and borrower_type = '企业'
+limit 10
+;
+
+
+
+
+
+select
+  *
+from ods.linkman_info_abs
+where project_id = 'CL202104010103'
+  and due_bill_no = '1000007468'
+;
 
 
 
