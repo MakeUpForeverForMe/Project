@@ -1,38 +1,31 @@
 --create table if not exists eagle.eagle_loan_apply_stat_d(
 --   project_id                           string             comment '项目ID'
---  ,loan_apply_num_person                decimal(11,0)      comment '当日用信申请用户数'
---  ,loan_approval_num_person             decimal(11,0)      comment '当日用信通过用户数' 
---  ,loan_approval_rate                   decimal(11,4)      comment '用信通过率(当日)--当日用信申请用户数/当日用信通过用户数'
---  ,second_apply_num_person              decimal(11,0)      comment '当日二审申请用户数'
---  ,second_approval_num_person           decimal(11,0)      comment '当日二审通过用户数'
---  ,second_approval_rate                 decimal(11,4)      comment '二审通过率(当日)--当日二审申请用户数/当日二审通过用户数'
+--  ,loan_apply_num_person                decimal(11,0)      comment '当日用信申请用户数'  --
+--  ,loan_approval_num_person             decimal(11,0)      comment '当日用信通过用户数'  --
+--  ,loan_approval_rate                   decimal(11,4)      comment '用信通过率(当日)--当日用信申请用户数/当日用信通过用户数' 
+--
 --  ,loan_principal                       decimal(15,4)      comment '当日放款金额'
 --  ,loan_num                             decimal(11,0)      comment '当日放款笔数'
 --  ,avg_credit_amount                    decimal(15,4)      comment '平均用信金额(当日)--当日放款金额/当日放款笔数'
 --  ,weig_interest_rate                   decimal(11,4)      comment '当日放款加权利率'
---  ,loan_apply_num_person_count          decimal(11,0)      comment '累计用信申请用户数'
---  ,loan_approval_num_person_count       decimal(11,0)      comment '累计用信通过用户数'
---  ,loan_approval_rate_count             decimal(11,4)      comment '用信通过率(累计)--累计用信申请用户数/累计用信通过用户数'
---  ,second_apply_num_person_count        decimal(11,0)      comment '累计二审申请用户数'
---  ,second_approval_num_person_count     decimal(11,0)      comment '累计二审通过用户数'
---  ,second_approval_rate_count           decimal(11,4)      comment '二审通过率(累计)--累计二审申请用户数/累计二审通过用户数'
---  ,loan_uesr_count                      decimal(15,0)      comment '累计放款用户数'
+--  ,loan_apply_num_person_count          decimal(11,0)      comment '累计用信申请用户数'   --
+--  ,loan_approval_num_person_count       decimal(11,0)      comment '累计用信通过用户数'   --
+--  ,loan_approval_rate_count             decimal(11,4)      comment '用信通过率(累计)--累计用信申请用户数/累计用信通过用户数' 
+--
+--  ,loan_uesr_count                      decimal(15,0)      comment '累计放款用户数'  
 --  ,loan_principal_count                 decimal(15,4)      comment '累计放款金额'
 --  ,loan_num_count                       decimal(15,0)      comment '累计放款笔数'
 --  ,avg_loan_amount                      decimal(11,4)      comment '平均用信金额(累计)--累计放款金额/累计放款笔数'
 --  ,weig_interest_rate_count             decimal(11,4)      comment '累计放款加权利率'
---  ,loan_apply_num                       decimal(11,0)      comment '当日用信申请订单数'
---  ,loan_approval_num                    decimal(11,0)      comment '当日用信通过订单数'
---  ,loan_apply_approval_rate             decimal(11,4)      comment '当日订单用信通过率'
---  ,second_apply_num                     decimal(11,0)      comment '当日二审申请订单数'
---  ,second_approval_num                  decimal(11,0)      comment '当日二审通过订单数'
---  ,second_approval_num_rate             decimal(11,4)      comment '当日二审订单通过率'
---  ,loan_apply_num_acc                   decimal(14,0)      comment '累计用信申请订单数'
---  ,loan_approval_num_acc                decimal(14,0)      comment '累计用信通过订单数'
+--
+--  ,loan_apply_num                       decimal(11,0)      comment '当日用信申请订单数'  --
+--  ,loan_approval_num                    decimal(11,0)      comment '当日用信通过订单数'  --
+--  ,loan_apply_approval_rate             decimal(11,4)      comment '当日订单用信通过率'  
+--
+--  ,loan_apply_num_acc                   decimal(14,0)      comment '累计用信申请订单数'  --
+--  ,loan_approval_num_acc                decimal(14,0)      comment '累计用信通过订单数'  --
 --  ,loan_approval_acc_rate               decimal(11,4)      comment '用信通过率--累计用信通过订单数/累计用信申请订单数'
---  ,second_loan_apply_num_acc            decimal(14,0)      comment '累计二审申请订单数'
---  ,second_loan_approval_num_acc         decimal(14,0)      comment '累计二审通过订单数'
---  ,second_loan_approval_acc_rate        decimal(11,4)      comment '用信通过率--累计二审通过订单数/累计二审申请订单数'
+--
 --) comment '风控用信统计-日表'
 --partitioned by (biz_date string comment '观察日',product_id string comment '产品号')
 --stored as parquet;
@@ -72,50 +65,39 @@ set hive.exec.reducers.max=50;
 
 --set hivevar:db_suffix=;
 --set hivevar:ST9=2021-01-01;
-set hivevar:car_product=('001601','001602','001603'); 
+--set hivevar:car_product=('001601','001602','001603'); 
 set hivevar:product_id_list='001601','001602','001603','001802','002001','001906','002006','001901','001801','002002','001902','DIDI201908161538','002501','002601','002602';
                             
 insert overwrite table eagle.eagle_loan_apply_stat_d partition(biz_date='${ST9}',product_id)
 select
     t3.project_id                                                                                                                                                       as project_id
-    ,if(t3.product_id not in ${car_product},t1.loan_apply_num_person,0)                                                                                                 as loan_apply_num_person
-    ,if(t3.product_id not in ${car_product},t1.loan_approval_num_person,0)                                                                                              as loan_approval_num_person
-    
-    ,nvl(if(t3.product_id not in ${car_product},t1.loan_approval_num_person,0)/if(t3.product_id not in ${car_product},loan_apply_num_person,0),0)                       as loan_approval_rate
-    ,if(t3.product_id in ${car_product},t1.loan_apply_num_person,0)                                                                                                     as second_apply_num_person
-    ,if(t3.product_id in ${car_product},t1.loan_approval_num_person,0)                                                                                                  as second_approval_num_person
-    
-    ,nvl(if(t3.product_id in ${car_product},t1.loan_approval_num_person,0)/if(t3.product_id in ${car_product},loan_apply_num_person,0),0)                               as second_approval_rate
-    ,t2.loan_principal                                                                                                                                                  as loan_principal
-    ,t2.loan_num                                                                                                                                                        as loan_num
+    ,nvl(t1.loan_apply_num_person,0)                                                                                                                                    as loan_apply_num_person
+    ,nvl(t1.loan_approval_num_person,0)                                                                                                                                 as loan_approval_num_person
+    ,nvl(t1.loan_approval_num_person/t1.loan_apply_num_person,0)                                                                                                        as loan_approval_rate
+
+    ,nvl(t2.loan_principal,0)                                                                                                                                           as loan_principal
+    ,nvl(t2.loan_num,0)                                                                                                                                                 as loan_num
     ,nvl(t2.loan_principal/t2.loan_num,0)                                                                                                                               as avg_credit_amount
     ,nvl(t1.weight_interest/t2.loan_principal,0)                                                                                                                        as weig_interest_rate
-    ,if(t3.product_id not in ${car_product},t1.loan_apply_num_person_count,0)                                                                                           as loan_apply_num_person_count
-    ,if(t3.product_id not in ${car_product},t1.loan_approval_num_person_count,0)                                                                                        as loan_approval_num_person_count
     
-    ,nvl(if(t3.product_id not in ${car_product},t1.loan_approval_num_person_count,0)/if(t3.product_id not in ${car_product},t1.loan_apply_num_person_count,0) ,0)       as loan_approval_rate_count
-    ,if(t3.product_id in ${car_product},t1.loan_apply_num_person_count,0)                                                                                               as second_apply_num_person_count
-    ,if(t3.product_id in ${car_product},t1.loan_approval_num_person_count,0)                                                                                            as second_approval_num_person_count
+    ,nvl(t1.loan_apply_num_person_count,0)                                                                                                                              as loan_apply_num_person_count
+    ,nvl(t1.loan_approval_num_person_count,0)                                                                                                                           as loan_approval_num_person_count
+    ,nvl(t1.loan_approval_num_person_count/t1.loan_apply_num_person_count,0)                                                                                            as loan_approval_rate_count
     
-    ,nvl(if(t3.product_id in ${car_product},t1.loan_approval_num_person_count,0)/if(t3.product_id in ${car_product},t1.loan_apply_num_person_count,0),0)                as second_approval_rate_count
-    ,t1.loan_uesr_count                                                                                                                                                 as loan_uesr_count         
-    ,t2.loan_principal_count                                                                                                                                            as loan_principal_count    
-    ,t2.loan_num_count                                                                                                                                                  as loan_num_count          
+    ,nvl(t1.loan_uesr_count,0)                                                                                                                                          as loan_uesr_count         
+    ,nvl(t2.loan_principal_count,0)                                                                                                                                     as loan_principal_count    
+    ,nvl(t2.loan_num_count,0)                                                                                                                                           as loan_num_count          
     ,nvl(t2.loan_principal_count/t2.loan_num_count,0)                                                                                                                   as avg_loan_amount         
     ,nvl(t1.weight_interest_accumulate/t2.loan_principal_count,0)                                                                                                       as weig_interest_rate_count
     
-    ,if(t3.product_id not in ${car_product},t1.loan_apply_num,0)                                                                                                        as loan_apply_num
-    ,if(t3.product_id not in ${car_product},t1.loan_approval_num,0)                                                                                                     as loan_approval_num
-    ,nvl(if(t3.product_id not in ${car_product},t1.loan_approval_num,0)/if(t3.product_id not in ${car_product},loan_apply_num,0),0)                                     as loan_apply_approval_rate
-    ,if(t3.product_id in ${car_product},t1.loan_apply_num,0)                                                                                                            as second_apply_num
-    ,if(t3.product_id in ${car_product},t1.loan_approval_num,0)                                                                                                         as second_approval_num
-    ,nvl(if(t3.product_id in ${car_product},t1.loan_approval_num,0)/if(t3.product_id not in ${car_product},loan_apply_num,0),0)                                         as second_approval_num_rate
-    ,if(t3.product_id not in ${car_product},t1.loan_apply_num_accumulate,0)                                                                                             as loan_apply_num_accumulate
-    ,if(t3.product_id not in ${car_product},t1.loan_approval_num_accumulate,0)                                                                                          as loan_approval_num_accumulate
-    ,nvl(if(t3.product_id not in ${car_product},t1.loan_approval_num_accumulate,0)/if(t3.product_id not in ${car_product},loan_apply_num_accumulate,0),0)               as loan_approval_acc_rate
-    ,if(t3.product_id  in ${car_product},t1.loan_apply_num_accumulate,0)                                                                                                as second_loan_apply_num_acc
-    ,if(t3.product_id  in ${car_product},t1.loan_approval_num_accumulate,0)                                                                                             as second_loan_approval_num_acc
-    ,nvl(if(t3.product_id in ${car_product},t1.loan_approval_num_accumulate,0)/if(t3.product_id not in ${car_product},loan_apply_num_accumulate,0),0)                   as second_loan_approval_acc_rate
+    ,nvl(t1.loan_apply_num,0)                                                                                                                                           as loan_apply_num
+    ,nvl(t1.loan_approval_num,0)                                                                                                                                        as loan_approval_num
+    ,nvl(t1.loan_approval_num/t1.loan_apply_num,0)                                                                                                                      as loan_apply_approval_rate
+    
+    ,nvl(t1.loan_apply_num_accumulate,0)                                                                                                                                as loan_apply_num_acc
+    ,nvl(t1.loan_approval_num_accumulate,0)                                                                                                                             as loan_approval_num_acc
+    ,nvl(t1.loan_approval_num_accumulate/loan_apply_num_accumulate,0)                                                                                                   as loan_approval_acc_rate
+    
     ,t3.product_id                                                                                                                                                      as product_id
 from
 (

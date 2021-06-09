@@ -1,6 +1,6 @@
 --set hivevar:ST9=2021-01-03;
 --set hivevar:db_suffix=;
---create table if not exists eagle.eagle_post_loan_scene_d(
+--create table if not exists eagle.eagle_post_loan_scene_d_cps(
 --     project_id                        string             comment '项目ID'
 --    ,remain_principal_d                decimal(15,4)      comment '日末本金余额'
 --    ,loan_avg_days                     decimal(15,2)      comment '平均用信天数-当日结清借据，从放款至结清的天数的平均值'
@@ -14,7 +14,13 @@
 --partitioned by (biz_date string comment '观察日',product_id string comment '产品号')
 --stored as parquet;
 
---set hivevar:db_suffix=;
+---set hivevar:db_suffix=;
+set hive.auto.convert.join=true;
+set hive.mapjoin.smalltable.filesize=209715200;
+set hive.auto.convert.join.noconditionaltask=true;
+
+-- 多个mapjoin 转换为1个时，限制输入的最大的数据量 影响tez，默认10m 
+set hive.auto.convert.join.noconditionaltask.size =209715200;
 set hive.exec.input.listing.max.threads=50;
 set tez.grouping.min-size=50000000;
 set tez.grouping.max-size=50000000;
@@ -79,17 +85,25 @@ group by
     product_id
 ) t1
 full join
-(
-select
+(select
+  product_id
+  ,sum(shouldPayPrin_3days_before) as shouldPayPrin_3days_before
+  ,sum(shouldPayBill_3days_before) as shouldPayBill_3days_before
+from
+(select
     product_id
-    ,sum(principal_should_repay_3 )     as shouldPayPrin_3days_before
-    ,sum(loan_num_should_repay_3)       as shouldPayBill_3days_before
+    ,loan_init_term
+    ,max(principal_should_repay_3)      as shouldPayPrin_3days_before
+    ,max(loan_num_should_repay_3)       as shouldPayBill_3days_before
 from
     dw${db_suffix}.dw_should_repay_summary
 where biz_date = '${ST9}'
     and product_id in (${product_id_list})
 group by 
     product_id
+    ,loan_init_term
+) t
+group by product_id   
 ) t2
 on t1.product_id = t2.product_id
 full join

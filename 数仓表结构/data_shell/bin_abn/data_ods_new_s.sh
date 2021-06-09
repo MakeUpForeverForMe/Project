@@ -78,12 +78,12 @@ echo -e "${date_a_aa:=$(date +'%F %T')} 资产 EMR ods_new_s ods_new_s层 结束
 
 # dm 层
 
-#sh $data_manage -s ${s_date} -e ${e_date} -f $dm_eagle_hql/dm_eagle.eagle_repay_detail.hql -i $param_dir/dm_eagle.param.hql -a $rd &
-#sh $data_manage -s ${s_date} -e ${e_date} -f $dm_eagle_hql/dm_eagle.eagle_repay_detail.hql -i $param_dir/dm_eagle_cps.param.hql -a $rd &
+sh $data_manage -s ${s_date} -e ${e_date} -f $dm_eagle_hql/dm_eagle.eagle_repay_detail.hql -i $param_dir/dm_eagle.param.hql -a $rd &
+sh $data_manage -s ${s_date} -e ${e_date} -f $dm_eagle_hql/dm_eagle.eagle_repay_detail.hql -i $param_dir/dm_eagle_cps.param.hql -a $rd &
 
 
-#sh $data_manage -s ${s_date} -e ${e_date} -f $dm_eagle_hql/dm_eagle.eagle_order_info.hql -i $param_dir/dm_eagle.param.hql -a $rd &
-#sh $data_manage -s ${s_date} -e ${e_date} -f $dm_eagle_hql/dm_eagle.eagle_order_info.hql -i $param_dir/dm_eagle_cps.param.hql -a $rd &
+sh $data_manage -s ${s_date} -e ${e_date} -f $dm_eagle_hql/dm_eagle.eagle_order_info.hql -i $param_dir/dm_eagle.param.hql -a $rd &
+sh $data_manage -s ${s_date} -e ${e_date} -f $dm_eagle_hql/dm_eagle.eagle_order_info.hql -i $param_dir/dm_eagle_cps.param.hql -a $rd &
 
 
 
@@ -98,14 +98,14 @@ wait_jobs
 
 
 
-#sh $data_manage -s ${s_date} -e ${e_date} -f $dm_eagle_hql/dm_eagle.eagle_repay_schedule.hql -i $param_dir/dm_eagle.param.hql -a $rd &
-#sh $data_manage -s ${s_date} -e ${e_date} -f $dm_eagle_hql/dm_eagle.eagle_repay_schedule.hql -i $param_dir/dm_eagle_cps.param.hql -a $rd &
+sh $data_manage -s ${s_date} -e ${e_date} -f $dm_eagle_hql/dm_eagle.eagle_repay_schedule.hql -i $param_dir/dm_eagle.param.hql -a $rd &
+sh $data_manage -s ${s_date} -e ${e_date} -f $dm_eagle_hql/dm_eagle.eagle_repay_schedule.hql -i $param_dir/dm_eagle_cps.param.hql -a $rd &
 #
-#sh $data_manage -s ${s_date} -e ${e_date} -f $dm_eagle_hql/dm_eagle.eagle_loan_info.hql -i $param_dir/dm_eagle.param.hql -a $rd &
-#sh $data_manage -s ${s_date} -e ${e_date} -f $dm_eagle_hql/dm_eagle.eagle_loan_info.hql -i $param_dir/dm_eagle_cps.param.hql -a $rd &
+sh $data_manage -s ${s_date} -e ${e_date} -f $dm_eagle_hql/dm_eagle.eagle_loan_info.hql -i $param_dir/dm_eagle.param.hql -a $rd &
+sh $data_manage -s ${s_date} -e ${e_date} -f $dm_eagle_hql/dm_eagle.eagle_loan_info.hql -i $param_dir/dm_eagle_cps.param.hql -a $rd &
 #
-#sh $data_manage -s ${s_date} -e ${e_date} -f $dm_eagle_hql/dm_eagle.eagle_repayment_record_day.hql -i $param_dir/dm_eagle.param.hql -a $rd &
-#sh $data_manage -s ${s_date} -e ${e_date} -f $dm_eagle_hql/dm_eagle.eagle_repayment_record_day.hql -i $param_dir/dm_eagle_cps.param.hql -a $rd &
+sh $data_manage -s ${s_date} -e ${e_date} -f $dm_eagle_hql/dm_eagle.eagle_repayment_record_day.hql -i $param_dir/dm_eagle.param.hql -a $rd &
+sh $data_manage -s ${s_date} -e ${e_date} -f $dm_eagle_hql/dm_eagle.eagle_repayment_record_day.hql -i $param_dir/dm_eagle_cps.param.hql -a $rd &
 
 
 

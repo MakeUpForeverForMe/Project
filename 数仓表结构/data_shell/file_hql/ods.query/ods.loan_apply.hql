@@ -8,8 +8,8 @@ set hive.tez.container.size=4096;
 set tez.am.resource.memory.mb=4096;
 -- 合并小文件
 set hive.merge.tezfiles=true;
-set hive.merge.size.per.task=64000000;      -- 64M
-set hive.merge.smallfiles.avgsize=64000000; -- 64M
+set hive.merge.size.per.task=128000000;      -- 64M
+set hive.merge.smallfiles.avgsize=128000000; -- 64M
 -- 设置动态分区
 set hive.exec.dynamic.partition=true;
 set hive.exec.dynamic.partition.mode=nonstrict;
@@ -20,7 +20,7 @@ set hive.vectorized.execution.enabled=false;
 set hive.vectorized.execution.reduce.enabled=false;
 set hive.vectorized.execution.reduce.groupby.enabled=false;
 
-
+set hive.auto.convert.join=false
 
 
 -- 滴滴
@@ -381,7 +381,7 @@ where temp.rn = 1
 -- 乐信
 set hivevar:where_date=and deal_date between date_sub('${ST9}',2) and '${ST9}';
 
-
+--explain
 insert overwrite table ods.loan_apply partition(biz_date,product_id)
 select
   cust_id,
@@ -420,7 +420,7 @@ from (
     row_number() over(partition by apply_id,product_id order by update_time) as rn
   from (
     select
-      concat_ws('_',biz_conf.channel_id,sha256(get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.idNo'),'idNumber',1),sha256(get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.custName'),'userName',1)) as cust_id,
+      concat_ws('_',if(loan_apply.product_id in ('001801', '001901', '002001'), '0006',biz_conf.channel_id),sha256(get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.idNo'),'idNumber',1),sha256(get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.custName'),'userName',1)) as cust_id,
       sha256(get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.idNo'),'idNumber',1)       as user_hash_no,
       is_empty(
         datefmt(get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.birth'),'yyyyMMdd','yyyy-MM-dd'),
@@ -493,12 +493,14 @@ from (
       loan_apply.create_time                                                                                          as create_time,
       loan_apply.update_time                                                                                          as update_time,
       get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.loanDate')                        as biz_date,
-      get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.proCode')                         as product_id
+      loan_apply.product_id                                                                                           as product_id
     from (
     select
-    t.*
-    ,get_json_object(original_msg,'$.reqContent.jsonReq.content.reqData.applyNo') as due_bill_no
-    ,get_json_object(original_msg,'$.reqContent.jsonReq.content.reqData.proCode') as product_id
+    t.create_time
+    ,t.update_time
+    ,t.original_msg
+    ,get_json_object(t.original_msg,'$.reqContent.jsonReq.content.reqData.applyNo') as due_bill_no
+    ,get_json_object(t.original_msg,'$.reqContent.jsonReq.content.reqData.proCode') as product_id
     from
     (
       select

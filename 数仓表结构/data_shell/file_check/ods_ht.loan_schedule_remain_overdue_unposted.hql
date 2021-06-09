@@ -1,8 +1,6 @@
- --set var:db_suffix=;
-
  --set var:db_suffix=_cps;
 
- --set var:ST9=2021-01-30;
+
  --set var:ST9=2020-12-02;
 
 --set var:db_suffix=;set var:tb_suffix=_asset;
@@ -36,7 +34,7 @@ from (
     and product_id in (
       '001601','001602','001603',
       ''
-    )
+    ) and due_bill_no not in ('1000004836')
   group by product_id,due_bill_no,overdue_days,paid_out_type_cn
 ) as loan_info
 full join (
@@ -52,7 +50,7 @@ full join (
       ''
     )
     and schedule_status = 'N'
-
+    and due_bill_no not in ('1000004836')
   group by product_id,due_bill_no
 ) as repay_schedule
 on  loan_info.product_id  = repay_schedule.product_id

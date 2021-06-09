@@ -70,7 +70,7 @@ sh $data_manage -s ${s_date} -e ${e_date} -f $dm_eagle_hql/dm_eagle.eagle_asset_
 wait_jobs
 echo -e "${date_e_aa:=$(date +'%F %T')} 汇通资产dw_dm  结束 当前脚本进程ID为：$(pid)    用时：${during_time:=$(during "$date_e_aa" "$date_s_aa")}\n\n" &>> $log
 
-$mail $pm_rd '数据 4.0 汇通资产dw_dm 结束' "
+$mail $pm_rd 'EMR 数据 4.0 汇通资产dw_dm 结束' "
   执行开始日期： $s_date
   执行结束日期： $e_date
   操作开始时间： $date_s_aa

@@ -1,6 +1,5 @@
 -- select '${var:ST9}' as biz_date,if('${var:db_suffix}' = '','代偿前','代偿后') as cps;
 --set var:ST9=2020-12-02;
-
 --set var:db_suffix=;set var:tb_suffix=_asset;
 
  --set var:ST9=2020-12-02;
@@ -41,6 +40,7 @@ from (
     and due_bill_no not in (
       '1120123112250874213037'
     )
+    and due_bill_no not in ('1000004836')
   group by product_id
   ,due_bill_no
 ) as repay_schedule
@@ -62,6 +62,7 @@ full join (
     and due_bill_no not in (
       '1120123112250874213037'
     )
+    and due_bill_no not in ('1000004836')
   group by product_id
   ,due_bill_no
 ) as repay_detail

@@ -1,4 +1,4 @@
---create table if not exists eagle.eagle_post_loan_scene_w(
+--create table if not exists eagle.eagle_post_loan_scene_w_cps(
 -- project_id                        string             comment '项目ID'
 --,overdue3_bill                     decimal(15,0)      comment '3+借据笔数'
 --,overdue7_bill                     decimal(15,0)      comment '7+借据笔数'

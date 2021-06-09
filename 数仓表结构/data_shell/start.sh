@@ -32,6 +32,8 @@ sh $bin/data_export.sh                         &>> $log
 
 sh $bin_abn/dm_operation.sh    $s_date $e_date &>> $log
 
+sh $bin_abn/data_risk_control_report.sh $s_date $e_date &>> $log
+
 sh $bin_abn/lx_asset_report.sh $s_date $e_date &>> $log
 
 sh $bin_abn/lx_over_report.sh  $s_date $e_date &>> $log

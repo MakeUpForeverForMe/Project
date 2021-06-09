@@ -1,5 +1,5 @@
-mysql_host='10.80.16.87'
+mysql_host='10.80.16.73'
 mysql_port='3306'
-mysql_user='root'
-mysql_pass='wH7Emvsrg&V5'
+mysql_user='hadoop'
+mysql_pass='XFfRjfWFWOki^kU0'
 mysql_db='dm_eagle_cps'

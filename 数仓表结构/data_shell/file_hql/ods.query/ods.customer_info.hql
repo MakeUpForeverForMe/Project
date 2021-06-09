@@ -378,13 +378,14 @@ from (
 
 -- 乐信
 --explain
+
 insert overwrite table ods.customer_info partition(product_id)
 select distinct *
 from (
   select
-    get_json_object(msg_log.original_msg,'$.reqContent.jsonReq.content.reqData.applyNo')                                  as apply_id,
-    get_json_object(msg_log.original_msg,'$.reqContent.jsonReq.content.reqData.applyNo')                                  as due_bill_no,
-    concat_ws('_',biz_conf.channel_id,sha256(get_json_object(msg_log.original_msg,'$.reqContent.jsonReq.content.reqData.idNo'),'idNumber',1),sha256(get_json_object(msg_log.original_msg,'$.reqContent.jsonReq.content.reqData.custName'),'userName',1)) as cust_id,
+    msg_log.due_bill_no                                                                                                                                                  as apply_id,
+    msg_log.due_bill_no                                                                                                                                                  as due_bill_no,
+    concat_ws('_','0006',sha256(get_json_object(msg_log.original_msg,'$.reqContent.jsonReq.content.reqData.idNo'),'idNumber',1),sha256(get_json_object(msg_log.original_msg,'$.reqContent.jsonReq.content.reqData.custName'),'userName',1)) as cust_id,
     sha256(get_json_object(msg_log.original_msg,'$.reqContent.jsonReq.content.reqData.idNo'),'idNumber',1)                as user_hash_no,
     get_json_object(msg_log.original_msg,'$.reqContent.jsonReq.content.reqData.customerId')                               as outer_cust_id,
     case get_json_object(msg_log.original_msg,'$.reqContent.jsonReq.content.reqData.idType')
@@ -526,7 +527,7 @@ from (
     end                                                                                                                   as customer_type,
     '个人'                                                                                                                as loan_type,
     null                                                                                                                  as cust_rating,
-    get_json_object(msg_log.original_msg,'$.reqContent.jsonReq.content.reqData.proCode')                                  as product_id
+    msg_log.product_code                                                                                                  as product_id
   from (
     select
       deal_date,
@@ -557,36 +558,22 @@ from (
       from stage.ecas_msg_log
       where msg_type = 'WIND_CONTROL_CREDIT'
         and original_msg is not null
-        -- and is_his = 'N'
+        --- and is_his = 'N'
         and deal_date = '${ST9}'
     ) as  original_msg
   ) as msg_log
   left join (
     select
+    distinct
       due_bill_no,
       active_date,
       product_code
     from stage.ecas_loan
     where 1 > 0
       and p_type in ('lx','lx2','lxzt','lx3')
-      and d_date between date_sub(current_date,2) and current_date
+      and d_date between date_sub(current_date,2) and date_sub(current_date,1)
   ) as ecas_loan
-  on msg_log.product_code  = ecas_loan.product_code
-  and msg_log.due_bill_no = ecas_loan.due_bill_no
-  left join (
-    select distinct
-      product_id as dim_product_id,
-      channel_id
-    from (
-      select
-        max(if(col_name = 'product_id',  col_val,null)) as product_id,
-        max(if(col_name = 'channel_id',  col_val,null)) as channel_id
-      from dim.data_conf
-      where col_type = 'ac'
-      group by col_id
-    ) as tmp
-  ) as biz_conf
-  on msg_log.product_code = biz_conf.dim_product_id
+  on concat(msg_log.product_code,'_',msg_log.due_bill_no) = concat(ecas_loan.product_code,'_',ecas_loan.due_bill_no)
   left join (
     select distinct
       idno_addr,

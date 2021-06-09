@@ -116,7 +116,7 @@ object MockDataAndInvokePmml {
     }
     sparkSession.close()
     //发送邮件通知
-    SentMessage.sendMessage(s"EMR-模型预测（project_id：${project_id}）,biz_date:${batchDate}","text",pro,"select * from flink_config.robot_person_info where isEnable=1")
+    SentMessage.sendMessage(s"EMR-模型预测（project_id：${project_id}）,biz_date:${batchDate}","text",pro,"select * from flink_config.robot_person_info where isEnable=1 and id=2")
 
   }
 

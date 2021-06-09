@@ -5,14 +5,15 @@
 
 execute_sh_m(){
 
-      #  sh $data_manage -s $1 -e $2 -f $eagle_hql/eagle.eagle_loan_apply_stat_m.hql                                               -n 1 -a $rd &
-      #  sh $data_manage -s $1 -e $2 -f $eagle_hql/eagle.eagle_loan_base_stat_loan_num_m.hql                                       -n 1 -a $rd &
+        sh $data_manage -s $1 -e $2 -f $eagle_hql/eagle.eagle_loan_apply_stat_m.hql                                               -n 1 -a $rd &
+        sh $data_manage -s $1 -e $2 -f $eagle_hql/eagle.eagle_loan_base_stat_loan_num_m.hql                                       -n 1 -a $rd &
         
-      #  sh $data_manage -s $1 -e $2 -f $eagle_hql/eagle.eagle_post_loan_scene_m.hql         -i $param_dir/dw.param.hql            -n 1 -a $rd &
-      #  sh $data_manage -s $1 -e $2 -f $eagle_hql/eagle.eagle_post_loan_scene_m.hql         -i $param_dir/dw_cps.param.hql        -n 1 -a $rd &
+        sh $data_manage -s $1 -e $2 -f $eagle_hql/eagle.eagle_post_loan_scene_m.hql         -i $param_dir/dw.param.hql            -n 1 -a $rd &
+        sh $data_manage -s $1 -e $2 -f $eagle_hql/eagle.eagle_post_loan_scene_m.hql         -i $param_dir/dw_cps.param.hql        -n 1 -a $rd &
                                                                                                                                   
         sh $data_manage -s $1 -e $2 -f $eagle_hql/eagle.eagle_post_loan_scene_static_m.hql  -i $param_dir/dw.param.hql            -n 1 -a $rd &
         sh $data_manage -s $1 -e $2 -f $eagle_hql/eagle.eagle_post_loan_scene_static_m.hql  -i $param_dir/dw_cps.param.hql        -n 1 -a $rd &
+        
 }
 
 time_processing(){
@@ -32,6 +33,7 @@ time_processing(){
             execute_sh_m $end_date $end_date
             ## 一次结束重置月份
             let start_sec=`date -d "${month_curr}-01 +1 months" +%s`
+            sleep 30
         done  
 
 }
@@ -50,26 +52,27 @@ log=$log/${base_file_name}.${e_date}.log
 echo -e "${date_s_aa:=$(date +'%F %T')} Emr 风控报表 eagle 开始 当前脚本进程ID为：$(pid)\n" &>> $log
 
 #日任务
-       # sh $data_manage -s ${s_date} -e ${e_date} -f $eagle_hql/eagle.eagle_loan_apply_stat_d.hql                                         -n 1 -a $rd &
-       # sh $data_manage -s ${s_date} -e ${e_date} -f $eagle_hql/eagle.eagle_loan_base_stat_loan_num_d.hql                                 -n 1 -a $rd &
-       # sh $data_manage -s ${s_date} -e ${e_date} -f $eagle_hql/eagle.eagle_post_loan_scene_d.hql          -i $param_dir/dw.param.hql     -n 1 -a $rd &
-       # sh $data_manage -s ${s_date} -e ${e_date} -f $eagle_hql/eagle.eagle_post_loan_scene_d.hql          -i $param_dir/dw_cps.param.hql -n 1 -a $rd &
+        sh $data_manage -s ${s_date} -e ${e_date} -f $eagle_hql/eagle.eagle_loan_apply_stat_d.hql                                         -n 1 -a $rd &
+        sh $data_manage -s ${s_date} -e ${e_date} -f $eagle_hql/eagle.eagle_loan_base_stat_loan_num_d.hql                                 -n 1 -a $rd &
+        sh $data_manage -s ${s_date} -e ${e_date} -f $eagle_hql/eagle.eagle_post_loan_scene_d.hql          -i $param_dir/dw.param.hql     -n 1 -a $rd &
+        sh $data_manage -s ${s_date} -e ${e_date} -f $eagle_hql/eagle.eagle_post_loan_scene_d.hql          -i $param_dir/dw_cps.param.hql -n 1 -a $rd &
 
-#wait_jobs
+wait_jobs
 
 #周任务 确定当前日是否是周末
 weekend_date=${s_date}
 while [[ "$(date -d "${weekend_date}" +%s)" -le "$(date -d "${e_date}" +%s)" ]]; do
 
     if [ $(date -d "${weekend_date}" +%w) = 0 ]; then
-       # sh $data_manage -s ${weekend_date} -e ${weekend_date} -f $eagle_hql/eagle.eagle_loan_apply_stat_w.hql                                               -n 1 -a $rd &
-       # sh $data_manage -s ${weekend_date} -e ${weekend_date} -f $eagle_hql/eagle.eagle_loan_base_stat_loan_num_w.hql                                       -n 1 -a $rd &
+        sh $data_manage -s ${weekend_date} -e ${weekend_date} -f $eagle_hql/eagle.eagle_loan_apply_stat_w.hql                                               -n 1 -a $rd &
+        sh $data_manage -s ${weekend_date} -e ${weekend_date} -f $eagle_hql/eagle.eagle_loan_base_stat_loan_num_w.hql                                       -n 1 -a $rd &
         
-       # sh $data_manage -s ${weekend_date} -e ${weekend_date} -f $eagle_hql/eagle.eagle_post_loan_scene_w.hql            -i $param_dir/dw.param.hql         -n 1 -a $rd &
-       # sh $data_manage -s ${weekend_date} -e ${weekend_date} -f $eagle_hql/eagle.eagle_post_loan_scene_w.hql            -i $param_dir/dw_cps.param.hql     -n 1 -a $rd &
+        sh $data_manage -s ${weekend_date} -e ${weekend_date} -f $eagle_hql/eagle.eagle_post_loan_scene_w.hql            -i $param_dir/dw.param.hql         -n 1 -a $rd &
+        sh $data_manage -s ${weekend_date} -e ${weekend_date} -f $eagle_hql/eagle.eagle_post_loan_scene_w.hql            -i $param_dir/dw_cps.param.hql     -n 1 -a $rd &
                                                                                                                          
         sh $data_manage -s ${weekend_date} -e ${weekend_date} -f $eagle_hql/eagle.eagle_post_loan_scene_static_w.hql     -i $param_dir/dw.param.hql         -n 1 -a $rd &
         sh $data_manage -s ${weekend_date} -e ${weekend_date} -f $eagle_hql/eagle.eagle_post_loan_scene_static_w.hql     -i $param_dir/dw_cps.param.hql     -n 1 -a $rd &       
+        sleep 30
     fi
 
   weekend_date=$(date -d "$weekend_date +1 day" +%F)
@@ -111,4 +114,3 @@ $mail $pm_rd 'Emr 风控报表 eagle 执行结束' "
   执行结束时间： $date_e_aa
   执行执行时长： $during_time
 " &>> $log
-

@@ -8,6 +8,7 @@ import com.weshare.repair_data.mode.{Loan, RepairMode, RepaySchedule}
 import com.weshare.utils.{DruidDataSourceUtils, JDBCUtils, PropertiesUtils, SendEmailUtil}
 import org.apache.commons.lang3.StringUtils
 import org.apache.spark.sql.{DataFrame, Dataset, Row, SaveMode, SparkSession}
+import org.slf4j.{Logger, LoggerFactory}
 
 import scala.util.Properties
 
@@ -19,8 +20,10 @@ import scala.util.Properties
  *
  **/
 object RepairMain {
+  private val logger: Logger = LoggerFactory.getLogger(RepairMain.getClass)
   def main(args: Array[String]): Unit = {
     //通过spark查询 kudu 表 获取要修的借据，放款日期  结束日期
+
     val spark = SparkSession.builder()
      //.master("local[*]")
      /* .master("yarn")*/
@@ -29,6 +32,7 @@ object RepairMain {
       .config("hive.exec.max.dynamic.partitions","100000")
       .config("hive.exec.max.dynamic.partitions.pernode","100000")
       .config("hive.exec.max.created.files","100000")
+      .config("hive.execution.engine","spark")
       //.config("hive.metastore.uris","thrift://10.83.0.47:9083")
       .appName("RepairMain")
       .enableHiveSupport()
@@ -49,6 +53,7 @@ object RepairMain {
     val statement = connection.prepareStatement(s"insert into  ${ht_repair_table} (id,due_bill_no,register_date,active_date,repair_flag,repair_date) values(?,?,?,?,?,?) on DUPLICATE KEY UPDATE repair_flag=1,repair_date='${format.format(new Date())}'")
     val repairModes =getRepairMode(spark,connection,batch_date,properties)
     repairModes.foreach(it=>{
+      logger.info(s"${it}")
       val due_bill_no = it.due_bill_no
       val start_move_date = it.active_date
      val end_move_date = it.register_date  // 注册时当天是有数据的 所以应该 为<
@@ -109,7 +114,7 @@ object RepairMain {
       ,"create_user","loan_settle_reason","repay_term","overdue_term","count_overdue_term","max_overdue_term","max_overdue_prin","overdue_days","count_overdue_days",
       "max_overdue_days","reduce_prin","reduce_interest","reduce_svc_fee","reduce_term_fee","reduce_penalty","reduce_mult_amt","overdue_prin"
       ,"overdue_interest","overdue_svc_fee","overdue_term_fee","overdue_penalty","overdue_mult_amt","svc_fee_rate","term_fee_rate","acq_id","cycle_day"
-      ,"goods_princ","sync_date","capital_plan_no","lst_upd_time","lst_upd_user","capital_type","d_date","p_type").coalesce(1).write.mode(SaveMode.Append).insertInto("ods.ecas_loan_ht_repair")
+      ,"goods_princ","sync_date","capital_plan_no","lst_upd_time","lst_upd_user","capital_type","d_date","p_type").coalesce(1).write.mode(SaveMode.Append).insertInto("stage.ecas_loan_ht_repair")
 
 
   }
@@ -120,7 +125,7 @@ object RepairMain {
       ,"due_term_fee","due_svc_fee","due_penalty","due_mult_amt","paid_term_pric","paid_term_int","paid_term_fee","paid_svc_fee","paid_penalty"
       ,"paid_mult_amt","reduced_amt","reduce_term_prin","reduce_term_int","reduce_term_fee","reduce_svc_fee","reduce_penalty","reduce_mult_amt"
       ,"penalty_acru","paid_out_date","paid_out_type","start_interest_date","pmt_due_date","origin_pmt_due_date","product_code","schedule_status",
-      "grace_date","create_time","create_user","lst_upd_time","lst_upd_user","jpa_version","out_side_schedule_no","d_date","p_type").coalesce(1).write.mode(SaveMode.Append).insertInto("ods.ecas_repay_schedule_ht_repair")
+      "grace_date","create_time","create_user","lst_upd_time","lst_upd_user","jpa_version","out_side_schedule_no","d_date","p_type").coalesce(1).write.mode(SaveMode.Append).insertInto("stage.ecas_repay_schedule_ht_repair")
 
   }
 
@@ -160,16 +165,17 @@ object RepairMain {
         |a.due_bill_no as id,
         |a.due_bill_no,
         |a.register_date,
-        |a.active_date
+        |a.active_date,
+        |a.p_type
         |from
-        |(select due_bill_no,active_date,register_date from ods.ecas_loan where d_Date='${batch_date}' and p_type='ddht' and  product_code in ('001601','001602','001603')
-        |and active_date!=register_date )a
+        |(select due_bill_no,active_date,register_date,p_type from stage.ecas_loan where d_Date='${batch_date}' and p_type in ('ddht') and  product_code in ('001601','001602','001603')
+        |and active_date!=register_date and active_date>='2021-02-02' )a
         |
-        |""".stripMargin).coalesce(1).as[(String, String, String, String)]
+        |""".stripMargin).coalesce(1).as[(String, String, String, String,String)]
  // 查询mysql 获取已修复的数据
       val repirList = JDBCUtils.executeSQL(s"select due_bill_no from ${ht_repair_table} where repair_flag=1",conn)
-      spark.sparkContext.broadcast(repirList)
-      df.filter(it=>{!repirList.contains(it._1)}).mapPartitions(it=>{//过滤掉 已经处理过的借据
+      val value = spark.sparkContext.broadcast(repirList)
+      df.filter(it=>{!value.value.contains(it._1)}).mapPartitions(it=>{//过滤掉 已经处理过的借据
         var list = List[RepairMode]()
         while (it.hasNext) {
           val tuple = it.next()
@@ -179,7 +185,8 @@ object RepairMain {
             tuple._3,
             tuple._4,
             0,
-            null
+            null,
+            tuple._5
           )::list
 
         }
@@ -220,9 +227,9 @@ object RepairMain {
          |select
          |*
          |from
-         |ods.ecas_loan
+         |stage.ecas_loan
          |where due_bill_no='${due_bill_no}'
-         |and p_type='ddht'
+         |and p_type in ('ddht')
          |and d_date=date_add('${register_date}',1)
          |""".stripMargin
     sparkSession.sql(loan_query).as[Loan]
@@ -285,9 +292,9 @@ object RepairMain {
          |d_date,
          |p_type
          |from
-         |ods.ecas_repay_schedule
+         |stage.ecas_repay_schedule
          |where due_bill_no='${due_bill_no}'
-         |and p_type='ddht'
+         |and p_type in ('ddht')
          |and d_date=date_add('${register_date}',1)
          |""".stripMargin
     sparkSession.sql(repay_schedule_query).as[RepaySchedule]
@@ -311,7 +318,7 @@ object RepairMain {
       while (it.hasNext) {
         val schedule = it.next()
         // 数据初始化
-        if(StringUtils.isNoneBlank(schedule.paid_out_date)&& start_Date.compareTo(schedule.paid_out_date)<0){
+        if(StringUtils.isNotEmpty(schedule.paid_out_date)&&start_Date.compareTo(schedule.paid_out_date)<0){
           schedule.paid_term_pric=BigDecimal.valueOf(0)
           schedule.paid_term_int=BigDecimal.valueOf(0)
           schedule.paid_term_fee=BigDecimal.valueOf(0)

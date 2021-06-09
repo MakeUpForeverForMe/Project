@@ -18,10 +18,10 @@ echo -e "${date_s_aa:=$(date +'%F %T')} 星云 整体任务  开始 当前脚本
 
 sh $data_manage -a $rd -s ${s_date} -e ${e_date} -f $dim_new_hql/dim.dim_encrypt_info.hql &
 
-sh $data_manage -a $rd -s ${e_date} -e ${e_date} -f $dim_new_hql/dim.project_info.hql &
-sh $data_manage -a $rd -s ${e_date} -e ${e_date} -f $dim_new_hql/dim.project_due_bill_no.hql &
-sh $data_manage -a $rd -s ${e_date} -e ${e_date} -f $dim_new_hql/dim.bag_info.hql &
-sh $data_manage -a $rd -s ${e_date} -e ${e_date} -f $dim_new_hql/dim.bag_due_bill_no.hql &
+sh $data_manage -a $rd -s ${e_date} -e ${e_date} -f $dim_new_hql/dim.project_info-abs.hql &
+sh $data_manage -a $rd -s ${e_date} -e ${e_date} -f $dim_new_hql/dim.project_due_bill_no-abs.hql &
+sh $data_manage -a $rd -s ${e_date} -e ${e_date} -f $dim_new_hql/dim.bag_info-abs.hql &
+sh $data_manage -a $rd -s ${e_date} -e ${e_date} -f $dim_new_hql/dim.bag_due_bill_no-abs.hql &
 
 sh $bin_abs/data_cloud-ods.sh $s_date $e_date &>> $log
 
@@ -29,6 +29,8 @@ sh $bin_abs/data_cloud-dw_dm-day.sh $s_date $e_date &>> $log
 
 # 删除日志文件
 sh $bin/data_delete_file.sh                      &>> $log
+
+wait_jobs
 
 echo -e "${date_e_aa:=$(date +'%F %T')} 星云 整体任务  结束 当前脚本进程ID为：$(pid)    用时：${during_time:=$(during "$date_e_aa" "$date_s_aa")}\n\n" &>> $log
 

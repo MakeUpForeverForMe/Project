@@ -19,30 +19,39 @@ set hive.exec.max.dynamic.partitions.pernode=50000;
 set hive.vectorized.execution.enabled=false;
 set hive.vectorized.execution.reduce.enabled=false;
 set hive.vectorized.execution.reduce.groupby.enabled=false;
+-- 设置可以使用正则表达式查找字段
+set hive.support.quoted.identifiers=None;
 
 
 insert overwrite table dm_eagle${db_suffix}.eagle_repay_detail partition(biz_date,product_id)
 select
-  due_bill_no,
-  loan_active_date,
-  loan_init_term,
-  repay_term,
-  order_id,
-  loan_status,
-  loan_status_cn,
-  overdue_days,
-  payment_id,
-  txn_time,
-  post_time,
-  bnp_type,
-  bnp_type_cn,
-  repay_amount,
-  batch_date,
-  create_time,
-  update_time,
-  biz_date,
-  product_id
-from ods${db_suffix}.repay_detail
+  repay.due_bill_no,
+  loan.loan_active_date,
+  loan.loan_init_term,
+  repay.repay_term,
+  repay.order_id,
+  loan.loan_status,
+  loan.loan_status_cn,
+  loan.overdue_days,
+  repay.payment_id,
+  repay.txn_time,
+  repay.post_time,
+  repay.bnp_type,
+  repay.bnp_type_cn,
+  repay.repay_amount,
+  repay.batch_date,
+  repay.create_time,
+  repay.update_time,
+  repay.biz_date,
+  repay.product_id
+from ods${db_suffix}.repay_detail repay
+left join (
+    select `(product_id)?+.+` from ods${db_suffix}.loan_info
+    where 1 > 0
+    and '${ST9}' between s_d_date and date_sub(e_d_date,1)
+    ${hive_param_str}
+) loan
+on repay.due_bill_no = loan.due_bill_no
 where 1 > 0
-  and biz_date = '${ST9}' ${hive_param_str}
+  and repay.biz_date = '${ST9}' ${hive_param_str}
 ;

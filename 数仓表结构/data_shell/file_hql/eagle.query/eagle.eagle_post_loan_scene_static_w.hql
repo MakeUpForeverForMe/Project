@@ -1,4 +1,4 @@
---create table if not exists eagle.eagle_post_loan_scene_static_w(
+--create table if not exists eagle.eagle_post_loan_scene_static_w_cps(
 -- project_id                        string             comment '项目ID'
 --,loan_month                        string             comment '放款月'
 --,loan_num_count                    decimal(15,0)      comment '总放款借据数'
@@ -27,7 +27,7 @@ set tez.am.resource.memory.mb=4096;
 set hive.merge.tezfiles=true;
 set hive.merge.size.per.task=64000000;      -- 64M
 set hive.merge.smallfiles.avgsize=64000000; -- 64M
--- 设置动态分区
+---- 设置动态分区
 set hive.exec.dynamic.partition=true;
 set hive.exec.dynamic.partition.mode=nonstrict;
 set hive.exec.max.dynamic.partitions=200000;
@@ -36,23 +36,15 @@ set hive.exec.max.dynamic.partitions.pernode=50000;
 set hive.vectorized.execution.enabled=false;
 set hive.vectorized.execution.reduce.enabled=false;
 set hive.vectorized.execution.reduce.groupby.enabled=false;
+set hive.auto.convert.join=true;
 
-set hive.exec.parallel=true;
-set hive.exec.parallel.thread.number=10;
-set hive.exec.dynamic.partition=true;
-set hive.exec.dynamic.partition.mode=nonstrict;
-set mapred.max.split.size=512000000;
-set mapred.min.split.size.per.node=512000000;
-set mapred.min.split.size.per.rack=512000000;
-set hive.input.format=org.apache.hadoop.hive.ql.io.CombineHiveInputFormat;
-set hive.exec.reducers.bytes.per.reducer=1024000000; --| |#每个节点的reduce 默认是处理1G大小的数据
-set hive.exec.reducers.max=50;
+--explain
 --set hivevar:db_suffix=;
---set hivevar:ST9=2021-03-04;
-set hivevar:weekend_date=date_sub(next_day('${ST9}','MONDAY'), 1);
-set hivevar:monday_date =date_sub(next_day('${ST9}','MONDAY'), 7);
+--set hivevar:ST9=2021-02-28;
+set hivevar:weekend_date=cast(date_sub(next_day('${ST9}','MONDAY'), 1) as string);
+set hivevar:monday_date =cast(date_sub(next_day('${ST9}','MONDAY'), 7)as string);
 set hivevar:product_id_list='001601','001602','001603','001802','002001','001906','002006','001901','001801','002002','001902','DIDI201908161538','002501','002601','002602';
-
+--explain
 insert overwrite table eagle.eagle_post_loan_scene_static_w${db_suffix} partition(biz_date, product_id)
 select
  t3.project_id                
@@ -73,17 +65,20 @@ select
 from
 (
 select
-    product_id
-    ,substr(biz_date,0,7)       as loan_month
-    ,sum(loan_num)              as loan_num_count
-    ,sum(loan_principal)        as loan_principal_count
+  product_id,
+  substr(loan_active_date,0,7)                                                         as loan_month,
+  count(due_bill_no)                                                                   as loan_num_count,
+  sum(loan_init_principal)                                                             as loan_principal_count
 from
-    dw${db_suffix}.dw_loan_base_stat_loan_num_day
-where biz_date <= ${weekend_date}
-    and product_id in (${product_id_list})
-    group by
-    substr(biz_date,0,7)
-    ,product_id
+   ods${db_suffix}.repay_schedule 
+   where 
+   '${ST9}' between s_d_date and date_sub(e_d_date, 1)
+   and loan_term = 1
+   and loan_active_date <= '${ST9}'
+   and product_id in (${product_id_list})
+   group by 
+   substr(loan_active_date,0,7)
+   ,product_id
 ) t1
 left join
 (

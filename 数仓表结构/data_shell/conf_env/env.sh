@@ -26,6 +26,7 @@ case $(ifconfig | grep -Po 'inet[ ]\K[^ ]+' | grep -v '127') in
     is_test=y
     hive_host=10.83.1.157:7001
     impala_host=10.83.1.43:27001 # 或 10.83.1.121:27001
+    impala_clb=''
     abs_call_back_addr=http://10.83.0.69:8210
     hdfs_uri=hdfs://
     cos_uri=cosn://bigdatacenter-sit-1253824322

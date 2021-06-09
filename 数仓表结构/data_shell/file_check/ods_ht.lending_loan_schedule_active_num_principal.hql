@@ -1,9 +1,8 @@
- --set var:ST9=2020-12-02;
+--set var:ST9=2021-01-28;
 
 --set var:db_suffix=;set var:tb_suffix=_asset;
 
 -- set var:db_suffix=_cps;set var:tb_suffix=;
-
 
 invalidate metadata ods${var:db_suffix}.loan_lending;
 invalidate metadata ods${var:db_suffix}.loan_info;
@@ -48,6 +47,7 @@ from (
       '001601','001602','001603',
       ''
     )
+    and due_bill_no not in ('1000004836')
   group by loan_active_date,product_id
   ,due_bill_no
 ) as loan_lending
@@ -67,6 +67,7 @@ full join (
       ''
     )
      and loan_active_date<='${var:ST9}'
+     and due_bill_no not in ('1000004836')
   group by loan_active_date,product_id
   ,due_bill_no
 ) as loan_info
@@ -87,7 +88,7 @@ full join(
     and product_id in (
       '001601','001602','001603',
       ''
-    )
+    ) and due_bill_no not in ('1000004836')
     and loan_active_date<='${var:ST9}'
     and loan_term = 1 -- 所有的借据都有第一期，取第一期是取还款计划中每笔借据只取一条数据
   group by loan_active_date,product_id
@@ -105,5 +106,5 @@ if(loan_lending.product_id = '002501', 0 ,(nvl(loan_lending.loan_original_princi
 if(loan_lending.product_id = '002501', 0 ,(nvl(loan_lending.loan_original_principal,0) - nvl(repay_schedule.loan_principal,0)))       != 0 or
 nvl(loan_info.loan_principal,0) - nvl(repay_schedule.loan_principal,0)                                                                != 0
 order by active_date,product_id
-limit 10
+limit 1000
 ;

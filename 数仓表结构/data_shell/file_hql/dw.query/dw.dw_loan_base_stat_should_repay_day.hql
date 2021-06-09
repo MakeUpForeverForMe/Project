@@ -1,14 +1,24 @@
-set spark.executor.memory=4g;
-set spark.executor.memoryOverhead=4g;
-set spark.shuffle.memoryFraction=0.6;         -- shuffle操作的内存占比
-set spark.maxRemoteBlockSizeFetchToMem=200m;
+set hive.tez.container.size=4096;
+set tez.am.resource.memory.mb=4096;
+-- 合并小文件
+set hive.merge.tezfiles=true;
+set hive.merge.size.per.task=64000000;      -- 64M
+set hive.merge.smallfiles.avgsize=64000000; -- 64M
+
+set hive.exec.input.listing.max.threads=50;
+set tez.grouping.min-size=50000000;
+set tez.grouping.max-size=50000000;
+set hive.exec.reducers.max=500;
+set hive.auto.convert.join=false;            -- 关闭自动 MapJoin
+set hive.exec.parallel=true;
 set hive.mapjoin.followby.gby.localtask.max.memory.usage=0.9;
+
+-- 设置动态分区
 set hive.exec.dynamic.partition=true;
 set hive.exec.dynamic.partition.mode=nonstrict;
 set hive.exec.max.dynamic.partitions=200000;
 set hive.exec.max.dynamic.partitions.pernode=50000;
-set hive.auto.convert.join=false;            -- 关闭自动 MapJoin
-set hive.exec.parallel=true;
+
 -- 执行sql前，加上如下参数，禁用hive矢量执行：
 set hive.vectorized.execution.enabled=false;
 set hive.vectorized.execution.reduce.enabled=false;

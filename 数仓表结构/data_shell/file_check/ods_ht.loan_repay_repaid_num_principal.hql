@@ -1,6 +1,5 @@
 -- select '${var:ST9}' as biz_date,if('${var:db_suffix}' = '','代偿前','代偿后') as cps;
  --set var:ST9=2020-12-02;
-
 --set var:db_suffix=;set var:tb_suffix=_asset;
 invalidate metadata ods${var:db_suffix}.loan_info;
 invalidate metadata ods${var:db_suffix}.repay_detail;
@@ -29,7 +28,7 @@ from (
     and product_id in (
      '001601','001602','001603',
       ''
-    )
+    ) and due_bill_no not in ('1000004836')
     and paid_principal != 0
   group by product_id
   ,due_bill_no
@@ -47,7 +46,7 @@ full join (
     and product_id in (
       '001601','001602','001603',
       ''
-    )
+    ) and due_bill_no not in ('1000004836')
     and bnp_type = 'Pricinpal'
   group by product_id
   ,due_bill_no
