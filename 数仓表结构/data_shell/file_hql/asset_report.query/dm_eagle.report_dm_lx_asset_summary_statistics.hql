@@ -1,8 +1,7 @@
-refresh dw_new.dw_report_cal_day;
-upsert into dm_eagle.report_dm_lx_asset_summary_statistics
+
+insert overwrite table dm_eagle.report_dm_lx_asset_summary_statistics partition(snapshot_date,project_id)
   select
-  cast(concat(from_unixtime(UNIX_TIMESTAMP(date_add('${var:ST9}',1)),'yyyyMMdd'),project_id) as String) as id,
-  project_id,
+
   cast(m2plus_recover_amount as DECIMAL(15,4)) as m2plus_recover_amount ,
   cast(m2plus_recover_prin as DECIMAL(15,4)) as m2plus_recover_prin ,
   cast(m2plus_recover_inter as DECIMAL(15,4))as m2plus_recover_inter ,
@@ -23,7 +22,8 @@ upsert into dm_eagle.report_dm_lx_asset_summary_statistics
   cast( static_90_new_amount as DECIMAL(15,4))as  static_90_new_amount,
   cast(static_90_new_prin as DECIMAL(15,4)) as static_90_new_prin,
   cast( static_90_new_inter as DECIMAL(15,4))as static_90_new_inter ,
-  cast(from_unixtime(UNIX_TIMESTAMP(date_add('${var:ST9}',1)),'yyyy-MM-dd') as string) as snapshot_date
+  cast(from_unixtime(UNIX_TIMESTAMP(date_add('${var:ST9}',1)),'yyyy-MM-dd') as string) as snapshot_date,
+  project_id
   from
   (
   select

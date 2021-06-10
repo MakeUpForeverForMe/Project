@@ -3,10 +3,87 @@
 . ${data_export_dir:=$(cd `dirname "${BASH_SOURCE[0]}"`;pwd)}/../conf_env/env.sh
 . $lib/function.sh
 
-log_file=$log/$(basename "${BASH_SOURCE[0]}")-$(pid).log
 
-info "导出数据 开始！"
-date_s_aa=$curr_time
+table_list=(
+  # # 资产
+  # dm_eagle.eagle_inflow_rate_first_term_day-$dm_eagle_dm_eagle
+  # dm_eagle_cps.eagle_inflow_rate_first_term_day-$dm_eagle_dm_eagle_cps
+
+  # dm_eagle.eagle_inflow_rate_day-$dm_eagle_dm_eagle
+  # dm_eagle_cps.eagle_inflow_rate_day-$dm_eagle_dm_eagle_cps
+
+  # dm_eagle.eagle_title_info-$dm_eagle_dm_eagle
+  # dm_eagle_cps.eagle_title_info-$dm_eagle_dm_eagle_cps
+
+  # dm_eagle.eagle_loan_amount_day-$dm_eagle_dm_eagle
+  # dm_eagle_cps.eagle_loan_amount_day-$dm_eagle_dm_eagle_cps
+
+  # dm_eagle.eagle_asset_scale_principal_day-$dm_eagle_dm_eagle
+  # dm_eagle_cps.eagle_asset_scale_principal_day-$dm_eagle_dm_eagle_cps
+
+  # dm_eagle.eagle_asset_scale_repaid_day-$dm_eagle_dm_eagle
+  # dm_eagle_cps.eagle_asset_scale_repaid_day-$dm_eagle_dm_eagle_cps
+
+  # dm_eagle.eagle_overdue_rate_month-$dm_eagle_dm_eagle
+  # dm_eagle_cps.eagle_overdue_rate_month-$dm_eagle_dm_eagle_cps
+
+  # dm_eagle.eagle_deferred_overdue_rate_full_month_product_day-$dm_eagle_dm_eagle
+  # dm_eagle_cps.eagle_deferred_overdue_rate_full_month_product_day-$dm_eagle_dm_eagle_cps
+
+  # dm_eagle.eagle_migration_rate_month-$dm_eagle_dm_eagle
+  # dm_eagle_cps.eagle_migration_rate_month-$dm_eagle_dm_eagle_cps
+
+  # dm_eagle.eagle_should_repay_repaid_amount_day-$dm_eagle_dm_eagle
+  # dm_eagle_cps.eagle_should_repay_repaid_amount_day-$dm_eagle_dm_eagle_cps
+
+
+  # # 资金页面资产
+  # dm_eagle.eagle_asset_change-$dm_eagle_dm_eagle
+  # dm_eagle.eagle_asset_comp_info-$dm_eagle_dm_eagle
+  # dm_eagle.eagle_asset_change_t1-$dm_eagle_dm_eagle
+  # dm_eagle.eagle_asset_change_comp-$dm_eagle_dm_eagle
+  # dm_eagle.eagle_asset_change_comp_t1-$dm_eagle_dm_eagle
+
+  # # 进件
+  # dm_eagle.eagle_ret_msg_day-$dm_eagle_dm_eagle
+  # dm_eagle.eagle_credit_loan_approval_rate_day-$dm_eagle_dm_eagle
+  # dm_eagle.eagle_credit_loan_approval_amount_sum_day-$dm_eagle_dm_eagle
+  # dm_eagle.eagle_credit_loan_approval_amount_rate_day-$dm_eagle_dm_eagle
+
+  # # 资金页面资金
+  # dm_eagle.eagle_funds-$dm_eagle_dm_eagle
+  # dm_eagle.eagle_acct_cost-$dm_eagle_dm_eagle
+  # dm_eagle.eagle_unreach_funds-$dm_eagle_dm_eagle
+  # dm_eagle.eagle_repayment_detail-$dm_eagle_dm_eagle
+
+  # # 应还实还
+  # dm_eagle.eagle_should_repay_repaid_amount_day-$dm_eagle_dm_eagle
+  # dm_eagle_cps.eagle_should_repay_repaid_amount_day-$dm_eagle_dm_eagle_cps
+  # dm_eagle.eagle_should_repay_repaid_amount_day_hst-$dm_eagle_dm_eagle
+  # dm_eagle_cps.eagle_should_repay_repaid_amount_day_hst-$dm_eagle_dm_eagle_cps
+  # dm_eagle_cps.eagle_should_repay_repaid_amount_day_hst-$dm_eagle_dm_eagle_cps
+
+
+  # # 星云 ABS 导出
+  # dm_eagle.abs_overdue_rate_day-$dm_eagle_uabs_core
+
+  # dm_eagle.abs_asset_distribution_day-$dm_eagle_uabs_core
+  # dm_eagle.abs_asset_distribution_bag_day-$dm_eagle_uabs_core
+  # dm_eagle.abs_asset_distribution_bag_snapshot_day-$dm_eagle_uabs_core
+
+  # dm_eagle.abs_asset_information_bag-$dm_eagle_uabs_core
+  # dm_eagle.abs_asset_information_project-$dm_eagle_uabs_core
+  # dm_eagle.abs_asset_information_bag_snapshot-$dm_eagle_uabs_core
+
+  # dm_eagle.abs_asset_information_cash_flow_bag_day-$dm_eagle_uabs_core
+  # dm_eagle.abs_asset_information_cash_flow_bag_snapshot-$dm_eagle_uabs_core
+
+  # 不需要导出到 MySQL
+  # dm_eagle.abs_overdue_rate_details_day-$dm_eagle_uabs_core
+  # dm_eagle.abs_early_payment_asset_details-$dm_eagle_uabs_core
+  # dm_eagle.abs_early_payment_asset_statistic-$dm_eagle_uabs_core
+)
+
 
 # s_date=2017-06-01
 # e_date=2021-04-30
@@ -16,6 +93,13 @@ s_date="$(date -d "${1:-${s_date:-$([[ $(date +%H) -le $(date +18) ]] && echo $(
 e_date="$(date -d "${2:-${e_date:-$([[ $(date +%H) -le $(date +18) ]] && echo $(date -d '-2 day' +%F) || echo $(date -d '-1 day' +%F))}}" +%F)"
 table_list=(${3:-${table_list[@]}})
 
+
+log_file=$log/$(basename "${BASH_SOURCE[0]}")-${e_date}.log
+
+info "导出数据 开始！"
+date_s_aa=$curr_time
+
+debug "${s_date}" "${e_date}" "${table_list[*]}"
 
 for tbl in ${table_list[@]}; do
   tbl_mysql=($(b_a $tbl))
@@ -30,6 +114,8 @@ p_num=30
 export_all_data_tbl=(
   dm_eagle.eagle_title_info
   dm_eagle_cps.eagle_title_info
+  dm_eagle.eagle_migration_rate_month
+  dm_eagle_cps.eagle_migration_rate_month
 
   dm_eagle.abs_asset_information_bag_snapshot
   dm_eagle.abs_asset_distribution_bag_snapshot_day

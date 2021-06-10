@@ -450,7 +450,7 @@ git remote add origin git@github.com:MakeUpForeverForMe/etl.git # 第一次时�
 git push [-u origin master]
 ```
 
-### 2.1.12 Shell 中 case 命令
+### 2.1.12 Shell 中 case getopts getopt 命令
 ```shell
 # case 第一种实现方式
 # :b:d:i:s:f: 其中开头的冒号是在有选项，但是没有参数时防止报错;参数后的冒号代表这个选项必须有参数

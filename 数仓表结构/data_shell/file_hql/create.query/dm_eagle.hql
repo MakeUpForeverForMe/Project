@@ -452,6 +452,12 @@ PARTITIONED BY(`biz_date` string COMMENT '还款日期',`product_id` string COMM
 STORED AS PARQUET;
 
 
+
+
+
+
+
+
 -- 逾期率表现（曾有取第一次的剩余本金）
 -- 分区字段 biz_date
 -- DROP TABLE IF EXISTS `dm_eagle${db_suffix}.eagle_overdue_rate_month`;
@@ -583,6 +589,11 @@ CREATE TABLE IF NOT EXISTS `dm_eagle${db_suffix}.eagle_migration_rate_month`(
 ) COMMENT '迁徙率（12个月）'
 PARTITIONED BY(`biz_month` string COMMENT '观察月',`product_id` string COMMENT '产品编号')
 STORED AS PARQUET;
+
+
+
+
+
 
 
 

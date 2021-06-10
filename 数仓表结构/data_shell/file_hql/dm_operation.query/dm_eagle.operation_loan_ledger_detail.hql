@@ -90,7 +90,7 @@ with due_bill_no_name as
 )
 --set ST9='2020-10-01';
 --借据台账-明细 （取最新的数据）
---insert overwrite table dm_eagle${suffix}.operation_loan_ledger_detail partition(product_id)
+insert overwrite table dm_eagle${suffix}.operation_loan_ledger_detail partition(product_id)
 select
  t2.channel_id                                                                  --'渠道编号'
 ,t2.project_id                                                                  --'项目编号'

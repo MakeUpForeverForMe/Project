@@ -152,7 +152,6 @@ STORED AS TEXTFILE;
 
 
 
-
 -- 静态逾期表
 -- DROP TABLE IF EXISTS `dim.dim_static_overdue_bill`;
 CREATE TABLE IF NOT EXISTS `dim.dim_static_overdue_bill`(
@@ -178,16 +177,18 @@ STORED AS PARQUET;
 
 ---汇通服务报告资产包
 -- DROP TABLE IF EXISTS `dim.dim_ht_bag_asset`;
-CREATE TABLE IF NOT EXISTS `dim.dim_ht_bag_asset`(
-  `project_id`                    string         COMMENT '项目ID',
-  `due_bill_no`                   string         COMMENT '借据号',
-  `asset_date`                    string         COMMENT '借据入包日期',
-  `name`                          string         COMMENT '客户姓名',
-  `total_bag_remain_principal`    decimal(15,4)  COMMENT '借据入包时剩余本金',
-  `total_bag_remain_interest`     decimal(15,4)  COMMENT '借据入包时剩余利息'
-) COMMENT 'dim 汇通资产包信息'
-PARTITIONED BY (`biz_date` string COMMENT '封包日期')
+CREATE TABLE dim.dim_ht_bag_asset (
+  project_id STRING COMMENT '项目ID',
+  due_bill_no STRING COMMENT '借据号',
+  asset_date STRING COMMENT '借据入包日期',
+  loan_rate DECIMAL(15,2) COMMENT '利率',
+  name STRING COMMENT '客户姓名',
+  total_bag_remain_principal DECIMAL(15,4) COMMENT '借据入包时剩余本金',
+  total_bag_remain_interest DECIMAL(15,4) COMMENT '借据入包时剩余利息'
+)COMMENT 'dim 汇通资产包信息'
+PARTITIONED BY (biz_date STRING COMMENT '封包日期')
 STORED AS PARQUET;
+
 
 
 

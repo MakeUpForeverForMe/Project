@@ -26,8 +26,6 @@ sh $bin_abn/data_asset.sh      $s_date $e_date &>> $log
 
 sh $bin_abn/data_dw_dm.sh      $s_date $e_date &>> $log
 
-# 导出dm层数据文件，要在进件和dm层之后进行
-# sh $bin/data_export.sh                         &>> $log
 
 sh $bin_abn/dm_operation.sh    $s_date $e_date &>> $log
 

@@ -109,29 +109,55 @@ select
   update_time         as update_time,
   project_name        as project_id,
   'duration_result'   as source_table
-from stage.duration_result
+from (
+  select
+    duration_result.*,
+    case
+      when loan_info_abs.overdue_days > 30 or (duration_result.black_4 = 0 and duration_result.black_3 = 1 and duration_result.black_2 = 1 and duration_result.black_1 = 1) then 2
+      when (duration_result.score_1 between 17 and 20) and (duration_result.score_2 between 17 and 20) and (duration_result.score_3 between 17 and 20)                      then 1
+      else 0
+    end as monitoring_level
+  from (
+    select
+      *,
+      lag(inner_black,0,0) over(partition by project_name,apply_no order by execute_month) as black_1,
+      lag(inner_black,1,0) over(partition by project_name,apply_no order by execute_month) as black_2,
+      lag(inner_black,2,0) over(partition by project_name,apply_no order by execute_month) as black_3,
+      lag(inner_black,3,0) over(partition by project_name,apply_no order by execute_month) as black_4,
+
+      lag(score_range,0,0) over(partition by project_name,apply_no order by execute_month) as score_1,
+      lag(score_range,1,0) over(partition by project_name,apply_no order by execute_month) as score_2,
+      lag(score_range,2,0) over(partition by project_name,apply_no order by execute_month) as score_3
+    from stage.duration_result
+  ) as duration_result
+  left join ods.loan_info_abs
+  on  duration_result.project_id = loan_info_abs.project_id
+  and duration_result.apply_no   = loan_info_abs.due_bill_no
+  and duration_result.d_date between loan_info_abs.s_d_date and loan_info_abs.e_d_date
+) as tmp
 lateral view explode(
   array(
-    named_struct('map_key','id',            'map_val',id,            'map_com','主键'),
-    named_struct('map_key','request_id',    'map_val',request_id,    'map_com','存续期数据跑批申请表主键'),
-    named_struct('map_key','swift_no',      'map_val',swift_no,      'map_com','流水号'),
-    named_struct('map_key','name',          'map_val',name,          'map_com','姓名'),
-    named_struct('map_key','card_no',       'map_val',card_no,       'map_com','身份证号码'),
-    named_struct('map_key','mobile',        'map_val',mobile,        'map_com','手机号'),
-    named_struct('map_key','is_settle',     'map_val',is_settle,     'map_com','是否已结清'),
-    named_struct('map_key','execute_month', 'map_val',execute_month, 'map_com','执行月份（YYYY-MM）'),
-    named_struct('map_key','score_range_t1','map_val',score_range_t1,'map_com','T-1月资产等级'),
-    named_struct('map_key','score_range_t2','map_val',score_range_t2,'map_com','T-2月资产等级'),
-    named_struct('map_key','score_range',   'map_val',score_range,   'map_com','资产等级'),
-    named_struct('map_key','inner_black',   'map_val',inner_black,   'map_com','内部黑名单（0：未命中，1：命中）'),
-    named_struct('map_key','focus',         'map_val',focus,         'map_com','关注名单（1：关注，0：非关注）'),
-    named_struct('map_key','state',         'map_val',state,         'map_com','数据状态（0：无效，1：处理中，2：处理成功，3：处理失败）'),
-    named_struct('map_key','error_msg',     'map_val',error_msg,     'map_com','失败原因')
+    named_struct('map_key','id',              'map_val',id,              'map_com','主键'),
+    named_struct('map_key','request_id',      'map_val',request_id,      'map_com','存续期数据跑批申请表主键'),
+    named_struct('map_key','swift_no',        'map_val',swift_no,        'map_com','流水号'),
+    named_struct('map_key','name',            'map_val',name,            'map_com','姓名'),
+    named_struct('map_key','card_no',         'map_val',card_no,         'map_com','身份证号码'),
+    named_struct('map_key','mobile',          'map_val',mobile,          'map_com','手机号'),
+    named_struct('map_key','is_settle',       'map_val',is_settle,       'map_com','是否已结清'),
+    named_struct('map_key','execute_month',   'map_val',execute_month,   'map_com','执行月份（YYYY-MM）'),
+    named_struct('map_key','score_range_t1',  'map_val',score_range_t1,  'map_com','T-1月资产等级'),
+    named_struct('map_key','score_range_t2',  'map_val',score_range_t2,  'map_com','T-2月资产等级'),
+    named_struct('map_key','score_range',     'map_val',score_range,     'map_com','资产等级'),
+    named_struct('map_key','inner_black',     'map_val',inner_black,     'map_com','内部黑名单（0：未命中，1：命中）'),
+    named_struct('map_key','focus',           'map_val',focus,           'map_com','关注名单（1：关注，0：非关注）'),
+    named_struct('map_key','state',           'map_val',state,           'map_com','数据状态（0：无效，1：处理中，2：处理成功，3：处理失败）'),
+    named_struct('map_key','error_msg',       'map_val',error_msg,       'map_com','失败原因'),
+    named_struct('map_key','monitoring_level','map_val',monitoring_level,'map_com','监控等级（0：正常，1：关注，2：预警）')
   )
 ) list as list_struct
 where 1 > 0
   and list_struct.map_key is not null
   and list_struct.map_val is not null
   -- and to_date(update_time) = '${ST9}'
--- limit 10
+-- limit 20
 ;

@@ -35,7 +35,7 @@ def case(type_string):
 
 args = sys.argv
 
-args_length = len(args) - 1
+args_length: int = len(args) - 1
 if args_length != 8:
     print(f'参数个数不符合条件（8）：${args_length}！')
     sys.exit(1)
@@ -103,4 +103,5 @@ file.write(ddl)
 file.close()
 
 os.system(f'hdfs dfs -put -f {file_name} cosn://bigdata-center-prod-1253824322/user/hadoop/create_table')
-os.system(f'beeline -n hadoop -u "jdbc:hive2://10.80.0.46:2181,10.80.0.255:2181,10.80.1.113:2181/;serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=hiveserver2" -f {file_name}')
+os.system(
+    f'beeline -n hadoop -u "jdbc:hive2://10.80.0.46:2181,10.80.0.255:2181,10.80.1.113:2181/;serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=hiveserver2" -f {file_name}')

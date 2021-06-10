@@ -1,15 +1,10 @@
-refresh ods_new_s_cps.loan_info;
-refresh ods_new_s_cps.repay_schedule;
-refresh ods_new_s_cps.order_info;
-refresh ods_new_s_cps.repay_detail;
+
 
 set var:product_id='001801','001802','001803','001804','001901','001902','001903','001904','001905','001906','001907','002001','002002','002003','002004','002005','002006','002007';
 
-upsert into dm_eagle.report_dm_lx_asset_report_snapshot_comp
+insert overwrite table dm_eagle.report_dm_lx_asset_report_snapshot_comp partition(snapshot_date,project_id)
 select
-    concat(biz.project_id,'${var:ST9}')							    as id,
-    '${var:ST9}'													as snapshot_date,
-    biz.project_id												as project_id,
+
     cast(sum(t1.loan_amount)	         as decimal(15,2))		as loan_amount,
     cast(sum(t2.total_collection_amount) as decimal(15,2))		as total_collection_amount,
     cast(sum(t2.total_collection_prin)   as decimal(15,2))		as total_collection_prin,
@@ -29,7 +24,9 @@ select
     cast(sum(t3.repurchase_amount)	     as decimal(15,2))	    as repurchase_amount,
     cast(sum(t3.repurchase_prin)	     as decimal(15,2))	    as repurchase_prin,
     cast(sum(t3.repurchase_inter)	     as decimal(15,2))	    as repurchase_inter,
-    cast(sum(t3.refund_contract_amount)  as decimal(15,2))		as refund_contract_amount
+    cast(sum(t3.refund_contract_amount)  as decimal(15,2))		as refund_contract_amount,
+    '${var:ST9}'											    as snapshot_date,
+    biz.project_id												as project_id
 from
 (
     select * from dim_new.biz_conf
@@ -91,4 +88,3 @@ left join
 ) t3
 on biz.product_id = t3.product_id
 group by biz.project_id;
-exit;

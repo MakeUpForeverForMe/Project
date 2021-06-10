@@ -171,9 +171,7 @@ TBLPROPERTIES ('kudu.master_addresses'='node172');
 
 ---汇通资产服务报告
 -- DROP TABLE IF EXISTS `dm_eagle.report_ht_asset_project`;
-CREATE TABLE IF NOT EXISTS dm_eagle.report_ht_asset_project(
-  `id`                                string        not     null comment '主键id:项目id+批次时间',
-  `project_id`                        string        not     null comment '项目id',
+CREATE TABLE IF NOT EXISTS dm_eagle.report_ht_asset_project_text(
   `total_remain_principal`            decimal(15,2)  comment '总本金余额',
   `un_settle_num`                     bigint         comment '未结清笔数',
   `weight_avg_inter_rate`             decimal(15,4)  comment '加权平均利率',
@@ -217,13 +215,22 @@ CREATE TABLE IF NOT EXISTS dm_eagle.report_ht_asset_project(
   `static_90to_amount`                decimal(15,2)  comment '静态90+金额',
   `static_90to_amount_rate`           decimal(15,4)  comment '累计90+违约率',
   `accum_30to_amount`                 decimal(15,2)  comment '累计30+回收租金',
-  `accum_90to_amount`                 decimal(15,2)  comment '累计90+回收本金',
-  `snapshot_date`                     string                     comment '快照日期(yyyy-MM-dd)',
-  PRIMARY KEY(id)
-)
-PARTITION BY HASH PARTITIONS 8
-COMMENT 'dm 汇通资产包统计信息'
-STORED AS KUDU;
+  `accum_90to_amount`                 decimal(15,2)  comment '累计90+回收本金'
+)COMMENT 'dm 汇通资产包统计信息'
+PARTITIONED BY(`snapshot_date` string COMMENT '快照日期(yyyy-MM-dd)',`project_id` string comment '项目id')
+STORED AS PARQUET;
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -236,32 +243,23 @@ STORED AS KUDU;
 
 -- DROP TABLE IF EXISTS `dm_eagle.report_ht_overdue_more9_assets_detail`;
 CREATE TABLE IF NOT EXISTS `dm_eagle.report_ht_overdue_more9_assets_detail`(
-  `ID`                                string        not     null comment '主键id:项目id+借据号',
-  `project_id`                        string        not     null comment '项目id',
-  `bill_no`                           string        default null comment '借据编号',
-  `borrower_name`                     string        default null comment '借款人名称',
-  `overdue_start_date`                string        default null comment '逾期开始日期',
-  `overdue_amount`                    decimal(15,4) default null comment '逾期金额',
-  `snapshot_date`                     string                     comment '快照日期(yyyy-MM-dd)',
-  PRIMARY KEY(ID)
-)
-PARTITION BY HASH PARTITIONS 8
-COMMENT 'dm 汇通逾期9天的资产'
-STORED AS KUDU;
+  `due_bill_no`                           string      comment '借据编号',
+  `borrower_name`                     string         comment '借款人名称',
+  `overdue_start_date`                string         comment '逾期开始日期',
+  `overdue_amount`                    decimal(15,4)  comment '逾期金额'
+)COMMENT 'dm 汇通逾期9天的资产'
+PARTITIONED BY(`snapshot_date` string COMMENT '快照日期(yyyy-MM-dd)',`project_id` string comment '项目id')
+STORED AS PARQUET;
 
 
 -- DROP TABLE IF EXISTS `dm_eagle.report_ht_prepayment_assets_detail`;
 CREATE TABLE IF NOT EXISTS `dm_eagle.report_ht_prepayment_assets_detail`(
-  `ID`                                string        not     null comment '主键id:项目id+借据号',
-  `project_id`                        string        not     null comment '项目id',
-  `bill_no`                           string        default null comment '借据编号',
-  `borrower_name`                     string        default null comment '借款人名称',
-  `should_pay_date`                   string        default null comment '应还款日',
-  `should_pay_amount`                 decimal(15,4) default null comment '应还金额 本金加利息',
-  `advance_paid_out_date`             string        default null comment '提前结清日期',
-  `repayment_amount`                  decimal(15,4) default null comment '提前结清金额 本金利息加罚息',
-  PRIMARY KEY(ID)
-)
-PARTITION BY HASH PARTITIONS 8
-COMMENT 'dm 汇通早偿'
-STORED AS KUDU;
+  `due_bill_no`                       string        comment '借据编号',
+  `borrower_name`                     string         comment '借款人名称',
+  `should_pay_date`                   string         comment '应还款日',
+  `should_pay_amount`                 decimal(15,4)  comment '应还金额 本金加利息',
+  `advance_paid_out_date`             string         comment '提前结清日期',
+  `repayment_amount`                  decimal(15,4)  comment '提前结清金额 本金利息加罚息'
+)COMMENT 'dm 汇通早偿'
+PARTITIONED BY(`project_id` string comment '项目id')
+STORED AS PARQUET;

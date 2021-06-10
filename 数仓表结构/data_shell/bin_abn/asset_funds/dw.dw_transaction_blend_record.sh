@@ -3,22 +3,19 @@ ST9=`date +%Y-%m-%d -d "-1 days"`
 ##测试
 ##beeline -n hadoop -u "jdbc:hive2://10.83.1.157:7001"  
 beeline -n hadoop -u "jdbc:hive2://10.80.0.46:2181,10.80.0.255:2181,10.80.1.113:2181/;serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=hiveserver2" -e "
-set hive.execution.engine=mr;
-set hive.exec.input.listing.max.threads=50;
-set tez.grouping.min-size=50000000;
-set tez.grouping.max-size=50000000;
-set hive.exec.reducers.max=500;
-set mapreduce.map.memory.mb=2048;
-set mapreduce.reduce.memory.mb=2048;
+
+set hive.tez.container.size=4096;
+set tez.am.resource.memory.mb=4096;
 -- 合并小文件
 set hive.merge.tezfiles=true;
 set hive.merge.size.per.task=64000000;      -- 64M
 set hive.merge.smallfiles.avgsize=64000000; -- 64M
+-- 设置动态分区
 set hive.exec.dynamic.partition=true;
 set hive.exec.dynamic.partition.mode=nonstrict;
-set hive.exec.max.dynamic.partitions=20000;
-set hive.exec.max.dynamic.partitions.pernode=20000;
-
+set hive.exec.max.dynamic.partitions=200000;
+set hive.exec.max.dynamic.partitions.pernode=50000;
+-- 禁用 Hive 矢量执行
 set hive.vectorized.execution.enabled=false;
 set hive.vectorized.execution.reduce.enabled=false;
 set hive.vectorized.execution.reduce.groupby.enabled=false;
@@ -55,7 +52,7 @@ select
     return_ticket_bak_amt ,
     ch_diff_explain       ,
     en_diff_explain       ,
-    calc_date	
+    calc_date   
 from stage.t_transaction_blend_record
 where d_date='${ST9}' and record_type='G';
 ";

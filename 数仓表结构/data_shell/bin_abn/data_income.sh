@@ -59,23 +59,17 @@ sh $data_manage -s ${e_date} -e ${e_date} -f $dm_eagle_hql/dm_eagle.assets_distr
 
 wait_jobs
 
-tables['dm_eagle.eagle_ret_msg_day']=$dm_eagle_dm_eagle
-tables['dm_eagle.eagle_credit_loan_approval_rate_day']=$dm_eagle_dm_eagle
-tables['dm_eagle.eagle_credit_loan_approval_amount_sum_day']=$dm_eagle_dm_eagle
-tables['dm_eagle.eagle_credit_loan_approval_amount_rate_day']=$dm_eagle_dm_eagle
+table_list=(
+ # 进件
+ dm_eagle.eagle_ret_msg_day-$dm_eagle_dm_eagle
+ dm_eagle.eagle_credit_loan_approval_rate_day-$dm_eagle_dm_eagle
+ dm_eagle.eagle_credit_loan_approval_amount_sum_day-$dm_eagle_dm_eagle
+ dm_eagle.eagle_credit_loan_approval_amount_rate_day-$dm_eagle_dm_eagle
 
+)
 
-for db_tb in ${!tables[@]};do
-  {
-    export_file="$file_export/${db_tb}.tsv"
-    mysql="$($mysql_cmd ${tables[$db_tb]})"
-
-   # export_file_from_hive "select * from ${db_tb};" &>> $log
-   # import_file_to_mysql &>> $log
-  } &
- # p_opera 5 &>> $log
-  # break
-done
+# 进件模块 dm_eagle 数据导出mysql
+sh $bin/data_export.sh $s_date $e_date "${table_list[*]}" &>> $log
 
 wait_jobs
 

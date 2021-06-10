@@ -81,5 +81,5 @@ inner join (
 ) as repay_detail
 on  loan_info_abs.project_id  = repay_detail.project_id
 and loan_info_abs.due_bill_no = repay_detail.due_bill_no
-limit 10
+-- limit 10
 ;

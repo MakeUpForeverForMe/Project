@@ -227,7 +227,7 @@ select
     -- 21 监控等级
     case
       when loan_info.overdue_days > 30 or (duration_result.black_4 = 0 and duration_result.black_3 = 1 and duration_result.black_2 = 1 and duration_result.black_1 = 1) then concat("21","|",'预警','|','1')
-      when duration_result.score_1 between 17 and 20 and duration_result.score_2 between 17 and 20 and duration_result.score_3 between 17 and 20                        then concat("21","|",'关注','|','2')
+      when (duration_result.score_1 between 17 and 20) and (duration_result.score_2 between 17 and 20) and (duration_result.score_3 between 17 and 20)                  then concat("21","|",'关注','|','2')
       else concat("21","|",'正常','|','3')
     end
   ) as distribution_array,
@@ -428,14 +428,14 @@ left join (
     project_id,
     due_bill_no,
 
-    max(if(execute_month = add_months('${ST9}',-1,'yyyy-MM'),inner_black,null)) as black_1,
-    max(if(execute_month = add_months('${ST9}',-2,'yyyy-MM'),inner_black,null)) as black_2,
-    max(if(execute_month = add_months('${ST9}',-3,'yyyy-MM'),inner_black,null)) as black_3,
-    max(if(execute_month = add_months('${ST9}',-4,'yyyy-MM'),inner_black,null)) as black_4,
+    max(if(execute_month = add_months('${ST9}',-1,'yyyy-MM'),inner_black,0)) as black_1,
+    max(if(execute_month = add_months('${ST9}',-2,'yyyy-MM'),inner_black,0)) as black_2,
+    max(if(execute_month = add_months('${ST9}',-3,'yyyy-MM'),inner_black,0)) as black_3,
+    max(if(execute_month = add_months('${ST9}',-4,'yyyy-MM'),inner_black,0)) as black_4,
 
-    max(if(execute_month = add_months('${ST9}',-1,'yyyy-MM'),score_range,0))    as score_1,
-    max(if(execute_month = add_months('${ST9}',-2,'yyyy-MM'),score_range,0))    as score_2,
-    max(if(execute_month = add_months('${ST9}',-3,'yyyy-MM'),score_range,0))    as score_3
+    max(if(execute_month = add_months('${ST9}',-1,'yyyy-MM'),score_range,0)) as score_1,
+    max(if(execute_month = add_months('${ST9}',-2,'yyyy-MM'),score_range,0)) as score_2,
+    max(if(execute_month = add_months('${ST9}',-3,'yyyy-MM'),score_range,0)) as score_3
   from (
     select
       project_id,

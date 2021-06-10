@@ -1,20 +1,19 @@
 -- 累计指标
-refresh ods.ecas_repayment;
-upsert into dm_eagle.report_dm_lx_asset_report_accu_repayment
+insert overwrite table dm_eagle.report_dm_lx_asset_report_accu_repayment partition(snapshot_date,project_id)
 select
-    concat(project_no,'${var:ST9}')                                                       as    id,
-    '${var:ST9}'                                                                              as    snapshot_date,
+
     cast(sum(if(repay_type='提前还款',repay_prin+repay_int+repay_fee+repay_penalty,0)) as decimal(15,2))            as    prepay_amount_accum,
     cast(sum(if(repay_type='提前还款',repay_prin,0)) as decimal(15,2))                                              as    prepay_prin_accouum,
-    cast(sum(if(repay_type='提前还款',repay_int+repay_fee+repay_penalty,0)) as decimal(15,2))                       as    prepay_inter_accum
+    cast(sum(if(repay_type='提前还款',repay_int+repay_fee+repay_penalty,0)) as decimal(15,2))                       as    prepay_inter_accum,
+    '${var:ST9}'                                                                              as    snapshot_date,
+    project_no  as project_id
 from ods.ecas_repayment where txn_date<'${var:ST9}' group by project_no;exit;
 
 
 -- 每日快照指标
-upsert into dm_eagle.report_dm_lx_asset_report_snapshot_repayment
+insert overwrite table dm_eagle.report_dm_lx_asset_report_snapshot_repayment partition(snapshot_date,project_id)
 select
-    concat(project_no,'${var:ST9}')                                                       as    id,
-    '${var:ST9}'                                                                              as    snapshot_date,
+
     cast(sum(if(repay_type='正常还',repay_prin+repay_int+repay_fee+repay_penalty,0)) as decimal(15,2))             as    normal_amount,
     cast(sum(if(repay_type='正常还',repay_prin,0)) as decimal(15,2))                                               as    normal_prin,
     cast(sum(if(repay_type='正常还',repay_int+repay_fee+repay_penalty,0))  as decimal(15,2))                       as    normal_inter,
@@ -23,16 +22,16 @@ select
     cast(sum(if(repay_type='逾期还款',repay_int+repay_fee+repay_penalty,0)) as decimal(15,2))                          as    overdue_inter,
     cast(sum(if(repay_type='提前还款',repay_prin+repay_int+repay_fee+repay_penalty,0)) as decimal(15,2))           as    prepay_amount,
     cast(sum(if(repay_type='提前还款',repay_prin,0)) as decimal(15,2))                                              as    prepay_prin,
-    cast(sum(if(repay_type='提前还款',repay_int+repay_fee+repay_penalty,0)) as decimal(15,2))                       as    prepay_inter
+    cast(sum(if(repay_type='提前还款',repay_int+repay_fee+repay_penalty,0)) as decimal(15,2))                       as    prepay_inter,
+    '${var:ST9}'                                                                              as    snapshot_date,
+    project_no                                                      as    project_id
 from ods.ecas_repayment where txn_date=from_unixtime(unix_timestamp(date_add('${var:ST9}',-1)),'yyyy-MM-dd') group by project_no;exit;
 
 
 -- 刷新相关字段
-upsert into dm_eagle.report_dm_lx_asset_report_accu_comp
+insert overwrite table dm_eagle.report_dm_lx_asset_report_accu_comp partition(snapshot_date,project_id)
 select
-    a.id,
-    a.snapshot_date,
-    a.project_id,
+
     a.total_remain_prin,
     a.total_remain_num,
     a.average_remain,
@@ -59,15 +58,16 @@ select
     a.repurchase_prin_accum,
     a.repurchase_inter_accum,
     a.refund_contract_amount_accum,
-    a.refund_contract_num_accum
-from dm_eagle.report_dm_lx_asset_report_accu_comp a
-left join dm_eagle.report_dm_lx_asset_report_accu_repayment b on a.id=b.id;
-
-upsert into dm_eagle.report_dm_lx_asset_report_snapshot_comp
-select
-    a.id,
+    a.refund_contract_num_accum,
     a.snapshot_date,
-    a.project_id,
+    a.project_id
+from dm_eagle.report_dm_lx_asset_report_accu_comp a
+left join dm_eagle.report_dm_lx_asset_report_accu_repayment b
+  on a.project_id=b.project_id and a.snapshot_date=b.snapshot_date;
+
+insert overwrite table dm_eagle.report_dm_lx_asset_report_snapshot_comp partition(snapshot_date,project_id)
+select
+
     a.loan_amount,
     a.total_collection_amount,
     a.total_collection_prin,
@@ -87,14 +87,11 @@ select
     a.repurchase_amount,
     a.repurchase_prin,
     a.repurchase_inter,
-    a.refund_amount
+    a.refund_amount,
+    a.snapshot_date,
+    a.project_id
 from dm_eagle.report_dm_lx_asset_report_snapshot_comp a
-left join dm_eagle.report_dm_lx_asset_report_snapshot_repayment b on a.id=b.id;
+left join dm_eagle.report_dm_lx_asset_report_snapshot_repayment b
+on a.project_id=b.project_id and a.snapshot_date=b.snapshot_date;
 
 
-refresh dm_eagle.report_dm_lx_asset_report_accu_repayment;
-refresh dm_eagle.report_dm_lx_asset_report_snapshot_repayment;
-refresh dm_eagle.report_dm_lx_asset_report_accu_comp;
-refresh dm_eagle.report_dm_lx_asset_report_snapshot_comp;
-
-exit;

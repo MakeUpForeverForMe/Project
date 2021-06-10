@@ -9,7 +9,8 @@ case class RepairMode(
                       register_date:String,
                       active_date:String,
                       var repair_flag:java.lang.Integer,
-                      var repair_date:String
+                      var repair_date:String,
+                      var p_type :String
                      ){
   override def toString: String = {
     s"""

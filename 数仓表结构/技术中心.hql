@@ -16100,4 +16100,16 @@ where project_id = 'CL202104010103'
 
 
 
-
+select
+  project_id,
+  due_bill_no,
+  max(if(map_key = 'execute_month',map_val,null)) as execute_month,
+  max(if(map_key = 'score_range',  map_val,null)) as score_range,
+  max(if(map_key = 'inner_black',  map_val,null)) as inner_black,
+  max(if(map_key = 'monitoring_level',map_val,null)) as monitoring_level,
+  max(if(map_key = 'state',        map_val,null)) as state
+from ods.risk_control_abs
+where source_table = 'duration_result'
+group by project_id,due_bill_no,create_time
+order by project_id,due_bill_no,execute_month
+limit 20;

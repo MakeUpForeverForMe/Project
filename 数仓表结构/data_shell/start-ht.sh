@@ -18,7 +18,7 @@ echo -e "${date_s_aa:=$(date +'%F %T')}EMR 汇通任务 开始 当前脚本进�
 
 sh $bin_abn/ht_ods_new_s.sh  $s_date $e_date $repair_date &>> $log
 
-
+sh $bin_abn/ht_asset_report.sh  $s_date $e_date  &>> $log
 
 
 echo -e "${date_e_aa:=$(date +'%F %T')} EMR 汇通任务 结束 当前脚本进程ID为：$(pid)    用时：${during_time:=$(during "$date_e_aa" "$date_s_aa")}\n\n" &>> $log

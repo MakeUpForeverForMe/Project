@@ -3,6 +3,7 @@
 . /etc/profile
 . ~/.bash_profile
 export LANG=zh_CN.UTF-8
+export PYTHON_EGG_CACHE=/tmp/.python-eggs
 export HADOOP_CLIENT_OPTS="-Djline.terminal=jline.UnsupportedTerminal"
 
 trap 'fatal 脚本 $(basename "${BASH_SOURCE[0]}") 出现错误了，在第 $LINENO 行' ERR
@@ -41,12 +42,16 @@ esac
 # 系统命令
 # Python 系统命令
 python=/usr/bin/python3
+
 # Hive 客户端 Beeline 命令
 beeline="beeline -n hadoop -u 'jdbc:hive2://$hive_host'"
+
 # Impala 命令
 impala="impala-shell -u hadoop -i $impala_host ${impala_clb}"
+
 # MySQL 命令
 mysql_cmd="mysql_fun"
+
 # HDFS 命令
 hdfs='hdfs dfs'
 # HDFS URI
@@ -55,6 +60,9 @@ hdfs_uri=$hdfs_uri
 cos_uri=$cos_uri
 # warehouse
 warehouse=/user/hadoop/warehouse
+
+# sqoop 命令
+sqoop=sqoop
 
 
 

@@ -162,22 +162,22 @@ table_list=(
  dm_eagle.eagle_asset_change_comp_t1-$dm_eagle_dm_eagle
 
  # 进件
- dm_eagle.eagle_ret_msg_day-$dm_eagle_dm_eagle
- dm_eagle.eagle_credit_loan_approval_rate_day-$dm_eagle_dm_eagle
- dm_eagle.eagle_credit_loan_approval_amount_sum_day-$dm_eagle_dm_eagle
- dm_eagle.eagle_credit_loan_approval_amount_rate_day-$dm_eagle_dm_eagle
+ # dm_eagle.eagle_ret_msg_day-$dm_eagle_dm_eagle
+ # dm_eagle.eagle_credit_loan_approval_rate_day-$dm_eagle_dm_eagle
+ # dm_eagle.eagle_credit_loan_approval_amount_sum_day-$dm_eagle_dm_eagle
+ # dm_eagle.eagle_credit_loan_approval_amount_rate_day-$dm_eagle_dm_eagle
 
  # 资金页面资金
- dm_eagle.eagle_funds-$dm_eagle_dm_eagle
- dm_eagle.eagle_acct_cost-$dm_eagle_dm_eagle
- dm_eagle.eagle_unreach_funds-$dm_eagle_dm_eagle
- dm_eagle.eagle_repayment_detail-$dm_eagle_dm_eagle
+ # dm_eagle.eagle_funds-$dm_eagle_dm_eagle
+ # dm_eagle.eagle_acct_cost-$dm_eagle_dm_eagle
+ # dm_eagle.eagle_unreach_funds-$dm_eagle_dm_eagle
+ # dm_eagle.eagle_repayment_detail-$dm_eagle_dm_eagle
 
  # 应还实还
  dm_eagle.eagle_should_repay_repaid_amount_day-$dm_eagle_dm_eagle
  dm_eagle_cps.eagle_should_repay_repaid_amount_day-$dm_eagle_dm_eagle_cps
- dm_eagle.eagle_should_repay_repaid_amount_day_hst-$dm_eagle_dm_eagle
- dm_eagle_cps.eagle_should_repay_repaid_amount_day_hst-$dm_eagle_dm_eagle_cps
+ # dm_eagle.eagle_should_repay_repaid_amount_day_hst-$dm_eagle_dm_eagle
+ # dm_eagle_cps.eagle_should_repay_repaid_amount_day_hst-$dm_eagle_dm_eagle_cps
 
 )
 

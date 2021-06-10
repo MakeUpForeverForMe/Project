@@ -1,114 +1,216 @@
-#! /bin/bash
+#!/usr/bin/env bash
 
-. ${data_sqoop_dir:=$(cd `dirname "${BASH_SOURCE[0]}"`;pwd)}/../conf_env/env.sh
+. ${sqoop_dir:=$(cd `dirname "${BASH_SOURCE[0]}"`;pwd)}/../conf_env/env.sh
 . $lib/function.sh
 
 
 ########### Sqoop 同步数据到 Hive 中 ############
 sqoop_import(){
-  sudo -u hive sqoop import \
-  -D "mapreduce.map.memory.mb=4096" \
-  -D "mapreduce.reduce.memory.mb=4096" \
-  -D "org.apache.sqoop.splitter.allow_text_splitter=true" \
-  --mapreduce-job-name "mapred.job.name='${hive_database}.${hive_tablname} <—— ${mysql_database}.${mysql_tablname} : ${ST9}'" \
-  --connect "jdbc:mysql://${mysql_hostname}:3306/${mysql_database}?useUnicode=true&characterEncoding=utf8" \
-  --username "${mysql_username}" --password "${mysql_password}" \
-  --query "${sql}" \
-  --split-by "${split_str}" \
-  --null-string '\\N' --null-non-string '\\N' \
-  --hcatalog-database "${hive_database}" --hcatalog-table "${hive_tablname}" \
-  --hcatalog-storage-stanza 'stored as parquet' \
-  --num-mappers 1
+  debug "${hive_db}.${hive_tb} sqoop 导数 开始！"
+  sqoop_fun_time=$curr_time
+
+  if [[ ${is_partition} = y ]]; then
+    sqoop_query="select *,'${ST9}' as d_date from ${mysql_tb} where \$CONDITIONS"
+  elif [[ ${is_test} = y && ${sys_type} = xinglian && ${is_partition} = y ]]; then
+    sqoop_query="
+      select *,'${ST9}' as d_date from asset_status_test.${mysql_tb}   where \$CONDITIONS union all
+      select *,'${ST9}' as d_date from asset_status_test10.${mysql_tb} where \$CONDITIONS union all
+      select *,'${ST9}' as d_date from asset_status_test20.${mysql_tb} where \$CONDITIONS union all
+      select *,'${ST9}' as d_date from asset_status_test30.${mysql_tb} where \$CONDITIONS union all
+      select *,'${ST9}' as d_date from asset_status_test40.${mysql_tb} where \$CONDITIONS
+    "
+  elif [[ ${is_test} = y && ${sys_type} = xinglian && ${is_partition} = n ]]; then
+    sqoop_query="
+      select * from asset_status_test.${mysql_tb}   where \$CONDITIONS union all
+      select * from asset_status_test10.${mysql_tb} where \$CONDITIONS union all
+      select * from asset_status_test20.${mysql_tb} where \$CONDITIONS union all
+      select * from asset_status_test30.${mysql_tb} where \$CONDITIONS union all
+      select * from asset_status_test40.${mysql_tb} where \$CONDITIONS
+    "
+  else
+    sqoop_query="select * from ${mysql_tb} where \$CONDITIONS"
+  fi
+
+  debug "${hive_db}.${hive_tb} 导数 SQL 为：${sqoop_query}！"
+
+  sqoop_command="
+    $sqoop import \
+    -D 'mapreduce.map.memory.mb=4096' \
+    -D 'mapreduce.reduce.memory.mb=4096' \
+    -D 'org.apache.sqoop.splitter.allow_text_splitter=true' \
+    --mapreduce-job-name '${hive_db}.${hive_tb} <—— ${mysql_db}.${mysql_tb} : ${ST9}' \
+    --connect 'jdbc:mysql://${mysql_host}:3306/${mysql_db}?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&zeroDateTimeBehavior=convertToNull' \
+    --username '${mysql_user}' --password '${mysql_pass}' \
+    --query '${sqoop_query}' \
+    --split-by '${incre_field}' \
+    --null-string '\\\N' --null-non-string '\\\N' \
+    --hcatalog-database '${hive_db}' --hcatalog-table '${hive_tb}' \
+    --hcatalog-storage-stanza 'stored as parquet' \
+    --num-mappers 1
+  "
+  debug "${hive_db}.${hive_tb} 导数 sqoop 命令 为：${sqoop_command}！"
+  eval "${sqoop_command}" 2>&1 | tee -a $log_file
+
+  [[ ${PIPESTATUS[0]} = 0 ]] && info "${hive_db}.${hive_tb} sqoop 导数 结束！用时：$(during "${sqoop_fun_time}")" || error "${hive_db}.${hive_tb} sqoop 导数 失败！用时：$(during "${sqoop_fun_time}")"
 }
 
-########### 抽数 #############
-#         增量全表           #
-#         增量分区           #
-#         全量全表           #
-#         全量分区           #
-##############################
+########### 创建表 ###########
+create_table(){
+  debug "执行 ${hive_db}.${hive_tb} 自动建表语句 开始！"
 
+  create_command="python3 ${bin}/create_table.py '${hive_db}' '${hive_tb}' '${mysql_host}' '${mysql_user}' '${mysql_pass}' '${mysql_db}' '${mysql_tb}' '${is_partition}'"
+  debug "${hive_db}.${hive_tb} 自动建表语句 执行命令为 ${create_command}！"
 
-[[ -z $1 ]] && {
-  echo -e '  请输入参数。参数为要使用的环境配置脚本，即：
-  \033[33m sqoop_sync_conf_pro.sh \033[0m 或 \033[33m sqoop_sync_conf_sit.sh \033[0m'
-  exit 1
+  eval ${create_command} 2>&1 | tee -a $log_file
+  [[ ${PIPESTATUS[0]} = 0 ]] && debug "${hive_db}.${hive_tb} 建表语句创建 完成！" || error "${hive_db}.${hive_tb} 建表语句创建 失败！"
 }
 
-echo -e "${date_s_aa:=$(date +'%F %T')} Sqoop 抽数  开始 当前脚本进程ID为：$(pid)" #&>> $log
+########### 在 Hive 中的表重命名 ###########
+tabla_alias(){
+  debug "对表 ${mysql_db}.${mysql_tb} 重命名！"
+  case "${mysql_db}.${mysql_tb}" in
+    # 测试相关表
 
-. $1
-if [[ $1 =~ pro.sh ]]; then
-  sqoop_param='10.80.16.9:ccsdb'
-elif [[ $1 =~ sit.sh ]]; then
-  sqoop_param='10.83.16.43:ccs_t_30'
+
+    # 生产相关表
+    ( asset_status.t_loan_contract_info      ) hive_tb=asset_01_t_loan_contract_info      incre_field='id' ;;
+    ( asset_status.t_principal_borrower_info ) hive_tb=asset_02_t_principal_borrower_info incre_field='id' ;;
+    ( asset_status.t_contact_person_info     ) hive_tb=asset_03_t_contact_person_info     incre_field='id' ;;
+    ( asset_status.t_guaranty_info           ) hive_tb=asset_04_t_guaranty_info           incre_field='id' ;;
+    ( asset_status.t_repayment_schedule      ) hive_tb=asset_05_t_repayment_schedule      incre_field='id' ;;
+    ( asset_status.t_asset_pay_flow          ) hive_tb=asset_06_t_asset_pay_flow          incre_field='id' ;;
+    ( asset_status.t_repayment_info          ) hive_tb=asset_07_t_repayment_info          incre_field='id' ;;
+    ( asset_status.t_asset_disposal          ) hive_tb=asset_08_t_asset_disposal          incre_field='id' ;;
+    ( asset_status.t_asset_supplement        ) hive_tb=asset_09_t_asset_supplement        incre_field='id' ;;
+    ( asset_status.t_asset_check             ) hive_tb=asset_10_t_asset_check             incre_field='id' ;;
+    ( asset_status.t_project_check           ) hive_tb=asset_11_t_project_check           incre_field='id' ;;
+    ( asset_status.t_enterprise_info         ) hive_tb=asset_12_t_enterprise_info         incre_field='id' ;;
+    ( asset_status.*                         ) hive_tb=asset_$mysql_tb                    incre_field='id' ;;
+
+    ( abs-core.t_loancontractinfo            ) hive_tb=abs_01_t_loancontractinfo          incre_field='id' ;;
+    ( abs-core.t_borrowerinfo                ) hive_tb=abs_02_t_borrowerinfo              incre_field='id' ;;
+    ( abs-core.t_associatesinfo              ) hive_tb=abs_03_t_associatesinfo            incre_field='id' ;;
+    ( abs-core.t_guarantycarinfo             ) hive_tb=abs_04_t_guarantycarinfo           incre_field='id' ;;
+    ( abs-core.t_repaymentplan               ) hive_tb=abs_05_t_repaymentplan             incre_field='id' ;;
+    ( abs-core.t_repaymentplan_history       ) hive_tb=abs_05_t_repaymentplan_history     incre_field='id' ;;
+    ( abs-core.t_assettradeflow              ) hive_tb=abs_06_t_assettradeflow            incre_field='id' ;;
+    ( abs-core.t_actualrepayinfo             ) hive_tb=abs_07_t_actualrepayinfo           incre_field='id' ;;
+    ( abs-core.t_assetdealprocessinfo        ) hive_tb=abs_08_t_assetdealprocessinfo      incre_field='id' ;;
+    ( abs-core.t_assetaddtradeinfo           ) hive_tb=abs_09_t_assetaddtradeinfo         incre_field='id' ;;
+    ( abs-core.t_assetaccountcheck           ) hive_tb=abs_10_t_assetaccountcheck         incre_field='id' ;;
+    ( abs-core.t_projectaccountcheck         ) hive_tb=abs_11_t_projectaccountcheck       incre_field='id' ;;
+    ( abs-core.t_enterpriseinfo              ) hive_tb=abs_12_t_enterpriseinfo            incre_field='id' ;;
+    ( abs-core.t_guarantyhouseinfo           ) hive_tb=abs_13_t_guarantyhouseinfo         incre_field='id' ;;
+    ( abs-core.*                             ) hive_tb=abs_$mysql_tb                      incre_field='id' ;;
+
+
+    # 其他相关表
+    ( * )                                      hive_tb=$mysql_tb                          incre_field=''   ;;
+  esac
+  debug "对表 ${mysql_db}.${mysql_tb} 重命名为 Hive 中的表名 ：${hive_db}.${hive_tb}！"
+}
+
+mysql_item(){
+  debug "根据 是否是测试环境（${is_test}） 和 系统类型（${sys_type}） 获取 MySQL 相关属性！"
+  if [[ ${is_test} = n ]]; then
+    case ${sys_type} in
+      ( xinglian ) mysql_host=10.80.16.5 mysql_user=root mysql_pass='Xfx2018@)!*' mysql_db=asset_status ;;
+      ( abs      ) mysql_host=10.80.16.21 mysql_user=sqoop_user mysql_pass='xy@Eh93AmnCkMbiU' mysql_db=abs-core ;;
+      ( *        ) error "'${sys_type}' 是未定义的系统类型！" ;;
+    esac
+  elif [[ ${is_test} = y ]]; then
+    case ${sys_type} in
+      ( xinglian ) mysql_host=10.83.16.43 mysql_user=root mysql_pass='zU!ykpx3EG)$$1e6' mysql_db=asset_status ;;
+      ( abs      ) mysql_host=10.83.16.15 mysql_user=root mysql_pass='Ws2018!07@' mysql_db=abs-core ;;
+      ( *        ) error "'${sys_type}' 是未定义的系统类型！" ;;
+    esac
+  fi
+}
+
+execute_fun(){
+  hive_db=stage
+  data_warehouse=${cos_uri}${warehouse}
+
+  [[ $# != 2 && $# != 3 ]] && error "参数个数不正确！参数一：系统类型，参数二：MySQL 表名，参数三（可选，默认n）：是否是分区表（y或n）！"
+
+  sys_type=${1}
+  mysql_tb=${2}
+  [[ -z ${sys_type} || -z ${mysql_tb} ]] && error "系统类型（参数一）或 MySQL 表名（参数二）为空！"
+
+  is_partition=$(echo ${3:-n} | tr 'A-Z' 'a-z')
+  [[ ${is_partition} != y && ${is_partition} != n ]] && error "输入的 是否是分区表 的参数错误！"
+
+  mysql_item
+
+  log_file=$log/sqoop/$(basename "${BASH_SOURCE[0]}")-${mysql_tb}-${ST9:=$(date -d '-1 day' +%F)}.log
+
+  info "${hive_db}.${hive_tb} Sqoop 抽数 开始！"
+  sqoop_s_time=$curr_time
+
+  debug "$(printf '抽数系统(%-10s)  抽数表(%-27s)  在 Hive 中是否是分区表(%s)' "'${sys_type}'" "'${mysql_tb}'" "'${is_partition}'")"
+
+  debug "将 MySQL 的表转为 Hive 的表！"
+  tabla_alias
+
+  debug "判断是否需要执行自动创建表 ${hive_db}.${hive_tb}！"
+  table_exists_command="$beeline --showHeader=false --outputformat=csv2 -e 'show tables in ${hive_db} like \"${hive_tb}\";'"
+  debug "判断命令为：${table_exists_command}！"
+  [[ -z $(eval ${table_exists_command}) ]] && {
+    debug "${hive_db}.${hive_tb} 表不存在，执行创建表 开始！"
+    create_table
+  } || debug "${hive_db}.${hive_tb} 表已存在！"
+
+
+  hdfs_rm_command="$hdfs -rm -r -skipTrash ${data_warehouse}/${hive_db}.db/${hive_tb}$([[ ${is_partition} = y ]] && echo "/d_date=${ST9}" || echo '')/*"
+  debug "${hive_db}.${hive_tb} 删除 HDFS 中的文件命令为：${hdfs_rm_command}！"
+  eval ${hdfs_rm_command} 2>&1 | tee -a $log_file
+  [[ ${PIPESTATUS[0]} = 0 ]] && debug "${hive_db}.${hive_tb} 删除 HDFS 中的文件 完成！" || warn "${hive_db}.${hive_tb} 删除 HDFS 中的文件 失败！"
+
+  info "${hive_db}.${hive_tb} 正式执行 sqoop 导数任务 开始！"
+  sqoop_import
+
+  info "${hive_db}.${hive_tb} Sqoop 抽数 结束！用时：$(during "${sqoop_s_time}")"
+}
+
+
+
+arg_list=(
+  'xinglian-t_loan_contract_info'
+  'xinglian-t_principal_borrower_info'
+  'xinglian-t_contact_person_info'
+  'xinglian-t_guaranty_info'
+  'xinglian-t_repayment_schedule-y'
+  'xinglian-t_asset_pay_flow'
+  'xinglian-t_repayment_info'
+  'xinglian-t_asset_disposal'
+  'xinglian-t_asset_supplement'
+  'xinglian-t_asset_check'
+  'xinglian-t_project_check'
+  'xinglian-t_enterprise_info'
+
+  # 'abs-t_loancontractinfo'
+  # 'abs-t_borrowerinfo'
+  # 'abs-t_associatesinfo'
+  # 'abs-t_guarantycarinfo'
+  # 'abs-t_repaymentplan'
+  # 'abs-t_repaymentplan_history'
+  # 'abs-t_assettradeflow'
+  # 'abs-t_actualrepayinfo'
+  # 'abs-t_assetdealprocessinfo'
+  # 'abs-t_assetaddtradeinfo'
+  # 'abs-t_assetaccountcheck'
+  # 'abs-t_projectaccountcheck'
+  # 'abs-t_enterpriseinfo'
+  # 'abs-t_guarantyhouseinfo'
+)
+
+p_num=2
+
+if [[ $# != 0 ]]; then
+  execute_fun $@
+else
+  for arg in ${arg_list[@]}; do
+    execute_fun $(b_a ${arg}) &
+    p_opera ${p_num}
+  done
 fi
-
-# 日期格式：yyyy-MM-dd HH:mm:ss
-d_date=$(date -d "${2:-$(date +'%F %T')}" +%F)
-last_time=$3
-# 传入重跑表的格式："hostname:库名:表名" ，多个以","（英文逗号）分隔
-tables_param=$4
-
-beeline="beeline -u jdbc:hive2://$hiveserver2:10000 -n hive"
-
-for connect_keys in ${tables_param:-${!connects[@]}}; do
-  connect_key=(${connect_keys//:/ })
-  connect_val=(${connects["${connect_keys}"]//:/ })
-
-  hostname=${connect_key[0]}
-  database=${connect_key[1]}
-
-  username=${connect_val[0]}
-  password=${connect_val[1]}
-
-  tables=${connect_val[2]}
-
-  # printf '%-16s%-10s%-20s%-15s%s\n' $hostname $username $password $database $tables
-
-  ###########获取当前mysql表记录数############
-  for table in ${tables//,/ }; do
-    tbl=${table//-/}
-
-    # printf '%-25s%-10s\n' $table $tbl
-
-    mysql_count=$(mysql -h${hostname} -P3306 -u${username} -p${password} -D${database} -s -N -e "select count(1) as cnt from ${tbl};")
-
-    ###########sqoop同步数据到hive中############
-    if [[ ${mysql_count:=-1} > 0 ]]; then
-      sqoop_import "$([[ $table =~ -$ ]] && echo 'N' || echo 'Y')" "${connect_keys}" "${sqoop_param}"
-
-      [[ $? -eq 0 ]] && {
-        ###########获取同步到hive中的记录数###########
-        [[ $table =~ -$ ]] && \
-        sql="select count(1) as cnt from ${hive_db}.${tbl};" || \
-        sql="select count(1) as cnt from ${hive_db}.${tbl} where d_date = ${d_date};"
-
-        # hive_count=$($beeline \
-        # --showHeader=false --outputformat=csv2 \
-        # -e "${sql}")
-      } || hive_count=-1
-    fi
-
-    ss=$(printf "Sqoop_sync.sh --> %-50s MySQL中数据量为：${mysql_count}，Hive分区 ${d_date}（如表中无分区，则为全量数据）中数据量为：${hive_count}" ${hostname}:${database}:${table})
-
-    ###########比较记录数大小，判断数据同步是否成功############
-    if [[ ${mysql_count} -eq -1 ]];then
-      echo -e "$ss\t因为 MySQL 数据量为 -1，所以 MySQL 端存在问题，请检查错误并重新执行！"
-    elif [[ ${mysql_count} -eq 0 ]];then
-      echo -e "$ss\t因为 MySQL 数据量为：0，所以跳过 Sqoop 抽数执行！"
-    elif [[ ${hive_count} -eq -1 ]]; then
-      echo -e "$ss\t因为 Hive 数据量为：-1，所以 Hive 端存在问题，请检查错误并重新执行！"
-    elif [[ ${hive_count} -eq 0 ]];then
-      echo -e "$ss\t因为 Hive 数据量为：0，所以 Sqoop 数据抽取失败，请检查错误并重新执行！"
-    elif [[ ${hive_count} -eq ${mysql_count} ]];then
-      echo -e "$ss\t因为 MySQL 与 Hive 的数据量相等，所以同步成功！"
-    else
-      echo -e "$ss\t因为 MySQL 与 Hive 的数据量不一致，请查明原因后重新执行！"
-    fi
-  done
-    # exit
-  done
-
-  echo -e "${end:=$(date +'%F %T')} 执行Sqoop数据抽取任务  结束      用时：$(during "$end" "$start")\n\n"
-
