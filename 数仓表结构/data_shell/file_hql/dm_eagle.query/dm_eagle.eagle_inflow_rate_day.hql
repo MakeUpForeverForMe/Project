@@ -19,7 +19,10 @@ set hive.exec.max.dynamic.partitions.pernode=50000;
 set hive.vectorized.execution.enabled=false;
 set hive.vectorized.execution.reduce.enabled=false;
 set hive.vectorized.execution.reduce.groupby.enabled=false;
-
+--set hivevar:ST9=2020-10-10 ;
+--SET hivevar:hive_param_str=;
+--set hivevar:db_suffix=;
+--set hivevar:vt=_vt;
 
 insert overwrite table dm_eagle${db_suffix}.eagle_inflow_rate_day partition(biz_date,product_id)
 select
@@ -97,6 +100,7 @@ from (
       and should_repay_date is not null
       and overdue_stage_previous = 0
       and overdue_stage_curr = 1
+      and is_buy_back <> 1
   ) as overdue_num_main
   on biz_conf.product_id = overdue_num_main.product_id
   left join ( -- 取的是正常的分子中的逾期金额、逾期借据剩余金额等，但是关联分母时会过滤掉部分分母的数据，所以要有 overdue_num_main 这个子查询
@@ -121,6 +125,7 @@ from (
       and overdue_days <= 30
       and overdue_stage_previous = 0
       and overdue_stage_curr = 1
+      and is_buy_back <> 1
   ) as overdue_num_sum
   on  overdue_num_main.biz_date          = overdue_num_sum.biz_date
   and overdue_num_main.product_id        = overdue_num_sum.product_id
@@ -189,6 +194,7 @@ left join (
       and biz_date = date_sub(should_repay_date_curr,1)
       and overdue_mob <= 12
       and overdue_days = 0
+      and is_buy_back <> 1
   ) overdue_num
   on biz_conf.product_id = overdue_num.product_id
   group by

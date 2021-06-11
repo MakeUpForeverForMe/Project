@@ -14,21 +14,29 @@ base_file_name=$(basename "${BASH_SOURCE[0]}")
 }
 
 log=$log/${base_file_name}.${e_date}.log
-
+  
 
 echo -e "${date_s_aa:=$(date +'%F %T')} 资产dw_dm  开始 当前脚本进程ID为：$(pid)\n" &>> $log
 
-
+  
 sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw.dw_loan_base_stat_loan_num_day.hql -i $param_dir/dw.param.hql -a $rd &
 sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw.dw_loan_base_stat_loan_num_day.hql -i $param_dir/dw_cps.param.hql -a $rd &
 
+wait_jobs
 sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw.dw_loan_base_stat_overdue_num_day.hql -i $param_dir/dw.param.hql -a $rd &
+
+wait_jobs
 sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw.dw_loan_base_stat_overdue_num_day.hql -i $param_dir/dw_cps.param.hql -a $rd &
 
 wait_jobs
 
 sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw.dw_loan_base_stat_repay_detail_day.hql -i $param_dir/dw.param.hql -a $rd &
+
+wait_jobs
+
 sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw.dw_loan_base_stat_repay_detail_day.hql -i $param_dir/dw_cps.param.hql -a $rd &
+
+wait_jobs
 
 sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw.dw_loan_base_stat_should_repay_day.hql -i $param_dir/dw.param.hql -a $rd &
 sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw.dw_loan_base_stat_should_repay_day.hql -i $param_dir/dw_cps.param.hql -a $rd &
@@ -38,9 +46,10 @@ wait_jobs
 sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw.dw_should_repay_summary.hql -i $param_dir/dw.param.hql -a $rd &
 sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw.dw_should_repay_summary.hql -i $param_dir/dw_cps.param.hql -a $rd &
 
+wait_jobs
+
 sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw.dw_user_information_stat_d.hql -i $param_dir/dw.param.hql -a $rd &
 sh $data_manage -s ${s_date} -e ${e_date} -f $dw_new_hql/dw.dw_user_information_stat_d.hql -i $param_dir/dw_cps.param.hql -a $rd &
-
 
 wait_jobs
 
@@ -121,6 +130,7 @@ wait_jobs
 
 sh $data_check_all ${s_date} ${e_date} dm_eagle &>> $log &
 
+wait_jobs
 table_list=(
  # 资产
  dm_eagle.eagle_inflow_rate_first_term_day-$dm_eagle_dm_eagle
@@ -174,8 +184,8 @@ table_list=(
  # dm_eagle.eagle_repayment_detail-$dm_eagle_dm_eagle
 
  # 应还实还
- dm_eagle.eagle_should_repay_repaid_amount_day-$dm_eagle_dm_eagle
- dm_eagle_cps.eagle_should_repay_repaid_amount_day-$dm_eagle_dm_eagle_cps
+ # dm_eagle.eagle_should_repay_repaid_amount_day-$dm_eagle_dm_eagle
+ # dm_eagle_cps.eagle_should_repay_repaid_amount_day-$dm_eagle_dm_eagle_cps
  # dm_eagle.eagle_should_repay_repaid_amount_day_hst-$dm_eagle_dm_eagle
  # dm_eagle_cps.eagle_should_repay_repaid_amount_day_hst-$dm_eagle_dm_eagle_cps
 
@@ -189,7 +199,7 @@ wait_jobs
 echo -e "${date_e_aa:=$(date +'%F %T')} 资产dw_dm  结束 当前脚本进程ID为：$(pid)    用时：${during_time:=$(during "$date_e_aa" "$date_s_aa")}\n\n" &>> $log
 
 
-$mail $pm_rd ' EMR  数据 4.0 资产dw_dm 结束' "
+$mail $pm_rd ' Emr  数据 4.0 资产dw_dm 结束' "
   执行开始日期： $s_date
   执行结束日期： $e_date
   操作开始时间： $date_s_aa

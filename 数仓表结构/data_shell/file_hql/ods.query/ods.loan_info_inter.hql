@@ -19,7 +19,7 @@ set hive.exec.max.dynamic.partitions.pernode=50000;
 set hive.vectorized.execution.enabled=false;
 set hive.vectorized.execution.reduce.enabled=false;
 set hive.vectorized.execution.reduce.groupby.enabled=false;
-
+set hivevar:p_types =and p_type in ('lx','lx2','lx3','lxzt');
 --set hivevar:db_suffix=;
 --set hivevar:tb_suffix=_asset;
 --set hivevar:product_id='001801';
@@ -482,6 +482,7 @@ from (
     where 1 > 0
       and d_date = '${ST9}'
       and product_code in (${product_id})
+      ${p_types}
   ) as ecas_loan
   left join (
     select
@@ -508,6 +509,7 @@ from (
           '000015945007161admin000083000006'
         )
       )
+      ${p_types}
       -- and d_date = date_sub(current_date(),2)
       -- and txn_date <= '${ST9}'
     group by due_bill_no,d_date
@@ -553,6 +555,7 @@ from
       and d_date = '${ST9}'
       and curr_term > 0
       and product_code in (${product_id})
+      ${p_types}
       group by due_bill_no,product_code
     )  t
     LATERAL VIEW explode(term_pmt_due_date_list) pmt as term_pmt_due_date
@@ -615,6 +618,7 @@ from
         when product_code = '001801' and due_bill_no = '1120060602332594205233' and d_date between '2020-06-07' and to_date(current_timestamp()) then 'F'
         when product_code = '001801' and due_bill_no = '1120060602543338694112' and d_date between '2020-06-07' and to_date(current_timestamp()) then 'F'
         else schedule_status end = 'O'
+        ${p_types}
     group by due_bill_no,d_date
   ) as overdue_term
   on  ecas_loan.d_date      = overdue_term.d_date
@@ -891,6 +895,7 @@ left join (
     where 1 > 0
       and d_date = date_sub('${ST9}',1)
       and product_code in (${product_id})
+      ${p_types}
   ) as ecas_loan
   left join (
     select
@@ -915,6 +920,7 @@ left join (
           '000015945007161admin000083000006'
         )
       )
+      ${p_types}
       -- and d_date = date_sub(date_sub(current_date(),2),1)
       -- and txn_date <= date_sub('${ST9}',1)
     group by due_bill_no,d_date
@@ -960,6 +966,7 @@ from
       and d_date = date_sub('${ST9}',1)
       and curr_term > 0
       and product_code in (${product_id})
+      ${p_types}
       group by due_bill_no,product_code
     )  t
     LATERAL VIEW explode(term_pmt_due_date_list) pmt as term_pmt_due_date

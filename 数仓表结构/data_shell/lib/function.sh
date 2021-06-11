@@ -168,15 +168,16 @@ date_conf_update_offset(){
 
 # MySQL 命令参数配置化扩展
 mysql_fun(){
-  init_file="$(grep -Ev '^\s*$' "${1}")"
-  [[ $(echo "${init_file}" | wc -l) != 5 ]] && {
-    error "输入文件中的参数不正确！要输入5个属性值（mysql_host、mysql_port、mysql_user、mysql_pass、mysql_db）"
-    exit 1
+  [[ $# = 1 ]] && mysql_init_file=${1}
+  [[ -f ${mysql_init_file} ]] && {
+    init_file="$(grep -Ev '^\s*$' "${mysql_init_file}")"
+    [[ $(echo "${init_file}" | wc -l) != 5 ]] && error "输入文件中的参数不正确！要输入5个属性值（mysql_host、mysql_port、mysql_user、mysql_pass、mysql_db）"
+    eval "${init_file}"
   }
-  eval "${init_file}"
+
   # -N Don't write column names in results.
   # -s Be more silent. Print results with a tab as separator,each row on new line.
-  echo "mysql -h${mysql_host} -P${mysql_port} -u${mysql_user} -p${mysql_pass} -D${mysql_db}"
+  echo "mysql -h${mysql_host} -P${mysql_port:-3306} -u${mysql_user} '-p${mysql_pass}' -D${mysql_db}"
 }
 
 # 抽取 Hive 数据到 本地文件
@@ -212,13 +213,14 @@ import_file_to_mysql(){
   info "${export_file} 数据上传到 MySQL 开始！"
   s_date_import=$curr_time
 
-  mysql_import_sql="${1};LOAD DATA LOCAL INFILE '${export_file}' INTO TABLE ${tb} FIELDS TERMINATED BY '\t' (${fields});"
-  debug "MySQL 导入命令为：${mysql_import_sql}"
-  $mysql -e "${mysql_import_sql}"
+  mysql_load_command="$mysql -e \"${1};LOAD DATA LOCAL INFILE '${export_file}' INTO TABLE ${tb} FIELDS TERMINATED BY '\t' (${fields});\""
+  debug "MySQL 导入命令为：${mysql_load_command}"
+  eval "${mysql_load_command}"
   [[ $? != 0 ]] && error "MySQL 上传数据 失败！" || info "MySQL 上传数据 成功！"
 
   info "${export_file} 数据上传到 MySQL 结束！用时：$(during "${s_date_import}")"
 }
+
 
 # 将以文本数据，转化为SQL
 select_data(){ # 参数应为具体的数据（不适用于大量数据）

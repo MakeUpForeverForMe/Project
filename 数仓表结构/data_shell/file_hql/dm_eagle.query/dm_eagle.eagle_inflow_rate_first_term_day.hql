@@ -19,6 +19,10 @@ set hive.exec.max.dynamic.partitions.pernode=50000;
 set hive.vectorized.execution.enabled=false;
 set hive.vectorized.execution.reduce.enabled=false;
 set hive.vectorized.execution.reduce.groupby.enabled=false;
+--set hivevar:ST9=2020-10-10 ;
+--SET hivevar:hive_param_str=;
+--set hivevar:db_suffix=;
+--set hivevar:vt=_vt;
 
 insert overwrite table dm_eagle${db_suffix}.eagle_inflow_rate_first_term_day partition(biz_date = '${ST9}',product_id)
 -- insert overwrite table dm_eagle${db_suffix}.eagle_inflow_rate_first_term_day partition(biz_date,product_id)
@@ -66,6 +70,7 @@ from (
   on  overdue_num.product_id = biz_conf.product_id
   and biz_conf.product_id${vt} is not null
   and overdue_num.biz_date = '${ST9}'
+  where is_buy_back <> 1
   -- order by biz_date,product_id,loan_terms
 ) as loan_terms
 left join (
@@ -103,6 +108,7 @@ left join (
   and overdue_num.is_first_term_overdue = 1
   and overdue_num.overdue_days between 1 and 30
   and overdue_num.overdue_mob <= 12
+  where is_buy_back <> 1
   group by 1,2,3,7,8
   -- ,9,10
 ) as overdue_num

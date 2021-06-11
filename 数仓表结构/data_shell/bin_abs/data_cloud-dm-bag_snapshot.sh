@@ -43,7 +43,7 @@ info "${job_name} 数据导出上传 结束！用时：$(during "$date_a_time")"
 info "${job_name} 跑批 结束！用时：${during_time:=$(during "$date_s_time")}"
 
 
-$mail $ximing "${job_name} 跑批 $(pid)" "
+$mail $pm_rd "${job_name} 跑批 $(pid)" "
   执行开始日期： $s_date
   执行结束日期： $e_date
   执行开始时间： $date_s_time

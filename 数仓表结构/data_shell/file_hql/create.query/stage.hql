@@ -1100,8 +1100,8 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `stage.duration_result`(
   `focus`                                             string        COMMENT '关注名单（1：关注，0：非关注）',
   `state`                                             string        COMMENT '数据状态（0：无效，1：处理中，2：处理成功，3：处理失败）',
   `error_msg`                                         string        COMMENT '失败原因',
-  `create_time`                                       timestamp     COMMENT '创建时间',
-  `update_time`                                       timestamp     COMMENT '修改时间'
+  `create_time`                                       string        COMMENT '创建时间',
+  `update_time`                                       string        COMMENT '修改时间'
 ) COMMENT '存续期数据跑批结果表'
 PARTITIONED BY(d_date string comment '批量日期',project_id string comment '项目id')
 STORED AS PARQUET;

@@ -1,7 +1,6 @@
 
 
 set var:product_id='001801','001802','001803','001804','001901','001902','001903','001904','001905','001906','001907','002001','002002','002003','002004','002005','002006','002007';
-
 insert overwrite table dm_eagle.report_dm_lx_asset_report_snapshot_comp partition(snapshot_date,project_id)
 select
 
@@ -26,18 +25,26 @@ select
     cast(sum(t3.repurchase_inter)	     as decimal(15,2))	    as repurchase_inter,
     cast(sum(t3.refund_contract_amount)  as decimal(15,2))		as refund_contract_amount,
     '${var:ST9}'											    as snapshot_date,
-    biz.project_id												as project_id
+    biz.project_id	                                            as project_id
 from
-(
-    select * from dim_new.biz_conf
-    where product_id in (${var:product_id})
+(       select
+       project_id,
+       product_id
+       from (
+         select
+           max(if(col_name = 'project_id',   col_val,null)) as project_id,
+           max(if(col_name = 'product_id',   col_val,null)) as product_id
+         from dim.data_conf
+         where col_type = 'ac'
+         group by col_id
+    )tmp where product_id in (${var:product_id})
 ) biz
 left join
 (
     select
         product_id,
         sum(loan_init_principal)                                as loan_amount
-    from ods_new_s_cps.loan_info
+    from ods_cps.loan_info
     where '${var:ST9}' between s_d_date and date_sub(e_d_date,1)
     and product_id in (${var:product_id})
     and loan_active_date = '${var:ST9}'
@@ -51,7 +58,7 @@ left join
         sum(repay_amount)                                       as total_collection_amount,
         sum(if(bnp_type='Pricinpal',repay_amount,0))            as total_collection_prin,
         sum(if(bnp_type<>'Pricinpal',repay_amount,0))           as total_collection_inter
-    from ods_new_s_cps.repay_detail
+    from ods_cps.repay_detail
     where to_date(txn_time) = date_sub('${var:ST9}',1)
     and product_id in (${var:product_id})
     group by product_id
@@ -71,7 +78,7 @@ left join
     from
     (
         select *
-        from ods_new_s_cps.order_info
+        from ods_cps.order_info
         where biz_date = date_sub('${var:ST9}',1)
         and product_id in (${var:product_id})
         and loan_usage<>'L' and order_status='S'
@@ -79,7 +86,7 @@ left join
     left join
     (
         select *
-        from ods_new_s_cps.repay_detail
+        from ods_cps.repay_detail
         where product_id in (${var:product_id})
         and to_date(txn_time) = date_sub('${var:ST9}',1)
     ) repay

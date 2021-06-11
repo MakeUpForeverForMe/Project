@@ -19,6 +19,10 @@ set hive.exec.max.dynamic.partitions.pernode=50000;
 set hive.vectorized.execution.enabled=false;
 set hive.vectorized.execution.reduce.enabled=false;
 set hive.vectorized.execution.reduce.groupby.enabled=false;
+--set hivevar:ST9=2020-10-10 ;
+--SET hivevar:hive_param_str=;
+--set hivevar:db_suffix=;
+--set hivevar:vt=_vt;
 
 
 insert overwrite table dm_eagle${db_suffix}.eagle_overdue_rate_month partition (biz_date,product_id)
@@ -128,6 +132,7 @@ full join ( -- 曾有
     from dw${db_suffix}.dw_loan_base_stat_overdue_num_day
     where 1 > 0
       and biz_date <= '${ST9}'
+      and is_buy_back <> 1
       and is_first_overdue_day = 1
       and overdue_days in (0,1,4,8,15,31,61,91,121,151,181)
     -- order by product_id,biz_date,loan_active_date
@@ -226,6 +231,7 @@ left join ( -- 当前
     ) dpd_x as dpd
     where 1 > 0
       and biz_date = '${ST9}'
+      and is_buy_back <> 1
     group by product_id,biz_date,loan_active_date,should_repay_date,loan_terms,dpd,overdue_mob
     -- order by product_id,biz_date,loan_active_date,should_repay_date
   ) as overdue_num
@@ -272,6 +278,7 @@ left join (
   on  overdue_num.product_id = biz_conf.product_id
   and overdue_num.biz_date = '${ST9}'
   and biz_conf.product_id${vt} is not null
+where is_buy_back <> 1
   group by biz_conf.product_id${vt},loan_terms,date_format(loan_active_date,'yyyy-MM')
 ) as remain_principal_sum
 on  once.loan_terms_once = remain_principal_sum.loan_terms_remain

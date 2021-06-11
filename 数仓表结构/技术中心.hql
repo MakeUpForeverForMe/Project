@@ -16113,3 +16113,83 @@ where source_table = 'duration_result'
 group by project_id,due_bill_no,create_time
 order by project_id,due_bill_no,execute_month
 limit 20;
+
+
+
+
+
+
+MSCK REPAIR TABLE stage.asset_05_t_repayment_schedule;
+
+
+MSCK REPAIR TABLE stage.asset_01_t_loan_contract_info;
+
+
+
+
+
+
+select * from ods.t_10_basic_asset
+where 1 > 0
+  and project_id = 'CL202102240099'
+  and serial_number = '1103551057'
+limit 10
+;
+
+
+select *
+from ods.loan_info_abs
+where 1 > 0
+  -- and project_id = 'CL202102240099'
+  and product_id = '002203'
+  -- and '2021-01-29' between s_d_date and date_sub(e_d_date,1)
+  and due_bill_no = '1103551057'
+;
+
+
+select *
+from dim.project_due_bill_no
+where project_id = 'CL202102240099'
+  and due_bill_no = '1103551057'
+;
+
+
+
+select *
+from ods.loan_info_inter
+where product_id = '002203'
+  and due_bill_no = '1103551057'
+;
+
+
+
+select
+  *
+from stage.abs_10_t_assetaccountcheck
+where project_id = 'CL202012280092'
+  and serial_number = '1103551057'
+order by data_extract_time
+;
+
+
+
+select
+  *
+from stage.asset_10_t_asset_check
+where project_id = 'CL202012280092'
+  and asset_id = '1103551057'
+order by account_date
+;
+
+
+
+
+
+
+
+
+
+
+
+
+

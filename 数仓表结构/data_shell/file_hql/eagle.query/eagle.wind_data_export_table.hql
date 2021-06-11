@@ -20,7 +20,7 @@ set hive.vectorized.execution.enabled=false;
 set hive.vectorized.execution.reduce.enabled=false;
 set hive.vectorized.execution.reduce.groupby.enabled=false;
 set hivevar:project_id='CL202012280092','cl00297','cl00306','cl00309','CL201911130070','CL202002240081';
-set hivevar:ST9=2021-03-01;
+--set hivevar:ST9=2021-03-01;
 
 set hive.auto.convert.join=false;
 set hive.auto.convert.join.noconditionaltask=false;
@@ -32,7 +32,7 @@ set hive.auto.convert.join.noconditionaltask=false;
 insert overwrite table eagle.wind_data_export_table partition(biz_date,project_id)
 select
 loan.product_id,
-concat("lTest",loan.due_bill_no) as due_bill_no,
+loan.due_bill_no,
 customer.name,
 customer.idcard_no,
 customer.mobie,
@@ -53,8 +53,9 @@ and project_id in (${project_id})
 )loan
 left join (
 select
+
 customer_info.due_bill_no,
-customer_info.product_id,
+customer_info.project_id,
 encrypt_aes(customer_name.dim_decrypt,"tencentabs123456") as name,
 encrypt_aes(customer_phone.dim_decrypt,"tencentabs123456") as mobie,
 encrypt_aes(idcard_no.dim_decrypt,"tencentabs123456") as idcard_no

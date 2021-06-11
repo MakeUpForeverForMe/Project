@@ -1,169 +1,189 @@
 -- DROP TABLE IF EXISTS `dm_eagle.report_dm_lx_asset_statistics`;
-CREATE TABLE IF NOT EXISTS dm_eagle.report_dm_lx_asset_statistics(
-  `id`                                STRING        NOT NULL COMMENT '主键id:当前统计日yyyyMMdd',
-  `project_id`                        STRING        NOT NULL COMMENT '项目id',
-  `m2plus_recover_amount_accum`       DECIMAL(15,4)          COMMENT '累计违约30天+回收金额',
-  `m2plus_recover_prin_accum`         DECIMAL(15,4)          COMMENT '累计违约30天+回收本金',
-  `m2plus_recover_inter_accum`        DECIMAL(15,4)          COMMENT '累计违约30天+回收息费',
-  `m4plus_recover_amount_accum`       DECIMAL(15,4)          COMMENT '累计违约90天+回收金额',
-  `m4plus_recover_prin_accum`         DECIMAL(15,4)          COMMENT '累计违约90天+回收本金',
-  `m4plus_recover_inter_accum`        DECIMAL(15,4)          COMMENT '累计违约90天+回收息费',
-  `static_30_amount`                  DECIMAL(15,4)          COMMENT '累计30+逾期资产金额',
-  `static_30_prin`                    DECIMAL(15,4)          COMMENT '累计30+逾期资产本金',
-  `static_30_iner`                    DECIMAL(15,4)          COMMENT '累计30+逾期资产利息',
-  `static_90_amount`                  DECIMAL(15,4)          COMMENT '累计90+逾期资产金额',
-  `static_90_prin`                    DECIMAL(15,4)          COMMENT '累计90+逾期资产本金',
-  `static_90_iner`                    DECIMAL(15,4)          COMMENT '累计90+逾期资产利息',
-  `overdue_remain_principal`          DECIMAL(15,4)          COMMENT '逾期1+剩余本金',
-  `acc_buy_back_amount`               DECIMAL(15,4)          COMMENT '累计180+回购金额',
-  `snapshot_date`                     STRING                 COMMENT '快照日',
-  PRIMARY KEY (id)
-)
-PARTITION BY HASH (id) PARTITIONS 8
-COMMENT 'dm 乐信剔代偿快照统计宽表'
-STORED AS KUDU
-TBLPROPERTIES ('kudu.master_addresses'='node172');
 
--- DROP TABLE IF EXISTS `dm_eagle.report_dm_lx_asset_summary_statistics`;
-CREATE TABLE IF NOT EXISTS `dm_eagle.report_dm_lx_asset_summary_statistics`(
-  `id`                                STRING        NOT NULL  COMMENT '主键id:当前统计日yyyyMMdd',
-  `project_id`                        STRING        NOT NULL  COMMENT '项目id',
-  `m2plus_recover_amount`             DECIMAL(15,4)           COMMENT '违约30天+回收金额',
-  `m2plus_recover_prin`               DECIMAL(15,4)           COMMENT '违约30天+回收本金',
-  `m2plus_recover_inter`              DECIMAL(15,4)           COMMENT '违约30天+回收息费',
-  `m4plus_recover_amount`             DECIMAL(15,4)           COMMENT '违约90天+回收金额',
-  `m4plus_recover_prin`               DECIMAL(15,4)           COMMENT '违约90天+回收本金',
-  `m4plus_recover_inter`              DECIMAL(15,4)           COMMENT '违约90天+回收息费',
-  `m2plus_num`                        INT           DEFAULT 0 COMMENT '违约30天+笔数',
-  `m2plus_amount`                     DECIMAL(15,4)           COMMENT '违约30天+金额',
-  `m2plus_prin`                       DECIMAL(15,4)           COMMENT '违约30天+本金',
-  `m2plus_inter`                      DECIMAL(15,4)           COMMENT '违约30天+利息',
-  `m4plus_num`                        INT           DEFAULT 0 COMMENT '违约90天+笔数',
-  `m4plus_amount`                     DECIMAL(15,4)           COMMENT '违约90天+金额',
-  `m4plus_prin`                       DECIMAL(15,4)           COMMENT '违约90天+本金',
-  `m4plus_inter`                      DECIMAL(15,4)           COMMENT '违约90天+利息',
-  `static_30_new_amount`              DECIMAL(15,4)           COMMENT '新增30+逾期资产金额',
-  `static_30_new_prin`                DECIMAL(15,4)           COMMENT '新增30+逾期资产本金',
-  `static_30_new_inter`               DECIMAL(15,4)           COMMENT '新增30+逾期资产利息',
-  `static_90_new_amount`              DECIMAL(15,4)           COMMENT '新增90+逾期资产金额',
-  `static_90_new_prin`                DECIMAL(15,4)           COMMENT '新增90+逾期资产本金',
-  `static_90_new_inter`               DECIMAL(15,4)           COMMENT '新增90+逾期资产利息',
-  `snapshot_date`                     STRING                  COMMENT '快照日',
-  PRIMARY KEY (id)
-)
-PARTITION BY HASH (id) PARTITIONS 8
-COMMENT 'dm 乐信剔代偿汇总大宽表'
-STORED AS KUDU
-TBLPROPERTIES ('kudu.master_addresses'='node172');
+CREATE TABLE dm_eagle.report_lx_asset_distribution (
+  mold STRING  COMMENT '类型',
+  content STRING  COMMENT '内容',
+  end_assets_prin DECIMAL(12,2)  COMMENT '期末分布资产余额',
+  end_assets_num DECIMAL(12,0)  COMMENT '期末分布资产笔数',
+  new_assets_prin DECIMAL(12,2)  COMMENT '新增放款资产余额',
+  new_assets_num DECIMAL(12,0)  COMMENT '新增放款资产笔数'
+)  COMMENT '乐信资产分布表'
+ PARTITIONED BY (`snapshot_date` string COMMENT '快照日',`project_id` string COMMENT '项目编号')
+STORED AS PARQUET ;
 
 
--- DROP TABLE IF EXISTS `dm_eagle.report_dm_lx_asset_report_accu_comp`;
-CREATE TABLE IF NOT EXISTS `dm_eagle.report_dm_lx_asset_report_accu_comp`(
-  `id`                                STRING        NOT NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '主键id',
-  `snapshot_date`                     STRING            NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '快照日',
-  `project_id`                        STRING            NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '项目id',
-  `total_remain_prin`                 DECIMAL(15,2)     NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '总本金余额',
-  `total_remain_num`                  INT               NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '未结清笔数',
-  `average_remain`                    DECIMAL(15,6)     NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '在贷件均余额',
-  `weighted_average_rate`             DECIMAL(15,6)     NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '加权平均利率',
-  `weighted_average_remain_tentor`    DECIMAL(15,6)     NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '加权平均剩余期数',
-  `total_contract_amount`             DECIMAL(15,2)     NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '累计发放贷款总额',
-  `total_contract_num`                INT               NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '累计发放贷款笔数',
-  `average_contract_amount`           DECIMAL(15,6)     NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '贷款件均金额',
-  `total_repurchase_contract`         DECIMAL(15,2)     NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '回购贷款金额',
-  `total_repurchase_num`              INT               NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '回购贷款笔数',
-  `weighted_average_rate_by_contract` DECIMAL(15,6)     NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '合同加权利率',
-  `weighted_average_term_by_contract` DECIMAL(15,6)     NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '合同加权期限',
-  `loan_amount_accum`                 DECIMAL(15,2)     NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '放款金额',
-  `total_amount_accum`                DECIMAL(15,2)     NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '累计回收总金额',
-  `total_prin_accum`                  DECIMAL(15,2)     NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '累计回收总本金',
-  `total_inter_accum`                 DECIMAL(15,2)     NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '累计回收总息费',
-  `prepay_amount_accum`               DECIMAL(15,2)     NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '累计提前结清金额',
-  `prepay_prin_accouum`               DECIMAL(15,2)     NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '累计提前结清本金',
-  `prepay_inter_accum`                DECIMAL(15,2)     NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '累计提前结清利息',
-  `conpensation_amount_accum`         DECIMAL(15,2)     NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '累计代偿金额',
-  `conpensation_prin_accum`           DECIMAL(15,2)     NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '累计代偿本金',
-  `conpensation_inter_accum`          DECIMAL(15,2)     NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '累计代偿息费',
-  `repurchase_amount_accum`           DECIMAL(15,2)     NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '累计回购金额',
-  `repurchase_prin_accum`             DECIMAL(15,2)     NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '累计回购本金',
-  `repurchase_inter_accum`            DECIMAL(15,2)     NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '累计回购息费',
-  `refund_contract_amount_accum`      DECIMAL(15,2)     NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '累计退票金额',
-  `refund_contract_num_accum`         INT               NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '累计退票笔数',
-  PRIMARY KEY (id)
-)
-PARTITION BY HASH (id) PARTITIONS 4
- COMMENT '乐信无在途版含代偿汇总宽表'
-STORED AS KUDU
-TBLPROPERTIES ('kudu.master_addresses'='node172');
+CREATE TABLE dm_eagle.report_dm_lx_asset_refund_distribution (
+  mold STRING ,
+  content STRING ,
+  contact_amount DECIMAL(12,2) ,
+  assets_sum INT
+)COMMENT '乐信退票资产分布表'
+ PARTITIONED BY (`snapshot_date` string COMMENT '快照日',`project_id` string COMMENT '项目编号')
+STORED AS PARQUET ;
 
 
--- DROP TABLE IF EXISTS `dm_eagle.report_dm_lx_asset_report_snapshot_comp`;
-CREATE TABLE IF NOT EXISTS `dm_eagle.report_dm_lx_asset_report_snapshot_comp`(
-  `id`                                STRING        NOT NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '主键id',
-  `snapshot_date`                     STRING            NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '快照日',
-  `project_id`                        STRING            NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '项目id',
-  `loan_amount`                       DECIMAL(15,2)     NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '放款金额',
-  `total_collection_amount`           DECIMAL(15,2)     NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '总回收款-金额',
-  `total_collection_prin`             DECIMAL(15,2)     NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '总回收款-本金',
-  `total_collection_inter`            DECIMAL(15,2)     NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '总回收款-息费',
-  `normal_amount`                     DECIMAL(15,2)     NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '正常还款金额',
-  `normal_prin`                       DECIMAL(15,2)     NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '正常还款本金',
-  `normal_inter`                      DECIMAL(15,2)     NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '正常还款息费',
-  `overdue_amount`                    DECIMAL(15,2)     NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '逾期还款金额',
-  `overdue_prin`                      DECIMAL(15,2)     NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '逾期还款本金',
-  `overdue_inter`                     DECIMAL(15,2)     NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '逾期还款息费',
-  `prepay_amount`                     DECIMAL(15,2)     NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '提前结清金额',
-  `prepay_prin`                       DECIMAL(15,2)     NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '提前结清本金',
-  `prepay_inter`                      DECIMAL(15,2)     NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '提前结清息费',
-  `compensation_amount`               DECIMAL(15,2)     NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '代偿回款金额',
-  `compensation_prin`                 DECIMAL(15,2)     NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '代偿回款本金',
-  `compensation_inter`                DECIMAL(15,2)     NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '代偿回款息费',
-  `repurchase_amount`                 DECIMAL(15,2)     NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '回购回款金额',
-  `repurchase_prin`                   DECIMAL(15,2)     NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '回购回款本金',
-  `repurchase_inter`                  DECIMAL(15,2)     NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '回购回款息费',
-  `refund_amount`                     DECIMAL(15,2)     NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '退票金额',
-  PRIMARY KEY (id)
-)
-PARTITION BY HASH (id) PARTITIONS 4
-COMMENT '乐信无在途版含代偿汇总宽表'
-STORED AS KUDU
-TBLPROPERTIES ('kudu.master_addresses'='node172');
+
+CREATE TABLE dm_eagle.report_dm_lx_asset_report_accu_comp (
+   total_remain_prin                                              DECIMAL(15,2)  COMMENT '总本金余额',
+   total_remain_num                                               INT  COMMENT '未结清笔数',
+   average_remain                                                 DECIMAL(15,6)  COMMENT '在贷件均余额',
+   weighted_average_rate                                          DECIMAL(15,6)  COMMENT '加权平均利率',
+   weighted_average_remain_tentor                                 DECIMAL(15,6)  COMMENT '加权平均剩余期数',
+   total_contract_amount                                          DECIMAL(15,2)  COMMENT '累计发放贷款总额',
+   total_contract_num                                             INT  COMMENT '累计发放贷款笔数',
+   average_contract_amount                                        DECIMAL(15,6)  COMMENT '贷款件均金额',
+   total_repurchase_contract                                      DECIMAL(15,2)  COMMENT '回购贷款金额',
+   total_repurchase_num                                           INT  COMMENT '回购贷款笔数',
+   weighted_average_rate_by_contract                              DECIMAL(15,6)  COMMENT '合同加权利率',
+   weighted_average_term_by_contract                              DECIMAL(15,6)  COMMENT '合同加权期限',
+   loan_amount_accum                                              DECIMAL(15,2)  COMMENT '放款金额',
+   total_amount_accum                                             DECIMAL(15,2)  COMMENT '累计回收总金额',
+   total_prin_accum                                               DECIMAL(15,2)  COMMENT '累计回收总本金',
+   total_inter_accum                                              DECIMAL(15,2)  COMMENT '累计回收总息费',
+   prepay_amount_accum                                            DECIMAL(15,2)  COMMENT '累计提前结清金额',
+   prepay_prin_accouum                                            DECIMAL(15,2)  COMMENT '累计提前结清本金',
+   prepay_inter_accum                                             DECIMAL(15,2)  COMMENT '累计提前结清利息',
+   conpensation_amount_accum                                      DECIMAL(15,2)  COMMENT '累计代偿金额',
+   conpensation_prin_accum                                        DECIMAL(15,2)  COMMENT '累计代偿本金',
+   conpensation_inter_accum                                       DECIMAL(15,2)  COMMENT '累计代偿息费',
+   repurchase_amount_accum                                        DECIMAL(15,2)  COMMENT '累计回购金额',
+   repurchase_prin_accum                                          DECIMAL(15,2)  COMMENT '累计回购本金',
+   repurchase_inter_accum                                         DECIMAL(15,2)  COMMENT '累计回购息费',
+   refund_contract_amount_accum                                   DECIMAL(15,2)  COMMENT '累计退票金额',
+   refund_contract_num_accum                                      INT  COMMENT '累计退票笔数'
+ ) COMMENT '乐信无在途版含代偿汇总宽表'
+  PARTITIONED BY (`snapshot_date` string COMMENT '快照日',`project_id` string COMMENT '项目编号' )
+STORED AS PARQUET;
 
 
--- DROP TABLE IF EXISTS `dm_eagle.report_dm_lx_asset_report_accu_repayment`;
-CREATE TABLE IF NOT EXISTS `dm_eagle.report_dm_lx_asset_report_accu_repayment`(
-  `id`                                STRING        NOT NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '主键id',
-  `snapshot_date`                     STRING            NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '快照日',
-  `prepay_amount_accum`               DECIMAL(15,2)     NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '累计提前结清金额',
-  `prepay_prin_accouum`               DECIMAL(15,2)     NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '累计提前结清本金',
-  `prepay_inter_accum`                DECIMAL(15,2)     NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '累计提前结清利息',
-  PRIMARY KEY (id)
-)
-PARTITION BY HASH (id) PARTITIONS 4
-COMMENT '乐信无在途版含代偿汇总宽表'
-STORED AS KUDU
-TBLPROPERTIES ('kudu.master_addresses'='node172');
+
+CREATE TABLE dm_eagle.report_dm_lx_asset_report_accu_repayment(
+  prepay_amount_accum DECIMAL(15,2)  COMMENT '累计提前结清金额',
+  prepay_prin_accouum DECIMAL(15,2)  COMMENT '累计提前结清本金',
+  prepay_inter_accum DECIMAL(15,2)  COMMENT '累计提前结清利息'
+) COMMENT '乐信无在途版含代偿汇总宽表'
+ PARTITIONED BY (`snapshot_date` string COMMENT '快照日',`project_id` string COMMENT '项目编号')
+STORED AS parquet;
 
 
--- DROP TABLE IF EXISTS `dm_eagle.report_dm_lx_asset_report_snapshot_repayment`;
-CREATE TABLE IF NOT EXISTS `dm_eagle.report_dm_lx_asset_report_snapshot_repayment`(
-  `id`                                STRING        NOT NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '主键id',
-  `snapshot_date`                     STRING            NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '快照日',
-  `normal_amount`                     DECIMAL(15,2)     NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '正常还款金额',
-  `normal_prin`                       DECIMAL(15,2)     NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '正常还款本金',
-  `normal_inter`                      DECIMAL(15,2)     NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '正常还款息费',
-  `overdue_amount`                    DECIMAL(15,2)     NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '逾期还款金额',
-  `overdue_prin`                      DECIMAL(15,2)     NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '逾期还款本金',
-  `overdue_inter`                     DECIMAL(15,2)     NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '逾期还款息费',
-  `prepay_amount`                     DECIMAL(15,2)     NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '提前结清金额',
-  `prepay_prin`                       DECIMAL(15,2)     NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '提前结清本金',
-  `prepay_inter`                      DECIMAL(15,2)     NULL ENCODING AUTO_ENCODING COMPRESSION DEFAULT_COMPRESSION COMMENT '提前结清息费',
-  PRIMARY KEY (id)
-)
-PARTITION BY HASH (id) PARTITIONS 4
- COMMENT '乐信无在途版含代偿汇总宽表'
-STORED AS KUDU
-TBLPROPERTIES ('kudu.master_addresses'='node172');
+CREATE TABLE dm_eagle.report_dm_lx_asset_report_snapshot_comp (
+  loan_amount DECIMAL(15,2)  COMMENT '放款金额',
+  total_collection_amount DECIMAL(15,2)  COMMENT '总回收款-金额',
+  total_collection_prin DECIMAL(15,2)  COMMENT '总回收款-本金',
+  total_collection_inter DECIMAL(15,2)  COMMENT '总回收款-息费',
+  normal_amount DECIMAL(15,2)  COMMENT '正常还款金额',
+  normal_prin DECIMAL(15,2)  COMMENT '正常还款本金',
+  normal_inter DECIMAL(15,2)  COMMENT '正常还款息费',
+  overdue_amount DECIMAL(15,2)  COMMENT '逾期还款金额',
+  overdue_prin DECIMAL(15,2)  COMMENT '逾期还款本金',
+  overdue_inter DECIMAL(15,2)  COMMENT '逾期还款息费',
+  prepay_amount DECIMAL(15,2)  COMMENT '提前结清金额',
+  prepay_prin DECIMAL(15,2)  COMMENT '提前结清本金',
+  prepay_inter DECIMAL(15,2)  COMMENT '提前结清息费',
+  compensation_amount DECIMAL(15,2)  COMMENT '代偿回款金额',
+  compensation_prin DECIMAL(15,2)  COMMENT '代偿回款本金',
+  compensation_inter DECIMAL(15,2)  COMMENT '代偿回款息费',
+  repurchase_amount DECIMAL(15,2)  COMMENT '回购回款金额',
+  repurchase_prin DECIMAL(15,2)  COMMENT '回购回款本金',
+  repurchase_inter DECIMAL(15,2)  COMMENT '回购回款息费',
+  refund_amount DECIMAL(15,2)  COMMENT '退票金额'
+)COMMENT '乐信无在途版含代偿汇总宽表'
+ PARTITIONED BY (`snapshot_date` string COMMENT '快照日',`project_id` string COMMENT '项目编号')
+STORED AS PARQUET;
+
+
+CREATE TABLE dm_eagle.report_dm_lx_asset_report_snapshot_repayment (
+  normal_amount DECIMAL(15,2)  COMMENT '正常还款金额',
+  normal_prin DECIMAL(15,2)  COMMENT '正常还款本金',
+  normal_inter DECIMAL(15,2)  COMMENT '正常还款息费',
+  overdue_amount DECIMAL(15,2)  COMMENT '逾期还款金额',
+  overdue_prin DECIMAL(15,2)  COMMENT '逾期还款本金',
+  overdue_inter DECIMAL(15,2)  COMMENT '逾期还款息费',
+  prepay_amount DECIMAL(15,2)  COMMENT '提前结清金额',
+  prepay_prin DECIMAL(15,2)  COMMENT '提前结清本金',
+  prepay_inter DECIMAL(15,2)  COMMENT '提前结清息费'
+) COMMENT '乐信无在途版含代偿汇总宽表'
+  PARTITIONED BY (`snapshot_date` string COMMENT '快照日',`project_id` string COMMENT '项目编号')
+STORED AS PARQUET;
+
+
+CREATE TABLE dm_eagle.report_dm_lx_asset_statistics (
+  m2plus_recover_amount_accum DECIMAL(15,4)  COMMENT '累计违约30天+回收金额',
+  m2plus_recover_prin_accum DECIMAL(15,4)  COMMENT '累计违约30天+回收本金',
+  m2plus_recover_inter_accum DECIMAL(15,4)  COMMENT '累计违约30天+回收息费',
+  m4plus_recover_amount_accum DECIMAL(15,4)  COMMENT '累计违约90天+回收金额',
+  m4plus_recover_prin_accum DECIMAL(15,4)  COMMENT '累计违约90天+回收本金',
+  m4plus_recover_inter_accum DECIMAL(15,4)  COMMENT '累计违约90天+回收息费',
+  static_30_amount DECIMAL(15,4)  COMMENT '累计30+逾期资产金额',
+  static_30_prin DECIMAL(15,4)  COMMENT '累计30+逾期资产本金',
+  static_30_iner DECIMAL(15,4)  COMMENT '累计30+逾期资产利息',
+  static_90_amount DECIMAL(15,4)  COMMENT '累计90+逾期资产金额',
+  static_90_prin DECIMAL(15,4)  COMMENT '累计90+逾期资产本金',
+  static_90_iner DECIMAL(15,4)  COMMENT '累计90+逾期资产利息',
+  overdue_remain_principal DECIMAL(15,4)  COMMENT '逾期1+剩余本金',
+  acc_buy_back_amount DECIMAL(15,4)  COMMENT '累计180+回购金额'
+)COMMENT 'dm 乐信剔代偿快照统计宽表'
+ PARTITIONED BY (`snapshot_date` string COMMENT '快照日',`project_id` string COMMENT '项目编号')
+STORED AS PARQUET;
+
+
+CREATE TABLE dm_eagle.report_dm_lx_asset_summary_statistics (
+  m2plus_recover_amount DECIMAL(15,4)  COMMENT '违约30天+回收金额',
+  m2plus_recover_prin DECIMAL(15,4)  COMMENT '违约30天+回收本金',
+  m2plus_recover_inter DECIMAL(15,4)  COMMENT '违约30天+回收息费',
+  m4plus_recover_amount DECIMAL(15,4)  COMMENT '违约90天+回收金额',
+  m4plus_recover_prin DECIMAL(15,4)  COMMENT '违约90天+回收本金',
+  m4plus_recover_inter DECIMAL(15,4)  COMMENT '违约90天+回收息费',
+  m2plus_num INT  COMMENT '违约30天+笔数',
+  m2plus_amount DECIMAL(15,4)  COMMENT '违约30天+金额',
+  m2plus_prin DECIMAL(15,4)  COMMENT '违约30天+本金',
+  m2plus_inter DECIMAL(15,4)  COMMENT '违约30天+利息',
+  m4plus_num INT   COMMENT '违约90天+笔数',
+  m4plus_amount DECIMAL(15,4)  COMMENT '违约90天+金额',
+  m4plus_prin DECIMAL(15,4)  COMMENT '违约90天+本金',
+  m4plus_inter DECIMAL(15,4)  COMMENT '违约90天+利息',
+  static_30_new_amount DECIMAL(15,4)  COMMENT '新增30+逾期资产金额',
+  static_30_new_prin DECIMAL(15,4)  COMMENT '新增30+逾期资产本金',
+  static_30_new_inter DECIMAL(15,4)  COMMENT '新增30+逾期资产利息',
+  static_90_new_amount DECIMAL(15,4)  COMMENT '新增90+逾期资产金额',
+  static_90_new_prin DECIMAL(15,4)  COMMENT '新增90+逾期资产本金',
+  static_90_new_inter DECIMAL(15,4)  COMMENT '新增90+逾期资产利息'
+)COMMENT 'dm 乐信剔代偿汇总大宽表'
+ PARTITIONED BY (`snapshot_date` string COMMENT '快照日',`project_id` string COMMENT '项目编号')
+STORED AS PARQUET;
+
+
+CREATE TABLE dm_eagle.report_dm_lx_comp_overdue_distribution (
+  normal_prin DECIMAL(12,2)  COMMENT '正常状态剩余本金',
+  overdue_prin1 DECIMAL(12,2)  COMMENT '逾期1-30剩余本金',
+  overdue_prin31 DECIMAL(12,2)  COMMENT '逾期31-60剩余本金',
+  overdue_prin61 DECIMAL(12,2)  COMMENT '逾期61-90剩余本金',
+  overdue_prin91 DECIMAL(12,2)  COMMENT '逾期91-120剩余本金',
+  overdue_prin121 DECIMAL(12,2)  COMMENT '逾期121-150剩余本金',
+  overdue_prin151 DECIMAL(12,2)  COMMENT '逾期151-180剩余本金',
+  overdue_prin181 DECIMAL(12,2)  COMMENT '逾期181及以上剩余本金'
+)COMMENT '乐信逾期阶段分布表'
+ PARTITIONED BY (`snapshot_date` string COMMENT '快照日',`project_id` string COMMENT '项目编号')
+STORED AS PARQUET;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -171,7 +191,7 @@ TBLPROPERTIES ('kudu.master_addresses'='node172');
 
 ---汇通资产服务报告
 -- DROP TABLE IF EXISTS `dm_eagle.report_ht_asset_project`;
-CREATE TABLE IF NOT EXISTS dm_eagle.report_ht_asset_project_text(
+CREATE TABLE IF NOT EXISTS dm_eagle.report_ht_asset_project(
   `total_remain_principal`            decimal(15,2)  comment '总本金余额',
   `un_settle_num`                     bigint         comment '未结清笔数',
   `weight_avg_inter_rate`             decimal(15,4)  comment '加权平均利率',
@@ -215,7 +235,8 @@ CREATE TABLE IF NOT EXISTS dm_eagle.report_ht_asset_project_text(
   `static_90to_amount`                decimal(15,2)  comment '静态90+金额',
   `static_90to_amount_rate`           decimal(15,4)  comment '累计90+违约率',
   `accum_30to_amount`                 decimal(15,2)  comment '累计30+回收租金',
-  `accum_90to_amount`                 decimal(15,2)  comment '累计90+回收本金'
+  `accum_90to_amount`                 decimal(15,2)  comment '累计90+回收本金',
+  `accum_90to_inter`                 decimal(15,2)  comment '累计90+回收利息'
 )COMMENT 'dm 汇通资产包统计信息'
 PARTITIONED BY(`snapshot_date` string COMMENT '快照日期(yyyy-MM-dd)',`project_id` string comment '项目id')
 STORED AS PARQUET;

@@ -25,7 +25,7 @@ set hive.auto.convert.join.noconditionaltask=false;
 
 set hivevar:pack_date=2020-10-17;
 set hivevar:product_id='001601','001602','001603';
-
+--set hivevar:ST9=2021-06-09;
 
 insert overwrite table dm_eagle.report_ht_asset_project partition (snapshot_date,project_id)
 select
@@ -84,6 +84,8 @@ cast(res.static_90to_amount_rate as decimal(15,4))                              
 
 cast(res.accum_30to_amount as decimal(15,2))                                                                                        as accum_30_recycle_amount,
 cast(res.accum_90to_amount as decimal(15,2))                                                                                        as accum_90to_amount,
+
+cast(res.accum_90to_inter as decimal(15,2))                                                                                         as accum_90to_inter,
 snapshot_date                                                                                                                         ,
 cast(res.project_id as String)                                                                                                      as project_id
 from
@@ -143,7 +145,8 @@ sum(nvl(static_over.remain_principal,0)+nvl(static_over.remain_interest,0)) /sum
 --还款计划
 sum(nvl(schedule.accum_30to_amount,0))                                                                                                     as accum_30to_amount,
 sum(nvl(schedule.accum_90to_amount,0))                                                                                                     as accum_90to_amount,
-'${ST9}'                                                                                                                               as snapshot_date
+sum(nvl(schedule.accum_90to_inter,0))                                                                                                      as accum_90to_inter,
+'${ST9}'                                                                                                                                   as snapshot_date
 from
 (
 select
@@ -231,6 +234,7 @@ left join (
     asset_bill.due_bill_no,
     sum(if(schedule.paid_out_date is not null and schedule.paid_out_date>asset_bill.biz_date and datediff(schedule.paid_out_date,schedule.should_repay_date)>30 ,nvl(schedule.paid_principal,0)+nvl(schedule.paid_interest,0),0)) as accum_30to_amount,
     sum(if(schedule.paid_out_date is not null and schedule.paid_out_date>static_over.biz_date and datediff(schedule.paid_out_date,schedule.should_repay_date)>90 ,nvl(schedule.paid_principal,0),0))                              as accum_90to_amount,
+    sum(if(schedule.paid_out_date is not null and schedule.paid_out_date>static_over.biz_date and datediff(schedule.paid_out_date,schedule.should_repay_date)>90 and schedule.loan_term>0 ,nvl(schedule.paid_interest,0),0))      as accum_90to_inter,
     sum(if(schedule.schedule_status='N' and schedule.loan_term!=0,1,0))                                                                                                                                                           as remian_term
     from
     (

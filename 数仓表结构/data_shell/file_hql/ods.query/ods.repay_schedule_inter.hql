@@ -22,6 +22,7 @@ set hive.vectorized.execution.reduce.groupby.enabled=false;
 
 
 
+set hivevar:p_types =and p_type in ('lx','lx2','lx3','lxzt');
 
 insert overwrite table ods${db_suffix}.repay_schedule_inter partition(biz_date,product_id)
 select
@@ -70,6 +71,7 @@ select
   repay_schedule.product_id
 from (
   select
+    concat_ws("::",due_bill_no,product_code)                                                           as join_key,
     product_code                                                                                       as product_id,
     schedule_id                                                                                        as schedule_id,
     due_bill_no                                                                                        as due_bill_no,
@@ -227,6 +229,7 @@ from (
     where 1 > 0
       and d_date = '${ST9}'
       and product_code in (${product_id})
+      ${p_types}
   ) as schedule
   left join (
     select
@@ -263,6 +266,7 @@ from (
             '000015945007161admin000083000006'
           )
         )
+        ${p_types}
       group by d_date,concat(due_bill_no,'::',term),due_bill_no
     ) as repay_detail
     left join (
@@ -272,13 +276,17 @@ from (
         and d_date <= to_date(current_timestamp())
         and d_date = '${ST9}'
         and loan_usage = 'T'
+        ${p_types}
     ) as order_info
     on repayhst_due_bill_no = due_bill_no_order
   ) as repayhst
   on due_bill_no_curr_term = repayhst_due_bill_no_term
+  distribute by join_key
+  sort by join_key
 ) as repay_schedule
 left join (
   select
+    concat_ws("::",due_bill_no,product_code)                  as join_key,
     product_code                                              as product_id,
     schedule_id                                               as schedule_id,
     due_bill_no                                               as due_bill_no,
@@ -372,6 +380,7 @@ left join (
     where 1 > 0
       and d_date = date_sub('${ST9}',1)
       and product_code in (${product_id})
+      ${p_types}
     ) as schedule_yest
   left join (
     select
@@ -408,6 +417,7 @@ left join (
             '000015945007161admin000083000006'
           )
         )
+        ${p_types}
       group by d_date,concat(due_bill_no,'::',term),due_bill_no
     ) as repay_detail
     left join (
@@ -417,14 +427,16 @@ left join (
         and d_date <= to_date(current_timestamp())
         and d_date = date_sub('${ST9}',1)
         and loan_usage = 'T'
+        ${p_types}
     ) as order_info
     on repayhst_due_bill_no = due_bill_no_order
   ) as repayhst_yest
   on due_bill_no_curr_term = repayhst_due_bill_no_term
+  distribute by join_key
+  sort by join_key
 ) as repay_schedule_tmp
 on concat_ws('::',
-  is_empty(repay_schedule.product_id,                   'a'),
-  is_empty(repay_schedule.due_bill_no,                  'a'),
+  is_empty(repay_schedule.join_key,                   'a'),
   is_empty(repay_schedule.loan_init_term,               'a'),
   is_empty(repay_schedule.loan_term,                    'a'),
   is_empty(repay_schedule.start_interest_date,          'a'),
@@ -435,8 +447,7 @@ on concat_ws('::',
   is_empty(repay_schedule.paid_out_date,                'a'),
   is_empty(repay_schedule.paid_out_type,                'a')
 ) = concat_ws('::',
-  is_empty(repay_schedule_tmp.product_id,               'a'),
-  is_empty(repay_schedule_tmp.due_bill_no,              'a'),
+  is_empty(repay_schedule_tmp.join_key,               'a'),
   is_empty(repay_schedule_tmp.loan_init_term,           'a'),
   is_empty(repay_schedule_tmp.loan_term,                'a'),
   is_empty(repay_schedule_tmp.start_interest_date,      'a'),
@@ -470,17 +481,18 @@ and is_empty(repay_schedule.reduce_svc_fee,           'a') = is_empty(repay_sche
 and is_empty(repay_schedule.reduce_penalty,           'a') = is_empty(repay_schedule_tmp.reduce_penalty,           'a')
 and is_empty(repay_schedule.reduce_mult_amt,          'a') = is_empty(repay_schedule_tmp.reduce_mult_amt,          'a')
 left join (
-  select distinct
-    due_bill_no  as ecas_loan_due_bill_no,
-    active_date  as loan_active_date,
-    product_code as product_id
+  select
+    concat_ws("::",due_bill_no,product_code) as join_key,
+    active_date  as loan_active_date
   from stage.ecas_loan${tb_suffix}
   where 1 > 0
     and d_date = '${ST9}'
     and product_code in (${product_id})
+    ${p_types}
+    distribute by join_key
+    sort by join_key
 ) as ecas_loan
-on  repay_schedule.product_id  = ecas_loan.product_id
-and repay_schedule.due_bill_no = ecas_loan.ecas_loan_due_bill_no
+on  repay_schedule.join_key  = ecas_loan.join_key
 where repay_schedule_tmp.due_bill_no is null
 -- limit 10
 ;

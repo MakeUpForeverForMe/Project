@@ -1,6 +1,5 @@
 
 set var:product_id='001801','001802','001803','001804','001901','001902','001903','001904','001905','001906','001907','002001','002002','002003','002004','002005','002006','002007';
-
 insert overwrite table dm_eagle.report_dm_lx_asset_report_accu_comp partition(snapshot_date,project_id)
 select
 
@@ -44,9 +43,17 @@ from
             0)                                                                                 as average_remain
     from
     (
-        select *
-        from dim_new.biz_conf biz
-        where product_id in (${var:product_id})
+      select distinct
+       project_id,
+       product_id
+       from (
+         select
+           max(if(col_name = 'project_id',   col_val,null)) as project_id,
+           max(if(col_name = 'product_id',   col_val,null)) as product_id
+         from dim.data_conf
+         where col_type = 'ac'
+         group by col_id
+    )tmp where product_id in (${var:product_id})
     ) biz
     left join
     (
@@ -54,7 +61,7 @@ from
             product_id,
             sum(loan_init_principal)                                                           as today_loan_sum,
             count(*)                                                                           as today_loan_count
-        from ods_new_s_cps.loan_info
+        from ods_cps.loan_info
         where product_id in (${var:product_id})
         and '${var:ST9}' between s_d_date and date_sub(e_d_date,1)
         and loan_active_date = '${var:ST9}'
@@ -67,7 +74,7 @@ from
             product_id,
             cast(sum(if(remain_principal > 0,remain_principal,0)) as decimal(15,2))            as yest_remain_sum,
             cast(count(if(remain_principal > 0,1,null)) as decimal(15,2))                      as yest_remain_count
-        from ods_new_s_cps.loan_info
+        from ods_cps.loan_info
         where product_id in (${var:product_id})
         and date_sub('${var:ST9}',1) between s_d_date and date_sub(e_d_date,1)
         and loan_active_date <= '${var:ST9}'
@@ -94,7 +101,7 @@ left join
         from
         (
             select *
-            from ods_new_s_cps.loan_info
+            from ods_cps.loan_info
             where product_id in (${var:product_id})
             and '${var:ST9}' between s_d_date and date_sub(e_d_date,1)
             and loan_active_date = '${var:ST9}'
@@ -102,16 +109,24 @@ left join
         left join
         (
             select due_bill_no,loan_init_interest_rate
-            from ods_new_s_cps.loan_lending
+            from ods_cps.loan_lending
             where product_id in (${var:product_id})
             and biz_date = '${var:ST9}'
        ) ll
         on li.due_bill_no = ll.due_bill_no
         left join
         (
-            select *
-            from dim_new.biz_conf biz
-            where product_id in (${var:product_id})
+            select distinct
+            project_id,
+            product_id
+       from (
+         select
+           max(if(col_name = 'project_id',   col_val,null)) as project_id,
+           max(if(col_name = 'product_id',   col_val,null)) as product_id
+         from dim.data_conf
+         where col_type = 'ac'
+         group by col_id
+              )tmp where product_id in (${var:product_id})
         ) biz
         on li.product_id = biz.product_id
         group by biz.project_id
@@ -126,7 +141,7 @@ left join
         from
         (
             select *
-            from ods_new_s_cps.loan_info
+            from ods_cps.loan_info
             where product_id in (${var:product_id})
             and date_sub('${var:ST9}',1) between s_d_date and date_sub(e_d_date,1)
             and loan_active_date <= date_sub('${var:ST9}',1)
@@ -135,15 +150,23 @@ left join
         left join
         (
             select due_bill_no,loan_init_interest_rate
-            from ods_new_s_cps.loan_lending
+            from ods_cps.loan_lending
             where product_id in (${var:product_id})
         ) ll
         on li.due_bill_no = ll.due_bill_no
         left join
         (
-            select *
-            from dim_new.biz_conf biz
-            where product_id in (${var:product_id})
+            select distinct
+               project_id,
+               product_id
+               from (
+                select
+               max(if(col_name = 'project_id',   col_val,null)) as project_id,
+               max(if(col_name = 'product_id',   col_val,null)) as product_id
+             from dim.data_conf
+             where col_type = 'ac'
+             group by col_id
+            )tmp where product_id in (${var:product_id})
         ) biz
         on li.product_id = biz.product_id
         group by biz.project_id
@@ -195,7 +218,7 @@ left join
             product_id                                                                             as product_id,
             sum(loan_init_principal)                                                               as total_contract_amount,
             count(due_bill_no)                                                                     as total_contract_num
-        from ods_new_s_cps.loan_info
+        from ods_cps.loan_info
         where product_id in (${var:product_id})
         and '${var:ST9}' between s_d_date and date_sub(e_d_date,1)
         and loan_active_date <= '${var:ST9}'
@@ -210,7 +233,7 @@ left join
         from
         (
             select product_id,due_bill_no,loan_init_principal
-            from ods_new_s_cps.loan_info
+            from ods_cps.loan_info
             where product_id in (${var:product_id})
             and '${var:ST9}' between s_d_date and date_sub(e_d_date,1)
             and loan_active_date <= '${var:ST9}'
@@ -220,7 +243,7 @@ left join
             select
                 due_bill_no,
                 sum(if(paid_out_type='BUY_BACK',1,0))   as if_buy_back
-            from ods_new_s_cps.repay_schedule
+            from ods_cps.repay_schedule
             where product_id in (${var:product_id})
             and '${var:ST9}' between s_d_date and date_sub(e_d_date, 1)
             group by due_bill_no
@@ -236,9 +259,19 @@ left join
             sum(loan_init_principal * loan_init_interest_rate)                                    as total_rate_by_contract,
             sum(loan_init_principal * loan_init_term)                                             as total_term_by_contract,
             sum(loan_init_principal)                                                              as total_principal
-        from ods_new_s_cps.loan_lending
+       from
+        (
+        select  due_bill_no,loan_init_principal,product_id,loan_init_term
+        from ods_cps.loan_info
         where product_id in (${var:product_id})
-        and biz_date <= '${var:ST9}'
+        and "${var:ST9}" between  s_d_date and date_sub(e_d_date,1)
+        )loan left join (
+         select due_bill_no,loan_init_interest_rate
+            from ods_cps.loan_lending
+            where product_id in (${var:product_id})
+            and biz_date<='${var:ST9}'
+        )li on loan.due_bill_no=li.due_bill_no
+        --and biz_date <= '${var:ST9}'
        group by product_id
     ) t3
     on t1.product_id = t3.product_id
@@ -249,7 +282,7 @@ left join
             sum(repay_amount)                                                                     as total_amount_accum,
             sum(if(bnp_type='Pricinpal',repay_amount,0))                                          as total_prin_accum,
             sum(if(bnp_type<>'Pricinpal',repay_amount,0))                                         as total_inter_accum
-        from ods_new_s_cps.repay_detail
+        from ods_cps.repay_detail
         where product_id in (${var:product_id})
         and to_date(txn_time) <= date_sub('${var:ST9}',1)
        group by product_id
@@ -270,7 +303,7 @@ left join
         from
         (
             select *
-            from ods_new_s_cps.order_info
+            from ods_cps.order_info
             where product_id in (${var:product_id})
             and biz_date <= date_sub('${var:ST9}',1)
            and loan_usage<>'L' and order_status='S'
@@ -278,7 +311,7 @@ left join
         left join
         (
             select *
-            from ods_new_s_cps.repay_detail
+            from ods_cps.repay_detail
             where product_id in (${var:product_id})
             and to_date(txn_time) <= date_sub('${var:ST9}',1)
        ) repay
@@ -288,9 +321,17 @@ left join
     on t1.product_id = t5.product_id
     left join
     (
-        select *
-        from dim_new.biz_conf biz
-        where product_id in (${var:product_id})
+          select distinct
+           project_id,
+           product_id
+           from (
+             select
+               max(if(col_name = 'project_id',   col_val,null)) as project_id,
+               max(if(col_name = 'product_id',   col_val,null)) as product_id
+             from dim.data_conf
+             where col_type = 'ac'
+             group by col_id
+        )tmp where product_id in (${var:product_id})
     ) biz
     on t1.product_id = biz.product_id
     group by biz.project_id

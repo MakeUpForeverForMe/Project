@@ -3,11 +3,11 @@ source /etc/profile
 export LANG=zh_CN.UTF-8
 export PYTHON_EGG_CACHE=/tmp/.python-eggs
 
-d_date=`mysql -h10.80.16.75 -P3306 -ubgp_admin -p'U3$AHfp*a8M&' -e "select * from data_check.funds_flow_date_conf;" | grep -v "business_date" | awk -F " " '{print $2}'`
-HOSTNAME=10.80.16.87
-PORT=3306
-USERNAME=root
-PASSWORD='wH7Emvsrg&V5'
+d_date=`mysql -h10.80.16.73 -P3306 -uhadoop -p'XFfRjfWFWOki^kU0' -e "select * from dm_eagle.eagle_funds_flow_date_conf;" | grep -v "business_date" | awk -F " " '{print $2}'`
+HOSTNAME=10.80.16.73
+PORT=3306 
+USERNAME=hadoop
+PASSWORD='XFfRjfWFWOki^kU0'
 DATABASE=dm_eagle
 
 ##测试

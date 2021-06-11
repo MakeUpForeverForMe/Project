@@ -1,4 +1,3 @@
---set hivevar:db_suffix=;
 set hive.exec.input.listing.max.threads=50;
 set tez.grouping.min-size=50000000;
 set tez.grouping.max-size=50000000;
@@ -24,6 +23,13 @@ set hive.vectorized.execution.reduce.groupby.enabled=false;
 set hive.exec.parallel=true;
 set hive.exec.parallel.thread.number=10;
 
+--set hivevar:ST9=2020-10-10 ;
+--SET hivevar:hive_param_str=;
+--set hivevar:db_suffix=;
+
+--新增is_buy_back字段sql语句
+--alter table dw.dw_loan_base_stat_overdue_num_day     add columns(is_buy_back int COMMENT '是否回购 1 回购 0 非回购');
+--alter table dw_cps.dw_loan_base_stat_overdue_num_day add columns(is_buy_back int COMMENT '是否回购 1 回购 0 非回购');
 
 
 
@@ -63,6 +69,8 @@ select
   sum(nvl(overdue_principal,0))                                                                  as overdue_principal,
   count(overdue_due_bill_no)                                                                     as overdue_loan_num,
   sum(nvl(overdue_remain_principal,0))                                                           as overdue_remain_principal,
+---2021-06-10 新增is_buy_back 判断该笔借据是否是回购借据，2021-06-10之前的数据除乐信二期002001 字段值默认置为0
+  if(paid_out_type = 'BUY_BACK',1,0)                                                             as is_buy_back, -- 1 回购 0 非回购
   biz_date                                                                                       as biz_date,
   product_id                                                                                     as product_id
 from ( -- 借据主表
@@ -88,7 +96,8 @@ from ( -- 借据主表
     should_repay_date_history_curr                                                             as should_repay_date_history_curr,
     should_repay_principal_curr                                                                as should_repay_principal_curr,
     paid_principal_curr                                                                        as paid_principal_curr,
-    should_repay_principal_curr_actual                                                         as should_repay_principal_curr_actual
+    should_repay_principal_curr_actual                                                         as should_repay_principal_curr_actual,
+    paid_out_type                                                                              as paid_out_type
   from ( -- 主表，正常取数据
     select
       *,
@@ -289,6 +298,7 @@ group by
   nvl(overdue_stage_previous,0),
   nvl(overdue_stage_curr,0),
   overdue_stage,
+  if(paid_out_type = 'BUY_BACK',1,0),
   biz_date,
   product_id
 -- limit 10

@@ -207,6 +207,7 @@ create table if not exists `eagle_credit_loan_approval_rate_day`(
   `credit_approval_person_rate`           decimal(15,8) COMMENT '授信通过人数通过率（授信通过人数/授信申请人数×100%）',
   `loan_apply_num_person`                 decimal(11,0) COMMENT '用信申请人数',
   `loan_apply_num_person_accumulate`      decimal(11,0) COMMENT '累计用信申请人数',
+  `loan_approval_num_person`              decimal(11,0) COMMENT '用信通过人数'
   `loan_approval_num_person_accumulate`   decimal(11,0) COMMENT '累计用信通过人数',
   `loan_approval_person_rate`             decimal(15,8) COMMENT '用信通过人数通过率（用信通过人数/用信申请人数×100%）',
   `biz_date`                              date          COMMENT '授信、用信申请日期',

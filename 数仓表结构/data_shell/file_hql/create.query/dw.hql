@@ -163,7 +163,8 @@ CREATE TABLE IF NOT EXISTS `dw${db_suffix}.dw_loan_base_stat_overdue_num_day`(
   `paid_principal`                        decimal(25,5)  COMMENT '已还本金',
   `overdue_principal`                     decimal(25,5)  COMMENT '逾期本金',
   `overdue_loan_num`                      decimal(20,0)  COMMENT '逾期借据数',
-  `overdue_remain_principal`              decimal(25,5)  COMMENT '逾期借据本金余额'
+  `overdue_remain_principal`              decimal(25,5)  COMMENT '逾期借据本金余额',
+  `is_buy_back`                           int            COMMENT '是否回购 1 回购 0 非回购'
 ) COMMENT '逾期统计 - 日级'
 PARTITIONED BY (`biz_date` string COMMENT '观察日期',`product_id` string COMMENT '产品编号')
 STORED AS PARQUET;

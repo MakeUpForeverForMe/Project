@@ -1,22 +1,22 @@
 #!/bin/bash
-ST9=`mysql -h10.80.16.75 -P3306 -ubgp_admin -p'U3$AHfp*a8M&' -e "select * from data_check.funds_flow_date_conf;" | grep -v "business_date" | awk -F " " '{print $2}'`
+ST9=`mysql -h10.80.16.73 -P3306 -uhadoop -p'XFfRjfWFWOki^kU0' -e "select * from dm_eagle.eagle_funds_flow_date_conf;" | grep -v "business_date" | awk -F " " '{print $2}'`
 ##测试
 ##ST9=`mysql -u bgp_admin -h10.83.16.32 -P3306 -p3Mt%JjE#WJIt -e "select * from data_check.funds_flow_date_conf;" | grep -v "business_date" | awk -F " " '{print $2}'`
 ##beeline -n hadoop -u "jdbc:hive2://10.83.1.157:7001"
 
 beeline -n hadoop -u "jdbc:hive2://10.80.0.46:2181,10.80.0.255:2181,10.80.1.113:2181/;serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=hiveserver2" -e "
-set hive.execution.engine=mr;
-set mapreduce.map.memory.mb=2048;
-set mapreduce.reduce.memory.mb=2048;
--- 合并小文件 
+set hive.tez.container.size=4096; 
+set tez.am.resource.memory.mb=4096;
+-- 合并小文件
 set hive.merge.tezfiles=true;
 set hive.merge.size.per.task=64000000;      -- 64M
 set hive.merge.smallfiles.avgsize=64000000; -- 64M
+-- 设置动态分区
 set hive.exec.dynamic.partition=true;
 set hive.exec.dynamic.partition.mode=nonstrict;
-set hive.exec.max.dynamic.partitions=20000;
-set hive.exec.max.dynamic.partitions.pernode=20000;
-
+set hive.exec.max.dynamic.partitions=200000;
+set hive.exec.max.dynamic.partitions.pernode=50000;
+-- 禁用 Hive 矢量执行
 set hive.vectorized.execution.enabled=false;
 set hive.vectorized.execution.reduce.enabled=false;
 set hive.vectorized.execution.reduce.groupby.enabled=false;
