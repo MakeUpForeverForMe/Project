@@ -45,13 +45,15 @@ object RepairMain {
    //  1 查询现在所有的问题借据
     //数据校验执行impala 查询
     val batch_date = args(1)
+    val repay_date=args(2)
+    println(repay_date)
     val properties = PropertiesUtils.propertiesLoad(cluster_type)
     initCompent(properties)
     val ht_repair_table = properties.getProperty("ht_repair_table")
     val connection = DruidDataSourceUtils.getConection("cm_mysql")
-    connection.setAutoCommit(false)
+   // connection.setAutoCommit(false)
     val statement = connection.prepareStatement(s"insert into  ${ht_repair_table} (id,due_bill_no,register_date,active_date,repair_flag,repair_date) values(?,?,?,?,?,?) on DUPLICATE KEY UPDATE repair_flag=1,repair_date='${format.format(new Date())}'")
-    val repairModes =getRepairMode(spark,connection,batch_date,properties)
+    val repairModes =getRepairMode(spark,connection,batch_date,properties,repay_date)
     repairModes.foreach(it=>{
       logger.info(s"${it}")
       val due_bill_no = it.due_bill_no
@@ -83,11 +85,13 @@ object RepairMain {
       statement.setString(4,start_move_date)
       statement.setInt(5,it.repair_flag)
       statement.setString(6,it.repair_date)
-      statement.addBatch()
+      statement.execute()
+      println("插入mysql成功！${due_bill_no}")
+      logger.info(s"插入mysql成功！${due_bill_no}")
     })
-    connection.commit()
-    statement.executeBatch()
-    SendEmailUtil.sendMessage(repairModes.mkString("\n"),
+    /*connection.commit()
+    statement.executeBatch()*/
+    SendEmailUtil.sendMessage(repairModes.take(30).mkString("\n"),
       "汇通修复晚到数据",
     "chao.guo@weshareholdings.com,yunan.huang@weshareholdings.com")
 
@@ -154,7 +158,7 @@ object RepairMain {
    * @param conn
    * @param batch_date
    */
-  def getRepairMode(spark: SparkSession,conn:Connection,batch_date:String,properties: Properties)={
+  def getRepairMode(spark: SparkSession,conn:Connection,batch_date:String,properties: Properties,repair_date: String)={
     // 查询出ods 快照日里面 有问题的借据
     val ht_repair_table = properties.getProperty("ht_repair_table")
     import spark.implicits._
@@ -168,8 +172,8 @@ object RepairMain {
         |a.active_date,
         |a.p_type
         |from
-        |(select due_bill_no,active_date,register_date,p_type from stage.ecas_loan where d_Date='${batch_date}' and p_type in ('ddht') and  product_code in ('001601','001602','001603')
-        |and active_date!=register_date and active_date>='2021-02-02' )a
+        |(select due_bill_no,active_date,register_date,p_type from stage.ecas_loan where d_Date='${batch_date}' and p_type in ('ddht','htgy') and  product_code in ('001601','001602','001603','002201','002202','002203')
+        |and active_date!=register_date and active_date>='${repair_date}' )a
         |
         |""".stripMargin).coalesce(1).as[(String, String, String, String,String)]
  // 查询mysql 获取已修复的数据
@@ -229,7 +233,7 @@ object RepairMain {
          |from
          |stage.ecas_loan
          |where due_bill_no='${due_bill_no}'
-         |and p_type in ('ddht')
+         |and p_type in ('ddht','htgy')
          |and d_date=date_add('${register_date}',1)
          |""".stripMargin
     sparkSession.sql(loan_query).as[Loan]
@@ -294,7 +298,7 @@ object RepairMain {
          |from
          |stage.ecas_repay_schedule
          |where due_bill_no='${due_bill_no}'
-         |and p_type in ('ddht')
+         |and p_type in ('ddht','htgy')
          |and d_date=date_add('${register_date}',1)
          |""".stripMargin
     sparkSession.sql(repay_schedule_query).as[RepaySchedule]

@@ -41,7 +41,11 @@ left join (
   from stage.ecas_loan
   where 1 > 0
     and d_date between date_sub(current_date(),3) and current_date()
-    and p_type in ('ddht','htgy')
+    and p_type in (
+      'ddht',
+      -- 'htgy',
+      ''
+    )
 ) as loan_info
 on project_due.due_bill_no = loan_info.due_bill_no
 -- limit 10

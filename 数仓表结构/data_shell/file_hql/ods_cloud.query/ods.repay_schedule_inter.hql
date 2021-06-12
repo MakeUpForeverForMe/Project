@@ -92,7 +92,7 @@ set hive.vectorized.execution.reduce.groupby.enabled=false;
 --       -- 采用校验平台的数据
 --       '001601',           -- 汇通
 --       'WS0005200001',     -- 瓜子
---       'CL202012280092',   -- 汇通国银
+--       -- 'CL202012280092',   -- 汇通国银
 --       'DIDI201908161538', -- 滴滴
 
 --       -- 过滤掉债转的项目
@@ -223,7 +223,7 @@ set hive.vectorized.execution.reduce.groupby.enabled=false;
 --     and project_id not in (
 --       '001601',           -- 汇通
 --       'WS0005200001',     -- 瓜子
---       'CL202012280092',   -- 汇通国银
+--       -- 'CL202012280092',   -- 汇通国银
 --       'DIDI201908161538', -- 滴滴
 --       ''
 --     )
@@ -335,7 +335,7 @@ from (
     and is_empty(map_from_str(extra_info)['项目编号'],project_id) not in (
       '001601',           -- 汇通
       'WS0005200001',     -- 瓜子
-      'CL202012280092',   -- 汇通国银
+      -- 'CL202012280092',   -- 汇通国银
       'DIDI201908161538', -- 滴滴
       ''
     )
@@ -361,7 +361,7 @@ left join (
     and is_empty(map_from_str(extra_info)['项目编号'],project_id) not in (
       '001601',           -- 汇通
       'WS0005200001',     -- 瓜子
-      'CL202012280092',   -- 汇通国银
+      -- 'CL202012280092',   -- 汇通国银
       'DIDI201908161538', -- 滴滴
       ''
     )

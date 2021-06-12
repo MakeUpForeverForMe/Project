@@ -19,7 +19,8 @@ set hive.exec.max.dynamic.partitions.pernode=50000;
 set hive.vectorized.execution.enabled=false;
 set hive.vectorized.execution.reduce.enabled=false;
 set hive.vectorized.execution.reduce.groupby.enabled=false;
-
+set hive.auto.convert.join=false;
+set hive.auto.convert.join.noconditionaltask=false;
 
 
 insert overwrite table dm_eagle.assets_distribution partition(product_id)
@@ -173,4 +174,5 @@ left join (
            group by col_id
         )tmp
 ) as d
-on a.pro_code = d.product_id;
+on a.pro_code = d.product_id
+;
