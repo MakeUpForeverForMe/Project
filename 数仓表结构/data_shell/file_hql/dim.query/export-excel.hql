@@ -4,64 +4,68 @@ select distinct
     when 'WS0005200001'     then 2
     when '001601'           then 3
     when 'CL202104010103'   then 4
-    when 'CL202011090089'   then 5
-    when 'CL202007020086'   then 6
-    when 'CL202003230083'   then 7
-    when 'CL202011090088'   then 8
-    when 'CL202012160091'   then 9
-    when 'CL202103160101'   then 10
-    when 'CL202011090090'   then 11
-    when 'CL202101220094'   then 12
-    when 'CL202012280092'   then 13
-    when 'CL202102010097'   then 14
-    when 'CL202102240099'   then 15
-    when 'CL202102240100'   then 16
-    when 'CL202103260102'   then 17
-    when 'CL202104160106'   then 18
-    when 'CL202104300107'   then 19
-    when 'CL202105270109'   then 20
-    when 'CL202105310110'   then 21
-    when 'cl00297'          then 22
-    when 'cl00306'          then 23
-    when 'cl00309'          then 24
-    when 'CL201911130070'   then 25
-    when 'CL202002240081'   then 26
-    when 'CL202104020104'   then 27
-    when 'CL202105060108'   then 28
-    when 'cl00333'          then 29
-    when 'PL202101200093'   then 30
-    when 'cl00326'          then 31
-    when 'CL201912100072'   then 32
-    when 'PL201905080051'   then 33
-    when 'CL201912260074'   then 34
-    when 'CL201905310055'   then 35
-    when 'CL202003200082'   then 36
-    when 'CL201906040057'   then 37
-    when 'CL201906040058'   then 38
-    when 'CL201905220053'   then 39
-    when 'CL201912170073'   then 40
-    when 'PL201908210066'   then 41
-    when 'PL201904110050'   then 42
-    when 'CL201906050059'   then 43
-    when 'CL201906040056'   then 44
-    when 'cl00265'          then 45
-    when 'cl00187'          then 46
-    when 'cl00185'          then 47
-    when 'cl00186'          then 48
-    when 'cl00199'          then 49
-    when 'cl00217'          then 50
-    when 'cl00229'          then 51
-    when 'cl00243'          then 52
-    when 'cl00232'          then 53
-    when 'cl00233'          then 54
-    when 'CL202101260095'   then 55
-    when 'CL202102050098'   then 56
-    when 'CL202104080105'   then 57
-    when '001503'           then 58
-    when '001505'           then 59
-    when '001504'           then 60
-    when 'pl00282'          then 61
-    when 'CL201905240054'   then 62
+    when 'CL202106070113'   then 5
+    when 'CL202011090089'   then 6
+    when 'CL202007020086'   then 7
+    when 'CL202003230083'   then 8
+    when 'CL202011090088'   then 9
+    when 'CL202012160091'   then 10
+    when 'CL202103160101'   then 11
+    when 'CL202106070111'   then 12
+    when 'CL202011090090'   then 13
+    when 'CL202101220094'   then 14
+    when 'CL202012280092'   then 15
+    when 'CL202102010097'   then 16
+    when 'CL202102240099'   then 17
+    when 'CL202102240100'   then 18
+    when 'CL202103260102'   then 19
+    when 'CL202104160106'   then 20
+    when 'CL202104300107'   then 21
+    when 'CL202105270109'   then 22
+    when 'CL202105310110'   then 23
+    when 'CL202106110115'   then 24
+    when 'cl00297'          then 25
+    when 'cl00306'          then 26
+    when 'cl00309'          then 27
+    when 'CL201911130070'   then 28
+    when 'CL202002240081'   then 29
+    when 'CL202104020104'   then 30
+    when 'CL202106090114'   then 31
+    when 'CL202105060108'   then 32
+    when 'cl00333'          then 33
+    when 'PL202101200093'   then 34
+    when 'cl00326'          then 35
+    when 'CL201912100072'   then 36
+    when 'PL201905080051'   then 37
+    when 'CL201912260074'   then 38
+    when 'CL201905310055'   then 39
+    when 'CL202003200082'   then 40
+    when 'CL201906040057'   then 41
+    when 'CL201906040058'   then 42
+    when 'CL201905220053'   then 43
+    when 'CL201912170073'   then 44
+    when 'PL201908210066'   then 45
+    when 'PL201904110050'   then 46
+    when 'CL201906050059'   then 47
+    when 'CL201906040056'   then 48
+    when 'cl00265'          then 49
+    when 'cl00187'          then 50
+    when 'cl00185'          then 51
+    when 'cl00186'          then 52
+    when 'cl00199'          then 53
+    when 'cl00217'          then 54
+    when 'cl00229'          then 55
+    when 'cl00243'          then 56
+    when 'cl00232'          then 57
+    when 'cl00233'          then 58
+    when 'CL202101260095'   then 59
+    when 'CL202102050098'   then 60
+    when 'CL202104080105'   then 61
+    when '001503'           then 62
+    when '001505'           then 63
+    when '001504'           then 64
+    when 'pl00282'          then 65
+    when 'CL201905240054'   then 66
     else 999
   end as asc_id,
   project_full_name as full_name,
@@ -100,6 +104,8 @@ select distinct
       'CL202104300107',
       'CL202105270109',
       'CL202105310110',
+      'CL202106070111',
+      'CL202106070113',
       'DIDI201908161538'
     ) then '核心'
     when t_project.project_id in (
@@ -184,6 +190,10 @@ from (
       when 'CL202105060108'   then map('channel_id','0003'   ,'channel_name','汇通信诚')
       when 'CL202105270109'   then map('channel_id','0003'   ,'channel_name','汇通信诚')
       when 'CL202105310110'   then map('channel_id','0003'   ,'channel_name','汇通信诚')
+      when 'CL202106070111'   then map('channel_id','0003'   ,'channel_name','汇通信诚')
+      when 'CL202106070113'   then map('channel_id','0003'   ,'channel_name','汇通信诚')
+      when 'CL202106090114'   then map('channel_id','0003'   ,'channel_name','汇通信诚')
+      when 'CL202106110115'   then map('channel_id','0003'   ,'channel_name','汇通信诚')
       when 'PL202101200093'   then map('channel_id','0003'   ,'channel_name','汇通信诚')
       when 'CL202101260095'   then map('channel_id','0007'   ,'channel_name','广汽租赁')
       when 'CL202102050098'   then map('channel_id','0007'   ,'channel_name','广汽租赁')

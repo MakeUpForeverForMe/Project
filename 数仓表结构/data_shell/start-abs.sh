@@ -16,12 +16,16 @@ log=$log/${base_file_name}.${e_date}.log
 
 echo -e "${date_s_aa:=$(date +'%F %T')} 星云 整体任务  开始 当前脚本进程ID为：$(pid)\n" &>> $log
 
-sh $data_manage -a $rd -s ${s_date} -e ${e_date} -f $dim_new_hql/dim.dim_encrypt_info.hql &
+# sh $bin_abs/sqoop-abs.sh &>> $log &
 
-sh $data_manage -a $rd -s ${e_date} -e ${e_date} -f $dim_new_hql/dim.project_info-abs.hql &
-sh $data_manage -a $rd -s ${e_date} -e ${e_date} -f $dim_new_hql/dim.project_due_bill_no-abs.hql &
-sh $data_manage -a $rd -s ${e_date} -e ${e_date} -f $dim_new_hql/dim.bag_info-abs.hql &
-sh $data_manage -a $rd -s ${e_date} -e ${e_date} -f $dim_new_hql/dim.bag_due_bill_no-abs.hql &
+wait_jobs
+
+sh $data_manage -a $rd -s ${s_date} -e ${e_date} -f $dim_new_hql/dim.dim_encrypt_info.hql &>> $log &
+
+sh $data_manage -a $rd -s ${e_date} -e ${e_date} -f $dim_new_hql/dim.project_info-his.hql &>> $log &
+sh $data_manage -a $rd -s ${e_date} -e ${e_date} -f $dim_new_hql/dim.project_due_bill_no-his.hql &>> $log &
+sh $data_manage -a $rd -s ${e_date} -e ${e_date} -f $dim_new_hql/dim.bag_info-his.hql &>> $log &
+sh $data_manage -a $rd -s ${e_date} -e ${e_date} -f $dim_new_hql/dim.bag_due_bill_no-his.hql &>> $log &
 
 sh $bin_abs/data_cloud-ods.sh $s_date $e_date &>> $log
 
