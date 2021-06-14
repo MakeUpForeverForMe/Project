@@ -25,7 +25,7 @@ set hive.auto.convert.join.noconditionaltask=false;
 
 
 
--- set hivevar:ST9=2021-05-20;
+-- set hivevar:ST9=2021-06-12;
 -- set hivevar:project_id='CL202104080105';
 -- set hivevar:bag_id='CL202104080105_1';
 

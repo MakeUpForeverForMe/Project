@@ -16034,9 +16034,26 @@ where project_id in (
   -- 'CL202105270109',
   -- 'CL202105310110',
   -- 'CL202105060108',
-  'CL202003230083',
+  -- 'CL202003230083',
+  'DIDI201908161538',
   ''
-);
+)
+and due_bill_no = 'DD000230362019111701130061a514'
+;
+
+select
+  count(distinct due_bill_no)
+from dim.project_due_bill_no
+where project_id = 'DIDI201908161538'
+;
+
+
+select
+  count(distinct due_bill_no)
+from ods.loan_info
+where product_id = 'DIDI201908161538'
+;
+
 
 
 select *
@@ -16189,8 +16206,189 @@ order by account_date
 
 
 
+select
+  *
+from ods.guaranty_info
+where product_id = 'CL202012280092'
+  and due_bill_no = '1103570144'
+;
 
 
 
+
+select *
+from dim.project_due_bill_no
+where project_id = 'CL202012280092'
+limit 10
+;
+
+
+
+
+select
+  count(1) as cnt
+from ods.order_info;
+
+
+select current_timestamp > concat(current_date,' ','18:00:00');
+
+
+
+select min(biz_date)
+from ods.repay_schedule_inter
+where 1 > 0
+  and product_id = 'CL202101260095'
+;
+
+
+
+select
+  due_bill_no,
+  loan_active_date,
+  loan_init_principal,
+  loan_init_term,
+  loan_term,
+  should_repay_date,
+  effective_date,
+  biz_date,
+  product_id
+from ods.repay_schedule_inter
+where 1 > 0
+  and product_id = 'CL202101260095'
+  and due_bill_no = 'GALC-HL-1609070134'
+order by loan_term,biz_date
+;
+
+
+
+select
+  d_date,
+  case is_empty(map_from_str(extra_info)['项目编号'],project_id)
+    when 'Cl00333' then 'cl00333'
+    else is_empty(map_from_str(extra_info)['项目编号'],project_id)
+  end                                                                as project_id,
+  is_empty(map_from_str(extra_info)['借据号'],asset_id)              as due_bill_no,
+  is_empty(map_from_str(extra_info)['生效日期'],execute_date)        as effective_date,
+  is_empty(map_from_str(extra_info)['期次'],period)                  as loan_term,
+  is_empty(map_from_str(extra_info)['应还款日'],repay_date)          as should_repay_date,
+  is_empty(map_from_str(extra_info)['应还本金(元)'],repay_principal) as should_repay_principal
+from stage.asset_05_t_repayment_schedule
+where 1 > 0
+  -- and d_date = '2021-06-13'
+  and d_date in ('2021-02-02','2021-02-03','2021-02-04','2021-02-23','2021-02-24','2021-02-25')
+  and is_empty(map_from_str(extra_info)['项目编号'],project_id) = 'CL202101260095'
+  and is_empty(map_from_str(extra_info)['借据号'],asset_id) = 'GALC-HL-1609070134'
+order by d_date,cast(loan_term as int),should_repay_date
+;
+
+
+
+select
+  account_date,
+  periods
+from stage.asset_10_t_asset_check
+where 1 > 0
+  and account_date in ('2021-02-02','2021-02-03','2021-02-04','2021-02-23','2021-02-24','2021-02-25')
+  and project_id = 'CL202101260095'
+  and asset_id = 'GALC-HL-1609070134'
+;
+
+
+
+
+
+
+alter table ods.repay_schedule_inter drop partition (biz_date = '2016-09-07',product_id = 'CL202101260095');
+
+
+
+
+
+select *
+from dm_eagle.eagle_loan_info
+where 1 > 0
+  and biz_date = '2021-06-09'
+  and product_id = '001802'
+  and due_bill_no = '1121060922283220377815'
+;
+
+
+
+select
+  t1.due_bill_no,
+  t1.loan_active_date,
+  t1.loan_init_principal,
+  t1.loan_init_term,
+  t2.after_init_term,
+  t1.loan_term,
+  t1.should_repay_date,
+  t1.effective_date,
+  t1.biz_date,
+  if(t1.loan_init_term != t2.after_init_term,t2.biz_date,t1.biz_date) as e_d_date,
+  t1.product_id
+from (
+  select
+    due_bill_no,
+    loan_active_date,
+    loan_init_principal,
+    loan_init_term,
+    loan_term,
+    should_repay_date,
+    effective_date,
+    biz_date,
+    product_id
+  from ods.repay_schedule_inter
+  where 1 > 0
+    and product_id = 'CL202101260095'
+    and due_bill_no = 'GALC-HL-1609070134'
+) as t1
+join (
+  select
+    due_bill_no,
+    loan_init_term,
+    lead(loan_init_term,1,loan_init_term) over(partition by product_id,due_bill_no order by loan_init_term desc) as after_init_term,
+    effective_date,
+    product_id
+  from (
+    select distinct
+      due_bill_no,
+      loan_init_term,
+      effective_date,
+      product_id
+    from ods.repay_schedule_inter
+    where 1 > 0
+      and product_id = 'CL202101260095'
+      and due_bill_no = 'GALC-HL-1609070134'
+  ) as tmp
+) as t2
+on  t1.product_id     = t2.product_id
+and t1.due_bill_no    = t2.due_bill_no
+and t1.loan_init_term = t2.loan_init_term
+order by loan_term,biz_date
+;
+
+
+
+
+  select
+    due_bill_no,
+    loan_init_term,
+    lag(loan_init_term,1,loan_init_term) over(partition by product_id,due_bill_no order by loan_init_term) as after_init_term,
+    effective_date,
+    lag(effective_date,1,effective_date) over(partition by product_id,due_bill_no order by effective_date) as after_effective_date,
+    product_id
+  from (
+    select distinct
+      due_bill_no,
+      loan_init_term,
+      effective_date,
+      product_id
+    from ods.repay_schedule_inter
+    where 1 > 0
+      and product_id = 'CL202101260095'
+      and due_bill_no = 'GALC-HL-1609070134'
+  ) as tmp
+  order by effective_date
+;
 
 

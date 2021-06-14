@@ -415,6 +415,7 @@ refresh dm_eagle.abs_early_payment_asset_details;
 
 
 refresh dim.project_info;
+refresh dim.project_due_bill_no;
 refresh dim.bag_info;
 
 refresh dim.bag_due_bill_no;

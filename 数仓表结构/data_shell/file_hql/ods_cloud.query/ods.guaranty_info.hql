@@ -88,7 +88,7 @@ from (
       and
         case
           when project_id = 'CL202012280092' and is_empty(map_from_str(extra_info)['借据号'],asset_id) = '1103563315' and ptrim(map_from_str(extra_info)['车架号']) != 'LG6ZD23CXLG000099'    then false
-          when project_id = 'CL202012280092' and is_empty(map_from_str(extra_info)['借据号'],asset_id) = '1103570144' and is_empty(map_from_str(extra_info)['车辆销售价格(元)'],0) != '63700' then false
+          -- when project_id = 'CL202012280092' and is_empty(map_from_str(extra_info)['借据号'],asset_id) = '1103570144' and is_empty(map_from_str(extra_info)['车辆销售价格(元)'],0) != '63700' then false
           when project_id = 'CL202012280092' and is_empty(map_from_str(extra_info)['借据号'],asset_id) = '1103698759' and ptrim(map_from_str(extra_info)['车架号']) != 'LJ11KBBC9L8529532'    then false
           else true
         end

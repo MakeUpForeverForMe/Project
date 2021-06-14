@@ -32,8 +32,6 @@ set hive.support.quoted.identifiers=None;
 -- 代称后
 -- set hivevar:db_suffix=_cps;
 
--- 跑所有项目的产品编号设置
--- set hivevar:product_id=;
 
 -- 跑非乐信项目的产品编号设置
 -- set hivevar:product_id=

@@ -80,6 +80,71 @@ ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
 
+-- DROP DATABASE IF EXISTS dim;
+CREATE DATABASE IF NOT EXISTS dim_new COMMENT '维度数据层';
+
+-- 业务配置表
+-- 数据库主键 product_id
+-- 业务主键 product_id
+-- DROP VIEW IF EXISTS `dim_new.biz_conf`;
+CREATE VIEW IF NOT EXISTS `dim_new.biz_conf`(
+  `biz_name`           COMMENT '业务名称（中文）',
+  `biz_name_en`        COMMENT '业务名称（英文）',
+  `capital_id`         COMMENT '资金方编号',
+  `capital_name`       COMMENT '资金方名称（中文）',
+  `capital_name_en`    COMMENT '资金方名称（英文）',
+  `channel_id`         COMMENT '渠道方编号',
+  `channel_name`       COMMENT '渠道方名称（中文）',
+  `channel_name_en`    COMMENT '渠道方名称（英文）',
+  `trust_id`           COMMENT '信托计划编号',
+  `trust_name`         COMMENT '信托计划名称（中文）',
+  `trust_name_en`      COMMENT '信托计划名称（英文）',
+  `abs_project_id`     COMMENT 'ABS项目编号',
+  `abs_project_name`   COMMENT 'ABS项目名称（中文）',
+  `project_id`         COMMENT '项目编号',
+  `project_name`       COMMENT '项目名称（中文）',
+  `project_name_en`    COMMENT '项目名称（英文）',
+  `project_amount`     COMMENT '项目初始金额',
+  `product_id`         COMMENT '产品编号',
+  `product_name`       COMMENT '产品名称（中文）',
+  `product_name_en`    COMMENT '产品名称（英文）',
+  `product_id_vt`      COMMENT '产品编号（虚拟）',
+  `product_name_vt`    COMMENT '产品名称（中文、虚拟）',
+  `product_name_en_vt` COMMENT '产品名称（英文、虚拟）'
+) COMMENT '业务配置表' AS select
+  max(if(col_name = 'biz_name',          col_val,null)) as biz_name,
+  max(if(col_name = 'biz_name_en',       col_val,null)) as biz_name_en,
+  max(if(col_name = 'capital_id',        col_val,null)) as capital_id,
+  max(if(col_name = 'capital_name',      col_val,null)) as capital_name,
+  max(if(col_name = 'capital_name_en',   col_val,null)) as capital_name_en,
+  max(if(col_name = 'channel_id',        col_val,null)) as channel_id,
+  max(if(col_name = 'channel_name',      col_val,null)) as channel_name,
+  max(if(col_name = 'channel_name_en',   col_val,null)) as channel_name_en,
+  max(if(col_name = 'trust_id',          col_val,null)) as trust_id,
+  max(if(col_name = 'trust_name',        col_val,null)) as trust_name,
+  max(if(col_name = 'trust_name_en',     col_val,null)) as trust_name_en,
+  max(if(col_name = 'abs_project_id',    col_val,null)) as abs_project_id,
+  max(if(col_name = 'abs_project_name',  col_val,null)) as abs_project_name,
+  max(if(col_name = 'project_id',        col_val,null)) as project_id,
+  max(if(col_name = 'project_name',      col_val,null)) as project_name,
+  max(if(col_name = 'project_name_en',   col_val,null)) as project_name_en,
+  max(if(col_name = 'project_amount',    col_val,null)) as project_amount,
+  max(if(col_name = 'product_id',        col_val,null)) as product_id,
+  max(if(col_name = 'product_name',      col_val,null)) as product_name,
+  max(if(col_name = 'product_name_en',   col_val,null)) as product_name_en,
+  max(if(col_name = 'product_id_vt',     col_val,null)) as product_id_vt,
+  max(if(col_name = 'product_name_vt',   col_val,null)) as product_name_vt,
+  max(if(col_name = 'product_name_en_vt',col_val,null)) as product_name_en_vt
+from dim.data_conf
+where col_type = 'ac'
+group by col_id;
+
+invalidate metadata dim_dim_new.biz_conf;
+
+
+
+
+
 
 
 -- DROP DATABASE IF EXISTS dim;

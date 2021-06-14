@@ -2357,7 +2357,7 @@ ALTER MATERIALIZED VIEW [db_name.]materialized_view_name REBUILD; -- 更新物�
 SHOW FUNCTIONS LIKE 'default*';
 DESC FUNCTION EXTENDED row_sequence;
 
-SHOW FUNCTIONS LIKE '*row*';
+SHOW FUNCTIONS LIKE '*time*';
 DESC FUNCTION EXTENDED round;
 ```
 

@@ -30,9 +30,9 @@ select distinct
     when 'CL201911130070'   then 28
     when 'CL202002240081'   then 29
     when 'CL202104020104'   then 30
-    when 'CL202106090114'   then 31
-    when 'CL202105060108'   then 32
-    when 'cl00333'          then 33
+    when 'CL202105060108'   then 31
+    when 'cl00333'          then 32
+    when 'CL202106090114'   then 33
     when 'PL202101200093'   then 34
     when 'cl00326'          then 35
     when 'CL201912100072'   then 36

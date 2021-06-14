@@ -7,7 +7,7 @@ set hive.exec.reducers.max=500;
 set hive.tez.container.size=4096;
 set tez.am.resource.memory.mb=4096;
 -- 合并小文件
-set hive.merge.tezfiles=true;  
+set hive.merge.tezfiles=true;
 set hive.merge.size.per.task=64000000;      -- 64M
 set hive.merge.smallfiles.avgsize=64000000; -- 64M
 -- 设置动态分区
@@ -131,8 +131,8 @@ from (
     from dim.dim_idno
   ) as dim_idno
   on substring(get_json_object(msg_log.original_msg,'$.userInfo.ocrInfo.idNo'),1,6) = dim_idno.idno_addr
-  ---union all
-  ---select * from ods.customer_info where product_id = 'DIDI201908161538'
+  -- union all
+  -- select * from ods.customer_info where product_id = 'DIDI201908161538'
 ) as tmp
 -- limit 1
 ;
@@ -356,15 +356,15 @@ from (
     from dim.dim_idno
   ) as dim_idno_province
   on resp_log.resident_province = dim_idno_province.idno_province_cn
-  --union all
-  --select customer_info.* from ods.customer_info
-  --join (
+  -- union all
+  -- select customer_info.* from ods.customer_info
+  -- join (
   --  select distinct get_json_object(standard_req_msg,'$.product.product_no') as product_id
   --  from stage.nms_interface_resp_log
   --  where sta_service_method_name = 'setupCustCredit'
   --    and standard_req_msg is not null
-  --) as product_id_tbl
-  --on customer_info.product_id = product_id_tbl.product_id
+  -- ) as product_id_tbl
+  -- on customer_info.product_id = product_id_tbl.product_id
 ) as tmp
 -- limit 1
 ;
@@ -570,13 +570,13 @@ from (
     from stage.ecas_loan
     where 1 > 0
       and p_type in ('lx','lx2','lxzt','lx3')
-      and d_date between date_sub(current_date,2) 
+      and d_date between date_sub(current_date,2)
       and date_sub(current_date,1)
       ---and d_date = '2021-06-08'
       group by
       due_bill_no,
       active_date,
-      product_code    
+      product_code
   ) as ecas_loan
   on concat(msg_log.product_code,'_',msg_log.due_bill_no) = concat(ecas_loan.product_code,'_',ecas_loan.due_bill_no)
   left join (
@@ -589,15 +589,15 @@ from (
     from dim.dim_idno
   ) as dim_idno
   on msg_log.idno_addr = dim_idno.idno_addr
-  ---union all
-  ---select customer_info.* from ods.customer_info
-  ---join (
-  ---  select distinct get_json_object(replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(original_msg,'\\\\\"\\\{','\\\{'),'\\\}\\\\\"','\\\}'),'\\\"\\\{','\\\{'),'\\\}\\\"','\\\}'),'\\\\\\\\\\\\\"','\\\"'),'\\\\\"','\\\"'),'\\\\\\\\','\\\\'),'\\\\\"',""),'$.reqContent.jsonReq.content.reqData.proCode') as product_code
-  ---  from stage.ecas_msg_log
-  ---  where msg_type = 'WIND_CONTROL_CREDIT'
-  ---    and original_msg is not null
-  ---) as product_id_tbl
-  ---on customer_info.product_id = product_id_tbl.product_code
+  -- union all
+  -- select customer_info.* from ods.customer_info
+  -- join (
+  --   select distinct get_json_object(replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(original_msg,'\\\\\"\\\{','\\\{'),'\\\}\\\\\"','\\\}'),'\\\"\\\{','\\\{'),'\\\}\\\"','\\\}'),'\\\\\\\\\\\\\"','\\\"'),'\\\\\"','\\\"'),'\\\\\\\\','\\\\'),'\\\\\"',""),'$.reqContent.jsonReq.content.reqData.proCode') as product_code
+  --   from stage.ecas_msg_log
+  --   where msg_type = 'WIND_CONTROL_CREDIT'
+  --     and original_msg is not null
+  -- ) as product_id_tbl
+  -- on customer_info.product_id = product_id_tbl.product_code
 ) as tmp
 -- limit 1
 ;
@@ -766,15 +766,15 @@ from (
     from dim.dim_idno
   ) as dim_idno_province
   on get_json_object(msg_log.original_msg,'$.data.borrower.homeProvince') = case substring(dim_idno_province.idno_province_cn,1,2) when '黑龙' then '东北地区' when '内蒙' then '华北地区' else substring(dim_idno_province.idno_province_cn,1,2) end
-  ---union all
-  ---select customer_info.* from ods.customer_info
-  ---join (
-  ---  select distinct regexp_replace(regexp_replace(regexp_replace(original_msg,'\\\"\\\{','\\\{'),'\\\}\\\"','\\\}'),'\\\\\"','\\\"') as original_msg
-  ---  from stage.ecas_msg_log
-  ---  where msg_type = 'GZ_CREDIT_APPLY'
-  ---    and original_msg is not null
-  ---) as product_id_tbl
-  ---on customer_info.product_id = get_json_object(product_id_tbl.original_msg,'$.data.product.productNo')
+  -- union all
+  -- select customer_info.* from ods.customer_info
+  -- join (
+  --   select distinct regexp_replace(regexp_replace(regexp_replace(original_msg,'\\\"\\\{','\\\{'),'\\\}\\\"','\\\}'),'\\\\\"','\\\"') as original_msg
+  --   from stage.ecas_msg_log
+  --   where msg_type = 'GZ_CREDIT_APPLY'
+  --     and original_msg is not null
+  -- ) as product_id_tbl
+  -- on customer_info.product_id = get_json_object(product_id_tbl.original_msg,'$.data.product.productNo')
 ) as tmp
 -- limit 1
 ;
@@ -931,14 +931,14 @@ from (
     from dim.dim_idno
   ) as dim_idno
   on substring(msg_log.reqdata["idNo"],1,6) = dim_idno.idno_addr
-  ---union all
-  ---select customer_info.* from ods.customer_info
-  ---join (
-  ---  select distinct reqdata["proCode"] as product_id
-  ---  from stage.kafka_credit_msg
-  ---  where p_type = 'WS0013200001'
-  ---) as product_id_tbl
-  ---on customer_info.product_id = product_id_tbl.product_id
+  -- union all
+  -- select customer_info.* from ods.customer_info
+  -- join (
+  --   select distinct reqdata["proCode"] as product_id
+  --   from stage.kafka_credit_msg
+  --   where p_type = 'WS0013200001'
+  -- ) as product_id_tbl
+  -- on customer_info.product_id = product_id_tbl.product_id
 ) as tmp
 -- limit 1
 ;
@@ -1058,25 +1058,22 @@ from (
     from dim.dim_idno
   ) as dim_idno
   on substring(msg_log.reqdata["idNo"],1,6) = dim_idno.idno_addr
-  ---union all
-  ---select customer_info.* from ods.customer_info
-  ---join (
-  ---  select distinct reqdata["proCode"] as product_id
-  ---  from stage.kafka_credit_msg
-  ---  where p_type = 'WS0012200001'
-  ---) as product_id_tbl
-  ---on customer_info.product_id = product_id_tbl.product_id
+  -- union all
+  -- select customer_info.* from ods.customer_info
+  -- join (
+  --   select distinct reqdata["proCode"] as product_id
+  --   from stage.kafka_credit_msg
+  --   where p_type = 'WS0012200001'
+  -- ) as product_id_tbl
+  -- on customer_info.product_id = product_id_tbl.product_id
 ) as tmp
 -- limit 1
 ;
 
-insert overwrite table ods.customer_info partition(product_id)
-select distinct * from ods.customer_info ;
 
 
 
-
-
-
-
-
+insert overwrite table ods.customer_info
+select distinct * from ods.customer_info
+-- where product_id = 'DIDI201908161538'
+;

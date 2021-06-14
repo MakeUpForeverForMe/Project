@@ -270,9 +270,9 @@ set hive.vectorized.execution.reduce.groupby.enabled=false;
 insert overwrite table ods.repay_schedule_inter partition(biz_date,product_id)
 select
   asset_05_today.due_bill_no            as due_bill_no,
-  asset_01.loan_active_date             as loan_active_date,
-  asset_01.loan_init_principal          as loan_init_principal,
-  asset_01.loan_init_term               as loan_init_term,
+  asset_05_today.loan_active_date       as loan_active_date,
+  asset_05_today.loan_init_principal    as loan_init_principal,
+  asset_05_today.loan_init_term         as loan_init_term,
   asset_05_today.loan_term              as loan_term,
   null                                  as start_interest_date,
   0                                     as curr_bal,
@@ -314,86 +314,176 @@ select
   asset_05_today.project_id             as product_id
 from (
   select distinct
-    case is_empty(map_from_str(extra_info)['项目编号'],project_id)
-      when 'Cl00333' then 'cl00333'
-      else is_empty(map_from_str(extra_info)['项目编号'],project_id)
-    end                                                                as project_id,
-    is_empty(map_from_str(extra_info)['借据号'],asset_id)              as due_bill_no,
-    is_empty(map_from_str(extra_info)['期次'],period)                  as loan_term,
-    is_empty(map_from_str(extra_info)['应还款日'],repay_date)          as should_repay_date,
-    is_empty(map_from_str(extra_info)['应还本金(元)'],repay_principal) as should_repay_principal,
-    is_empty(map_from_str(extra_info)['应还利息(元)'],repay_interest)  as should_repay_interest,
-    is_empty(map_from_str(extra_info)['应还费用(元)'],repay_fee)       as should_repay_term_fee,
-    is_empty(map_from_str(extra_info)['应还罚息(元)'],repay_penalty)   as should_repay_penalty,
-    is_empty(map_from_str(extra_info)['生效日期'],execute_date)        as effective_date,
-    create_time                                                        as create_time,
-    update_time                                                        as update_time
-  from stage.asset_05_t_repayment_schedule
-  where 1 > 0
-    and '${ST9}' >= '2020-12-02'
-    and d_date = '${ST9}'
-    and is_empty(map_from_str(extra_info)['项目编号'],project_id) not in (
-      '001601',           -- 汇通
-      'WS0005200001',     -- 瓜子
-      -- 'CL202012280092',   -- 汇通国银
-      'DIDI201908161538', -- 滴滴
-      ''
-    )
+    schedule.project_id,
+    schedule.due_bill_no,
+    asset_01.loan_active_date,
+    nvl(loan.loan_total_amount,asset_01.loan_init_principal) as loan_init_principal,
+    nvl(loan.periods,asset_01.loan_init_term) as loan_init_term,
+    schedule.loan_term,
+    schedule.should_repay_date,
+    schedule.should_repay_principal,
+    schedule.should_repay_interest,
+    schedule.should_repay_term_fee,
+    schedule.should_repay_penalty,
+    schedule.effective_date,
+    schedule.create_time,
+    schedule.update_time
+  from (
+    select
+      case is_empty(map_from_str(extra_info)['项目编号'],project_id)
+        when 'Cl00333' then 'cl00333'
+        else is_empty(map_from_str(extra_info)['项目编号'],project_id)
+      end                                                                as project_id,
+      is_empty(map_from_str(extra_info)['借据号'],asset_id)              as due_bill_no,
+      is_empty(map_from_str(extra_info)['期次'],period)                  as loan_term,
+      is_empty(map_from_str(extra_info)['应还款日'],repay_date)          as should_repay_date,
+      is_empty(map_from_str(extra_info)['应还本金(元)'],repay_principal) as should_repay_principal,
+      is_empty(map_from_str(extra_info)['应还利息(元)'],repay_interest)  as should_repay_interest,
+      is_empty(map_from_str(extra_info)['应还费用(元)'],repay_fee)       as should_repay_term_fee,
+      is_empty(map_from_str(extra_info)['应还罚息(元)'],repay_penalty)   as should_repay_penalty,
+      is_empty(map_from_str(extra_info)['生效日期'],execute_date)        as effective_date,
+      create_time                                                        as create_time,
+      update_time                                                        as update_time
+    from stage.asset_05_t_repayment_schedule
+    where 1 > 0
+      and '${ST9}' >= '2020-12-02'
+      and d_date = '${ST9}'
+      and is_empty(map_from_str(extra_info)['项目编号'],project_id) not in (
+        '001601',           -- 汇通
+        'WS0005200001',     -- 瓜子
+        -- 'CL202012280092',   -- 汇通国银
+        'DIDI201908161538', -- 滴滴
+        ''
+      )
+  ) as schedule
+  left join (
+    select
+      case project_id when 'Cl00333' then 'cl00333' else project_id end as project_id,
+      asset_id,
+      loan_total_amount,
+      periods
+    from stage.asset_10_t_asset_check
+    where account_date = '${ST9}'
+      and project_id not in (
+        '001601',           -- 汇通
+        'WS0005200001',     -- 瓜子
+        -- 'CL202012280092',   -- 汇通国银
+        'DIDI201908161538', -- 滴滴
+        ''
+      )
+  ) as loan
+  on  schedule.project_id  = loan.project_id
+  and schedule.due_bill_no = loan.asset_id
+  left join (
+    select
+      case is_empty(map_from_str(extra_info)['项目编号'],project_id)
+        when 'Cl00333' then 'cl00333'
+        else is_empty(map_from_str(extra_info)['项目编号'],project_id)
+      end                                                                                as project_id,
+      is_empty(map_from_str(extra_info)['借据号'],asset_id)                              as due_bill_no,
+      is_empty(
+        case when length(map_from_str(extra_info)['实际放款时间']) = 19 then to_date(map_from_str(extra_info)['实际放款时间'])
+        else is_empty(datefmt(map_from_str(extra_info)['实际放款时间'],'','yyyy-MM-dd')) end,
+        case when length(map_from_str(extra_info)['合同开始时间']) = 19 then to_date(map_from_str(extra_info)['合同开始时间'])
+        else is_empty(datefmt(map_from_str(extra_info)['合同开始时间'],'','yyyy-MM-dd')) end
+      )                                                                                  as loan_active_date,
+      is_empty(map_from_str(extra_info)['总期数'],periods)                               as loan_init_term,
+      is_empty(map_from_str(extra_info)['贷款总金额(元)'],is_empty(loan_total_amount,0)) as loan_init_principal
+    from stage.asset_01_t_loan_contract_info
+  ) as asset_01
+  on  schedule.project_id  = asset_01.project_id
+  and schedule.due_bill_no = asset_01.due_bill_no
 ) as asset_05_today
 left join (
   select distinct
-    case is_empty(map_from_str(extra_info)['项目编号'],project_id)
-      when 'Cl00333' then 'cl00333'
-      else is_empty(map_from_str(extra_info)['项目编号'],project_id)
-    end                                                                as project_id,
-    is_empty(map_from_str(extra_info)['借据号'],asset_id)              as due_bill_no,
-    is_empty(map_from_str(extra_info)['期次'],period)                  as loan_term,
-    is_empty(map_from_str(extra_info)['应还款日'],repay_date)          as should_repay_date,
-    is_empty(map_from_str(extra_info)['应还本金(元)'],repay_principal) as should_repay_principal,
-    is_empty(map_from_str(extra_info)['应还利息(元)'],repay_interest)  as should_repay_interest,
-    is_empty(map_from_str(extra_info)['应还费用(元)'],repay_fee)       as should_repay_term_fee,
-    is_empty(map_from_str(extra_info)['应还罚息(元)'],repay_penalty)   as should_repay_penalty,
-    is_empty(map_from_str(extra_info)['生效日期'],execute_date)        as effective_date
-  from stage.asset_05_t_repayment_schedule
-  where 1 > 0
-    and date_sub('${ST9}',1) >= date_sub('2020-12-02',1)
-    and d_date = date_sub('${ST9}',1)
-    and is_empty(map_from_str(extra_info)['项目编号'],project_id) not in (
-      '001601',           -- 汇通
-      'WS0005200001',     -- 瓜子
-      -- 'CL202012280092',   -- 汇通国银
-      'DIDI201908161538', -- 滴滴
-      ''
-    )
+    schedule.project_id,
+    schedule.due_bill_no,
+    asset_01.loan_active_date,
+    nvl(loan.loan_total_amount,asset_01.loan_init_principal) as loan_init_principal,
+    nvl(loan.periods,asset_01.loan_init_term) as loan_init_term,
+    schedule.loan_term,
+    schedule.should_repay_date,
+    schedule.should_repay_principal,
+    schedule.should_repay_interest,
+    schedule.should_repay_term_fee,
+    schedule.should_repay_penalty,
+    schedule.effective_date
+  from (
+    select
+      case is_empty(map_from_str(extra_info)['项目编号'],project_id)
+        when 'Cl00333' then 'cl00333'
+        else is_empty(map_from_str(extra_info)['项目编号'],project_id)
+      end                                                                as project_id,
+      is_empty(map_from_str(extra_info)['借据号'],asset_id)              as due_bill_no,
+      is_empty(map_from_str(extra_info)['期次'],period)                  as loan_term,
+      is_empty(map_from_str(extra_info)['应还款日'],repay_date)          as should_repay_date,
+      is_empty(map_from_str(extra_info)['应还本金(元)'],repay_principal) as should_repay_principal,
+      is_empty(map_from_str(extra_info)['应还利息(元)'],repay_interest)  as should_repay_interest,
+      is_empty(map_from_str(extra_info)['应还费用(元)'],repay_fee)       as should_repay_term_fee,
+      is_empty(map_from_str(extra_info)['应还罚息(元)'],repay_penalty)   as should_repay_penalty,
+      is_empty(map_from_str(extra_info)['生效日期'],execute_date)        as effective_date
+    from stage.asset_05_t_repayment_schedule
+    where 1 > 0
+      and date_sub('${ST9}',1) >= date_sub('2020-12-02',1)
+      and d_date = date_sub('${ST9}',1)
+      and is_empty(map_from_str(extra_info)['项目编号'],project_id) not in (
+        '001601',           -- 汇通
+        'WS0005200001',     -- 瓜子
+        -- 'CL202012280092',   -- 汇通国银
+        'DIDI201908161538', -- 滴滴
+        ''
+      )
+  ) as schedule
+  left join (
+    select
+      case project_id when 'Cl00333' then 'cl00333' else project_id end as project_id,
+      asset_id,
+      loan_total_amount,
+      periods
+    from stage.asset_10_t_asset_check
+    where account_date = date_sub('${ST9}',1)
+      and project_id not in (
+        '001601',           -- 汇通
+        'WS0005200001',     -- 瓜子
+        -- 'CL202012280092',   -- 汇通国银
+        'DIDI201908161538', -- 滴滴
+        ''
+      )
+  ) as loan
+  on  schedule.project_id  = loan.project_id
+  and schedule.due_bill_no = loan.asset_id
+  left join (
+    select
+      case is_empty(map_from_str(extra_info)['项目编号'],project_id)
+        when 'Cl00333' then 'cl00333'
+        else is_empty(map_from_str(extra_info)['项目编号'],project_id)
+      end                                                                                as project_id,
+      is_empty(map_from_str(extra_info)['借据号'],asset_id)                              as due_bill_no,
+      is_empty(
+        case when length(map_from_str(extra_info)['实际放款时间']) = 19 then to_date(map_from_str(extra_info)['实际放款时间'])
+        else is_empty(datefmt(map_from_str(extra_info)['实际放款时间'],'','yyyy-MM-dd')) end,
+        case when length(map_from_str(extra_info)['合同开始时间']) = 19 then to_date(map_from_str(extra_info)['合同开始时间'])
+        else is_empty(datefmt(map_from_str(extra_info)['合同开始时间'],'','yyyy-MM-dd')) end
+      )                                                                                  as loan_active_date,
+      is_empty(map_from_str(extra_info)['总期数'],periods)                               as loan_init_term,
+      is_empty(map_from_str(extra_info)['贷款总金额(元)'],is_empty(loan_total_amount,0)) as loan_init_principal
+    from stage.asset_01_t_loan_contract_info
+  ) as asset_01
+  on  schedule.project_id  = asset_01.project_id
+  and schedule.due_bill_no = asset_01.due_bill_no
 ) as asset_05_yesterday
 on  is_empty(asset_05_today.project_id,            'aa') = is_empty(asset_05_yesterday.project_id,            'aa')
 and is_empty(asset_05_today.due_bill_no,           'aa') = is_empty(asset_05_yesterday.due_bill_no,           'aa')
+and is_empty(asset_05_today.loan_active_date,      'aa') = is_empty(asset_05_yesterday.loan_active_date,      'aa')
+and is_empty(asset_05_today.loan_init_principal,   0   ) = is_empty(asset_05_yesterday.loan_init_principal,   0   )
+and is_empty(asset_05_today.loan_init_term,        'aa') = is_empty(asset_05_yesterday.loan_init_term,        'aa')
 and is_empty(asset_05_today.loan_term,             'aa') = is_empty(asset_05_yesterday.loan_term,             'aa')
 and is_empty(asset_05_today.should_repay_date,     'aa') = is_empty(asset_05_yesterday.should_repay_date,     'aa')
-and is_empty(asset_05_today.should_repay_principal,   0) = is_empty(asset_05_yesterday.should_repay_principal,   0)
-and is_empty(asset_05_today.should_repay_interest,    0) = is_empty(asset_05_yesterday.should_repay_interest,    0)
-and is_empty(asset_05_today.should_repay_term_fee,    0) = is_empty(asset_05_yesterday.should_repay_term_fee,    0)
-and is_empty(asset_05_today.should_repay_penalty,     0) = is_empty(asset_05_yesterday.should_repay_penalty,     0)
+and is_empty(asset_05_today.should_repay_principal,0   ) = is_empty(asset_05_yesterday.should_repay_principal,0   )
+and is_empty(asset_05_today.should_repay_interest, 0   ) = is_empty(asset_05_yesterday.should_repay_interest, 0   )
+and is_empty(asset_05_today.should_repay_term_fee, 0   ) = is_empty(asset_05_yesterday.should_repay_term_fee, 0   )
+and is_empty(asset_05_today.should_repay_penalty,  0   ) = is_empty(asset_05_yesterday.should_repay_penalty,  0   )
 and is_empty(asset_05_today.effective_date,        'aa') = is_empty(asset_05_yesterday.effective_date,        'aa')
-left join (
-  select distinct
-    case is_empty(map_from_str(extra_info)['项目编号'],project_id)
-      when 'Cl00333' then 'cl00333'
-      else is_empty(map_from_str(extra_info)['项目编号'],project_id)
-    end                                                                                as project_id,
-    is_empty(map_from_str(extra_info)['借据号'],asset_id)                              as due_bill_no,
-    is_empty(
-      case when length(map_from_str(extra_info)['实际放款时间']) = 19 then to_date(map_from_str(extra_info)['实际放款时间'])
-      else is_empty(datefmt(map_from_str(extra_info)['实际放款时间'],'','yyyy-MM-dd')) end,
-      case when length(map_from_str(extra_info)['合同开始时间']) = 19 then to_date(map_from_str(extra_info)['合同开始时间'])
-      else is_empty(datefmt(map_from_str(extra_info)['合同开始时间'],'','yyyy-MM-dd')) end
-    )                                                                                  as loan_active_date,
-    is_empty(map_from_str(extra_info)['总期数'],periods)                               as loan_init_term,
-    is_empty(map_from_str(extra_info)['贷款总金额(元)'],is_empty(loan_total_amount,0)) as loan_init_principal
-  from stage.asset_01_t_loan_contract_info
-) as asset_01
-on  asset_05_today.project_id  = asset_01.project_id
-and asset_05_today.due_bill_no = asset_01.due_bill_no
 where 1 > 0
   and asset_05_yesterday.project_id  is null
   and asset_05_yesterday.due_bill_no is null
