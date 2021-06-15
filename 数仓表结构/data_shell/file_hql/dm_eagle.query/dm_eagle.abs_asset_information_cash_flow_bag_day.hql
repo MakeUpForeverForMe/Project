@@ -29,7 +29,7 @@ set hive.auto.convert.join.noconditionaltask=false;
 -- set hivevar:project_id='CL202104080105';
 -- set hivevar:bag_id='CL202104080105_1';
 
-set hivevar:date_extr=date_sub(next_day(current_date,'Sun'),8);
+set hivevar:date_extr=date_sub(next_day(current_date,'Sat'),7);
 
 -- set hivevar:project_id=
 --   select distinct project_id
@@ -688,7 +688,7 @@ full join (
     where 1 > 0
       and biz_date = ${date_extr}
       and cycle_key = '0'
-      and project_id in (${project_id})
+      and 'CL202011090089' in (${project_id})
       and project_id = 'CL202011090089'
     group by project_id,should_repay_date
   ) as pmml_should_repay
@@ -702,7 +702,7 @@ full join (
     where 1 > 0
       and biz_date = ${date_extr}
       and cycle_key = '0'
-      and project_id in (${project_id})
+      and 'CL202011090089' in (${project_id})
       and project_id = 'CL202011090089'
       and is_empty(paid_out_date) is not null
     group by project_id,paid_out_date

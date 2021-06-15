@@ -21,6 +21,8 @@ set hive.vectorized.execution.reduce.enabled=false;
 set hive.vectorized.execution.reduce.groupby.enabled=false;
 
 
+-- set hivevar:ST9=2021-06-14;
+
 
 insert overwrite table ods.order_info partition(biz_date,product_id)
 select distinct

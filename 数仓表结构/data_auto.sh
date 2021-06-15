@@ -1453,6 +1453,7 @@ close_queries=$(echo $html | xmllint --html --xpath '//h3[2]/text()' - 2> /dev/n
     curl http://$host:27004/$href 2> /dev/null | xmllint --html --xpath '//pre/text()' - 2> /dev/null
     echo
   done
+  echo "$close_queries 个程序已经关闭！"
 } || echo "$close_queries 没有需要关闭的程序"
 
 

@@ -21,7 +21,8 @@ set hive.vectorized.execution.reduce.enabled=false;
 set hive.vectorized.execution.reduce.groupby.enabled=false;
 -- 设置可以使用正则表达式查找字段
 set hive.support.quoted.identifiers=None;
-
+set hive.auto.convert.join=false;-- 关闭Map join 否则关联不出用信数据
+set hive.auto.convert.join.noconditionaltask=false;
 insert overwrite table dm_eagle${db_suffix}.eagle_loan_info partition(biz_date = '${ST9}',product_id)
 select
   loan_apply.user_hash_no,
@@ -170,7 +171,7 @@ left join (
   group by due_bill_no
 ) as repay_schedule
 on loan_info.due_bill_no = repay_schedule.due_bill_no
--- where 1 > 0
---   and loan_info.due_bill_no = '1000000465'
--- limit 1
+--where 1 > 0
+-- and loan_info.due_bill_no = '1121060922283220377815'
+--limit 1
 ;
