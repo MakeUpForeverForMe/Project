@@ -1,54 +1,152 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <name>project</name>
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.5.0</version>
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
 
     <groupId>project</groupId>
     <artifactId>Project</artifactId>
     <packaging>pom</packaging>
-    <version>1.0</version>
+    <version>0.0.1-SNAPSHOT</version>
+
+    <name>Project</name>
+    <description>Demo project for Spring Boot</description>
+
     <modules>
+        <module>ProjectUtils</module>
         <module>AKKA</module>
+        <module>Java</module>
+        <module>Kafka</module>
         <module>MapReduce</module>
         <module>Scala</module>
         <module>Spark</module>
         <module>Zookeeper</module>
-        <module>Kafka</module>
-        <module>ProjectUtils</module>
         <module>Travel</module>
-        <module>Java</module>
     </modules>
 
+    <repositories>
+        <!-- 阿里 仓库 -->
+        <repository>
+            <id>aliyun</id>
+            <name>aliyun maven</name>
+            <url>https://maven.aliyun.com/nexus/content/groups/public/</url>
+            <layout>default</layout>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+
+        <!-- Maven 仓库 -->
+        <repository>
+            <id>center.maven</id>
+            <name>center maven</name>
+            <url>https://repo1.maven.org/maven2/</url>
+        </repository>
+
+        <!-- Scala 仓库 -->
+        <repository>
+            <id>scala-tools.org1</id>
+            <name>Scala-Tools Maven2 Repository</name>
+            <url>https://scala-tools.org/repo-releases</url>
+        </repository>
+
+        <!-- Scala 仓库 -->
+        <repository>
+            <id>scala-tools.org2</id>
+            <name>Scala-Tools Maven2 Repository</name>
+            <url>https://maven.restlet.org/</url>
+        </repository>
+
+        <!-- 其他 仓库 -->
+        <repository>
+            <id>osgeo</id>
+            <name>Open Source Geospatial Foundation Repository</name>
+            <url>https://repo.osgeo.org/repository/release/</url>
+        </repository>
+        <repository>
+            <id>boundless</id>
+            <name>Boundless Maven Repository</name>
+            <url>https://repo.boundlessgeo.com/main</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+
+        <!-- Cloudera 仓库 -->
+        <!--        <repository>-->
+        <!--            <id>cloudera</id>-->
+        <!--            <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>-->
+        <!--        </repository>-->
+        <!--        <repository>-->
+        <!--            <id>scala-tools.org3</id>-->
+        <!--            <name>Scala-Tools Maven2 Repository</name>-->
+        <!--            <url>https://repository.cloudera.com/content/repositories/releases/</url>-->
+        <!--        </repository>-->
+
+        <!-- Hortonworks 仓库 -->
+        <!--        <repository>-->
+        <!--            <id>hortonworks.extrepo</id>-->
+        <!--            <name>Hortonworks HDP</name>-->
+        <!--            <url>https://repo.hortonworks.com/content/repositories/releases</url>-->
+        <!--            <releases>-->
+        <!--                <enabled>true</enabled>-->
+        <!--            </releases>-->
+        <!--            <snapshots>-->
+        <!--                <enabled>true</enabled>-->
+        <!--            </snapshots>-->
+        <!--        </repository>-->
+        <!--        <repository>-->
+        <!--            <id>hortonworks.other</id>-->
+        <!--            <name>Hortonworks Other Dependencies</name>-->
+        <!--            <url>https://repo.hortonworks.com/content/groups/public</url>-->
+        <!--            <releases>-->
+        <!--                <enabled>true</enabled>-->
+        <!--            </releases>-->
+        <!--            <snapshots>-->
+        <!--                <enabled>true</enabled>-->
+        <!--            </snapshots>-->
+        <!--        </repository>-->
+    </repositories>
+
     <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <encoding>UTF-8</encoding>                                <!-- Encoding         版本 -->
-        <java.version>1.8</java.version>                          <!-- Java             版本 -->
-        <scala.prefix>2.11</scala.prefix>                         <!-- ScalaPrefix      版本 -->
-        <scala.version>${scala.prefix}.8</scala.version>          <!-- Scala            版本 -->
-        <log4j.version>1.2.17</log4j.version>                     <!-- Log4j            版本 -->
-        <slf4j.version>1.7.25</slf4j.version>                     <!-- Slf4j            版本 -->
-        <junit.version>4.12</junit.version>                       <!-- Junit            版本 -->
-        <aes.version>1.11</aes.version>                           <!-- Aes              版本 -->
-        <mysqlConnector.version>5.1.47</mysqlConnector.version>   <!-- MysqlConnector   版本 -->
-        <c3p0.version>0.9.5.2</c3p0.version>                      <!-- C3P0             版本 -->
-        <dbutils.version>1.7</dbutils.version>                    <!-- DBUtils          版本 -->
-        <commons-io.version>2.4</commons-io.version>              <!-- commons-io       版本 -->
-        <fastjson.version>1.2.62</fastjson.version>               <!-- FastJson         版本 -->
-        <fasterxml.version>2.11.3</fasterxml.version>             <!-- fasterxml        版本 -->
-        <netty.version>4.1.51.Final</netty.version>               <!-- Netty            版本 -->
-        <tomcat.version>9.0.31</tomcat.version>                   <!-- Tomcat           版本 -->
-        <akka.version>2.4.17</akka.version>                       <!-- AKKA             版本 -->
-        <akka.kryo.version>1.0.0</akka.kryo.version>              <!-- AKKAKryo         版本 -->
-        <zookeeper.version>3.4.5</zookeeper.version>              <!-- Zookeeper        版本 -->
-        <kafka.version>2.1.0</kafka.version>                      <!-- Kafka            版本 -->
-        <hadoop.version>3.0.0</hadoop.version>                    <!-- Hadoop           版本 -->
-        <hive.version>2.1.1</hive.version>                        <!-- Hive             版本 -->
-        <spark.version>2.3.1</spark.version>                      <!-- Spark            版本 -->
-        <janino.version>3.0.8</janino.version>                    <!-- Spark         报错解决 -->
-        <flink.vsersion>1.10.0</flink.vsersion>                   <!-- Flink            版本 -->
+        <encoding>UTF-8</encoding>                                           <!-- encoding         版本 -->
+        <java.version>1.8</java.version>                                     <!-- java             版本 -->
+        <scala.prefix>2.11</scala.prefix>                                    <!-- scalaPrefix      版本 -->
+        <scala.version>${scala.prefix}.8</scala.version>                     <!-- scala            版本 -->
+
+        <lombok.version>1.18.20</lombok.version>                             <!-- lombok           版本 -->
+
+        <spring-boot.version>2.5.0</spring-boot.version>                     <!-- spring-boot      版本 -->
+        <mysql.version>8.0.25</mysql.version>                                <!-- mysql            版本 -->
+        <mybatis.version>2.2.0</mybatis.version>                             <!-- mybatis          版本 -->
+
+        <commons-io.version>2.9.0</commons-io.version>                       <!-- commons-io       版本 -->
+        <commons-codec.version>1.15</commons-codec.version>                  <!-- commons-codec    版本 -->
+        <commons-dbutils.version>1.7</commons-dbutils.version>               <!-- commons-dbutils  版本 -->
+
+        <c3p0.version>0.9.5.2</c3p0.version>                                 <!-- c3P0             版本 -->
+
+
+        <dbutils.version>1.7</dbutils.version>                               <!-- dBUtils          版本 -->
+        <fastjson.version>1.2.62</fastjson.version>                          <!-- fastJson         版本 -->
+        <jackson.version>2.11.3</jackson.version>                            <!-- jackson          版本 -->
+        <netty.version>4.1.51.Final</netty.version>                          <!-- netty            版本 -->
+        <tomcat.version>9.0.31</tomcat.version>                              <!-- tomcat           版本 -->
+        <akka.version>2.4.17</akka.version>                                  <!-- AKKA             版本 -->
+        <akka.kryo.version>1.0.0</akka.kryo.version>                         <!-- AKKAKryo         版本 -->
+        <zookeeper.version>3.4.5</zookeeper.version>                         <!-- Zookeeper        版本 -->
+        <kafka.version>2.7.1</kafka.version>                                 <!-- Kafka            版本 -->
+        <hadoop.version>3.0.0</hadoop.version>                               <!-- Hadoop           版本 -->
+        <hive.version>2.1.1</hive.version>                                   <!-- Hive             版本 -->
+        <spark.version>2.3.1</spark.version>                                 <!-- Spark            版本 -->
+        <janino.version>3.0.8</janino.version>                               <!-- Spark         报错解决 -->
+        <flink.vsersion>1.10.0</flink.vsersion>                              <!-- Flink            版本 -->
     </properties>
 
     <dependencies>
@@ -59,67 +157,89 @@
             <artifactId>scala-library</artifactId>
             <version>${scala.version}</version>
         </dependency>
-        <!-- Log4j 相关依赖 -->
-        <!-- https://mvnrepository.com/artifact/log4j/log4j -->
+
         <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-            <version>${log4j.version}</version>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
+            <optional>true</optional>
         </dependency>
-        <!-- Slf4j 相关依赖 -->
-        <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-log4j12 -->
+
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-            <version>${slf4j.version}</version>
-            <!--<scope>test</scope>-->
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <version>${spring-boot.version}</version>
+            <scope>test</scope>
         </dependency>
-        <!-- Junit 相关依赖 -->
-        <!-- https://mvnrepository.com/artifact/junit/junit -->
+
+        <!-- spring-boot logging -->
+        <!-- logback-classic : 1.2.3 （已含 Slf4j） -->
+        <!-- 过滤掉相关日志框架，指定向 Slf4j 框架 -->
+        <!-- log4j-to-slf4j : 2.14.1 -->
+        <!-- jul-to-slf4j : 1.7.30 -->
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>${junit.version}</version>
-            <!--<scope>test</scope>-->
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-logging</artifactId>
+            <version>${spring-boot.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>log4j-api</artifactId>
+                    <groupId>org.apache.logging.log4j</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 
-
     <dependencyManagement>
         <dependencies>
-            <!-- 自定义工具类的相关依赖 -->
             <dependency>
                 <groupId>project</groupId>
                 <artifactId>ProjectUtils</artifactId>
-                <version>${version}</version>
+                <version>0.0.1-SNAPSHOT</version>
             </dependency>
-            <!-- Aes 加密的相关依赖 -->
-            <!-- https://mvnrepository.com/artifact/commons-codec/commons-codec -->
+
+
             <dependency>
-                <groupId>commons-codec</groupId>
-                <artifactId>commons-codec</artifactId>
-                <version>${aes.version}</version>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-data-redis</artifactId>
+                <version>${spring-boot.version}</version>
             </dependency>
-            <!-- DBUtils 相关依赖 -->
-            <!-- https://mvnrepository.com/artifact/commons-dbutils/commons-dbutils -->
             <dependency>
-                <groupId>commons-dbutils</groupId>
-                <artifactId>commons-dbutils</artifactId>
-                <version>${dbutils.version}</version>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-data-jpa</artifactId>
+                <version>${spring-boot.version}</version>
             </dependency>
-            <!-- FileUtils 相关依赖 -->
-            <!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
             <dependency>
-                <groupId>commons-io</groupId>
-                <artifactId>commons-io</artifactId>
-                <version>${commons-io.version}</version>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-jdbc</artifactId>
+                <version>${spring-boot.version}</version>
             </dependency>
-            <!-- MySQLConnector 相关依赖 -->
-            <!-- https://mvnrepository.com/artifact/mysql/mysql-connector-java -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-data-mongodb</artifactId>
+                <version>${spring-boot.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-data-elasticsearch</artifactId>
+                <version>${spring-boot.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-web</artifactId>
+                <version>${spring-boot.version}</version>
+            </dependency>
+
             <dependency>
                 <groupId>mysql</groupId>
                 <artifactId>mysql-connector-java</artifactId>
-                <version>${mysqlConnector.version}</version>
+                <version>${mysql.version}</version>
+                <scope>runtime</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.mybatis.spring.boot</groupId>
+                <artifactId>mybatis-spring-boot-starter</artifactId>
+                <version>${mybatis.version}</version>
             </dependency>
             <!-- JdbcUtils 需要用到的 C3P0 依赖 -->
             <!-- https://mvnrepository.com/artifact/com.mchange/c3p0 -->
@@ -128,40 +248,44 @@
                 <artifactId>c3p0</artifactId>
                 <version>${c3p0.version}</version>
             </dependency>
-            <!-- FastJson 相关依赖 -->
-            <!-- https://mvnrepository.com/artifact/com.alibaba/fastjson -->
+
+
             <dependency>
-                <groupId>com.alibaba</groupId>
-                <artifactId>fastjson</artifactId>
-                <version>${fastjson.version}</version>
+                <groupId>org.apache.kafka</groupId>
+                <artifactId>kafka-streams</artifactId>
+                <version>${kafka.version}</version>
             </dependency>
-            <!-- fasterxml 相关依赖 -->
-            <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind -->
             <dependency>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-databind</artifactId>
-                <version>${fasterxml.version}</version>
+                <groupId>org.springframework.kafka</groupId>
+                <artifactId>spring-kafka</artifactId>
+                <version>${kafka.version}</version>
             </dependency>
-            <!-- Netty 相关依赖 -->
-            <!-- https://mvnrepository.com/artifact/io.netty/netty-all -->
+
             <dependency>
-                <groupId>io.netty</groupId>
-                <artifactId>netty-all</artifactId>
-                <version>${netty.version}</version>
+                <groupId>org.springframework.kafka</groupId>
+                <artifactId>spring-kafka-test</artifactId>
+                <version>${kafka.version}</version>
+                <scope>test</scope>
             </dependency>
-            <!-- Tomcat Embed Core 相关依赖 -->
-            <!-- https://mvnrepository.com/artifact/org.apache.tomcat.embed/tomcat-embed-core -->
+
+
+            <!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
             <dependency>
-                <groupId>org.apache.tomcat.embed</groupId>
-                <artifactId>tomcat-embed-core</artifactId>
-                <version>${tomcat.version}</version>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>${commons-io.version}</version>
             </dependency>
-            <!-- Tomcat Servlet api 相关依赖 -->
-            <!-- https://mvnrepository.com/artifact/org.apache.tomcat/tomcat-servlet-api -->
+            <!-- https://mvnrepository.com/artifact/commons-codec/commons-codec -->
             <dependency>
-                <groupId>org.apache.tomcat</groupId>
-                <artifactId>tomcat-servlet-api</artifactId>
-                <version>${tomcat.version}</version>
+                <groupId>commons-codec</groupId>
+                <artifactId>commons-codec</artifactId>
+                <version>${commons-codec.version}</version>
+            </dependency>
+            <!-- https://mvnrepository.com/artifact/commons-dbutils/commons-dbutils -->
+            <dependency>
+                <groupId>commons-dbutils</groupId>
+                <artifactId>commons-dbutils</artifactId>
+                <version>${commons-dbutils.version}</version>
             </dependency>
 
 
@@ -178,13 +302,30 @@
                 <artifactId>akka-remote_${scala.prefix}</artifactId>
                 <version>${akka.version}</version>
             </dependency>
-
             <!-- 使用 AKKA-kryo 序列化 -->
             <!-- https://mvnrepository.com/artifact/io.altoo/akka-kryo-serialization -->
             <dependency>
                 <groupId>io.altoo</groupId>
                 <artifactId>akka-kryo-serialization_${scala.prefix}</artifactId>
                 <version>${akka.kryo.version}</version>
+            </dependency>
+
+
+            <!-- Netty 相关依赖 -->
+            <!-- https://mvnrepository.com/artifact/io.netty/netty-all -->
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-all</artifactId>
+                <version>${netty.version}</version>
+            </dependency>
+
+
+            <!-- FastJson 相关依赖 -->
+            <!-- https://mvnrepository.com/artifact/com.alibaba/fastjson -->
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>fastjson</artifactId>
+                <version>${fastjson.version}</version>
             </dependency>
 
 
@@ -197,13 +338,6 @@
                 <!--<type>pom</type>-->
             </dependency>
 
-            <!-- Kafka 相关依赖 -->
-            <!-- https://mvnrepository.com/artifact/org.apache.kafka/kafka -->
-            <dependency>
-                <groupId>org.apache.kafka</groupId>
-                <artifactId>kafka_${scala.prefix}</artifactId>
-                <version>${kafka.version}</version>
-            </dependency>
 
             <!-- Hadoop 相关依赖 -->
             <!-- https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-hdfs -->
@@ -225,13 +359,6 @@
                 <version>${hadoop.version}</version>
             </dependency>
 
-            <!-- Hive 相关依赖 -->
-            <!-- https://mvnrepository.com/artifact/org.apache.hive/hive-exec -->
-            <dependency>
-                <groupId>org.apache.hive</groupId>
-                <artifactId>hive-exec</artifactId>
-                <version>${hive.version}</version>
-            </dependency>
 
             <!-- Spark相关依赖 -->
             <!-- https://mvnrepository.com/artifact/org.apache.spark/spark-core -->
@@ -285,6 +412,7 @@
                 <version>${janino.version}</version>
             </dependency>
 
+
             <!-- Flink相关依赖 -->
             <!-- https://mvnrepository.com/artifact/org.apache.flink/flink-scala -->
             <dependency>
@@ -305,23 +433,31 @@
                 <artifactId>flink-connector-kafka_${scala.prefix}</artifactId>
                 <version>${flink.vsersion}</version>
             </dependency>
-
         </dependencies>
     </dependencyManagement>
 
     <build>
-        <!--包名-->
-        <finalName>mineProject</finalName>
-        <!--<resources>-->
-        <!--<resource>-->
-        <!--<directory>src/main/java</directory>-->
-        <!--<filtering>false</filtering>-->
-        <!--<excludes>-->
-        <!--<exclude>**/*.java</exclude>-->
-        <!--</excludes>-->
-        <!--</resource>-->
-        <!--</resources>-->
+        <finalName>Project</finalName>
+
         <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>${spring-boot.version}</version>
+            </plugin>
+
+            <!-- 配置 Java 的编译版本 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.6.1</version>
+                <configuration>
+                    <encoding>${encoding}</encoding>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                </configuration>
+            </plugin>
+
             <!-- 配置 Scala 的编译插件 -->
             <plugin>
                 <groupId>net.alchim31.maven</groupId>
@@ -341,164 +477,7 @@
                     </execution>
                 </executions>
             </plugin>
-            <!-- 配置 Java 的编译版本 -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <!--<version>3.6.1</version>-->
-                <configuration>
-                    <encoding>${encoding}</encoding>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
-                </configuration>
-            </plugin>
-            <!-- 打包插件 -->
-            <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <configuration>
-                    <outputDirectory>${project.build.directory}</outputDirectory>
-                    <!-- 自定义的configuration配置后，将会生成一个demo-demo.jar 文件在目录 output 下，其中前一个demo
-                      来自finalName，后一个demo来自assembly descriptor中的id，其中的内容和默认的打包出来的jar类似，
-                      如果只想有finalName，则增加配置：<appendAssemblyId/>-->
-                    <appendAssemblyId>false</appendAssemblyId>
-                    <!--描述文件位置-->
-                    <descriptors>
-                        <descriptor>${project.basedir}/../conf/assembly.xml</descriptor>
-                    </descriptors>
-                </configuration>
-                <!-- 配置执行器 -->
-                <executions>
-                    <execution>
-                        <id>make-assembly</id>
-                        <!-- 绑定到 package 生命周期阶段上 -->
-                        <phase>package</phase>
-                        <goals>
-                            <!-- 只运行一次 -->
-                            <goal>single</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <!-- 打包跳过测试类 -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <testFailureIgnore>true</testFailureIgnore>
-                    <skip>true</skip>
-                </configuration>
-            </plugin>
-            <!-- Copy 指定工程中的配置文件 -->
-            <!--<plugin>-->
-            <!--&lt;!&ndash;<groupId>org.apache.maven.plugins</groupId>&ndash;&gt;-->
-            <!--<artifactId>maven-resources-plugin</artifactId>-->
-            <!--&lt;!&ndash;<version>2.7</version>&ndash;&gt;-->
-            <!--<executions>-->
-            <!--<execution>-->
-            <!--<id>copy-resources</id>-->
-            <!--<phase>package</phase>-->
-            <!--<goals>-->
-            <!--<goal>copy-resources</goal>-->
-            <!--</goals>-->
-            <!--<configuration>-->
-            <!--<outputDirectory>${basedir}/conf</outputDirectory>-->
-            <!--<encoding>${encoding}</encoding>-->
-            <!--<resources>-->
-            <!--<resource>-->
-            <!--<directory>src/main/resources</directory>-->
-            <!--<filtering>true</filtering>-->
-            <!--<includes>-->
-            <!--&lt;!&ndash;<exclude>**/*.xml</exclude>&ndash;&gt;-->
-            <!--&lt;!&ndash;<exclude>**/*.conf</exclude>&ndash;&gt;-->
-            <!--<exclude>*.properties</exclude>-->
-            <!--</includes>-->
-            <!--</resource>-->
-            <!--</resources>-->
-            <!--</configuration>-->
-            <!--</execution>-->
-            <!--</executions>-->
-            <!--</plugin>-->
         </plugins>
     </build>
 
-
-    <repositories>
-        <repository>
-            <id>alimaven</id>
-            <name>aliyun maven</name>
-            <url>http://maven.aliyun.com/nexus/content/groups/public/</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-
-        <!--<repository>-->
-        <!--<id>cloudera</id>-->
-        <!--<url>https://repository.cloudera.com/artifactory/cloudera-repos</url>-->
-        <!--</repository>-->
-
-        <repository>
-            <id>osgeo</id>
-            <name>Open Source Geospatial Foundation Repository</name>
-            <url>https://repo.osgeo.org/repository/release/</url>
-        </repository>
-
-        <repository>
-            <id>center.maven</id>
-            <name>center maven</name>
-            <url>https://repo1.maven.org/maven2/</url>
-        </repository>
-
-        <repository>
-            <id>boundless</id>
-            <name>Boundless Maven Repository</name>
-            <url>https://repo.boundlessgeo.com/main</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-
-        <!--<repository>-->
-        <!--<id>hortonworks.extrepo</id>-->
-        <!--<name>Hortonworks HDP</name>-->
-        <!--<url>http://repo.hortonworks.com/content/repositories/releases</url>-->
-        <!--<releases>-->
-        <!--<enabled>true</enabled>-->
-        <!--</releases>-->
-        <!--<snapshots>-->
-        <!--<enabled>true</enabled>-->
-        <!--</snapshots>-->
-        <!--</repository>-->
-
-        <!--<repository>-->
-        <!--<id>hortonworks.other</id>-->
-        <!--<name>Hortonworks Other Dependencies</name>-->
-        <!--<url>http://repo.hortonworks.com/content/groups/public</url>-->
-        <!--<releases>-->
-        <!--<enabled>true</enabled>-->
-        <!--</releases>-->
-        <!--<snapshots>-->
-        <!--<enabled>true</enabled>-->
-        <!--</snapshots>-->
-        <!--</repository>-->
-
-        <repository>
-            <id>scala-tools.org1</id>
-            <name>Scala-Tools Maven2 Repository</name>
-            <url>https://scala-tools.org/repo-releases</url>
-        </repository>
-        <repository>
-            <id>scala-tools.org2</id>
-            <name>Scala-Tools Maven2 Repository</name>
-            <url>https://maven.restlet.org/</url>
-        </repository>
-        <repository>
-            <id>scala-tools.org3</id>
-            <name>Scala-Tools Maven2 Repository</name>
-            <url>https://repository.cloudera.com/content/repositories/releases/</url>
-        </repository>
-    </repositories>
 </project>

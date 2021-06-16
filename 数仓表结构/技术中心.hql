@@ -16546,8 +16546,8 @@ select
   case project_id when 'Cl00333' then 'cl00333' else project_id end as project_id
 from stage.asset_10_t_asset_check
 where 1 > 0
-  and project_id = 'CL201911130070'
-  and asset_id = '5100839915'
+  and project_id = 'cl00297'
+  and asset_id = '5100720875'
 order by project_id,asset_id,account_date
 ;
 
@@ -16576,19 +16576,378 @@ order by project_id,min_date
 
 
 
+select
+  t1.project_id,
+  t1.loan_status,
+  count(t1.due_bill_no) as cnt
+from ods.loan_info_abs as t1
+join dim.bag_due_bill_no as t2
+on  t1.project_id  = t2.project_id
+and t1.due_bill_no = t2.due_bill_no
+where 1 > 0
+  and to_date(current_timestamp()) between t1.s_d_date and date_sub(t1.e_d_date,1)
+  and t1.project_id in ('cl00297','cl00306')
+group by t1.project_id,t1.loan_status
+order by project_id,loan_status
+;
+
+
+select
+  t1.project_id,
+  t1.asset_status,
+  count(t1.serial_number) as cnt
+from stage.abs_10_t_assetaccountcheck as t1
+join dim.bag_due_bill_no as t2
+on  t1.project_id    = t2.project_id
+and t1.serial_number = t2.due_bill_no
+and t1.project_id in ('cl00297','cl00306')
+and t1.data_extract_time = '2021-06-14'
+group by t1.project_id,t1.asset_status
+order by project_id,asset_status
+;
+
+
+select
+  nvl(ods.project_id,stage.project_id)   as project_id,
+  nvl(ods.project_id,null)               as project_id_ods,
+  nvl(stage.project_id,null)             as project_id_stage,
+  nvl(ods.loan_status,stage.loan_status) as loan_status,
+  nvl(ods.loan_status,null)              as loan_status_ods,
+  nvl(stage.loan_status,null)            as loan_status_stage,
+  nvl(ods.due_bill_no,stage.due_bill_no) as due_bill_no,
+  nvl(ods.due_bill_no,null)              as due_bill_no_ods,
+  nvl(stage.due_bill_no,null)            as due_bill_no_stage
+from (
+  select
+    t1.project_id,
+    case t1.loan_status
+      when 'F' then '已结清'
+      when 'N' then '正常'
+      when 'O' then '逾期'
+      else t1.loan_status
+    end as loan_status,
+    t1.due_bill_no
+  from ods.loan_info_abs as t1
+  join dim.bag_due_bill_no as t2
+  on  t1.project_id  = t2.project_id
+  and t1.due_bill_no = t2.due_bill_no
+  and to_date(current_timestamp()) between t1.s_d_date and date_sub(t1.e_d_date,1)
+  and t1.project_id in ('cl00297','cl00306')
+) as ods
+full join (
+  select
+    t1.project_id,
+    t1.asset_status as loan_status,
+    t1.serial_number as due_bill_no
+  from stage.abs_10_t_assetaccountcheck as t1
+  join dim.bag_due_bill_no as t2
+  on  t1.project_id    = t2.project_id
+  and t1.serial_number = t2.due_bill_no
+  and t1.project_id in ('cl00297','cl00306')
+  and t1.data_extract_time = '2021-06-14'
+) as stage
+on  ods.project_id  = stage.project_id
+and ods.loan_status = stage.loan_status
+and ods.due_bill_no = stage.due_bill_no
+where 1 > 0
+  and (
+    nvl(ods.project_id,null)    is null or
+    nvl(stage.project_id,null)  is null or
+    nvl(ods.loan_status,null)   is null or
+    nvl(stage.loan_status,null) is null or
+    nvl(ods.due_bill_no,null)   is null or
+    nvl(stage.due_bill_no,null) is null or
+    false
+  )
+order by project_id,due_bill_no,loan_status
+;
+
+
+select
+  project_id,
+  max(account_date) as account_date
+from stage.asset_10_t_asset_check
+where 1 > 0
+  and project_id in ('cl00297','cl00306')
+group by project_id
+;
+
+
+select
+  t1.project_id,
+  t1.assets_status as loan_status,
+  count(t1.asset_id) as cnt
+from stage.asset_10_t_asset_check as t1
+join dim.bag_due_bill_no as t2
+on  t1.project_id = t2.project_id
+and t1.asset_id   = t2.due_bill_no
+join (
+  select
+    project_id,
+    asset_id,
+    max(account_date) as account_date
+  from stage.asset_10_t_asset_check
+  where 1 > 0
+    and project_id in ('cl00297','cl00306')
+  group by project_id,asset_id
+) as t3
+on  t3.account_date = t1.account_date
+and t3.asset_id     = t1.asset_id
+and t3.project_id   = t1.project_id
+group by t1.project_id,t1.assets_status
+order by project_id,loan_status
+;
+
+
+
+select
+  nvl(ods.project_id,stage.project_id)   as project_id,
+  nvl(ods.project_id,null)               as project_id_ods,
+  nvl(stage.project_id,null)             as project_id_stage,
+  nvl(ods.loan_status,stage.loan_status) as loan_status,
+  nvl(ods.loan_status,null)              as loan_status_ods,
+  nvl(stage.loan_status,null)            as loan_status_stage,
+  nvl(ods.due_bill_no,stage.due_bill_no) as due_bill_no,
+  nvl(ods.due_bill_no,null)              as due_bill_no_ods,
+  nvl(stage.due_bill_no,null)            as due_bill_no_stage
+from (
+  select
+    t1.project_id,
+    t1.assets_status as loan_status,
+    t1.asset_id as due_bill_no
+  from stage.asset_10_t_asset_check as t1
+  join dim.bag_due_bill_no as t2
+  on  t1.project_id = t2.project_id
+  and t1.asset_id   = t2.due_bill_no
+  join (
+    select
+      project_id,
+      asset_id,
+      max(account_date) as account_date
+    from stage.asset_10_t_asset_check
+    where 1 > 0
+      and project_id in ('cl00297','cl00306')
+    group by project_id,asset_id
+  ) as t3
+  on  t3.account_date = t1.account_date
+  and t3.asset_id     = t1.asset_id
+  and t3.project_id   = t1.project_id
+) as ods
+full join (
+  select
+    t1.project_id,
+    t1.asset_status as loan_status,
+    t1.serial_number as due_bill_no
+  from stage.abs_10_t_assetaccountcheck as t1
+  join dim.bag_due_bill_no as t2
+  on  t1.project_id    = t2.project_id
+  and t1.serial_number = t2.due_bill_no
+  and t1.project_id in ('cl00297','cl00306')
+  and t1.data_extract_time = '2021-06-14'
+) as stage
+on  ods.project_id  = stage.project_id
+and ods.loan_status = stage.loan_status
+and ods.due_bill_no = stage.due_bill_no
+where 1 > 0
+  and (
+    nvl(ods.project_id,null)    is null or
+    nvl(stage.project_id,null)  is null or
+    nvl(ods.loan_status,null)   is null or
+    nvl(stage.loan_status,null) is null or
+    nvl(ods.due_bill_no,null)   is null or
+    nvl(stage.due_bill_no,null) is null or
+    false
+  )
+order by project_id,due_bill_no,loan_status
+;
 
 
 
 
 
+select
+  project_id,
+  asset_id,
+  assets_status
+from stage.asset_10_t_asset_check
+where 1 > 0
+  and account_date = '2021-06-14'
+  and project_id in ('cl00297','cl00306')
+  and asset_id in (
+    '5100747002',
+    '5100752029',
+    '5100753027',
+    '5100753859',
+    '5100761362',
+    '5100764656',
+    '5100764748',
+    '5100767211',
+    '5100768697',
+    '5100768914',
+    '5100769330',
+    '5100769929',
+    '5100770701',
+    '5100770953',
+    '5100770982',
+    '5100771031',
+    '5100771274',
+    '5100771285',
+    '5100771412',
+    '5100771933',
+    '5100777930',
+    '5100778925',
+    '5100781356',
+    '5100781936',
+    '5100783978',
+    '5100784135',
+    '5100784221',
+    '5100784345',
+    ''
+  )
+;
+
++-------------+-------------+----------------+
+| project_id  |  asset_id   | assets_status  |
++-------------+-------------+----------------+
+| cl00306     | 5100747002  | 正常           |
+| cl00306     | 5100761362  | 正常           |
+| cl00306     | 5100764748  | 正常           |
+| cl00306     | 5100767211  | 正常           |
+| cl00306     | 5100769330  | 正常           |
+| cl00306     | 5100770701  | 正常           |
+| cl00306     | 5100777930  | 已结清         |
+| cl00306     | 5100781356  | 正常           |
+| cl00306     | 5100781936  | 正常           |
+| cl00306     | 5100784135  | 正常           |
+| cl00306     | 5100784221  | 已结清         |
+| cl00306     | 5100784345  | 已结清         |
+| cl00306     | 5100764656  | 正常           |
+| cl00306     | 5100771031  | 正常           |
+| cl00306     | 5100771274  | 正常           |
+| cl00306     | 5100771412  | 正常           |
+| cl00306     | 5100778925  | 正常           |
++-------------+-------------+----------------+
+
+select
+  project_id,
+  serial_number,
+  asset_status
+from stage.abs_10_t_assetaccountcheck
+where 1 > 0
+  and data_extract_time = '2021-06-14'
+  and project_id in ('cl00297','cl00306')
+  and serial_number in (
+    '5100747002',
+    '5100752029',
+    '5100753027',
+    '5100753859',
+    '5100761362',
+    '5100764656',
+    '5100764748',
+    '5100767211',
+    '5100768697',
+    '5100768914',
+    '5100769330',
+    '5100769929',
+    '5100770701',
+    '5100770953',
+    '5100770982',
+    '5100771031',
+    '5100771274',
+    '5100771285',
+    '5100771412',
+    '5100771933',
+    '5100777930',
+    '5100778925',
+    '5100781356',
+    '5100781936',
+    '5100783978',
+    '5100784135',
+    '5100784221',
+    '5100784345',
+    ''
+  )
+;
+
++-------------+----------------+---------------+
+| project_id  | serial_number  | asset_status  |
++-------------+----------------+---------------+
+| cl00306     | 5100747002     | 正常          |
+| cl00306     | 5100752029     | 正常          |
+| cl00306     | 5100753027     | 正常          |
+| cl00306     | 5100753859     | 正常          |
+| cl00306     | 5100761362     | 正常          |
+| cl00306     | 5100764656     | 正常          |
+| cl00306     | 5100764748     | 正常          |
+| cl00306     | 5100767211     | 正常          |
+| cl00306     | 5100768697     | 正常          |
+| cl00306     | 5100768914     | 正常          |
+| cl00306     | 5100769330     | 正常          |
+| cl00306     | 5100769929     | 正常          |
+| cl00306     | 5100770701     | 正常          |
+| cl00306     | 5100770953     | 正常          |
+| cl00306     | 5100770982     | 正常          |
+| cl00306     | 5100771031     | 正常          |
+| cl00306     | 5100771274     | 正常          |
+| cl00306     | 5100771285     | 正常          |
+| cl00306     | 5100771412     | 正常          |
+| cl00306     | 5100771933     | 正常          |
+| cl00306     | 5100777930     | 已结清        |
+| cl00306     | 5100778925     | 正常          |
+| cl00306     | 5100781356     | 正常          |
+| cl00306     | 5100781936     | 正常          |
+| cl00306     | 5100783978     | 正常          |
+| cl00306     | 5100784135     | 正常          |
+| cl00306     | 5100784221     | 已结清        |
+| cl00306     | 5100784345     | 已结清        |
++-------------+----------------+---------------+
 
 
 
+select
+  project_id,
+  due_bill_no,
+  loan_status_cn,
+  create_time,
+  update_time,
+  s_d_date,
+  e_d_date
+from ods.loan_info_abs
+where 1 > 0
+  and project_id = 'CL201911130070'
+  and due_bill_no = '5100833703'
+order by s_d_date
+;
+
+select
+  product_id,
+  due_bill_no,
+  loan_status_cn,
+  create_time,
+  update_time,
+  datediff(to_date(update_time),biz_date) as tt,
+  biz_date
+from ods.loan_info_inter
+where 1 > 0
+  and product_id = 'CL201911130070'
+  and due_bill_no = '5100833703'
+order by biz_date
+;
 
 
-
-
-
+select
+  project_id,
+  asset_id,
+  assets_status,
+  account_date,
+  create_time,
+  update_time
+from stage.asset_10_t_asset_check
+where 1 > 0
+  and project_id = 'CL201911130070'
+  and asset_id = '5100833703'
+order by account_date
+;
 
 
 

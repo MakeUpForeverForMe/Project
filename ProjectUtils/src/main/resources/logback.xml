@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration debug="false" scan="false" scanPeriod="60 seconds">
+    <logger name="cn.mine.ProjectUtilsTest" level="INFO"/>
+
+    <property
+            name="console_pattern"
+            value="%d{yyyy-MM-dd HH:mm:ss} %highlight(%5level) %-41([%cyan(%25.30logger)]:%5.5L) - %10(%yellow(%8.8thread))|%highlight(%msg%n)"
+    />
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${console_pattern}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!--<root level="DEBUG">-->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+</configuration>

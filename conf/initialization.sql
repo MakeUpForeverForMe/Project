@@ -1,9 +1,11 @@
-CREATE DATABASE IF NOT EXISTS java_web;
+CREATE
+    DATABASE IF NOT EXISTS java_web;
 
-use java_web;
+use
+    java_web;
 
-DROP TABLE IF EXISTS `examstudent`;
-CREATE TABLE IF NOT EXISTS `examstudent`
+DROP TABLE IF EXISTS student;
+CREATE TABLE IF NOT EXISTS student
 (
     `flow_id`      int(11)      NOT NULL PRIMARY KEY AUTO_INCREMENT COMMENT '学生编号',
     `type`         int(11)      NOT NULL COMMENT '学生类型',
@@ -17,7 +19,7 @@ CREATE TABLE IF NOT EXISTS `examstudent`
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8 COMMENT = '学生信息表';
 
-insert into examstudent(type, id_card, exam_card, student_name, location, grade)
+insert into student(type, id_card, exam_card, student_name, location, grade)
 values (0, '210001199001010101', '1990-01-01', '张三', '沈阳', 90),
        (1, '210102200010110242', '2000-10-11', '李玲', '大连', 100)
 ;
