@@ -105,8 +105,8 @@ select
   list_struct.map_key as map_key,
   list_struct.map_com as map_com,
   list_struct.map_val as map_val,
-   cast(create_time as timestamp)          as create_time,
-   cast(update_time as  timestamp)         as update_time,
+  create_time         as create_time,
+  update_time         as update_time,
   project_name        as project_id,
   'duration_result'   as source_table
 from (

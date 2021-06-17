@@ -6,6 +6,8 @@
 select
   'ods stage order_info count'                             as title,
   nvl(ods.biz_date,stage.biz_date)                         as biz_date,
+  nvl(ods.biz_date,null)                                   as biz_date_ods,
+  nvl(stage.biz_date,null)                                 as biz_date_stage,
   nvl(ods.project_id,stage.project_id)                     as project_id,
   nvl(ods.due_bill_no,stage.due_bill_no)                   as due,
   nvl(ods.due_bill_no,null)                                as due_ods,
@@ -57,11 +59,39 @@ on  ods.project_id  = stage.project_id
 and ods.biz_date    = stage.biz_date
 and ods.due_bill_no = stage.due_bill_no
 where 1 > 0
-  -- and nvl(ods.project_id,stage.project_id) = 'DIDI201908161538'
+  and nvl(ods.project_id,stage.project_id) not in (
+    '001601',
+    'CL202011090089',
+    'CL202007020086',
+    'CL202003230083',
+    'CL202011090088',
+    'CL202012160091',
+    'CL202103160101',
+    'CL202106070111',
+    'CL202011090090',
+    'CL202101220094',
+    ''
+  )
+  -- and nvl(ods.project_id,stage.project_id) in (
+  --   -- 汇通国银车分期
+  --   'cl00297',
+  --   'cl00306',
+  --   'cl00309',
+  --   'CL201911130070',
+  --   'CL202002240081',
+
+  --   -- 汇通国银新增
+  --   'CL202012280092',
+  --   'CL202106110115',
+
+  --   -- 汇通应收ABN
+  --   'CL202011090089',
+  --   ''
+  -- )
   and (
     nvl(ods.due_bill_no,null)   is null or
     nvl(stage.due_bill_no,null) is null
   )
 order by biz_date,project_id,due
--- limit 10
+limit 100
 ;

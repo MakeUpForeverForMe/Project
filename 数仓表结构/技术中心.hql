@@ -8165,12 +8165,9 @@ select
   product_id
 from ods_new_s.repay_schedule
 where 1 > 0
-  -- and due_bill_no = '1120061019095085122902' -- 6期
-  全部结清 快照日：2020-08-10 应还日：2020-08-10
-  and due_bill_no = '1120062009364346847397' -- 2期
-  都逾期 快照日：2020-08-10 应还日：2020-07-05
-  -- and due_bill_no = '1120061421344483293354' -- 9期
-  第一期逾期还了。第二期逾期未还 快照日：2020-08-10 应还日：2020-08-10
+  -- and due_bill_no = '1120061019095085122902' -- 6期 全部结清 快照日：2020-08-10 应还日：2020-08-10
+  and due_bill_no = '1120062009364346847397' -- 2期 都逾期 快照日：2020-08-10 应还日：2020-07-05
+  -- and due_bill_no = '1120061421344483293354' -- 9期 第一期逾期还了。第二期逾期未还 快照日：2020-08-10 应还日：2020-08-10
   and s_d_date <= '2020-08-12' and '2020-08-12' < e_d_date
   and should_repay_date <= '2020-08-12'
 order by loan_term,should_repay_date
@@ -8230,12 +8227,9 @@ from ods.ecas_loan_asset
 where 1 > 0
   -- and overdue_days > 0
   and d_date != 'bak'
-  -- and due_bill_no = '1120061019095085122902' -- 6期
-  当期全部结清 快照日：2020-08-10 应还日：2020-08-10
-  and due_bill_no = '1120062009364346847397' -- 2期
-  都逾期 快照日：2020-08-10 应还日：2020-07-05
-  -- and due_bill_no = '1120061421344483293354' -- 9期
-  第一期逾期还了。第二期逾期未还 快照日：2020-08-10 应还日：2020-08-10
+  -- and due_bill_no = '1120061019095085122902' -- 6期 当期全部结清 快照日：2020-08-10 应还日：2020-08-10
+  and due_bill_no = '1120062009364346847397' -- 2期 都逾期 快照日：2020-08-10 应还日：2020-07-05
+  -- and due_bill_no = '1120061421344483293354' -- 9期 第一期逾期还了。第二期逾期未还 快照日：2020-08-10 应还日：2020-08-10
 order by due_bill_no,d_date
 ;
 
@@ -16424,7 +16418,7 @@ where 1 > 0
   -- and due_bill_no = 'GALC-HL-1609070134'
   and product_id in ('001601','001602')
   and due_bill_no in ('1000000227','1000000229')
-order by loan_term,biz_date
+order by product_id,due_bill_no,loan_term,biz_date
 ;
 
 
@@ -16448,6 +16442,7 @@ order by product_id,due_bill_no,loan_term,s_d_date
 
 
 select distinct
+  d_date,
   case is_empty(map_from_str(extra_info)['项目编号'],project_id)
     when 'Cl00333' then 'cl00333'
     else is_empty(map_from_str(extra_info)['项目编号'],project_id)
@@ -16459,16 +16454,75 @@ select distinct
   is_empty(map_from_str(extra_info)['应还本金(元)'],repay_principal) as should_repay_principal
 from stage.asset_05_t_repayment_schedule
 where 1 > 0
-  and d_date = if('${ST9}' = '\$\{ST9\}',if(current_timestamp > concat(current_date,' ','18:00:00'),date_sub(current_date,1),date_sub(current_date,2)),'${ST9}')
-  -- and case is_empty(map_from_str(extra_info)['项目编号'],project_id) when 'Cl00333' then 'cl00333' else is_empty(map_from_str(extra_info)['项目编号'],project_id) end = 'CL202101260095'
-  -- and is_empty(map_from_str(extra_info)['借据号'],asset_id) in ('GALC-HL-1609070134','GALC-HL-1612060464')
-  and case is_empty(map_from_str(extra_info)['项目编号'],project_id) when 'Cl00333' then 'cl00333' else is_empty(map_from_str(extra_info)['项目编号'],project_id) end in ('001601','001602')
-  and is_empty(map_from_str(extra_info)['借据号'],asset_id) in ('1000000227','1000000229')
+  -- and d_date = if('${ST9}' = '\$\{ST9\}',if(current_timestamp > concat(current_date,' ','18:00:00'),date_sub(current_date,1),date_sub(current_date,2)),'${ST9}')
+  and d_date = '2021-06-16'
+  and case is_empty(map_from_str(extra_info)['项目编号'],project_id) when 'Cl00333' then 'cl00333' else is_empty(map_from_str(extra_info)['项目编号'],project_id) end = 'CL202101260095'
+  and is_empty(map_from_str(extra_info)['借据号'],asset_id) in ('GALC-HL-2007292857')
+  -- and case is_empty(map_from_str(extra_info)['项目编号'],project_id) when 'Cl00333' then 'cl00333' else is_empty(map_from_str(extra_info)['项目编号'],project_id) end in ('001601','001602')
+  -- and is_empty(map_from_str(extra_info)['借据号'],asset_id) in ('1000000227','1000000229')
 order by project_id,due_bill_no,cast(loan_term as int),effective_date
 ;
 
 
 
+
+
+
+select
+  schedule.project_id,
+  schedule.due_bill_no,
+  nvl(loan.periods,asset_01.loan_init_term) as loan_init_term,
+  schedule.effective_date,
+  count(distinct schedule.loan_term) as cnt
+from (
+  select
+    case is_empty(map_from_str(extra_info)['项目编号'],project_id)
+      when 'Cl00333' then 'cl00333'
+      else is_empty(map_from_str(extra_info)['项目编号'],project_id)
+    end                                                                as project_id,
+    is_empty(map_from_str(extra_info)['借据号'],asset_id)              as due_bill_no,
+    is_empty(map_from_str(extra_info)['期次'],period)                  as loan_term,
+    is_empty(map_from_str(extra_info)['生效日期'],execute_date)        as effective_date
+  from stage.asset_05_t_repayment_schedule
+  where 1 > 0
+    and d_date = if('${ST9}' = '\$\{ST9\}',if(current_timestamp > concat(current_date,' ','18:00:00'),date_sub(current_date,1),date_sub(current_date,2)),'${ST9}')
+    and is_empty(map_from_str(extra_info)['项目编号'],project_id) = 'CL202101260095'
+) as schedule
+left join (
+  select distinct
+    case project_id when 'Cl00333' then 'cl00333' else project_id end as project_id,
+    asset_id,
+    periods,
+    account_date
+  from stage.asset_10_t_asset_check
+  where 1 > 0
+    -- and account_date = if('${ST9}' = '\$\{ST9\}',if(current_timestamp > concat(current_date,' ','18:00:00'),date_sub(current_date,1),date_sub(current_date,2)),'${ST9}')
+    and project_id = 'CL202101260095'
+    and asset_id = 'GALC-HL-2007292857'
+  order by account_date
+) as loan
+on  schedule.project_id  = loan.project_id
+and schedule.due_bill_no = loan.asset_id
+left join (
+  select
+    case is_empty(map_from_str(extra_info)['项目编号'],project_id)
+      when 'Cl00333' then 'cl00333'
+      else is_empty(map_from_str(extra_info)['项目编号'],project_id)
+    end                                                   as project_id,
+    is_empty(map_from_str(extra_info)['借据号'],asset_id) as due_bill_no,
+    is_empty(map_from_str(extra_info)['总期数'],periods)  as loan_init_term
+  from stage.asset_01_t_loan_contract_info
+) as asset_01
+on  schedule.project_id  = asset_01.project_id
+and schedule.due_bill_no = asset_01.due_bill_no
+group by
+  schedule.project_id,
+  schedule.due_bill_no,
+  nvl(loan.periods,asset_01.loan_init_term),
+  schedule.effective_date
+having cast(nvl(loan.periods,asset_01.loan_init_term) as int) != count(distinct schedule.loan_term)
+limit 10
+;
 
 
 
@@ -16914,8 +16968,8 @@ select
   e_d_date
 from ods.loan_info_abs
 where 1 > 0
-  and project_id = 'CL201911130070'
-  and due_bill_no = '5100833703'
+  and project_id = 'cl00297'
+  and due_bill_no = '5100725742'
 order by s_d_date
 ;
 
@@ -16929,8 +16983,8 @@ select
   biz_date
 from ods.loan_info_inter
 where 1 > 0
-  and product_id = 'CL201911130070'
-  and due_bill_no = '5100833703'
+  and product_id = 'cl00297'
+  and due_bill_no = '5100725742'
 order by biz_date
 ;
 
@@ -16939,107 +16993,97 @@ select
   project_id,
   asset_id,
   assets_status,
-  account_date,
   create_time,
-  update_time
+  update_time,
+  datediff(to_date(update_time),account_date) as tt,
+  account_date
 from stage.asset_10_t_asset_check
 where 1 > 0
-  and project_id = 'CL201911130070'
-  and asset_id = '5100833703'
+  and project_id = 'cl00297'
+  and asset_id = '5100725742'
 order by account_date
+;
+
+
+select
+  max(tt) as tt
+from (
+  select
+    project_id,
+    asset_id,
+    assets_status,
+    to_date(update_time) as update_date,
+    datediff(to_date(update_time),account_date) as tt,
+    account_date
+  from stage.asset_10_t_asset_check
+  where 1 > 0
+    and to_date(update_time) >= '2021-06-10'
+    and project_id in ('cl00297','cl00306','cl00309')
+    and asset_id in (
+      '5100725742',
+      '5100733532',
+      '5100733735',
+      '5100746990',
+      '5100748175',
+      '5100748586',
+      '5100750281',
+      '5100750428',
+      '5100751174',
+      '5100752744',
+      '5100752804',
+      '5100752879',
+      '5100752948',
+      '5100753072',
+      '5100753108',
+      '5100753388',
+      '5100764656',
+      '5100771031',
+      '5100771274',
+      '5100771412',
+      '5100778925',
+      '5100752246',
+      '5100752294',
+      '5100765486',
+      '5100769476',
+      '5100769764',
+      '5100770695',
+      '5100770795',
+      ''
+    )
+  -- order by project_id,asset_id,account_date
+) as tmp
 ;
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+select
+from (
+)
+select
+  project_id,
+  due_bill_no,
+  loan_init_term,
+  loan_term
+from ods.repay_schedule_abs
+where 1 > 0
+  and if('${ST9}' = '\$\{ST9\}',if(current_timestamp > concat(current_date,' ','18:00:00'),date_sub(current_date,1),date_sub(current_date,2)),'${ST9}') between s_d_date and date_sub(e_d_date,1)
+
+
+
+
+select
+  product_id,
+  due_bill_no,
+  overdue_date_start,
+  overdue_days,
+  s_d_date,
+  e_d_date
+from ods.loan_info
+where 1 > 0
+  and product_id = '001801'
+  and due_bill_no = '1120060510301108020593'
+;
 
 
 

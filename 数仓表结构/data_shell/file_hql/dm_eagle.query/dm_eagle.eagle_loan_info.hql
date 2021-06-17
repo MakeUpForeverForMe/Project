@@ -8,8 +8,8 @@ set hive.tez.container.size=4096;
 set tez.am.resource.memory.mb=4096;
 -- 合并小文件
 set hive.merge.tezfiles=true;
-set hive.merge.size.per.task=64000000;      -- 64M
-set hive.merge.smallfiles.avgsize=64000000; -- 64M
+set hive.merge.size.per.task=128000000;      -- 64M
+set hive.merge.smallfiles.avgsize=128000000; -- 64M
 -- 设置动态分区
 set hive.exec.dynamic.partition=true;
 set hive.exec.dynamic.partition.mode=nonstrict;

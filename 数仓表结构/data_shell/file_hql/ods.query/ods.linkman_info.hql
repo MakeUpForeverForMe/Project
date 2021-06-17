@@ -185,44 +185,44 @@ join (
     )                                                                          as linkman_id,
     relational_humans['relational_human_type']                                 as relational_type,
     case relational_humans['relational_human_type']
-    when 'RHT01' then '借款人联系人'
-    when 'RHT02' then '共同借款人'
-    when 'RHT03' then '抵押人'
-    when 'RHT04' then '抵押人家庭成员信息'
-    when 'RHT05' then '保证人-个人信用保证'
-    else relational_humans['relational_human_type']
+      when 'RHT01' then '借款人联系人'
+      when 'RHT02' then '共同借款人'
+      when 'RHT03' then '抵押人'
+      when 'RHT04' then '抵押人家庭成员信息'
+      when 'RHT05' then '保证人-个人信用保证'
+      else relational_humans['relational_human_type']
     end                                                                        as relational_type_cn,
     relational_humans['relationship']                                          as relationship,
     case relational_humans['relationship']
-    when 'C' then '配偶'
-    when 'F' then '父亲'
-    when 'M' then '母亲'
-    when 'B' then '兄弟'
-    when 'S' then '姐妹'
-    when 'L' then '亲属'
-    when 'W' then '同事'
-    when 'D' then '父母'
-    when 'H' then '子女'
-    when 'X' then '兄弟姐妹'
-    when 'T' then '同学'
-    when 'Y' then '朋友'
-    when 'O' then '其他'
-    else relational_humans['relationship']
+      when 'C' then '配偶'
+      when 'F' then '父亲'
+      when 'M' then '母亲'
+      when 'B' then '兄弟'
+      when 'S' then '姐妹'
+      when 'L' then '亲属'
+      when 'W' then '同事'
+      when 'D' then '父母'
+      when 'H' then '子女'
+      when 'X' then '兄弟姐妹'
+      when 'T' then '同学'
+      when 'Y' then '朋友'
+      when 'O' then '其他'
+      else relational_humans['relationship']
     end                                                                        as relationship_cn,
     case relational_humans['id_type']
-    when 'I' then '身份证'
-    when 'T' then '台胞证'
-    when 'S' then '军官证/士兵证'
-    when 'P' then '护照'
-    when 'L' then '营业执照'
-    when 'O' then '其他有效证件'
-    when 'R' then '户口簿'
-    when 'H' then '港澳居民来往内地通行证'
-    when 'W' then '台湾同胞来往内地通行证'
-    when 'F' then '外国人居留证'
-    when 'C' then '警官证'
-    when 'B' then '外国护照'
-    else relational_humans['id_type']
+      when 'I' then '身份证'
+      when 'T' then '台胞证'
+      when 'S' then '军官证/士兵证'
+      when 'P' then '护照'
+      when 'L' then '营业执照'
+      when 'O' then '其他有效证件'
+      when 'R' then '户口簿'
+      when 'H' then '港澳居民来往内地通行证'
+      when 'W' then '台湾同胞来往内地通行证'
+      when 'F' then '外国人居留证'
+      when 'C' then '警官证'
+      when 'B' then '外国护照'
+      else relational_humans['id_type']
     end                                                                        as relation_idcard_type,
     sha256(relational_humans['id_no'],'idNumber',1)                            as relation_idcard_no,
     datefmt(substring(relational_humans['id_no'],7,8),'yyyyMMdd','yyyy-MM-dd') as relation_birthday,

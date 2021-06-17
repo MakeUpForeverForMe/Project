@@ -19,7 +19,8 @@ set hive.exec.max.dynamic.partitions.pernode=50000;
 set hive.vectorized.execution.enabled=false;
 set hive.vectorized.execution.reduce.enabled=false;
 set hive.vectorized.execution.reduce.groupby.enabled=false;
-
+set hive.auto.convert.join=false;
+set hive.auto.convert.join.noconditionaltask=false;
 
 
 set hivevar:p_types =and p_type in ('lx','lx2','lx3','lxzt');

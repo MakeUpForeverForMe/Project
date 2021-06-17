@@ -3,13 +3,22 @@
 -- set hive.auto.convert.join.noconditionaltask=false;
 
 
+-- +-------------------------------+-----------------+----------+------------+-----------+
+-- |             title             |   project_id    | cnt_ods  | cnt_stage  | cnt_diff  |
+-- +-------------------------------+-----------------+----------+------------+-----------+
+-- | ods stage linkman_info count  | 001601          | 7619     | 7615       | 4         |
+-- | ods stage linkman_info count  | CL202007020086  | 1156     | 1152       | 4         |
+-- | ods stage linkman_info count  | CL202011090089  | 3970     | 3968       | 2         |
+-- +-------------------------------+-----------------+----------+------------+-----------+
+
+
+
 select
-  'ods stage linkman_info count'                           as title,
-  nvl(ods.project_id,stage.project_id)                     as project_id,
-  nvl(ods.due_bill_no,stage.due_bill_no)                   as due,
-  nvl(ods.due_bill_no,null)                                as due_ods,
-  nvl(stage.due_bill_no,null)                              as due_stage,
-  nvl(ods.due_bill_no,null) != nvl(stage.due_bill_no,null) as due_diff
+  'ods stage linkman_info count'         as title,
+  nvl(ods.project_id,stage.project_id)   as project_id,
+  nvl(ods.due_bill_no,stage.due_bill_no) as due,
+  nvl(ods.due_bill_no,null)              as due_ods,
+  nvl(stage.due_bill_no,null)            as due_stage
 from (
   select distinct
     project_id,
@@ -20,7 +29,7 @@ from (
       -- '001601',           -- 汇通
       -- 'WS0005200001',     -- 瓜子
       -- 'CL202012280092',   -- 汇通国银新增
-      -- 'DIDI201908161538', -- 滴滴
+      'DIDI201908161538', -- 滴滴
       ''
     )
 ) as ods
@@ -42,16 +51,33 @@ full join (
       -- '001601',           -- 汇通
       -- 'WS0005200001',     -- 瓜子
       -- 'CL202012280092',   -- 汇通国银
-      -- 'DIDI201908161538', -- 滴滴
+      'DIDI201908161538', -- 滴滴
       ''
     )
 ) as stage
 on  ods.project_id  = stage.project_id
 and ods.due_bill_no = stage.due_bill_no
 where 1 > 0
-  -- and nvl(ods.project_id,stage.project_id) = 'DIDI201908161538'
+  -- and nvl(ods.project_id,stage.project_id) in (
+  --   -- 汇通国银车分期
+  --   'cl00297',
+  --   'cl00306',
+  --   'cl00309',
+  --   'CL201911130070',
+  --   'CL202002240081',
+
+  --   -- 汇通国银新增
+  --   'CL202012280092',
+  --   'CL202106110115',
+
+  --   -- 汇通应收ABN
+  --   'CL202011090089',
+  --   ''
+  -- )
   and (
-    nvl(ods.due_bill_no,null) is null
+    nvl(ods.due_bill_no,null)   is null or
+    nvl(stage.due_bill_no,null) is null or
+    false
   )
 order by project_id,due
 -- limit 10

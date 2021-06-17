@@ -5,7 +5,8 @@
 
 
 log_file=$log/abs_bag_project/${abs_manage_name:=$(basename "${BASH_SOURCE[0]}")}-$(date +'%F').log
-# log_file=$abs_log/$abs_manage_name-$(date +'%F %T')-$(pid).log
+
+debug "${abs_manage_name} 脚本运行 执行命令为：$0 $@！"
 
 info "${abs_manage_name} 脚本运行 开始！"
 abs_time=${curr_time}
@@ -115,7 +116,7 @@ info "执行操作 开始！"
       import_id=$(jq -r '.import_id' ${abs_file})
       debug "获取 导入ID（即：import_id：${import_id}） 结束！"
 
-      curl_command="curl --connect-timeout 30 -m 60 -w '\n' ${call_back}/uabs-core/callback/assetTransferSuccessConfirm -d 'importId=${import_id}'"
+      curl_command="curl -v --connect-timeout 30 -m 60 -w '\n' ${call_back}/uabs-core/callback/assetTransferSuccessConfirm -d 'importId=${import_id}'"
       debug "执行 债转 回调命令为： ${curl_command}"
       eval ${curl_command} 2>&1 | tee -a $log_file
       [[ ${PIPESTATUS[0]} = 0 ]] && debug "project_due_bill_no 回调操作执行 结束！" || warn "project_due_bill_no 回调执行 失败！"
@@ -141,7 +142,7 @@ info "执行操作 开始！"
       debug "删除 dim.${input_file_prefix} 表的分区 bag_id 编号为：${exe_id}！"
 
       debug "获取 dim.${input_file_prefix} 表的分区 ${exe_id} 的封包日期 开始！"
-      bag_date=$($beeline --showHeader=false --outputformat=csv2 -e "select distinct bag_date from dim.bag_info where bag_id = '${exe_id}';")
+      bag_date=$(jq -r '.bag_date' ${abs_file})
       debug "获取 dim.${input_file_prefix} 表的分区 ${exe_id} 的封包日期 为：${bag_date}！"
     else
       error "${input_file_prefix} 不应该存在 删除 操作！"
@@ -153,20 +154,32 @@ info "执行操作 开始！"
     eval ${delete_command} 2>&1 | tee -a $log_file
     debug "执行 从 dim.${input_file_prefix}_json 文件表，删除 操作 结束！"
 
-    [[ -n ${bag_date} && "${input_file_prefix}" = 'bag_info' ]] && {
+    if [[ "${input_file_prefix}" = 'bag_info' ]]; then
       debug "${exe_id} 解包成功，回调操作执行 开始！"
-      curl_command="curl --connect-timeout 30 -m 60 -w '\n' ${call_back}/uabs-core/callback/assetTransferSuccessConfirm -d 'assetBagId=${exe_id}'"
+      curl_command="curl -v --connect-timeout 30 -m 60 -w '\n' ${call_back}/uabs-core/callback/unPackageSuccessConfirm -d 'assetBagId=${exe_id}'"
       debug "${exe_id} 解包成功，回调命令为： ${curl_command}"
       eval ${curl_command} 2>&1 | tee -a $log_file
       [[ ${PIPESTATUS[0]} = 0 ]] && debug "${exe_id} 解包回调执行 结束！" || warn "${exe_id} 解包回调执行 失败！"
 
-      debug "删除 项目 ${input_file_suffix} 下的包后，所有包的统计结果是错的，需要重新计算 开始！"
-      # rerun_command="sh $bin_abs/data_cloud-dm-all_bag.sh ${bag_date} $(date -d '-1 day' +%F) $(u_l_l ${input_file_suffix})" # 生产
-      rerun_command="sh $bin_abs/data_cloud-dm-all_bag.sh ${bag_date} ${bag_date} $(u_l_l ${input_file_suffix})" # 测试
-      debug "执行 命令为：${rerun_command}"
-      eval ${rerun_command} 2>&1 | tee -a $log_file
-      debug "删除 项目 ${input_file_suffix} 下的包后，所有包的统计结果是错的，需要重新计算 结束！"
-    }
+      if [[ -n ${bag_date} && "${input_file_prefix}" = 'bag_info' ]]; then
+        debug "删除 项目 ${input_file_suffix} 下的包后，所有包的统计结果是错的，需要重新计算 开始！"
+
+        if [[ ${is_test} = y ]]; then
+          delete_end_date=${bag_date}
+        elif [[ $(date -d "$(date +'%F 19:00:00')" +%s) -ge $(date +$s) ]]; then
+          delete_end_date=$(date -d '-2 day' +%F)
+        else
+          delete_end_date=$(date -d '-1 day' +%F)
+        fi
+
+        rerun_command="sh $bin_abs/data_cloud-dm-all_bag.sh ${bag_date} ${delete_end_date} $(u_l_l ${input_file_suffix})"
+        debug "执行 命令为：${rerun_command}"
+        eval ${rerun_command} 2>&1 | tee -a $log_file
+        debug "删除 项目 ${input_file_suffix} 下的包后，所有包的统计结果是错的，需要重新计算 结束！"
+      fi
+    else
+      debug "删除 dim.${input_file_prefix} 表的分区 import_id 编号为：${exe_id} 结束！"
+    fi
 
     info "删除操作 结束！"
   else
@@ -240,15 +253,13 @@ info "执行操作 开始！"
 
   info "封包 操作 开始！"
   [[ ${input_file_prefix1} = 'bag_info' ]] && {
-    debug "第一个参数为 bag_info，获取封包 起始、结束 日期！"
+    debug "第一个参数为 bag_info，获取封包 日期！"
     bag_date=$(jq -r '.bag_date' ${abs_file1})
-    end_date=$(jq -r '.insert_date' ${abs_file1})
   } || {
-    debug "第二个参数为 bag_info，获取封包 起始、结束 日期！"
+    debug "第二个参数为 bag_info，获取封包 日期！"
     bag_date=$(jq -r '.bag_date' ${abs_file2})
-    end_date=$(jq -r '.insert_date' ${abs_file2})
   }
-  debug "封包 起始日期 为：${bag_date} 结束日期 为：${end_date}！"
+  debug "封包 起始日期 为：${bag_date}！"
 
   info "将文件表数据插入到正式表，开始"
 
@@ -263,15 +274,20 @@ info "执行操作 开始！"
   bag_snapshot="sh $bin_abs/data_cloud-dm-bag_snapshot.sh ${bag_date} ${bag_date} '${input_file_suffix1}'"
   debug "执行 封包时报表 任务 命令为：${bag_snapshot}"
 
-  [[ ${is_test} = 'n' ]] && {
-    bag_execute="sh $bin_abs/data_cloud-dm-bag.sh ${bag_date} ${end_date} "$(u_l_l ${input_file_suffix1})" '${input_file_suffix1}'" # 生产
+  [[ ${is_test} = y ]] && {
+    end_date=${bag_date}
   } || {
-    bag_execute="sh $bin_abs/data_cloud-dm-bag.sh ${bag_date} ${bag_date} "$(u_l_l ${input_file_suffix1})" '${input_file_suffix1}'" # 测试
+    end_date=$([[ $(date -d "$(date +'%F 19:00:00') +%s") -gt $(date +%s) ]] && date -d '-2 day' +%F || date -d '-1 day' +%F)
   }
+  debug "封包结束日期为：${end_date}！"
+
+  bag_execute="sh $bin_abs/data_cloud-dm-bag.sh ${bag_date} ${end_date} "$(u_l_l ${input_file_suffix1})" '${input_file_suffix1}'"
   debug "执行 封包历史数据报表 任务 命令为：${bag_execute}"
 
   debug "封包时任务前台执行，封包历史数据任务后台执行！"
-  # eval ${bag_execute} 2>&1 | tee -a $log_file &
+  [[ ${is_test} = 'n' ]] && {
+    eval ${bag_execute} 2>&1 | tee -a $log_file &
+  }
   eval ${bag_snapshot} 2>&1 | tee -a $log_file
   info "封包 数据中台 任务结束！"
 
@@ -282,7 +298,7 @@ info "执行操作 开始！"
   debug "${input_file_suffix1} 封包成功，更新包状态 结束！"
 
   debug "${input_file_suffix1} 封包成功，回调通知星云平台 执行 开始！"
-  curl_command="curl --connect-timeout 30 -m 60 -w '\n' ${call_back}/uabs-core/callback/unPackageSuccessConfirm -d 'assetBagId=${input_file_suffix1}'"
+  curl_command="curl -v --connect-timeout 30 -m 60 -w '\n' ${call_back}/uabs-core/callback/packageSuccessConfirm -d 'assetBagId=${input_file_suffix1}'"
   debug "${input_file_suffix1} 封包成功，回调命令为： ${curl_command}"
   eval ${curl_command} 2>&1 | tee -a $log_file
   [[ ${PIPESTATUS[0]} = 0 ]] && debug "${input_file_suffix1} 封包回调执行 结束！" || warn "${input_file_suffix1} 封包回调执行 失败！"

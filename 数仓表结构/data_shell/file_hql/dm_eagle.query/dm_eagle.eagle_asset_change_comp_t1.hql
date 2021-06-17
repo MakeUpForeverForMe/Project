@@ -20,6 +20,8 @@ set hive.vectorized.execution.enabled=false;
 set hive.vectorized.execution.reduce.enabled=false;
 set hive.vectorized.execution.reduce.groupby.enabled=false;
 
+set hive.auto.convert.join=false;
+
 insert overwrite table dm_eagle.eagle_asset_change_comp_t1 partition (biz_date='${ST9}')
 select
     distinct

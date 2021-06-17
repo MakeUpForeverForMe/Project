@@ -104,18 +104,22 @@ and ods.loan_term         = stage.loan_term
 and ods.should_repay_date = stage.should_repay_date
 where 1 > 0
   and nvl(ods.loan_term,stage.loan_term) != 0
-  and nvl(ods.project_id,stage.project_id) in (
-    'cl00297',
-    'cl00306',
-    'cl00309',
-    'CL201911130070',
-    'CL202002240081',
+  -- and nvl(ods.project_id,stage.project_id) in (
+  --   -- 汇通国银车分期
+  --   'cl00297',
+  --   'cl00306',
+  --   'cl00309',
+  --   'CL201911130070',
+  --   'CL202002240081',
 
-    'CL202012280092',
+  --   -- 汇通国银新增
+  --   'CL202012280092',
+  --   'CL202106110115',
 
-    'CL202011090089',
-    ''
-  )
+  --   -- 汇通应收ABN
+  --   'CL202011090089',
+  --   ''
+  -- )
   and (
     nvl(ods.due_bill_no,null)   is null or
     nvl(stage.due_bill_no,null) is null or

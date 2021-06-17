@@ -25,7 +25,7 @@ object DataCheckMain {
     val last_batch_date=DateUtils.clcalLastBatchDate(batch_date)
     //val ql_list: List[DataWatchRule] = get_Check_SQl_list(batch_date,last_batch_date)
     mode_name match {
-      case "stage_sqoop_lx"|"stage_sqoop_dd"=>DataCheckMysqlService.data_check_mysql(properties,"stage_sqoop_lx",batch_date)
+      case "stage_sqoop_lx"|"stage_sqoop_dd"=>DataCheckMysqlService.data_check_mysql(properties,mode_name,batch_date)
     }
     DruidDataSourceUtils.close()
   }

@@ -35,28 +35,28 @@ select distinct
   null                                                                                         as relational_type,
   null                                                                                         as relational_type_cn,
   case is_empty(mainborrower_relationship)
-  when '父母'     then '1'
-  when '配偶'     then '2'
-  when '子女'     then '3'
-  when '兄弟姐妹' then '4'
-  when '亲属'     then '5'
-  when '亲戚'     then '5'
-  when '同事'     then '6'
-  when '朋友'     then '7'
-  when '其他'     then '8'
-  else is_empty(mainborrower_relationship)
+    when '父母'     then '1'
+    when '配偶'     then '2'
+    when '子女'     then '3'
+    when '兄弟姐妹' then '4'
+    when '亲属'     then '5'
+    when '亲戚'     then '5'
+    when '同事'     then '6'
+    when '朋友'     then '7'
+    when '其他'     then '8'
+    else is_empty(mainborrower_relationship)
   end                                                                                          as relationship,
   case is_empty(mainborrower_relationship)
-  when '父母'     then '父母'
-  when '配偶'     then '配偶'
-  when '子女'     then '子女'
-  when '兄弟姐妹' then '兄弟姐妹'
-  when '亲属'     then '亲属'
-  when '亲戚'     then '亲属'
-  when '同事'     then '同事'
-  when '朋友'     then '朋友'
-  when '其他'     then '其他'
-  else is_empty(mainborrower_relationship)
+    when '父母'     then '父母'
+    when '配偶'     then '配偶'
+    when '子女'     then '子女'
+    when '兄弟姐妹' then '兄弟姐妹'
+    when '亲属'     then '亲属'
+    when '亲戚'     then '亲属'
+    when '同事'     then '同事'
+    when '朋友'     then '朋友'
+    when '其他'     then '其他'
+    else is_empty(mainborrower_relationship)
   end                                                                                          as relationship_cn,
   '身份证'                                                                                     as relation_idcard_type,
   sha256(decrypt_aes(document_num,'tencentabs123456'),'idNumber',1)                            as relation_idcard_no,
@@ -73,10 +73,10 @@ select distinct
   sha256(decrypt_aes(unit_phone_number,'tencentabs123456'),'phone',1)                          as corp_teleph_nbr,
   null                                                                                         as corp_fax,
   null                                                                                         as corp_position,
-  to_date(update_time)                                                                         as deal_date,
+  cast(to_date(update_time) as string)                                                         as deal_date,
   create_time                                                                                  as create_time,
   update_time                                                                                  as update_time,
-  project_id_lower                                                                             as project_id
+  nvl(dim_partition_id,project_id_lower)                                                       as project_id
 from (
   select distinct
     abs_project_id,
@@ -96,7 +96,7 @@ join (
     case project_id when 'Cl00333' then 'cl00333' else project_id end as project_id_lower
   from stage.asset_03_t_contact_person_info
   where project_id not in (
-    '001601',           -- 汇通
+    -- '001601',           -- 汇通
     'WS0005200001',     -- 瓜子
     -- 'CL202012280092',   -- 汇通国银
     'DIDI201908161538', -- 滴滴
@@ -104,5 +104,23 @@ join (
   )
 ) as linkman_info
 on abs_project_id = project_id_lower
+left join (
+  select
+    project_id   as dim_project_id,
+    partition_id as dim_partition_id,
+    due_bill_no  as dim_due_bill_no
+  from dim.project_due_bill_no
+  where project_id = '001601'
+) as dim_project_due
+on  linkman_info.project_id = dim_project_due.dim_project_id
+and linkman_info.asset_id   = dim_project_due.dim_due_bill_no
+union all
+select
+  t1.*
+from ods.linkman_info as t1
+join dim.project_due_bill_no as t2
+on  t1.product_id  = t2.partition_id
+and t1.due_bill_no = t2.due_bill_no
+and t2.project_id = '001601'
 -- limit 10
 ;

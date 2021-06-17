@@ -14,6 +14,8 @@ set hive.exec.max.dynamic.partitions.pernode=50000;
 set hive.vectorized.execution.enabled=false;
 set hive.vectorized.execution.reduce.enabled=false;
 set hive.vectorized.execution.reduce.groupby.enabled=false;
+--关闭mapjoin
+set hive.auto.convert.join=false;  
 
 
 

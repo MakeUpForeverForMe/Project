@@ -14,7 +14,8 @@ set hive.exec.max.dynamic.partitions.pernode=50000;
 set hive.vectorized.execution.enabled=false;
 set hive.vectorized.execution.reduce.enabled=false;
 set hive.vectorized.execution.reduce.groupby.enabled=false;
-
+set hive.auto.convert.join=false;
+set hive.auto.convert.join.noconditionaltask=false;
 
 insert overwrite table ods${db_suffix}.repay_schedule_inter partition(biz_date,product_id)
 select

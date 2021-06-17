@@ -2,12 +2,14 @@ package com.weshare.data_check.serviceImpl
 
 import java.sql.{Connection, Statement}
 import java.util.Properties
+import java.util.concurrent.{Callable, Executors, Future}
 
 import com.weshare.data_check.Handler.{HtmlPageHandler, MesHandler}
 import com.weshare.utils.{DruidDataSourceUtils, JDBCUtils, SendEmailUtil}
 import org.apache.commons.lang3.StringUtils
 
 import scala.collection.immutable.TreeMap
+import scala.collection.mutable
 
 /**
  * created by chao.guo on 2021/5/10
@@ -260,8 +262,6 @@ object DataCheckMysqlService {
 
 
   def data_check_mysql(pro:Properties,modeName:String,batch_date:String)={
-    val pro_mysql = DruidDataSourceUtils.pro_dataSource.getConnection
-    val emr_impala = DruidDataSourceUtils.emr_imapla_dataSource.getConnection
     val test_mysql = DruidDataSourceUtils.test_dataSource.getConnection
 
     val ods_dd_mysql_sqoop = pro.getProperty("ods_dd_mysql_sqoop").split(",").map(it=>s"'${it}'").mkString(",")
@@ -277,13 +277,18 @@ object DataCheckMysqlService {
     statement.executeUpdate(delete_sql)
     statement.close()
     // 查询生产mysql 数据库
-   inert_into_data_toMysql_f(inert_into_data_toMysql,mysql_sql_map,procode_list,batch_date,test_mysql,pro_mysql,"insert","ecasdb")
+
+   inert_into_data_toMysql_f(mysql_sql_map,procode_list,batch_date,"pro_mysql","insert","ecasdb")
     // 查询hive
-   inert_into_data_toMysql_f(inert_into_data_toMysql,hive_sql_map,procode_list,batch_date,test_mysql,emr_impala,"update","stage")
+
+  inert_into_data_toMysql_f(hive_sql_map,procode_list,batch_date,"EMR_impala","update","stage")
     // 统计信息
     getResultData(batch_date,test_mysql,procode_list)
 
   }
+
+
+
 
 
   /**
@@ -315,9 +320,7 @@ object DataCheckMysqlService {
         "field_name" -> map.getOrElse("field_name", ""),
         "mysql_value" -> map.getOrElse("mysql_value", ""),
         "hive_value" -> map.getOrElse("hive_value", ""),
-        "result" -> {
-          if (StringUtils.equals("2", map.getOrElse("product_code", ""))) "失败" else "成功"
-        },
+        "result" -> "失败",
         "hivesql" -> hive_sql_map.getOrElse(map.getOrElse("table_name", "").replaceAll("@product_code_list",procode_list).replaceAll("@table",s"${map.getOrElse("table_name", "")}").replaceAll("@date",s"'${batch_date}'"), "")
       )
     })
@@ -403,7 +406,7 @@ object DataCheckMysqlService {
       resultData,
       Array[String]("project_name", "今日还款笔数", "今日实还本金", "今日放款本金", "今日放款笔数"),
       test_mysql,
-      "select * from flink_config.robot_person_info where isEnable=1 and id =2")
+      "select * from flink_config.robot_person_info where isEnable=1 and id in (1,2)")
     test_mysql.close()
   }
 
@@ -418,32 +421,54 @@ object DataCheckMysqlService {
 
   /**
    *
-   * @param func 函数定义
    * @param table_map 表集合
    * @param procode_list 产品号
    * @param batch_date 批次日期
-   * @param cmConnection cm 数据库连接
-   * @param executerConnection 生产数据库连接地址 或者 impala 连接地址
    * @param mode  模式 是修改还是插入
    */
   def inert_into_data_toMysql_f(
-                                 func:(List[Map[String,String]],Connection,String,String,String)=>Unit,
+
                                 table_map:Map[String,String],
                                 procode_list:String,
                                 batch_date:String,
-                                cmConnection:Connection,
-                                executerConnection:Connection,
+                                executor_type:String,
                                 mode:String,
                                 db_name:String
                                ): Unit ={
+    val service = Executors.newFixedThreadPool(10)
+    var futureList = mutable.ListBuffer[Future[String]]()
     table_map.keySet.foreach(it=>{
-      println(s"数据库${db_name},表${it}正在执行数据校验,校验数据日期:${batch_date},产品id:${procode_list}")
-      val sql = table_map.getOrElse(it,"").replaceAll("@product_code_list",procode_list).replaceAll("@table",s"${it.toLowerCase}").replaceAll("@date",s"'${batch_date}'")
-      println(sql)
-      val sql_data_list=JDBCUtils.executeSQL(sql,executerConnection,db_name)
-      func(sql_data_list,cmConnection,batch_date,it.toLowerCase,mode)
+      val f: Future[String] = service.submit(new Callable[String] {
+        override def call(): String = {
+          println(s"数据库${db_name},表${it}正在执行数据校验,校验数据日期:${batch_date},产品id:${procode_list}")
+          val sql = table_map.getOrElse(it,"").replaceAll("@product_code_list",procode_list).replaceAll("@table",s"${it.toLowerCase}").replaceAll("@date",s"'${batch_date}'")
+          println(sql)
+          val connection = DruidDataSourceUtils.getConection(executor_type)
+          println(connection.getClientInfo)
+          val sql_data_list=JDBCUtils.executeSQL(sql,connection,db_name)
+          val cmConnection = DruidDataSourceUtils.getConection("cm_mysql")
+          inert_into_data_toMysql(sql_data_list,cmConnection,batch_date,it.toLowerCase,mode)
+          cmConnection.close()
+          connection.close()
+          s"${Thread.currentThread.getName}:ok"
+
+        }
+
+      })
+      futureList+=f
     })
-    executerConnection.close()
+    futureList.foreach(it=>{
+      val str = it.get()
+      println(str)
+    })
+    // 防止关闭线程池的时候出现 异常
+    try {
+      println("关闭线程")
+      service.shutdownNow()
+    }catch {
+      case _: Throwable =>{
+      }
+    }
   }
 
 

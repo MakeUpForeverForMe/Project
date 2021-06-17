@@ -1664,6 +1664,9 @@ ALTER TABLE table_name CHANGE old_field_name new_field_name field_type;
 -- 删除字段
 ALTER TABLE table_name DROP field_name;
 
+-- 更新
+UPDATE table_name SET field1=new-value1, field2=new-value2 [WHERE Clause]
+
 -- 查看数据库建立语句：
 SHOW CREATE DATABASE db_name;
 

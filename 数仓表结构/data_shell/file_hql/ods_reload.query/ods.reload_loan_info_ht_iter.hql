@@ -20,7 +20,8 @@ set hivevar:p_types='ddht','htgy';
 set hivevar:product_id_list='001601','001602','001603','002201','002202','002203';
 --set hivevar:ST9=2021-01-04;
 --set hivevar:d_date=2021-05-25;
-
+set hive.auto.convert.join=false;
+set hive.auto.convert.join.noconditionaltask=false;
 with repay_hst_repair as (
 select
       repayhst.due_bill_no,repayhst.term,bnp_type,repayhst.d_date,repay_amt,

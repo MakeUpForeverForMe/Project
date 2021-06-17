@@ -23,6 +23,8 @@ set hivevar:p_types =and p_type in ('lx','lx2','lx3','lxzt');
 --set hivevar:db_suffix=;
 --set hivevar:tb_suffix=_asset;
 --set hivevar:product_id='001801';
+set hive.auto.convert.join=false;
+set hive.auto.convert.join.noconditionaltask=false;
 
 insert overwrite table ods${db_suffix}.loan_info_inter partition(biz_date,product_id)
 select

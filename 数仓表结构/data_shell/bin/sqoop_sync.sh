@@ -217,7 +217,7 @@ execute_fun(){
     warn "${hive_db}.${hive_tb} 抽数 ${sqoop_import_msg} 失败！用时：${during_time:=$(during "${sqoop_s_time}")}"
     send_mail "sqoop 抽数任务 ${sqoop_import_msg} 失败 ${hive_db}.${hive_tb}！"
   } || {
-    info "Sqoop 抽数 ${hive_db}.${hive_tb} 数据量 ${hive_data_count} 结束！用时：$(during "${sqoop_s_time}")"
+    info "Sqoop 抽数 ${hive_db}.${hive_tb} 数据量 ==========|${hive_data_count}|========== 结束！用时：$(during "${sqoop_s_time}")"
   }
 }
 

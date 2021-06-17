@@ -26,12 +26,14 @@ set hive.support.quoted.identifiers=None;
 
 
 
--- set hivevar:ST9=2021-05-15;
+-- set hivevar:ST9=2021-06-16;
 
 -- 代偿前
--- set hivevar:db_suffix=;
+-- set hivevar:db_suffix=;set hivevar:product_id_param=and product_id in (${product_id});
 -- 代称后
--- set hivevar:db_suffix=_cps;
+-- set hivevar:db_suffix=_cps;set hivevar:product_id_param=and product_id in (${product_id});
+-- 其他
+-- set hivevar:db_suffix=;set hivevar:product_id_param=and product_id not in (${product_id});
 
 -- 跑非乐信项目的产品编号设置
 -- set hivevar:product_id=
@@ -52,8 +54,8 @@ set hive.support.quoted.identifiers=None;
 -- ;
 
 
--- 跑全量
-
+-- -- 跑全量
+-- -- set hivevar:product_id_param=and product_id in (${product_id});
 -- insert overwrite table ods${db_suffix}.loan_info partition(is_settled = 'no',product_id)
 -- select
 --   due_bill_no,
@@ -101,8 +103,8 @@ set hive.support.quoted.identifiers=None;
 --   overdue_date,
 --   overdue_date_start as dpd_begin_date,
 --   overdue_days as dpd_days,
---   (max(if(overdue_days > 0,nvl(dpd_dpd_days_count,0),nvl(dpd_dpd_days_count_n, 0)))                           over(partition by product_id,due_bill_no order by biz_date)+ overdue_days)    as dpd_days_count,
---   max(overdue_days)                                         over(partition by product_id,due_bill_no order by biz_date)    as dpd_days_max,
+--   (overdue_days - nvl(datediff(dpd_overdue_date_start,overdue_date_start),0)) + dpd_dpd_days_count as dpd_days_count,
+--   max(overdue_days)                                        over(partition by product_id,due_bill_no order by biz_date)    as dpd_days_max,
 --   collect_out_date as collect_out_date,
 --   overdue_term,
 --   size(collect_set(if(overdue_days > 0,overdue_term,null)) over(partition by product_id,due_bill_no order by biz_date))   as overdue_terms_count,
@@ -117,50 +119,57 @@ set hive.support.quoted.identifiers=None;
 -- from (
 --   select * from ods${db_suffix}.loan_info_inter
 --   where 1 > 0
---     and product_id in (${product_id})
 --     and biz_date <= '${ST9}'
+--     ${product_id_param}
+
+--     -- and biz_date <= '2021-06-15' and product_id = '001801' and due_bill_no = '1120060510301108020593' -- 连续逾期，且头几次逾期期数还了，后边的没还。测试日期：2021-06-15
 -- ) as loan_info
 -- left join (
--- select
---     product_id as dpd_product_id,
---     due_bill_no as dpd_due_bill_no,
---     dpd_overdue_date_start,
---     dpd_overdue_date_next,
---     dpd_dpd_days_count as dpd_dpd_days_count_n,
---     lag(dpd_dpd_days_count,1,0) over(partition by product_id,due_bill_no order by dpd_overdue_date_start) as dpd_dpd_days_count
--- from
---   (
 --   select
---     product_id,
---     due_bill_no,
---     dpd_overdue_date_start,
---     dpd_overdue_date_next,
---     sum(if(overdue_days_max > datediff(dpd_overdue_date_next,dpd_overdue_date_start),datediff(dpd_overdue_date_next,dpd_overdue_date_start),overdue_days_max)) over(partition by product_id,due_bill_no order by dpd_overdue_date_start) as dpd_dpd_days_count
+--     product_id              as dpd_product_id,
+--     due_bill_no             as dpd_due_bill_no,
+--     overdue_date_start      as dpd_overdue_days_start,
+--     overdue_days_date_start as dpd_overdue_date_start,
+--     overdue_days_date_end   as dpd_overdue_date_next,
+--     lag(nvl(dpd_dpd_days_count,0),1,0) over(partition by product_id,due_bill_no order by overdue_days_date_start) as dpd_dpd_days_count
 --   from (
 --     select
---       product_id                                                                                                                    as product_id,
---       due_bill_no                                                                                                                   as due_bill_no,
---       overdue_date_start                                                                                                            as dpd_overdue_date_start,
---       lead(overdue_date_start,1,'3000-01-01') over(partition by product_id,due_bill_no order by overdue_date_start)                 as dpd_overdue_date_next,
---       overdue_days_max
+--       product_id,
+--       due_bill_no,
+--       overdue_date_start,
+--       sum(dpd_dpd_days_count) over(partition by product_id,due_bill_no order by overdue_days_date_start) + 1 as dpd_dpd_days_count,
+--       overdue_days_date_start,
+--       lead(overdue_days_date_start,1,'3000-12-31') over(partition by product_id,due_bill_no order by overdue_days_date_start) as overdue_days_date_end
 --     from (
 --       select
---         product_id,
---         due_bill_no,
---         nvl(overdue_date_start, '1970-01-01') as overdue_date_start,
---         max(overdue_days) as overdue_days_max
+--         product_id         as product_id,
+--         due_bill_no        as due_bill_no,
+--         overdue_date_start as overdue_date_start,
+--         greatest(overdue_date_start,lag(date_add(overdue_days_date_max,1),1,overdue_days_date_max) over(partition by product_id,due_bill_no order by overdue_days_date_max)) as overdue_days_date_start,
+--         datediff(overdue_days_date_max,greatest(overdue_date_start,lag(overdue_days_date_max) over(partition by product_id,due_bill_no order by overdue_days_date_max))) as dpd_dpd_days_count
+--       from (
+--         select
+--           product_id,
+--           due_bill_no,
+--           nvl(overdue_date_start,biz_date) as overdue_date_start,
+--           max(biz_date) as overdue_days_date_max
 --         from ods${db_suffix}.loan_info_inter
 --         where 1 > 0
 --           and biz_date <= '${ST9}'
---           and product_id in (${product_id})
---         group by product_id,due_bill_no,overdue_date_start
---     ) as tmp
---   ) as tmp
--- ) as dpd_days_count
--- ) as dpd_days_count
+--           ${product_id_param}
+
+--           -- and biz_date <= '2021-06-15' and product_id = '001801' and due_bill_no = '1120060510301108020593' -- 连续逾期，且头几次逾期期数还了，后边的没还。测试日期：2021-06-15
+--         group by product_id,due_bill_no,nvl(overdue_date_start,biz_date)
+--         -- order by product_id,due_bill_no,overdue_date_start
+--       ) as overdue_days_date_max_tbl
+--     ) as dpd_dpd_days_count_tbl
+--   ) as overdue_days_date_end_tbl
+-- ) as dpd_days_count_tbl
 -- on  product_id  = dpd_product_id
 -- and due_bill_no = dpd_due_bill_no
 -- where biz_date between dpd_overdue_date_start and date_sub(dpd_overdue_date_next,1)
+-- -- order by s_d_date
+-- -- limit 10
 -- ;
 
 

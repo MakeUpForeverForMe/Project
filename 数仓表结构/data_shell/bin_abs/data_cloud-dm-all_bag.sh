@@ -38,16 +38,18 @@ info "${job_name} 数据导出上传 开始 "
 date_a_time=$curr_time
 
 table_list=(
-  # 直接在 MySQL 中删除
-  # dm_eagle.abs_asset_information_bag_snapshot-$dm_eagle_uabs_core
-  # dm_eagle.abs_asset_distribution_bag_snapshot_day-$dm_eagle_uabs_core
-  # dm_eagle.abs_asset_information_cash_flow_bag_snapshot-$dm_eagle_uabs_core
-  # dm_eagle.abs_asset_information_bag-$dm_eagle_uabs_core
-  # dm_eagle.abs_asset_distribution_bag_day-$dm_eagle_uabs_core
+  dm_eagle.abs_asset_information_bag_snapshot-$dm_eagle_uabs_core
+  dm_eagle.abs_asset_distribution_bag_snapshot_day-$dm_eagle_uabs_core
+  dm_eagle.abs_asset_information_cash_flow_bag_snapshot-$dm_eagle_uabs_core
 
   dm_eagle.abs_asset_information_project-$dm_eagle_uabs_core
+  dm_eagle.abs_asset_information_bag-$dm_eagle_uabs_core
+
   dm_eagle.abs_asset_distribution_day-$dm_eagle_uabs_core
+  dm_eagle.abs_asset_distribution_bag_day-$dm_eagle_uabs_core
+
   dm_eagle.abs_asset_information_cash_flow_bag_day-$dm_eagle_uabs_core
+
   dm_eagle.abs_overdue_rate_day-$dm_eagle_uabs_core
 
   # 不需要导出到 MySQL

@@ -20,18 +20,18 @@ set hive.vectorized.execution.enabled=false;
 set hive.vectorized.execution.reduce.enabled=false;
 set hive.vectorized.execution.reduce.groupby.enabled=false;
 
-set hive.auto.convert.join=false
+set hive.auto.convert.join=false;
 
-
+---------------------------------【增量跑】-------------------------------------
 -- 滴滴
-set hivevar:where_date=and datefmt(update_time,'ms','yyyy-MM-dd') = '${ST9}';
-
+--set hivevar:where_date=and datefmt(update_time,'ms','yyyy-MM-dd') = '${ST9}';
+--预计执行时间 2min
 
 insert overwrite table ods.loan_apply partition(biz_date,product_id)
 select distinct *
 from (
   select
-    concat_ws('_',biz_conf.channel_id,loan_apply.id_no,loan_apply.name) as cust_id,
+    concat_ws('_','10000',loan_apply.id_no,loan_apply.name) as cust_id,
     loan_apply.id_no                                 as user_hash_no,
     customer_info.birthday                           as birthday,
     age_birth(
@@ -104,7 +104,7 @@ from (
     where 1 > 0
       and msg_type = 'LOAN_APPLY'
       and original_msg is not null
-      ${where_date}
+      ---${where_date}
   ) as loan_apply
   left join (
     select
@@ -126,20 +126,6 @@ from (
   ) as loan_result
   on loan_apply.loan_order_id = loan_result.loan_order_id
   left join (
-    select distinct
-      product_id as dim_product_id,
-      channel_id
-    from (
-      select
-        max(if(col_name = 'product_id',  col_val,null)) as product_id,
-        max(if(col_name = 'channel_id',  col_val,null)) as channel_id
-      from dim.data_conf
-      where col_type = 'ac'
-      group by col_id
-    ) as tmp
-  ) as biz_conf
-  on loan_apply.product_id = biz_conf.dim_product_id
-  left join (
     select
       get_json_object(regexp_replace(regexp_replace(regexp_replace(original_msg,'\\\"\\\{','\\\{'),'\\\}\\\"','\\\}'),'\\\\\"','\\\"'),'$.applicationId') as credit_id,
       is_empty(
@@ -151,33 +137,6 @@ from (
       and original_msg is not null
   ) as customer_info
   on loan_apply.credit_id = customer_info.credit_id
-  union all
-  select *
-  from ods.loan_apply
-  where 1 > 0
-    and product_id = 'DIDI201908161538'
-    and biz_date in (
-      select distinct
-        least(deal_date,nvl(issue_date,'9999-99-99')) as biz_date
-      from (
-        select
-          get_json_object(original_msg,'$.loanOrderId') as loan_order_id,
-          deal_date                                     as deal_date
-        from stage.ecas_msg_log
-        where msg_type = 'LOAN_APPLY'
-          and original_msg is not null
-          ${where_date}
-      ) as loan_apply
-      left join (
-        select
-          get_json_object(original_msg,'$.loanOrderId')        as loan_order_id,
-          to_date(get_json_object(original_msg,'$.issueTime')) as issue_date
-        from stage.ecas_msg_log
-        where msg_type='LOAN_RESULT'
-          and original_msg is not null
-      ) as loan_result
-      on loan_apply.loan_order_id = loan_result.loan_order_id
-    )
 ) as tmp
 -- limit 1
 ;
@@ -185,10 +144,9 @@ from (
 
 
 
-
 -- 汇通
-set hivevar:where_date=and datefmt(update_time,'ms','yyyy-MM-dd') = '${ST9}';
-
+---set hivevar:where_date=and datefmt(update_time,'ms','yyyy-MM-dd') = '${ST9}';
+--预计执行时间 74s
 
 insert overwrite table ods.loan_apply partition(biz_date,product_id)
 select
@@ -228,7 +186,7 @@ from (
     row_number() over(partition by due_bill_no,product_id order by biz_date) as rn
   from (
     select
-      concat_ws('_',biz_conf.channel_id,nms_apply.id_no,nms_apply.name)                          as cust_id,
+      concat_ws('_','0003',nms_apply.id_no,nms_apply.name)                          as cust_id,
       nms_apply.id_no                                                                            as user_hash_no,
       nms_apply.birthday                                                                         as birthday,
       age_birth(
@@ -314,7 +272,7 @@ from (
       where 1 > 0
         and sta_service_method_name = 'setupCustCredit'
         and standard_req_msg is not null
-        ${where_date}
+        ---${where_date}
     ) as nms_apply
     left join (
       select
@@ -339,37 +297,8 @@ from (
         and nvl(due_bills['APPLY_NO'],due_bills['apply_no']) != '7634562346454355'
     ) as nms_loan
     on nms_apply.apply_no = nms_loan.apply_no
-    left join (
-      select distinct
-        product_id as dim_product_id,
-        channel_id
-      from (
-        select
-          max(if(col_name = 'product_id',  col_val,null)) as product_id,
-          max(if(col_name = 'channel_id',  col_val,null)) as channel_id
-        from dim.data_conf
-        where col_type = 'ac'
-        group by col_id
-      ) as tmp
-    ) as biz_conf
-    on nms_loan.product_no = biz_conf.dim_product_id
-    union all
-    select loan_apply.*
-    from ods.loan_apply
-    join (
-      select distinct
-        deal_date                                                as biz_date,
-        get_json_object(standard_req_msg,'$.product.product_no') as product_id
-      from stage.nms_interface_resp_log
-      where 1 > 0
-        and sta_service_method_name = 'setupCustCredit'
-        and standard_req_msg is not null
-        ${where_date}
-    ) as msg_log
-    on  loan_apply.biz_date   = msg_log.biz_date
-    and loan_apply.product_id = msg_log.product_id
-  ) as tmp
-) as temp
+    ) as tmp
+  ) as temp
 where temp.rn = 1
 -- limit 1
 ;
@@ -380,186 +309,118 @@ where temp.rn = 1
 
 -- 乐信
 set hivevar:where_date=and deal_date between date_sub('${ST9}',2) and '${ST9}';
-
+--预计执行时间 251s
 --explain
-insert overwrite table ods.loan_apply partition(biz_date,product_id)
+insert into table ods.loan_apply partition(biz_date,product_id)
 select
-  cust_id,
-  user_hash_no,
-  birthday,
-  age,
-  pre_apply_no,
-  apply_id,
-  due_bill_no,
-  loan_apply_time,
-  loan_amount_apply,
-  loan_terms,
-  loan_usage,
-  loan_usage_cn,
-  repay_type,
-  repay_type_cn,
-  interest_rate,
-  credit_coef,
-  penalty_rate,
-  apply_status,
-  apply_resut_msg,
-  issue_time,
-  loan_amount_approval,
-  loan_amount,
-  risk_level,
-  risk_score,
-  ori_request,
-  ori_response,
-  create_time,
-  update_time,
-  biz_date,
-  product_id
+  concat_ws('_','0006',sha256(get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.idNo'),'idNumber',1),sha256(get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.custName'),'userName',1)) as cust_id,
+  sha256(get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.idNo'),'idNumber',1)       as user_hash_no,
+  is_empty(
+    datefmt(get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.birth'),'yyyyMMdd','yyyy-MM-dd'),
+    datefmt(substring(get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.idNo'),7,8),'yyyyMMdd','yyyy-MM-dd')
+  )                                                                                                               as birthday,
+  age_birth(
+    is_empty(
+      datefmt(get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.birth'),'yyyyMMdd','yyyy-MM-dd'),
+      datefmt(substring(get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.idNo'),7,8),'yyyyMMdd','yyyy-MM-dd')
+    ),
+    is_empty(
+      ecas_loan.active_date,
+      get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.loanDate')
+    )
+  )                                                                                                               as age,
+  get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.applyNo')                         as pre_apply_no,
+  get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.applyNo')                         as apply_id,
+  get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.applyNo')                         as due_bill_no,
+  cast(get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.loanTime') as timestamp)     as loan_apply_time,
+  cast(get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.pactAmt') as decimal(15,4))  as loan_amount_apply,
+  cast(get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.loanTerm') as decimal(3,0))  as loan_terms,
+  is_empty(get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.appUse'))                as loan_usage,
+  case get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.appUse')
+    when '01' then '企业经营'
+    when '02' then '购置车辆'
+    when '03' then '装修'
+    when '04' then '子女教育(出国留学)'
+    when '05' then '购置古玩字画'
+    when '06' then '股票/期货等金融工具投资'
+    when '07' then '其他消费类'
+    else is_empty(get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.appUse'),'未知')
+  end                                                                                                             as loan_usage_cn,
+  get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.rpyMethod')                       as repay_type,
+  case get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.rpyMethod')
+    when '01' then '等本等息'
+    when '02' then '随借随还'
+    when '03' then '等额本息'
+    else is_empty(get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.rpyMethod'))
+  end                                                                                                             as repay_type_cn,
+  get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.lnRate') * 12 /100                as interest_rate,
+  cast(
+    is_empty(
+      get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.creditCoef'),
+      get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.lnRate')
+    ) as decimal(15,8)
+  ) * 12 /100                                                                                                     as credit_coef,
+  0                                                                                                               as penalty_rate,
+  case
+    when ecas_loan.loan_init_prin is not null then 1
+    when get_json_object(loan_apply.original_msg,'$.reqContent.jsonResp.rspData.pass') = 'Yes' then 4
+    when get_json_object(loan_apply.original_msg,'$.reqContent.jsonResp.rspData.pass') != 'Yes' then 5
+    else 2
+  end                                                                                                             as apply_status,
+  case
+    when ecas_loan.loan_init_prin is not null then '放款成功'
+    when get_json_object(loan_apply.original_msg,'$.reqContent.jsonResp.rspData.pass') = 'Yes' then '用信通过'
+    when get_json_object(loan_apply.original_msg,'$.reqContent.jsonResp.rspData.pass') != 'Yes' then '用信失败'
+    else '放款失败'
+  end                                                                                                             as apply_resut_msg,
+  cast(nvl(ecas_loan.active_date,get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.loanTime')) as timestamp) as issue_time,
+  case get_json_object(loan_apply.original_msg,'$.reqContent.jsonResp.rspData.pass')
+    when 'Yes' then cast(get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.pactAmt') as decimal(15,4))
+    else 0
+  end                                                                                                             as loan_amount_approval,
+  cast(is_empty(ecas_loan.loan_init_prin,0) as decimal(15,4))                                                     as loan_amount,
+  get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.scoreLevel')                      as risk_level,
+  null                                                                                                            as risk_score,
+  loan_apply.original_msg                                                                                         as ori_request,
+  null                                                                                                            as ori_response,
+  loan_apply.create_time                                                                                          as create_time,
+  loan_apply.update_time                                                                                          as update_time,
+  get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.loanDate')                        as biz_date,
+  loan_apply.product_id                                                                                           as product_id
 from (
+select
+t.create_time
+,t.update_time
+,t.original_msg
+,get_json_object(t.original_msg,'$.reqContent.jsonReq.content.reqData.applyNo') as due_bill_no
+,get_json_object(t.original_msg,'$.reqContent.jsonReq.content.reqData.proCode') as product_id
+from
+(
   select
-    *,
-    row_number() over(partition by apply_id,product_id order by update_time) as rn
-  from (
-    select
-      concat_ws('_',if(loan_apply.product_id in ('001801', '001901', '002001'), '0006',biz_conf.channel_id),sha256(get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.idNo'),'idNumber',1),sha256(get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.custName'),'userName',1)) as cust_id,
-      sha256(get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.idNo'),'idNumber',1)       as user_hash_no,
-      is_empty(
-        datefmt(get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.birth'),'yyyyMMdd','yyyy-MM-dd'),
-        datefmt(substring(get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.idNo'),7,8),'yyyyMMdd','yyyy-MM-dd')
-      )                                                                                                               as birthday,
-      age_birth(
-        is_empty(
-          datefmt(get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.birth'),'yyyyMMdd','yyyy-MM-dd'),
-          datefmt(substring(get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.idNo'),7,8),'yyyyMMdd','yyyy-MM-dd')
-        ),
-        is_empty(
-          ecas_loan.active_date,
-          get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.loanDate')
-        )
-      )                                                                                                               as age,
-      get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.applyNo')                         as pre_apply_no,
-      get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.applyNo')                         as apply_id,
-      get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.applyNo')                         as due_bill_no,
-      cast(get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.loanTime') as timestamp)     as loan_apply_time,
-      cast(get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.pactAmt') as decimal(15,4))  as loan_amount_apply,
-      cast(get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.loanTerm') as decimal(3,0))  as loan_terms,
-      is_empty(get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.appUse'))                as loan_usage,
-      case get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.appUse')
-        when '01' then '企业经营'
-        when '02' then '购置车辆'
-        when '03' then '装修'
-        when '04' then '子女教育(出国留学)'
-        when '05' then '购置古玩字画'
-        when '06' then '股票/期货等金融工具投资'
-        when '07' then '其他消费类'
-        else is_empty(get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.appUse'),'未知')
-      end                                                                                                             as loan_usage_cn,
-      get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.rpyMethod')                       as repay_type,
-      case get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.rpyMethod')
-        when '01' then '等本等息'
-        when '02' then '随借随还'
-        when '03' then '等额本息'
-        else is_empty(get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.rpyMethod'))
-      end                                                                                                             as repay_type_cn,
-      get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.lnRate') * 12 /100                as interest_rate,
-      cast(
-        is_empty(
-          get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.creditCoef'),
-          get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.lnRate')
-        ) as decimal(15,8)
-      ) * 12 /100                                                                                                     as credit_coef,
-      0                                                                                                               as penalty_rate,
-      case
-        when ecas_loan.loan_init_prin is not null then 1
-        when get_json_object(loan_apply.original_msg,'$.reqContent.jsonResp.rspData.pass') = 'Yes' then 4
-        when get_json_object(loan_apply.original_msg,'$.reqContent.jsonResp.rspData.pass') != 'Yes' then 5
-        else 2
-      end                                                                                                             as apply_status,
-      case
-        when ecas_loan.loan_init_prin is not null then '放款成功'
-        when get_json_object(loan_apply.original_msg,'$.reqContent.jsonResp.rspData.pass') = 'Yes' then '用信通过'
-        when get_json_object(loan_apply.original_msg,'$.reqContent.jsonResp.rspData.pass') != 'Yes' then '用信失败'
-        else '放款失败'
-      end                                                                                                             as apply_resut_msg,
-      cast(nvl(ecas_loan.active_date,get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.loanTime')) as timestamp) as issue_time,
-      case get_json_object(loan_apply.original_msg,'$.reqContent.jsonResp.rspData.pass')
-        when 'Yes' then cast(get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.pactAmt') as decimal(15,4))
-        else 0
-      end                                                                                                             as loan_amount_approval,
-      cast(is_empty(ecas_loan.loan_init_prin,0) as decimal(15,4))                                                     as loan_amount,
-      get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.scoreLevel')                      as risk_level,
-      null                                                                                                            as risk_score,
-      loan_apply.original_msg                                                                                         as ori_request,
-      null                                                                                                            as ori_response,
-      loan_apply.create_time                                                                                          as create_time,
-      loan_apply.update_time                                                                                          as update_time,
-      get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.loanDate')                        as biz_date,
-      loan_apply.product_id                                                                                           as product_id
-    from (
-    select
-    t.create_time
-    ,t.update_time
-    ,t.original_msg
-    ,get_json_object(t.original_msg,'$.reqContent.jsonReq.content.reqData.applyNo') as due_bill_no
-    ,get_json_object(t.original_msg,'$.reqContent.jsonReq.content.reqData.proCode') as product_id
-    from
-    (
-      select
-        datefmt(create_time,'ms','yyyy-MM-dd HH:mm:ss') as create_time,
-        datefmt(update_time,'ms','yyyy-MM-dd HH:mm:ss') as update_time,
-        replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(original_msg,'\\\\\"\\\{','\\\{'),'\\\}\\\\\"','\\\}'),'\\\"\\\{','\\\{'),'\\\}\\\"','\\\}'),'\\\\\\\\\\\\\"','\\\"'),'\\\\\"','\\\"'),'\\\\\\\\','\\\\'),'\\\\\"',"") as original_msg
-      from stage.ecas_msg_log
-      where 1 > 0
-        and msg_type = 'WIND_CONTROL_CREDIT'
-        and original_msg is not null
-        ${where_date}
-        ) t
-    ) as loan_apply
-    left join (
-      select distinct
-        due_bill_no,
-        loan_init_prin,
-        active_date,
-        product_code
-      from stage.ecas_loan
-      where 1 > 0
-        and p_type in ('lx','lx2','lxzt','lx3')
-        and d_date between date_sub(current_date,2) and current_date
-    ) as ecas_loan
-    on  loan_apply.due_bill_no = ecas_loan.due_bill_no
-    and loan_apply.product_id = ecas_loan.product_code
-    left join (
-      select distinct
-        product_id as dim_product_id,
-        channel_id
-      from (
-        select
-          max(if(col_name = 'product_id',  col_val,null)) as product_id,
-          max(if(col_name = 'channel_id',  col_val,null)) as channel_id
-        from dim.data_conf
-        where col_type = 'ac'
-        group by col_id
-      ) as tmp
-    ) as biz_conf
-    on loan_apply.product_id = biz_conf.dim_product_id
-    union all
-    select loan_apply.*
-    from ods.loan_apply
-    join (
-      select distinct
-        get_json_object(get_json_object(get_json_object(original_msg,'$.reqContent.jsonReq'),'$.content'),'$.reqData.loanDate') as biz_date,
-        get_json_object(get_json_object(get_json_object(original_msg,'$.reqContent.jsonReq'),'$.content'),'$.reqData.proCode') as product_id
-      from stage.ecas_msg_log
-      where 1 > 0
-        and msg_type = 'WIND_CONTROL_CREDIT'
-        and original_msg is not null
-        ${where_date}
-    ) as msg_log
-    on  loan_apply.biz_date   = msg_log.biz_date
-    and loan_apply.product_id = msg_log.product_id
-  ) as tmp
-) as tmp
-where rn = 1
--- limit 1
+    datefmt(create_time,'ms','yyyy-MM-dd HH:mm:ss') as create_time,
+    datefmt(update_time,'ms','yyyy-MM-dd HH:mm:ss') as update_time,
+    replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(original_msg,'\\\\\"\\\{','\\\{'),'\\\}\\\\\"','\\\}'),'\\\"\\\{','\\\{'),'\\\}\\\"','\\\}'),'\\\\\\\\\\\\\"','\\\"'),'\\\\\"','\\\"'),'\\\\\\\\','\\\\'),'\\\\\"',"") as original_msg
+  from stage.ecas_msg_log
+  where 1 > 0
+    and msg_type = 'WIND_CONTROL_CREDIT'
+    and original_msg is not null
+    and is_his='N'
+    ${where_date}
+    ) t
+) as loan_apply
+left join (
+  select distinct
+    due_bill_no,
+    loan_init_prin,
+    active_date,
+    product_code
+  from stage.ecas_loan
+  where 1 > 0
+    and p_type in ('lx','lx2','lxzt','lx3')
+    and d_date between date_sub(current_date,2) and current_date
+) as ecas_loan
+on  loan_apply.due_bill_no = ecas_loan.due_bill_no
+and loan_apply.product_id = ecas_loan.product_code
 ;
 
 
@@ -567,8 +428,8 @@ where rn = 1
 
 
 -- 瓜子
-set hivevar:where_date=and datefmt(update_time,'ms','yyyy-MM-dd') = '${ST9}';
-
+---set hivevar:where_date=and datefmt(update_time,'ms','yyyy-MM-dd') = '${ST9}';
+--预计执行时间 40s
 
 insert overwrite table ods.loan_apply partition(biz_date,product_id)
 select distinct *
@@ -655,7 +516,7 @@ from (
     where 1 > 0
       and msg_type = 'GZ_LOAN_APPLY'
       and original_msg is not null
-      ${where_date}
+      ---${where_date}
   ) as loan_apply
   left join (
     select
@@ -704,38 +565,9 @@ from (
     ) as tmp
   ) as biz_conf
   on get_json_object(credit_apply.original_msg,'$.data.product.productNo') = biz_conf.dim_product_id
-  union all
-  select loan_apply.*
-  from ods.loan_apply
-  join (
-    select distinct
-      biz_date,product_id
-    from (
-      select
-        least(
-          datefmt(create_time,'ms','yyyy-MM-dd'),
-          datefmt(get_json_object(original_msg,'$.timeStamp'),'ms','yyyy-MM-dd')
-        ) as biz_date
-      from stage.ecas_msg_log
-      where 1 > 0
-        and msg_type = 'GZ_LOAN_APPLY'
-        and original_msg is not null
-        ${where_date}
-    ) as loan_apply
-    join (
-      select distinct get_json_object(original_msg,'$.data.product.productNo') as product_id
-      from stage.ecas_msg_log
-      where 1 > 0
-        and msg_type = 'GZ_CREDIT_APPLY'
-        and original_msg is not null
-    ) as credit_apply
-    ) as msg_log
-  on  loan_apply.biz_date   = msg_log.biz_date
-  and loan_apply.product_id = msg_log.product_id
 ) as tmp
 -- limit 1
 ;
-
 
 
 
@@ -824,7 +656,7 @@ insert overwrite table ods.loan_apply partition(biz_date,product_id)
         concat('{"', concat_ws('","', collect_list(concat_ws('":"', k,v) ) ), '"}') as ori_request
       from stage.kafka_credit_msg
       lateral view outer explode(reqdata) kv as k,v
-      where batch_date between date_sub('${ST9}',2) and '${ST9}'
+      where batch_date between date_sub('${ST9}',7) and '${ST9}'
         and p_type = 'WS0013200001'
         and interfacename = 'WIND_CONTROL_CREDIT'
       group by reqdata["loanDate"],reqdata,resdata
@@ -954,7 +786,7 @@ insert overwrite table ods.loan_apply partition(biz_date,product_id)
         lateral view outer explode(reqdata) kv as k,v
       where 1 > 0
         and p_type = 'WS0012200001'
-        and batch_date between date_sub('${ST9}',2) and '${ST9}'
+        and batch_date between date_sub('${ST9}',7) and '${ST9}'
       group by reqdata["loanDate"],reqdata,resdata
     ) as loan_apply
     left join (
@@ -992,3 +824,473 @@ insert overwrite table ods.loan_apply partition(biz_date,product_id)
     on loan_apply.reqdata["proCode"] = biz_conf.dim_product_id
   ) as tmp
   ;
+--set hivevar:ST9=2021-06-15;
+--执行用时预估101s
+insert overwrite table ods.loan_apply partition(biz_date, product_id)
+select
+distinct *
+from
+ods.loan_apply
+where
+1 > 0 
+and biz_date >= date_sub('${ST9}',30)
+and product_id in ('002001', '001801', '001902', '002401', '002006', '001906', '002402', '001901', '001802', '002002')
+;
+  
+  --------------------------------------【全量跑乐信数据】--------------------------------------
+-- 乐信
+--执行用时预估1304s
+---set hive.execution.engine=mr;
+---set mapreduce.map.memory.mb=4096;
+---set mapreduce.reduce.memory.mb=4096;
+---set hive.exec.parallel=true;
+---set hive.exec.parallel.thread.number=20;
+---set hive.exec.dynamic.partition=true;
+---set hive.exec.dynamic.partition.mode=nonstrict;
+---set hive.exec.max.dynamic.partitions=200000;
+---set hive.exec.max.dynamic.partitions.pernode=50000;
+---set hive.auto.convert.join=false;
+---set hive.map.aggr=true;
+---set hive.merge.mapfiles=true;
+---set hive.merge.mapredfiles=true;
+---set hive.merge.size.per.task=1024000000;
+---set hive.merge.smallfiles.avgsize=1024000000;
+---set mapred.max.split.size=256000000;
+---set mapred.min.split.size.per.node=100000000;
+---set mapred.min.split.size.per.rack=100000000;
+-----explain
+---insert overwrite table ods.loan_apply partition(biz_date,product_id)
+---select
+---  cust_id,
+---  user_hash_no,
+---  birthday,
+---  age,
+---  pre_apply_no,
+---  apply_id,
+---  due_bill_no,
+---  loan_apply_time,
+---  loan_amount_apply,
+---  loan_terms,
+---  loan_usage,
+---  loan_usage_cn,
+---  repay_type,
+---  repay_type_cn,
+---  interest_rate,
+---  credit_coef,
+---  penalty_rate,
+---  apply_status,
+---  apply_resut_msg,
+---  issue_time,
+---  loan_amount_approval,
+---  loan_amount,
+---  risk_level,
+---  risk_score,
+---  ori_request,
+---  ori_response,
+---  create_time,
+---  update_time,
+---  biz_date,
+---  product_id
+---from (
+---  select
+---    *,
+---    row_number() over(partition by apply_id,product_id order by update_time) as rn
+---  from (
+---    select
+---      concat_ws('_','0006',sha256(get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.idNo'),'idNumber',1),sha256(get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.custName'),'userName',1)) as cust_id,
+---      sha256(get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.idNo'),'idNumber',1)       as user_hash_no,
+---      is_empty(
+---        datefmt(get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.birth'),'yyyyMMdd','yyyy-MM-dd'),
+---        datefmt(substring(get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.idNo'),7,8),'yyyyMMdd','yyyy-MM-dd')
+---      )                                                                                                               as birthday,
+---      age_birth(
+---        is_empty(
+---          datefmt(get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.birth'),'yyyyMMdd','yyyy-MM-dd'),
+---          datefmt(substring(get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.idNo'),7,8),'yyyyMMdd','yyyy-MM-dd')
+---        ),
+---        is_empty(
+---          ecas_loan.active_date,
+---          get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.loanDate')
+---        )
+---      )                                                                                                               as age,
+---      get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.applyNo')                         as pre_apply_no,
+---      get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.applyNo')                         as apply_id,
+---      get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.applyNo')                         as due_bill_no,
+---      cast(get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.loanTime') as timestamp)     as loan_apply_time,
+---      cast(get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.pactAmt') as decimal(15,4))  as loan_amount_apply,
+---      cast(get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.loanTerm') as decimal(3,0))  as loan_terms,
+---      is_empty(get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.appUse'))                as loan_usage,
+---      case get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.appUse')
+---        when '01' then '企业经营'
+---        when '02' then '购置车辆'
+---        when '03' then '装修'
+---        when '04' then '子女教育(出国留学)'
+---        when '05' then '购置古玩字画'
+---        when '06' then '股票/期货等金融工具投资'
+---        when '07' then '其他消费类'
+---        else is_empty(get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.appUse'),'未知')
+---      end                                                                                                             as loan_usage_cn,
+---      get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.rpyMethod')                       as repay_type,
+---      case get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.rpyMethod')
+---        when '01' then '等本等息'
+---        when '02' then '随借随还'
+---        when '03' then '等额本息'
+---        else is_empty(get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.rpyMethod'))
+---      end                                                                                                             as repay_type_cn,
+---      get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.lnRate') * 12 /100                as interest_rate,
+---      cast(
+---        is_empty(
+---          get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.creditCoef'),
+---          get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.lnRate')
+---        ) as decimal(15,8)
+---      ) * 12 /100                                                                                                     as credit_coef,
+---      0                                                                                                               as penalty_rate,
+---      case
+---        when ecas_loan.loan_init_prin is not null then 1
+---        when get_json_object(loan_apply.original_msg,'$.reqContent.jsonResp.rspData.pass') = 'Yes' then 4
+---        when get_json_object(loan_apply.original_msg,'$.reqContent.jsonResp.rspData.pass') != 'Yes' then 5
+---        else 2
+---      end                                                                                                             as apply_status,
+---      case
+---        when ecas_loan.loan_init_prin is not null then '放款成功'
+---        when get_json_object(loan_apply.original_msg,'$.reqContent.jsonResp.rspData.pass') = 'Yes' then '用信通过'
+---        when get_json_object(loan_apply.original_msg,'$.reqContent.jsonResp.rspData.pass') != 'Yes' then '用信失败'
+---        else '放款失败'
+---      end                                                                                                             as apply_resut_msg,
+---      cast(nvl(ecas_loan.active_date,get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.loanTime')) as timestamp) as issue_time,
+---      case get_json_object(loan_apply.original_msg,'$.reqContent.jsonResp.rspData.pass')
+---        when 'Yes' then cast(get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.pactAmt') as decimal(15,4))
+---        else 0
+---      end                                                                                                             as loan_amount_approval,
+---      cast(is_empty(ecas_loan.loan_init_prin,0) as decimal(15,4))                                                     as loan_amount,
+---      get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.scoreLevel')                      as risk_level,
+---      null                                                                                                            as risk_score,
+---      loan_apply.original_msg                                                                                         as ori_request,
+---      null                                                                                                            as ori_response,
+---      loan_apply.create_time                                                                                          as create_time,
+---      loan_apply.update_time                                                                                          as update_time,
+---      get_json_object(loan_apply.original_msg,'$.reqContent.jsonReq.content.reqData.loanDate')                        as biz_date,
+---      loan_apply.product_id                                                                                           as product_id
+---    from (
+---    select
+---    t.create_time
+---    ,t.update_time
+---    ,t.original_msg
+---    ,get_json_object(t.original_msg,'$.reqContent.jsonReq.content.reqData.applyNo') as due_bill_no
+---    ,get_json_object(t.original_msg,'$.reqContent.jsonReq.content.reqData.proCode') as product_id
+---    from
+---    (
+---      select
+---        datefmt(create_time,'ms','yyyy-MM-dd HH:mm:ss') as create_time,
+---        datefmt(update_time,'ms','yyyy-MM-dd HH:mm:ss') as update_time,
+---        replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(original_msg,'\\\\\"\\\{','\\\{'),'\\\}\\\\\"','\\\}'),'\\\"\\\{','\\\{'),'\\\}\\\"','\\\}'),'\\\\\\\\\\\\\"','\\\"'),'\\\\\"','\\\"'),'\\\\\\\\','\\\\'),'\\\\\"',"") as original_msg
+---      from stage.ecas_msg_log
+---      where 1 > 0
+---        and msg_type = 'WIND_CONTROL_CREDIT'
+---        and original_msg is not null
+---        --${where_date}
+---        ) t
+---    ) as loan_apply
+---    left join (
+---      select distinct
+---        due_bill_no,
+---        loan_init_prin,
+---        active_date,
+---        product_code
+---      from stage.ecas_loan
+---      where 1 > 0
+---        and p_type in ('lx','lx2','lxzt','lx3')
+---        and d_date between date_sub(current_date,2) and current_date
+---    ) as ecas_loan
+---    on  loan_apply.due_bill_no = ecas_loan.due_bill_no
+---    and loan_apply.product_id = ecas_loan.product_code
+---  ) as tmp
+---) as tmp
+---where rn = 1
+---;
+
+
+
+
+----- 新核心 乐信云信
+---set hive.exec.input.listing.max.threads=50;
+---set tez.grouping.min-size=50000000;
+---set tez.grouping.max-size=50000000;
+---set hive.exec.reducers.max=500;
+---
+----- 设置 Container 大小
+---set hive.tez.container.size=4096;
+---set tez.am.resource.memory.mb=4096;
+----- 合并小文件
+---set hive.merge.tezfiles=true;
+---set hive.merge.size.per.task=64000000;      -- 64M
+---set hive.merge.smallfiles.avgsize=64000000; -- 64M
+----- 设置动态分区
+---set hive.exec.dynamic.partition=true;
+---set hive.exec.dynamic.partition.mode=nonstrict;
+---set hive.exec.max.dynamic.partitions=200000;
+---set hive.exec.max.dynamic.partitions.pernode=50000;
+----- 禁用 Hive 矢量执行
+---set hive.vectorized.execution.enabled=false;
+---set hive.vectorized.execution.reduce.enabled=false;
+---set hive.vectorized.execution.reduce.groupby.enabled=false;
+---
+---set hive.auto.convert.join=false;
+---msck repair table stage.kafka_credit_msg;
+---
+---insert overwrite table ods.loan_apply partition(biz_date,product_id)
+---  select
+---    distinct *
+---  from (
+---    select
+---      concat_ws('_',biz_conf.channel_id,sha256(loan_apply.reqdata["idNo"],'idNumber',1),sha256(loan_apply.reqdata["custName"],'userName',1)) as cust_id,
+---      sha256(loan_apply.reqdata["idNo"],'idNumber',1)                                                     as user_hash_no,
+---      is_empty(
+---        datefmt(loan_apply.reqdata["birth"],'yyyyMMdd','yyyy-MM-dd'),
+---        datefmt(substring(loan_apply.reqdata["idNo"],7,8),'yyyyMMdd','yyyy-MM-dd')
+---      )                                                                                                   as birthday,
+---      age_birth(
+---        is_empty(
+---          datefmt(loan_apply.reqdata["birth"],'yyyyMMdd','yyyy-MM-dd'),
+---          datefmt(substring(loan_apply.reqdata["idNo"],7,8),'yyyyMMdd','yyyy-MM-dd')
+---        ),
+---        to_date(nvl(loan_contract.active_date,loan_apply.reqdata["loanDate"]))
+---      )                                                                                                   as age,
+---      loan_apply.reqdata["applyNo"]                                                                       as pre_apply_no,
+---      loan_apply.reqdata["applyNo"]                                                                       as apply_id,
+---      loan_contract.due_bill_no                                                                           as due_bill_no,
+---      cast(loan_apply.reqdata["loanDate"] as timestamp)                                                   as loan_apply_time,
+---      cast(loan_apply.reqdata["pactAmt"] as decimal(15,4))                                                as loan_amount_apply,
+---      cast(loan_apply.reqdata["loanTerm"] as decimal(3,0))                                                as loan_terms,
+---      is_empty(loan_apply.reqdata["appUse"])                                                              as loan_usage,
+---      case loan_apply.reqdata["appUse"]
+---        when '01' then '企业经营'
+---        when '02' then '购置车辆'
+---        when '03' then '装修'
+---        when '04' then '子女教育(出国留学)'
+---        when '05' then '购置古玩字画'
+---        when '06' then '股票/期货等金融工具投资'
+---        when '07' then '其他消费类'
+---        when '08' then '医美消费'
+---        else is_empty(loan_apply.reqdata["appUse"],'未知')
+---      end                                                                                                 as loan_usage_cn,
+---      loan_apply.reqdata["rpyMethod"]                                                                     as repay_type,
+---      case loan_apply.reqdata["rpyMethod"]
+---        when '01' then '等本等息'
+---        when '02' then '随借随还'
+---        when '03' then '等额本息'
+---        when '04' then '等本等费'
+---        else is_empty(loan_apply.reqdata["rpyMethod"])
+---      end                                                                                                 as repay_type_cn,
+---      loan_apply.reqdata["lnRate"] * 12 / 100                                                             as interest_rate,
+---      cast(nvl(loan_apply.reqdata["creditCoef"],loan_apply.reqdata["lnRate"])as decimal(15,8)) * 12 / 100 as credit_coef,
+---      0                                                                                                   as penalty_rate,
+---      case
+---        when loan_contract.loan_init_prin is not null then 1
+---        when loan_apply.resdata["pass"] = 'Yes' then 4
+---        when loan_apply.resdata["pass"] != 'Yes' then 5
+---        else 2
+---      end                                                                                                 as apply_status,
+---      case
+---        when loan_contract.loan_init_prin is not null then '放款成功'
+---        when loan_apply.resdata["pass"] = 'Yes' then '用信通过'
+---        when loan_apply.resdata["pass"] != 'Yes' then '用信失败'
+---        else '放款失败'
+---      end                                                                                                 as apply_resut_msg,
+---      cast(nvl(loan_contract.active_date,loan_apply.reqdata["loanDate"]) as timestamp)                    as issue_time,
+---      case loan_apply.resdata["pass"]
+---        when 'Yes' then cast(loan_apply.reqdata["pactAmt"] as decimal(15,4))
+---        else 0
+---      end                                                                                                 as loan_amount_approval,
+---      cast(is_empty(loan_contract.loan_init_prin,0) as decimal(15,4))                                     as loan_amount,
+---      loan_apply.reqdata["scoreLevel"]                                                                    as risk_level,
+---      null                                                                                                as risk_score,
+---      loan_apply.ori_request                                                                              as ori_request,
+---      null                                                                                                as ori_response,
+---      loan_apply.create_time                                                                              as create_time,
+---      loan_apply.update_time                                                                              as update_time,
+---      loan_apply.reqdata["loanDate"]                                                                      as biz_date,
+---      loan_apply.reqdata["proCode"]                                                                       as product_id
+---    from (
+---      select
+---        reqdata["loanDate"] as create_time,
+---        reqdata["loanDate"] as update_time,
+---        reqdata,
+---        resdata,
+---        concat('{"', concat_ws('","', collect_list(concat_ws('":"', k,v) ) ), '"}') as ori_request
+---      from stage.kafka_credit_msg
+---      lateral view outer explode(reqdata) kv as k,v
+---      where
+---        1 > 0     
+---        --batch_date between date_sub('${ST9}',7) and '${ST9}'
+---        and p_type = 'WS0013200001'
+---        and interfacename = 'WIND_CONTROL_CREDIT'
+---      group by reqdata["loanDate"],reqdata,resdata
+---    ) as loan_apply
+---    left join (
+---      select
+---        apply_no,
+---        due_bill_no,
+---        product_no,
+---        contract_amount as loan_init_prin,
+---        actual_loan_date as active_date
+---      from (
+---        select
+---          *,
+---          row_number() over(partition by due_bill_no order by batch_date desc) as rn
+---        from stage.loan_contract
+---        where
+---         1 > 0      
+---          --and d_date <= '${ST9}'
+---          and p_type = 'WS0013200001'
+---      ) as tmp
+---      where rn = 1
+---    ) as loan_contract
+---    on  loan_apply.reqdata["proCode"] = loan_contract.product_no
+---    and loan_apply.reqdata["applyNo"] = loan_contract.apply_no
+---    left join (
+---      select distinct
+---        product_id as dim_product_id,
+---        channel_id
+---      from (
+---        select
+---          max(if(col_name = 'product_id',  col_val,null)) as product_id,
+---          max(if(col_name = 'channel_id',  col_val,null)) as channel_id
+---        from dim.data_conf
+---        where col_type = 'ac'
+---        group by col_id
+---      ) as tmp
+---    ) as biz_conf
+---    on loan_apply.reqdata["proCode"] = biz_conf.dim_product_id
+---  ) as tmp
+---;
+
+
+
+
+
+-- 百度医美
+---insert overwrite table ods.loan_apply partition(biz_date,product_id)
+---  select
+---    distinct *
+---  from (
+---    select
+---      concat_ws('_',biz_conf.channel_id,sha256(loan_apply.reqdata["idNo"],'idNumber',1),sha256(loan_apply.reqdata["custName"],'userName',1)) as cust_id,
+---      sha256(loan_apply.reqdata["idNo"],'idNumber',1)                                                     as user_hash_no,
+---      is_empty(
+---        datefmt(loan_apply.reqdata["birth"],'yyyyMMdd','yyyy-MM-dd'),
+---        datefmt(substring(loan_apply.reqdata["idNo"],7,8),'yyyyMMdd','yyyy-MM-dd')
+---      )                                                                                                   as birthday,
+---      age_birth(
+---        is_empty(
+---          datefmt(loan_apply.reqdata["birth"],'yyyyMMdd','yyyy-MM-dd'),
+---          datefmt(substring(loan_apply.reqdata["idNo"],7,8),'yyyyMMdd','yyyy-MM-dd')
+---        ),
+---        to_date(nvl(loan_contract.active_date,loan_apply.reqdata["loanDate"]))
+---      )                                                                                                   as age,
+---      loan_apply.reqdata["applyNo"]                                                                       as pre_apply_no,
+---      loan_apply.reqdata["applyNo"]                                                                       as apply_id,
+---      loan_contract.due_bill_no                                                                           as due_bill_no,
+---      cast(loan_apply.reqdata["loanDate"] as timestamp)                                                   as loan_apply_time,
+---      cast(loan_apply.reqdata["pactAmt"] as decimal(15,4))                                                as loan_amount_apply,
+---      cast(loan_apply.reqdata["loanTerm"] as decimal(3,0))                                                as loan_terms,
+---      is_empty(loan_apply.reqdata["appUse"])                                                              as loan_usage,
+---      case loan_apply.reqdata["appUse"]
+---        when '01' then '企业经营'
+---        when '02' then '购置车辆'
+---        when '03' then '装修'
+---        when '04' then '子女教育(出国留学)'
+---        when '05' then '购置古玩字画'
+---        when '06' then '股票/期货等金融工具投资'
+---        when '07' then '其他消费类'
+---        when '08' then '医美消费'
+---        else is_empty(loan_apply.reqdata["appUse"],'未知')
+---      end                                                                                                 as loan_usage_cn,
+---      loan_apply.reqdata["rpyMethod"]                                                                     as repay_type,
+---      case loan_apply.reqdata["rpyMethod"]
+---        when '01' then '等本等息'
+---        when '02' then '随借随还'
+---        when '03' then '等额本息'
+---        when '04' then '等本等费'
+---        else is_empty(loan_apply.reqdata["rpyMethod"])
+---      end                                                                                                 as repay_type_cn,
+---      loan_apply.reqdata["lnRate"] * 12 / 100                                                             as interest_rate,
+---      cast(nvl(loan_apply.reqdata["creditCoef"],loan_apply.reqdata["lnRate"])as decimal(15,8)) * 12 / 100 as credit_coef,
+---      0                                                                                                   as penalty_rate,
+---      case
+---        when loan_contract.loan_init_prin is not null then 1
+---        when loan_apply.resdata["pass"] = 'Yes' then 4
+---        when loan_apply.resdata["pass"] != 'Yes' then 5
+---        else 2
+---      end                                                                                                 as apply_status,
+---      case
+---        when loan_contract.loan_init_prin is not null then '放款成功'
+---        when loan_apply.resdata["pass"] = 'Yes' then '用信通过'
+---        when loan_apply.resdata["pass"] != 'Yes' then '用信失败'
+---        else '放款失败'
+---      end                                                                                                 as apply_resut_msg,
+---      cast(nvl(loan_contract.active_date,loan_apply.reqdata["loanDate"]) as timestamp)                    as issue_time,
+---      case loan_apply.resdata["pass"]
+---        when 'Yes' then cast(loan_apply.reqdata["pactAmt"] as decimal(15,4))
+---        else 0
+---      end                                                                                                 as loan_amount_approval,
+---      cast(is_empty(loan_contract.loan_init_prin,0) as decimal(15,4))                                     as loan_amount,
+---      loan_apply.reqdata["scoreLevel"]                                                                    as risk_level,
+---      null                                                                                                as risk_score,
+---      loan_apply.ori_request                                                                              as ori_request,
+---      null                                                                                                as ori_response,
+---      loan_apply.create_time                                                                              as create_time,
+---      loan_apply.update_time                                                                              as update_time,
+---      loan_apply.reqdata["loanDate"]                                                                      as biz_date,
+---      loan_apply.reqdata["proCode"]                                                                       as product_id
+---    from (
+---      select
+---        reqdata["loanDate"] as create_time,
+---        reqdata["loanDate"] as update_time,
+---        reqdata,
+---        resdata,
+---        concat('{"', concat_ws('","', collect_list(concat_ws('":"', k,v) ) ), '"}') as ori_request
+---      from stage.kafka_credit_msg
+---        lateral view outer explode(reqdata) kv as k,v
+---      where 1 > 0
+---        and p_type = 'WS0012200001'
+---        --and batch_date between date_sub('${ST9}',7) and '${ST9}'
+---      group by reqdata["loanDate"],reqdata,resdata
+---    ) as loan_apply
+---    left join (
+---      select
+---        apply_no,
+---        due_bill_no,
+---        product_no,
+---        contract_amount as loan_init_prin,
+---        actual_loan_date as active_date
+---      from (
+---        select
+---          *,
+---          row_number() over(partition by due_bill_no order by batch_date desc) as rn
+---        from stage.loan_contract
+---        where 
+---          1 >0
+---          --and d_date <= '${ST9}'
+---          and p_type = 'WS0012200001'
+---        ) as tmp
+---      where rn = 1
+---    ) as loan_contract
+---    on  loan_apply.reqdata["proCode"] = loan_contract.product_no
+---    and loan_apply.reqdata["applyNo"] = loan_contract.apply_no
+---    left join (
+---      select distinct
+---        product_id as dim_product_id,
+---        channel_id
+---      from (
+---        select
+---          max(if(col_name = 'product_id',  col_val,null)) as product_id,
+---          max(if(col_name = 'channel_id',  col_val,null)) as channel_id
+---        from dim.data_conf
+---        where col_type = 'ac'
+---        group by col_id
+---      ) as tmp
+---    ) as biz_conf
+---    on loan_apply.reqdata["proCode"] = biz_conf.dim_product_id
+---  ) as tmp
+---  ;

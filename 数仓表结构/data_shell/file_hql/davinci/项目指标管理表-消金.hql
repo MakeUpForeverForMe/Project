@@ -20,7 +20,23 @@ nvl(overdue_remain_principal,0)                                                 
 if(nvl(contract_minus_refund_amount,0)=0,0,nvl(overdue_remain_principal,0)/nvl(contract_minus_refund_amount,0))  as overdue1plus_rate
 from
 (
-select distinct project_id from dim_new.biz_conf where channel_id='0006'
+select
+project_id
+from
+(
+select distinct
+       project_id
+       from (
+             select
+               max(if(col_name = 'channel_id',   col_val,null)) as channel_id,
+               max(if(col_name = 'project_id',   col_val,null)) as project_id
+             from dim.data_conf
+             where col_type = 'ac'
+             group by col_id
+       )tmp
+    where tmp.channel_id='0006'
+	)a
+
 )biz_conf
 left join
 (

@@ -23,7 +23,7 @@ from (
       t1.due_bill_no,
       case t1.loan_status_cn when '已还清' then '已结清' else t1.loan_status_cn end loan_status_cn,
       t1.biz_date as s_d_date,
-      lead(t1.biz_date,1,'3000-12-31') over(partition by t3.project_id,t1.due_bill_no,t1.loan_term,t1.should_repay_date order by t1.biz_date) as e_d_date
+      lead(t1.biz_date,1,'3000-12-31') over(partition by t3.project_id,t1.due_bill_no order by t1.biz_date) as e_d_date
     from ods.loan_info_inter as t1
     join dim.project_due_bill_no as t3
     on  t1.product_id  = t3.partition_id
@@ -93,9 +93,16 @@ where 1 > 0
     'CL202106110115',
 
     -- 汇通应收ABN
-    'CL202011090089',
+    -- 'CL202011090089',
     ''
   )
   and (
     nvl(ods.due_bill_no,null)      is null or
-    nvl(stage.du
+    nvl(stage.due_bill_no,null)    is null or
+    nvl(ods.loan_status_cn,null)   is null or
+    nvl(stage.loan_status_cn,null) is null or
+    false
+  )
+order by project_id,due
+limit 100
+;
